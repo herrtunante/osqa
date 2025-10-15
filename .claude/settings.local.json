@@ -43,7 +43,18 @@
       "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test pip list)",
       "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test python -c \"import sgmllib3k; print(''OK'')\")",
       "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test pip show -f sgmllib3k)",
-      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm -p 8000:8000 osqa-django42-test python manage.py runserver 0.0.0.0:8000)"
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm -p 8000:8000 osqa-django42-test python manage.py runserver 0.0.0.0:8000)",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test python manage.py runserver 0.0.0.0:8000)",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test python manage.py check)",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test timeout 30 python manage.py runserver 0.0.0.0:8000)",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test python -c \"from forum import views\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 10 python manage.py runserver 0.0.0.0:8000 2>&1 | grep -E ''(Starting|Quit|Watching|error|Error|Traceback)'' || echo ''Timeout reached''\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 10 python manage.py runserver 0.0.0.0:8000 2>&1 | head -100\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 15 python manage.py runserver 0.0.0.0:8000 2>&1 | grep -E ''(Starting|Quit|Watching|Performing|System check)''\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 15 python manage.py runserver 0.0.0.0:8000 2>&1 | head -150\")",
+      "Bash(\"/mnt/c/Program/Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 20 python manage.py runserver 0.0.0.0:8000 2>&1 |  tail -50\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 20 python manage.py runserver 0.0.0.0:8000 2>&1 | tail -50\")",
+      "Bash(\"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe\" run --rm osqa-django42-test bash -c \"timeout 25 python manage.py runserver 0.0.0.0:8000 2>&1\")"
     ],
     "deny": [],
     "ask": []

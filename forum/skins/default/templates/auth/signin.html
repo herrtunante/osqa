@@ -52,17 +52,17 @@
         {% for provider in bigicon_providers %}
             <div class="provider_logo big" name="{{ provider.id }}">
                 <div class="inner">
-                    {% ifequal provider.type "DIRECT" %}
+                    {% if provider.type == "DIRECT" %}
                         <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
                             <img src="{% media provider.icon %}" />
                         </a>
-                    {% endifequal %}
-                    {% ifequal provider.type "CUSTOM" %}
+                    {% endif %}
+                    {% if provider.type == "CUSTOM" %}
                         {% include provider.code_template %}
-                    {% endifequal %}
-                    {% ifequal provider.type "SIMPLE_FORM" %}
+                    {% endif %}
+                    {% if provider.type == "SIMPLE_FORM" %}
                         <img alt="{{ provider.simple_form_context.your_what }}" class="simple_form_provider" src="{% media provider.icon %}" />
-                    {% endifequal %}
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
@@ -71,17 +71,17 @@
         {% for provider in smallicon_providers %}
             <div class="provider_logo small" name="{{ provider.id }}">
                 <div class="inner">
-                    {% ifequal provider.type "DIRECT" %}
+                    {% if provider.type == "DIRECT" %}
                         <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
                             <img src="{% media provider.icon %}" />
                         </a>
-                    {% endifequal %}
-                    {% ifequal provider.type "CUSTOM" %}
+                    {% endif %}
+                    {% if provider.type == "CUSTOM" %}
                         {% include provider.code_template %}
-                    {% endifequal %}
-                    {% ifequal provider.type "SIMPLE_FORM" %}
+                    {% endif %}
+                    {% if provider.type == "SIMPLE_FORM" %}
                         <img alt="{{ provider.simple_form_context.your_what }}" class="simple_form_provider" src="{% media provider.icon %}" />
-                    {% endifequal %}
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}

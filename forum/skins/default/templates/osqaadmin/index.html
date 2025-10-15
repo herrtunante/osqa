@@ -38,21 +38,21 @@
                 <table>
                     <tr>
                         <td>
-                            {% ifequal settings_pack "bootstrap" %}
+                            {% if settings_pack == "bootstrap" %}
                                 {% trans "Your site is running in bootstrap mode, click the button below to revert to defaults." %}<br />
                             {% else %}
-                                {% ifequal settings_pack "default" %}
+                                {% if settings_pack == "default" %}
                                     {% trans "Your site is running in standard mode, click the button below to run in bootstrap mode." %}<br />
                                 {% else %}
                                     {% trans "Your site is running with some customized settings, click the buttons below to run with defaults or in bootstrap mode" %}
-                                {% endifequal %}
-                            {% endifequal %}
-                            {% ifnotequal settings_pack "default" %}
+                                {% endif %}
+                            {% endif %}
+                            {% if settings_pack != "default" %}
                                 <button onclick="if (window.confirm('{% trans "Are you sure you want to revert to the defaults?" %}')) window.location='{% url "admin_go_defaults" %}';">{% trans "revert to defaults" %}</button>
-                            {% endifnotequal %}
-                            {% ifnotequal settings_pack "bootstrap" %}
+                            {% endif %}
+                            {% if settings_pack != "bootstrap" %}
                                 <button onclick="if (window.confirm('{% trans "Are you sure you want to run bootstrap mode?" %}')) window.location='{% url "admin_go_bootstrap" %}';">{% trans "go bootstrap" %}</button>
-                            {% endifnotequal %}
+                            {% endif %}
                         </td>
                     </tr>
                     <tr>

@@ -42,12 +42,12 @@
     {% endfor %}
 </div>
 <div id="comment-tools-{{ post.id }}" class="comment-tools">
-    {% ifnotequal showing total %}
+    {% if showing != total %}
         <span class="comments-showing">
             {% blocktrans %}showing {{ showing }} of {{ total }}{% endblocktrans %}
         </span>
         <a href="#" class="show-all-comments-link">{% blocktrans %}show {{ more_comments_count }} more comments{% endblocktrans %}</a>
-    {% endifnotequal %}
+    {% endif %}
     {% if can_comment %}
         <a href="#" class="add-comment-link">{% trans "add new comment" %}</a>
     {% endif %}

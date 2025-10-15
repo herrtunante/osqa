@@ -3,7 +3,7 @@
 <div class="tabBar">
     <div class="tabsA">
         {% loopregistry profile_tabs %}{% spaceless %}
-            <a title="{{ tab_description }}" id="{{ tab_name }}" {% ifequal active_tab tab_name %}class="on"{% endifequal %} href="{{ tab_url }}">
+            <a title="{{ tab_description }}" id="{{ tab_name }}" {% if active_tab == tab_name %}class="on"{% endif %} href="{{ tab_url }}">
                 {{ tab_title }}
             </a>
         {% endspaceless %}{% endloopregistry %}

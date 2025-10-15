@@ -280,17 +280,17 @@
                     <ul>
                         <li>
                             <label>
-                                <input type="radio" name="text_in" value="title"{% ifequal text_in "title" %} checked="checked"{% endifequal %} />
+                                <input type="radio" name="text_in" value="title"{% if text_in == "title" %} checked="checked"{% endif %} />
                             {% trans "Title" %}</label>
                         </li>
                         <li>
                             <label>
-                                <input type="radio" name="text_in" value="body"{% ifequal text_in "body" %} checked="checked"{% endifequal %} />
+                                <input type="radio" name="text_in" value="body"{% if text_in == "body" %} checked="checked"{% endif %} />
                             {% trans "Body" %}</label>
                         </li>
                         <li>
                             <label>
-                                <input type="radio" name="text_in" value="both"{% ifequal text_in "both" %} checked="checked"{% endifequal %} />
+                                <input type="radio" name="text_in" value="both"{% if text_in == "both" %} checked="checked"{% endif %} />
                             {% trans "Title and Body" %}</label>
                        </li>
                     </ul>
@@ -346,8 +346,8 @@
                 {% endfor %}
                 <li>
                     <select id="state-filter-type">
-                        <option value="any"{% ifequal state_filter_type "any" %} selected="selected"{% endifequal %}>{% trans "Match any selected" %}</option>
-                        <option value="all"{% ifequal state_filter_type "all" %} selected="selected"{% endifequal %}>{% trans "Match all selected" %}</option>
+                        <option value="any"{% if state_filter_type == "any" %} selected="selected"{% endif %}>{% trans "Match any selected" %}</option>
+                        <option value="all"{% if state_filter_type == "all" %} selected="selected"{% endif %}>{% trans "Match all selected" %}</option>
                     </select>
                 </li>
             </ul>

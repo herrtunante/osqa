@@ -154,7 +154,7 @@
 
                 {% for answer in answers.paginator.page %}
                     <a name="{{ answer.id }}"></a>
-                    <div id="answer-container-{{ answer.id }}" class="answer {% post_classes answer %}{% ifequal answer.id focused_answer_id %} focusedAnswer{% endifequal %}">
+                    <div id="answer-container-{{ answer.id }}" class="answer {% post_classes answer %}{% if answer.id == focused_answer_id %} focusedAnswer{% endif %}">
                         <table style="width:100%;">
                             <tr>
                                 <td style="width:30px;vertical-align:top">
@@ -208,11 +208,11 @@
                     <div class="message">{% trans "You can answer anonymously and then login." %}</div>
                 {% else %}
                     <p class="message">
-                        {% ifequal request.user question.author  %}
+                        {% if request.user == question.author %}
                             {% trans "Answer your own question only to give an answer." %}
                         {% else %}
                             {% trans "Please only give an answer, no discussions." %}
-                        {% endifequal %}
+                        {% endif %}
                         {% if not request.user.email_valid_and_can_answer %}
                             {% blocktrans %}Remember, your answer will not be published until you validate your email.{% endblocktrans %}
                             <a href="{% url "send_validation_email" %}">{% trans "Send me a validation link." %}</a>

@@ -17,10 +17,10 @@
                 <strong>{% diff_date node.last_edited.at %}</strong>
             </a>
         </p>
-        {% ifnotequal node.author node.last_edited.by %}
+        {% if node.author != node.last_edited.by %}
             {% gravatar node.last_edited.by 32 %}
             <p><a {% if node.last_edited.by.is_suspended %}class="suspended-user" {% endif %}href="{{ node.last_edited.by.get_profile_url }}">{{ node.last_edited.by.decorated_name }}</a><br/>
             {% get_score_badge node.last_edited.by %}</p>
-        {% endifnotequal %}
+        {% endif %}
     </div>
 {% endif %}

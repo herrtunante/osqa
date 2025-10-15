@@ -1,12 +1,12 @@
 {% load i18n extra_filters %}{% spaceless %}
 
 {% if not user.is_suspended %}
-    {% ifequal format "full" %}
+    {% if format == "full" %}
 
     {% else %}
         <a href="{{ user.get_absolute_url }}">{{ user.decorated_name }}</a>
         <span class="score" title="{{ user.reputation }} {% trans "reputation" %}">{{ user.reputation|decorated_int:"" }}</span>
-        {% ifequal format "badges" %}
+        {% if format == "badges" %}
             {% if user.gold %}
             <span title="{{ user.gold }} {% trans "badges" %}">
                 <span class="badge1">&#9679;</span>
@@ -25,8 +25,8 @@
                 <span class="badgecount">{{ user.bronze }}</span>
             </span>
             {% endif %}
-        {% endifequal %}
-    {% endifequal %}
+        {% endif %}
+    {% endif %}
 {% else %}
     <a class="suspended-user" href="{{ user.get_absolute_url }}">{{ user.decorated_name }}</a>{% trans "(suspended)" %}
 {% endif %}

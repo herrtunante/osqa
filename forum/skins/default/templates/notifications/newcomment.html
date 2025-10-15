@@ -19,9 +19,9 @@
     {% htmlcontent notifications/base.html %}
         <p style="{{ p_style }}">
             {% blocktrans %}{{ author_link }} has just posted a comment on {% endblocktrans %}
-            {% ifnotequal post question %}
+            {% if post != question %}
                 {% blocktrans %}the answer posted by {{ post_author }} to {% endblocktrans %}
-            {% endifnotequal %}
+            {% endif %}
             {% blocktrans %}the question {{ question_link }}{% endblocktrans %}
         </p>
 
@@ -34,9 +34,9 @@
 
 {% textcontent notifications/base_text.html %}
 {% blocktrans %}{{ comment_author }} has just posted a comment on {% endblocktrans %}
-{% ifnotequal post question %}
+{% if post != question %}
 {% blocktrans %}the answer posted by {{ safe_post_author }} to {% endblocktrans %}
-{% endifnotequal %}
+{% endif %}
 {% blocktrans %}the question "{{ question_title }}"{% endblocktrans %}
 {{ safe_body }}
 

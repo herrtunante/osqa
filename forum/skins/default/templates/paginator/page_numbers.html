@@ -8,11 +8,11 @@
     {% for range in page_numbers %}
         {% if range %}
             {% for num, url in range %}
-                {% ifequal num current %}
+                {% if num == current %}
                     <span class="curr this_page">{{ num }}</span>
                 {% else %}
                      <a class="page" href="{{ url }}" >{{ num }}</a>
-                {% endifequal %}
+                {% endif %}
             {% endfor %}
         {% else %}
           ...

@@ -3,10 +3,10 @@
 {% load i18n %}
 
 {% block subtitle %}
-    {% ifequal mode "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endifequal %}
+    {% if mode == "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endif %}
 {% endblock %}
 {% block description %}
-    {% ifequal mode "exporter" %}{% trans "Export database to XML format" %}{% else %}{% trans "Restore data from a previous export" %}{% endifequal %}
+    {% if mode == "exporter" %}{% trans "Export database to XML format" %}{% else %}{% trans "Restore data from a previous export" %}{% endif %}
 {% endblock %}
 
 {% block adminjs %}
@@ -49,7 +49,7 @@
 
     <script type="text/javascript">
     $(function() {
-        var exporting = {% ifequal mode "exporter" %}true{% else %}false{% endifequal %};
+        var exporting = {% if mode == "exporter" %}true{% else %}false{% endif %};
 
         var state = null;
 
@@ -131,11 +131,11 @@
 
 {% block admincontent %}
     <p id="wait_message">
-        {% ifequal mode "exporter" %}
+        {% if mode == "exporter" %}
             {% trans "Please wait while we prepare your backup file to download." %}
         {% else %}
             {% trans "Please wait while we import your data." %}
-        {% endifequal %} -
+        {% endif %} -
         {% blocktrans %}
             Started <span id="time_started"></span>
         {% endblocktrans %}

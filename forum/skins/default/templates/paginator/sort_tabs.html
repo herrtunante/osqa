@@ -2,7 +2,7 @@
 {% spaceless %}
 <div class="tabsA">
     {% for name, label, url, descr in sorts %}
-        <a href="{{ url }}"{% ifequal current name %} class="on"{% endifequal %} title="{{ descr }}">{{ label }}</a>
+        <a href="{{ url }}"{% if current == name %} class="on"{% endif %} title="{{ descr }}">{{ label }}</a>
     {% endfor %}
     {% comment %}
     <span class="sticky-sort-tabs">

@@ -4,9 +4,9 @@
     <span class="action-link">
         <a rel="nofollow" title="{{ control.title }}" class="{{ control.classes }}" href="{{ control.url }}">{{ control.text }}</a>
     </span>
-    {% ifnotequal controls|last control %}
+    {% if controls|last != control %}
         <span class="action-link-separator">|</span>
-    {% endifnotequal %}
+    {% endif %}
 {% endfor %}
 {% if menu|length %}
     <span class="action-link-separator">|</span>

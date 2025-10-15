@@ -101,23 +101,23 @@
         </div>
         {% endblock %}
         {% if settings.USE_CUSTOM_FOOTER|or_preview:request %}
-            {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "above" %}
+            {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "above" %}
                 <div id="custom_footer">
                     {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
                 </div>
-            {% endifequal %}
+            {% endif %}
             <div id="ground">
-                {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "replace" %}
+                {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "replace" %}
                     {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
                 {% else %}
                     {% include "footer.html" %}
-                {% endifequal %}
+                {% endif %}
             </div>
-            {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "below" %}
+            {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "below" %}
                 <div id="custom_footer">
                     {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
                 </div>
-            {% endifequal %}
+            {% endif %}
         {% else %}
             <div id="ground">
                 {% include "footer.html" %}

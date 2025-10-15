@@ -41,7 +41,7 @@
     <div id="revisions">
     {% for revision in revisions %}
       <div class="revision">
-        <div id="rev-header-{{ revision.inst.revision }}" class="header {% ifequal post.author revision.inst.author %}author{% endifequal %}">
+        <div id="rev-header-{{ revision.inst.revision }}" class="header {% if post.author == revision.inst.author %}author{% endif %}">
           <div class="header-controls">
             <table width="100%">
                 <tr>
