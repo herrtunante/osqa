@@ -1,10 +1,10 @@
-from django.utils.translation import ugettext as _
-from django.utils.encoding import smart_unicode
+from django.utils.translation import gettext as _
+from django.utils.encoding import smart_str
 
-from utils import PickledObjectField
+from .utils import PickledObjectField
 from threading import Thread
 from forum.utils import html
-from base import *
+from .base import *
 import re
 
 class ActionQuerySet(CachedQuerySet):
@@ -42,17 +42,17 @@ class ActionManager(CachedManager):
 
 
 class Action(BaseModel):
-    user = models.ForeignKey('User', related_name="actions")
-    real_user = models.ForeignKey('User', related_name="proxied_actions", null=True)
+    user = models.ForeignKey('User', related_name="actions", on_delete=models.CASCADE)
+    real_user = models.ForeignKey('User', related_name="proxied_actions", null=True, on_delete=models.CASCADE)
     ip   = models.CharField(max_length=39)
-    node = models.ForeignKey('Node', null=True, related_name="actions")
+    node = models.ForeignKey('Node', null=True, related_name="actions", on_delete=models.CASCADE)
     action_type = models.CharField(max_length=32)
     action_date = models.DateTimeField(default=datetime.datetime.now)
 
     extra = PickledObjectField()
 
     canceled = models.BooleanField(default=False)
-    canceled_by = models.ForeignKey('User', null=True, related_name="canceled_actions")
+    canceled_by = models.ForeignKey('User', null=True, related_name="canceled_actions", on_delete=models.CASCADE)
     canceled_at = models.DateTimeField(null=True)
     canceled_ip = models.CharField(max_length=39)
 
@@ -215,10 +215,10 @@ class ActionProxy(Action):
     __metaclass__ = ActionProxyMetaClass
 
     def friendly_username(self, viewer, user):
-        return (viewer == user) and _('You') or smart_unicode(user.username)
+        return (viewer == user) and _('You') or smart_str(user.username)
 
     def friendly_ownername(self, owner, user):
-        return (owner == user) and _('your') or smart_unicode(user.username)
+        return (owner == user) and _('your') or smart_str(user.username)
 
     def viewer_or_user_verb(self, viewer, user, viewer_verb, user_verb):
         return (viewer == user) and viewer_verb or user_verb
@@ -285,9 +285,9 @@ class DummyActionProxy(object):
 
 
 class ActionRepute(models.Model):
-    action = models.ForeignKey(Action, related_name='reputes')
+    action = models.ForeignKey(Action, related_name='reputes', on_delete=models.CASCADE)
     date = models.DateTimeField(default=datetime.datetime.now)
-    user = models.ForeignKey('User', related_name='reputes')
+    user = models.ForeignKey('User', related_name='reputes', on_delete=models.CASCADE)
     value = models.IntegerField(default=0)
     by_canceled = models.BooleanField(default=False)
 

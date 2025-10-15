@@ -5,9 +5,9 @@ import time
 import re
 import os
 import gc
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_str
 
 try:
     from cPickle import loads, dumps
@@ -91,7 +91,7 @@ def readTable(path, name, callback):
 
 
 def dbsafe_encode(value):
-    return force_unicode(b64encode(compress(dumps(deepcopy(value)))))
+    return force_str(b64encode(compress(dumps(deepcopy(value)))))
 
 def getText(el):
     rc = ""
@@ -158,7 +158,7 @@ class UnknownUser(object):
     def __str__(self):
         return _("user-%(id)s") % {'id': self._id}
 
-    def __unicode__(self):
+    def __str__(self):
         return self.__str__()
 
     def encode(self, *args):
@@ -236,7 +236,7 @@ def userimport(path, options):
             badges.update(dict([b.split('=') for b in sxbadges.split()]))
 
         if create:
-            username = unicode(sxu.get('displayname',
+            username = str(sxu.get('displayname',
                                sxu.get('displaynamecleaned', sxu.get('realname', final_username_attempt(sxu)))))[:30]
 
             if username in usernames:
@@ -862,7 +862,7 @@ html_codes = (
 )
 
 def html_decode(html):
-    html = force_unicode(html)
+    html = force_str(html)
 
     for args in html_codes:
         html = html.replace(*args)
@@ -874,7 +874,7 @@ def static_import(dump):
     sx_unknown = {}
 
     def callback(set):
-        if unicode(set['name']) in sx2osqa_set_map:
+        if str(set['name']) in sx2osqa_set_map:
             save_setting(sx2osqa_set_map[set['name']], dbsafe_encode(html_decode(set['value'])))
         else:
             sx_unknown[set['name']] = html_decode(set['value'])

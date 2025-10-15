@@ -11,13 +11,26 @@ MIDDLEWARE_CLASSES = (
 )
 
 def my_view(request):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = None
+        if hasattr(self, "process_request"):
+            response = self.process_request(request)
+        if response is None:
+            response = self.get_response(request)
+        if hasattr(self, "process_response"):
+            response = self.process_response(request, response)
+        return response
+
     request.COOKIES.set([args])
     ...
     return response
 """
 
 from Cookie import SimpleCookie, Morsel
-from django.utils.encoding import smart_unicode, smart_str
+from django.utils.encoding import smart_str, smart_str
 import copy
 
 class CookiePreHandlerMiddleware(object):
@@ -31,7 +44,7 @@ class CookiePreHandlerMiddleware(object):
     """
     def process_request(self, request):
         cookies = CookieHandler()
-        for k, v in request.COOKIES.iteritems():
+        for k, v in request.COOKIES.items():
             cookies[k] = str(v)
         request.COOKIES = cookies
         request._orig_cookies = copy.deepcopy(request.COOKIES)
@@ -44,7 +57,7 @@ class CookiePostHandlerMiddleware(object):
     """
     def process_response(self, request, response):
         if hasattr(request, '_orig_cookies') and request.COOKIES != request._orig_cookies:
-            for k,v in request.COOKIES.iteritems():
+            for k,v in request.COOKIES.items():
                 if request._orig_cookies.get(k) != v:
                     dict.__setitem__(response.cookies, k, v)
         return response
@@ -68,7 +81,7 @@ class StringMorsel(Morsel):
         return True
 
     def __repr__(self):
-        return smart_unicode(self)
+        return smart_str(self)
 
     def decode(self, *args):
         return self.__repr__()

@@ -5,16 +5,15 @@ import logging
 from datetime import datetime
 
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse
-from django.template import RequestContext
-from django.utils.translation import ugettext as _
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from forum.modules import ui, decorate
 from forum.settings import ONLINE_USERS
 
 def login_required(func, request, *args, **kwargs):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse('auth_signin'))
     else:
         return func(request, *args, **kwargs)
@@ -22,7 +21,7 @@ def login_required(func, request, *args, **kwargs):
 def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
     def decorator(func):        
         def decorated(context, request, *args, **kwargs):
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 ONLINE_USERS[request.user] = datetime.now()
 
             if isinstance(context, HttpResponse):
@@ -31,8 +30,7 @@ def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
             if tab is not None:
                 context['tab'] = tab
 
-            return render_to_response(context.pop('template', template), context,
-                                      context_instance=RequestContext(request))
+            return render(context.pop('template', template), context)
 
         if tabbed and tab and tab_title:
             ui.register(ui.PAGE_TOP_TABS,

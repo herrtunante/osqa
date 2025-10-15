@@ -2,16 +2,15 @@
 import datetime
 import logging
 from urllib import unquote
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
-from django.template import RequestContext
 from django import template
 from django.utils.html import *
-from django.utils.http import urlquote
+from urllib.parse import quote as urlquote
 from django.db.models import Q, Count
-from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
+from django.utils.translation import gettext as _
+from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
@@ -94,7 +93,7 @@ def feed(request):
                 settings.APP_TITLE + _(' - ')+ _('latest questions'),
                 settings.APP_DESCRIPTION)(request)
 
-@decorators.render('index.html')
+@decorators.render(request, 'index.html')
 def index(request):
     paginator_context = QuestionListPaginatorContext()
     paginator_context.base_path = reverse('questions')
@@ -104,7 +103,7 @@ def index(request):
                          feed_url=reverse('latest_questions_feed'),
                          paginator_context=paginator_context)
 
-@decorators.render('questions.html', 'unanswered', _('unanswered'), weight=400)
+@decorators.render(request, 'questions.html', 'unanswered', _('unanswered'), weight=400)
 def unanswered(request):
     return question_list(request,
                          Question.objects.exclude(id__in=Question.objects.filter(children__marked=True).distinct()).exclude(marked=True),
@@ -112,13 +111,13 @@ def unanswered(request):
                          None,
                          _("Unanswered Questions"))
 
-@decorators.render('questions.html', 'questions', _('questions'), weight=0)
+@decorators.render(request, 'questions.html', 'questions', _('questions'), weight=0)
 def questions(request):
     return question_list(request,
                          Question.objects.all(),
                          _('questions'))
 
-@decorators.render('questions.html')
+@decorators.render(request, 'questions.html')
 def tag(request, tag):
     try:
         tag = Tag.active.get(name=unquote(tag))
@@ -161,7 +160,7 @@ def tag(request, tag):
 
     return context
 
-@decorators.render('questions.html', 'questions', tabbed=False)
+@decorators.render(request, 'questions.html', 'questions', tabbed=False)
 def user_questions(request, mode, user, slug):
     user = get_object_or_404(User, id=user)
 
@@ -205,7 +204,7 @@ def question_list(request, initial,
 
     questions = initial.filter_state(deleted=False)
 
-    if request.user.is_authenticated() and allowIgnoreTags:
+    if request.user.is_authenticated and allowIgnoreTags:
         questions = questions.filter(~Q(tags__id__in = request.user.marked_tags.filter(user_selections__reason = 'bad')))
 
     if page_title is None:
@@ -262,9 +261,9 @@ def search(request):
         else:
             return question_search(request, keywords)
     else:
-        return render_to_response("search.html", context_instance=RequestContext(request))
+        return render(request, "search.html")
 
-@decorators.render('questions.html')
+@decorators.render(request, 'questions.html')
 def question_search(request, keywords):
     rank_feed = False
     can_rank, initial = Question.objects.search(keywords)
@@ -272,7 +271,7 @@ def question_search(request, keywords):
     if can_rank:
         sort_order = None
 
-        if isinstance(can_rank, basestring):
+        if isinstance(can_rank, str):
             sort_order = can_rank
             rank_feed = True
 
@@ -292,7 +291,7 @@ def question_search(request, keywords):
                          feed_url=feed_url, feed_sort=rank_feed and (can_rank,) or '-added_at')
 
 
-@decorators.render('tags.html', 'tags', _('tags'), weight=100)
+@decorators.render(request, 'tags.html', 'tags', _('tags'), weight=100)
 def tags(request):
     stag = ""
     tags = Tag.active.all()
@@ -356,7 +355,7 @@ def answer_redirect(request, answer):
     return HttpResponseRedirect("%s?%s=%s&focusedAnswerId=%s#%s" % (
         answer.question.get_absolute_url(), _('page'), page, answer.id, answer.id))
 
-@decorators.render("question.html", 'questions')
+@decorators.render(request, "question.html", 'questions')
 def question(request, id, slug='', answer=None):
     try:
         question = Question.objects.get(id=id)
@@ -397,7 +396,7 @@ def question(request, id, slug='', answer=None):
 
     update_question_view_times(request, question)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         try:
             subscription = QuestionSubscription.objects.get(question=question, user=request.user)
         except:
@@ -446,10 +445,10 @@ def revisions(request, id):
 
     rev_ctx.reverse()
 
-    return render_to_response('revisions.html', {
+    return render(request, 'revisions.html', {
     'post': post,
     'revisions': rev_ctx,
-    }, context_instance=RequestContext(request))
+    })
 
 
 

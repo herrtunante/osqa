@@ -3,16 +3,15 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.template.defaultfilters import slugify
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.urls import reverse
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from forum.http_responses import HttpResponseUnauthorized
-from django.utils.translation import ugettext as _
-from django.utils.http import urlquote_plus
+from django.utils.translation import gettext as _
+from urllib.parse import quote as urlquote_plus
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.utils.encoding import smart_str
+from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
 from forum.modules import decorate, ReturnImediatelyException
@@ -57,7 +56,7 @@ class UserAnswersPaginatorContext(pagination.PaginatorContext):
 
 USERS_PAGE_SIZE = 35# refactor - move to some constants file
 
-@decorators.render('users/users.html', 'users', _('users'), weight=200)
+@decorators.render(request, 'users/users.html', 'users', _('users'), weight=200)
 def users(request):
     suser = request.REQUEST.get('q', "")
     users = User.objects.all()
@@ -71,7 +70,7 @@ def users(request):
     })
 
 
-@decorators.render('users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
+@decorators.render(request, 'users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
 def online_users(request):
     suser = request.REQUEST.get('q', "")
 
@@ -122,9 +121,9 @@ def online_users(request):
     elif sort == "votes":
         users = sorted(ONLINE_USERS.sets.keys(), key=lambda user: user.votes)
     else:
-        users = sorted(ONLINE_USERS.iteritems(), key=lambda x: x[1])
+        users = sorted(ONLINE_USERS.items(), key=lambda x: x[1])
 
-    return render_to_response('users/online_users.html', {
+    return render(request, 'users/online_users.html', {
         "users" : users,
         "suser" : suser,
         "sort" : sort,
@@ -169,11 +168,11 @@ def edit_user(request, id, slug):
             return HttpResponseRedirect(user.get_profile_url())
     else:
         form = EditUserForm(user)
-    return render_to_response('users/edit.html', {
+    return render(request, 'users/edit.html', {
     'user': user,
     'form' : form,
     'gravatar_faq_url' : reverse('faq') + '#gravatar',
-    }, context_instance=RequestContext(request))
+    })
 
 
 @decorate.withfn(decorators.command)
@@ -201,7 +200,7 @@ def user_powers(request, id, action, status):
 @decorate.withfn(decorators.command)
 def award_points(request, id):
     if not request.POST:
-        return render_to_response('users/karma_bonus.html')
+        return render(request, 'users/karma_bonus.html')
 
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers are allowed to award reputation points"))
@@ -235,7 +234,7 @@ def suspend(request, id):
             suspension.cancel(user=request.user, ip=request.META['REMOTE_ADDR'])
             return decorators.RefreshPageCommand()
         else:
-            return render_to_response('users/suspend_user.html')
+            return render(request, 'users/suspend_user.html')
 
     data = {
         'bantype': request.POST.get('bantype', 'Indefinitely').strip(),
@@ -259,7 +258,7 @@ def report_user(request, id):
     user = get_object_or_404(User, id=id)
 
     if not request.POST.get('publicmsg', None):
-        return render_to_response('users/report_user.html')
+        return render(request, 'users/report_user.html')
 
     data = {
         'publicmsg': request.POST.get('publicmsg', _('N/A')),
@@ -297,7 +296,7 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
         decorated = decorate.params.withfn(params)(fn)
 
         def result(context_or_response, request, user, **kwargs):
-            rev_page_title = smart_unicode(user.username) + " - " + tab_description
+            rev_page_title = smart_str(user.username) + " - " + tab_description
 
             # Check whether the return type of the decorated function is a context or Http Response
             if isinstance(context_or_response, HttpResponse):
@@ -316,19 +315,19 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
                 "page_title" : rev_page_title,
                 "can_view_private": (user == request.user) or request.user.is_superuser
             })
-            return render_to_response(template, context, context_instance=RequestContext(request))
+            return render(template, context)
 
         decorated = decorate.result.withfn(result, needs_params=True)(decorated)
 
         if tabbed:
             def url_getter(vu):
                 try:
-                    return reverse(fn.__name__, kwargs={'id': vu.id, 'slug': slugify(smart_unicode(vu.username))})
+                    return reverse(fn.__name__, kwargs={'id': vu.id, 'slug': slugify(smart_str(vu.username))})
                 except NoReverseMatch:
                     try:
                         return reverse(fn.__name__, kwargs={'id': vu.id})
                     except NoReverseMatch:
-                        return reverse(fn.__name__, kwargs={'slug': slugify(smart_unicode(vu.username))})
+                        return reverse(fn.__name__, kwargs={'slug': slugify(smart_str(vu.username))})
 
             ui.register(ui.PROFILE_TABS, ui.ProfileTab(
                 tab_name, tab_title, tab_description,url_getter, private, render_to, weight
@@ -345,7 +344,7 @@ def user_profile(request, user, **kwargs):
 
     # Check whether the passed slug matches the one for the user object
     slug = kwargs['slug']
-    if slug != slugify(smart_unicode(user.username)):
+    if slug != slugify(smart_str(user.username)):
         return HttpResponseRedirect(user.get_absolute_url())
 
     up_votes = user.vote_up_count

@@ -5,13 +5,12 @@ import logging
 import urllib
 from urlparse import urlparse
 
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.core.urlresolvers import reverse
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
-from django.utils.encoding import smart_unicode
+from django.utils.translation import gettext as _
+from django.utils.encoding import smart_str
 from django.contrib.auth import login, logout
 
 from django.contrib import messages
@@ -44,7 +43,7 @@ def signin_page(request):
     all_providers = [provider.context for provider in AUTH_PROVIDERS.values() if provider.context]
 
     sort = lambda c1, c2: c1.weight - c2.weight
-    can_show = lambda c: not request.user.is_authenticated() or c.show_to_logged_in_user
+    can_show = lambda c: not request.user.is_authenticated or c.show_to_logged_in_user
 
     bigicon_providers = sorted([
     context for context in all_providers if context.mode == 'BIGICON' and can_show(context)
@@ -68,7 +67,7 @@ def signin_page(request):
     except:
         msg = None
 
-    return render_to_response(
+    return render(
             'auth/signin.html',
             {
             'msg': msg,
@@ -113,7 +112,7 @@ def process_provider_signin(request, provider):
             request.session['auth_error'] = e.message
             return HttpResponseRedirect(reverse('auth_signin'))
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if isinstance(assoc_key, (type, User)):
                 if request.user != assoc_key:
                     request.session['auth_error'] = _(
@@ -223,12 +222,12 @@ def external_register(request):
 
     provider_context = AUTH_PROVIDERS[request.session['auth_provider']].context
 
-    return render_to_response('auth/complete.html', {
+    return render(request, 'auth/complete.html', {
     'form1': form1,
     'provider':provider_context and mark_safe(provider_context.human_name) or _('unknown'),
     'login_type':provider_context.id,
     'gravatar_faq_url':reverse('faq') + '#gravatar',
-    }, context_instance=RequestContext(request))
+    })
 
 def request_temp_login(request):
     if request.method == 'POST':
@@ -258,9 +257,8 @@ def request_temp_login(request):
     else:
         form = TemporaryLoginRequestForm()
 
-    return render_to_response(
-            'auth/temp_login_request.html', {'form': form},
-            context_instance=RequestContext(request))
+    return render(
+            'auth/temp_login_request.html', {'form': form})
 
 def temp_signin(request, user, code):
     user = get_object_or_404(User, id=user)
@@ -279,7 +277,7 @@ def temp_signin(request, user, code):
         raise Http404()
 
 def send_validation_email(request):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseUnauthorized(request)
     else:
         # We check if there are some old validation hashes. If there are -- we delete them.
@@ -310,7 +308,7 @@ def validate_email(request, user, code):
         EmailValidationAction(user=user, ip=request.META['REMOTE_ADDR']).save()
         return login_and_forward(request, user, reverse('index'), _("Thank you, your email is now validated."))
     else:
-        return render_to_response('auth/mail_already_validated.html', { 'user' : user }, RequestContext(request))
+        return render(request, 'auth/mail_already_validated.html', { 'user' : user })
 
 def auth_settings(request, id):
     user_ = get_object_or_404(User, id=id)
@@ -359,14 +357,14 @@ def auth_settings(request, id):
         'id': k.id
         })
 
-    return render_to_response('auth/auth_settings.html', {
+    return render(request, 'auth/auth_settings.html', {
     'view_user': user_,
     "can_view_private": (user_ == request.user) or request.user.is_superuser,
     'form': form,
     'has_password': user_.has_usable_password(),
     'auth_keys': auth_keys_list,
     'allow_local_auth': AUTH_PROVIDERS.get('local', None),
-    }, context_instance=RequestContext(request))
+    })
 
 def remove_external_provider(request, id):
     association = get_object_or_404(AuthKeyUserAssociation, id=id)
@@ -388,7 +386,7 @@ def login_and_forward(request, user, forward=None, message=None):
     UserLoginAction(user=user, ip=request.META['REMOTE_ADDR']).save()
 
     if message is None:
-        message = _("Welcome back %s, you are now logged in") % smart_unicode(user.username)
+        message = _("Welcome back %s, you are now logged in") % smart_str(user.username)
 
     messages.info(request, message)
 

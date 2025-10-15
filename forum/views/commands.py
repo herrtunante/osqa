@@ -4,14 +4,14 @@ import datetime
 import json
 import logging
 
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ungettext, ugettext as _
+from django.urls import reverse
+from django.utils.encoding import smart_str
+from django.utils.translation import ngettext, gettext as _
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 
 from django.contrib import messages
 
@@ -84,7 +84,7 @@ def vote_post(request, id, vote_type):
     post = get_object_or_404(Node, id=id).leaf
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('vote'))
 
     if user == post.author:
@@ -111,7 +111,7 @@ def vote_post(request, id, vote_type):
             raise CommandException(
                     _("Sorry but you cannot cancel a vote after %(ndays)d %(tdays)s from the original vote") %
                     {'ndays': int(settings.DENY_UNVOTE_DAYS),
-                     'tdays': ungettext('day', 'days', int(settings.DENY_UNVOTE_DAYS))}
+                     'tdays': ngettext('day', 'days', int(settings.DENY_UNVOTE_DAYS))}
                     )
 
         old_vote.cancel(ip=request.META['REMOTE_ADDR'])
@@ -132,19 +132,19 @@ def vote_post(request, id, vote_type):
 
     if int(settings.START_WARN_VOTES_LEFT) >= votes_left:
         response['message'] = _("You have %(nvotes)s %(tvotes)s left today.") % \
-                    {'nvotes': votes_left, 'tvotes': ungettext('vote', 'votes', votes_left)}
+                    {'nvotes': votes_left, 'tvotes': ngettext('vote', 'votes', votes_left)}
 
     return response
 
 @decorate.withfn(command)
 def flag_post(request, id):
     if not request.POST:
-        return render_to_response('node/report.html', {'types': settings.FLAG_TYPES})
+        return render(request, 'node/report.html', {'types': settings.FLAG_TYPES})
 
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('flag posts'))
 
     if user == post.author:
@@ -177,7 +177,7 @@ def like_comment(request, id):
     comment = get_object_or_404(Comment, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('like comments'))
 
     if user == comment.user:
@@ -207,7 +207,7 @@ def delete_comment(request, id):
     comment = get_object_or_404(Comment, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('delete comments'))
 
     if not user.can_delete_comment(comment):
@@ -226,7 +226,7 @@ def delete_comment(request, id):
 def mark_favorite(request, id):
     node = get_object_or_404(Node, id=id)
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         raise AnonymousNotAllowedException(_('mark a question as favorite'))
 
     try:
@@ -249,7 +249,7 @@ def comment(request, id):
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('comment'))
 
     if not request.method == 'POST':
@@ -305,7 +305,7 @@ def comment(request, id):
 def node_markdown(request, id):
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('accept answers'))
 
     node = get_object_or_404(Node, id=id)
@@ -319,7 +319,7 @@ def accept_answer(request, id):
 
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('accept answers'))
 
     answer = get_object_or_404(Answer, id=id)
@@ -335,14 +335,14 @@ def accept_answer(request, id):
         commands['unmark_accepted'] = [answer.id]
     else:
         if settings.MAXIMUM_ACCEPTED_ANSWERS and (question.accepted_count >= settings.MAXIMUM_ACCEPTED_ANSWERS):
-            raise CommandException(ungettext("This question already has an accepted answer.",
+            raise CommandException(ngettext("This question already has an accepted answer.",
                 "Sorry but this question has reached the limit of accepted answers.", int(settings.MAXIMUM_ACCEPTED_ANSWERS)))
 
         if settings.MAXIMUM_ACCEPTED_PER_USER and question.accepted_count:
             accepted_from_author = question.accepted_answers.filter(author=answer.author).count()
 
             if accepted_from_author >= settings.MAXIMUM_ACCEPTED_PER_USER:
-                raise CommandException(ungettext("The author of this answer already has an accepted answer in this question.",
+                raise CommandException(ngettext("The author of this answer already has an accepted answer in this question.",
                 "Sorry but the author of this answer has reached the limit of accepted answers per question.", int(settings.MAXIMUM_ACCEPTED_PER_USER)))             
 
 
@@ -358,7 +358,7 @@ def accept_answer(request, id):
             messages.info(request, msg)
 
             # Redirect URL should include additional get parameters that might have been attached
-            redirect_url = answer.parent.get_absolute_url() + "?accepted_answer=true&%s" % smart_unicode(urlencode(request.GET))
+            redirect_url = answer.parent.get_absolute_url() + "?accepted_answer=true&%s" % smart_str(urlencode(request.GET))
 
             return HttpResponseRedirect(redirect_url)
 
@@ -371,7 +371,7 @@ def delete_post(request, id):
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('delete posts'))
 
     if not (user.can_delete_post(post)):
@@ -392,12 +392,12 @@ def delete_post(request, id):
 @decorate.withfn(command)
 def close(request, id, close):
     if close and not request.POST:
-        return render_to_response('node/report.html', {'types': settings.CLOSE_TYPES})
+        return render(request, 'node/report.html', {'types': settings.CLOSE_TYPES})
 
     question = get_object_or_404(Question, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('close questions'))
 
     if question.nis.closed:
@@ -423,7 +423,7 @@ def wikify(request, id):
     node = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('mark posts as community wiki'))
 
     if node.nis.wiki:
@@ -449,20 +449,20 @@ def convert_to_comment(request, id):
     question = answer.question
 
     # Check whether the user has the required permissions
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_("convert answers to comments"))
 
     if not user.can_convert_to_comment(answer):
         raise NotEnoughRepPointsException(_("convert answers to comments"))
 
     if not request.POST:
-        description = lambda a: _("Answer by %(uname)s: %(snippet)s...") % {'uname': smart_unicode(a.author.username),
+        description = lambda a: _("Answer by %(uname)s: %(snippet)s...") % {'uname': smart_str(a.author.username),
                                                                             'snippet': a.summary[:10]}
         nodes = [(question.id, _("Question"))]
         [nodes.append((a.id, description(a))) for a in
          question.answers.filter_state(deleted=False).exclude(id=answer.id)]
 
-        return render_to_response('node/convert_to_comment.html', {'answer': answer, 'nodes': nodes})
+        return render(request, 'node/convert_to_comment.html', {'answer': answer, 'nodes': nodes})
 
     try:
         new_parent = Node.objects.get(id=request.POST.get('under', None))
@@ -487,7 +487,7 @@ def convert_comment_to_answer(request, id):
     else:
         question = parent.question
     
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_("convert comments to answers"))
 
     if not user.can_convert_comment_to_answer(comment):
@@ -505,7 +505,7 @@ def subscribe(request, id, user=None):
         except User.DoesNotExist:
             raise Http404()
 
-        if not (request.user.is_a_super_user_or_staff() or user.is_authenticated()):
+        if not (request.user.is_a_super_user_or_staff() or user.is_authenticated):
             raise CommandException(_("You do not have the correct credentials to preform this action."))
     else:
         user = request.user
@@ -576,7 +576,7 @@ def related_questions(request):
     if request.POST and request.POST.get('title', None):
         can_rank, questions = Question.objects.search(request.POST['title'])
 
-        if can_rank and isinstance(can_rank, basestring):
+        if can_rank and isinstance(can_rank, str):
             questions = questions.order_by(can_rank)
 
         return HttpResponse(json.dumps(
@@ -595,7 +595,7 @@ def answer_permanent_link(request, id):
 
     if not request.POST:
         # Display the template
-        return render_to_response('node/permanent_link.html', { 'url' : url, })
+        return render(request, 'node/permanent_link.html', { 'url' : url, })
 
     return {
         'commands' : {
@@ -615,11 +615,11 @@ def award_points(request, user_id, answer_id):
         raise CannotDoOnOwnException(_("award"))
 
     # Anonymous users cannot award  points, they just don't have such
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('award'))
 
     if not request.POST:
-        return render_to_response("node/award_points.html", {
+        return render(request, "node/award_points.html", {
             'user' : user,
             'awarded_user' : awarded_user,
             'reputation_to_comment' : str(settings.REP_TO_COMMENT)

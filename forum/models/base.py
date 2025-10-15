@@ -4,20 +4,20 @@ try:
     from hashlib import md5
 except:
     from md5 import new as md5
-from urllib import quote_plus, urlencode
+from urllib.parse import quote_plus, urlencode
 from django.db import models, IntegrityError, connection, transaction
-from django.utils.http import urlquote  as django_urlquote
+from urllib.parse import quote as django_urlquote
 from django.utils.html import strip_tags
 from django.conf import settings as django_settings
-from django.core.urlresolvers import reverse
-from django.contrib.contenttypes import generic
+from django.urls import reverse
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.template.defaultfilters import slugify
 from django.db.models.signals import post_delete, post_save, pre_save, pre_delete
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_str
 from django.contrib.sitemaps import ping_google
 import django.dispatch
 from forum import settings
@@ -43,7 +43,7 @@ class LazyQueryList(object):
     def __len__(self):
         return len(self.items)
 
-class ToFetch(unicode):
+class ToFetch(str):
     pass
 
 class CachedQuerySet(models.query.QuerySet):
@@ -149,16 +149,16 @@ class CachedQuerySet(models.query.QuerySet):
             cached = cache.get_many(row_keys)
 
             to_return = [
-                (ck in cached) and self.obj_from_datadict(cached[ck]) or ToFetch(force_unicode(key_list[i])) for i, ck in enumerate(row_keys)
+                (ck in cached) and self.obj_from_datadict(cached[ck]) or ToFetch(force_str(key_list[i])) for i, ck in enumerate(row_keys)
             ]
 
             if len(cached) != len(row_keys):
-                to_fetch = [unicode(tr) for tr in to_return if isinstance(tr, ToFetch)]
+                to_fetch = [str(tr) for tr in to_return if isinstance(tr, ToFetch)]
 
-                fetched = dict([(force_unicode(r.__dict__[on_cache_query_attr]), r) for r in
+                fetched = dict([(force_str(r.__dict__[on_cache_query_attr]), r) for r in
                               models.query.QuerySet(self.model).filter(**{"%s__in" % on_cache_query_attr: to_fetch})])
 
-                to_return = [(isinstance(tr, ToFetch) and fetched[unicode(tr)] or tr) for tr in to_return]
+                to_return = [(isinstance(tr, ToFetch) and fetched[str(tr)] or tr) for tr in to_return]
                 to_cache.update(dict([(self.model.infer_cache_key({on_cache_query_attr: attr}), r._as_dict()) for attr, r in fetched.items()]))
 
             if with_aggregates:
@@ -179,7 +179,7 @@ class CachedQuerySet(models.query.QuerySet):
 
     def _get_query_hash(self):
         try:
-            return md5(unicode(self.query).encode("utf-8")).hexdigest()
+            return md5(str(self.query).encode("utf-8")).hexdigest()
         except:
             try:
                 return md5(self.query).hexdigest()
@@ -352,9 +352,9 @@ class BaseModel(models.Model):
         super(BaseModel, self).delete()
 
 
-from user import User
-from node import Node, NodeRevision, NodeManager
-from action import Action
+from .user import User
+from .node import Node, NodeRevision, NodeManager
+from .action import Action
 
 
 

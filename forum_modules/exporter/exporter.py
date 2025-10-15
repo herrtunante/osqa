@@ -3,7 +3,7 @@ from __future__ import with_statement
 import os, tarfile, datetime, logging, re, ConfigParser, shutil, zipfile
 
 from django.core.cache import cache
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from forum.models import *
 from forum.settings import APP_URL
 from forum.templatetags.extra_tags import diff_date
@@ -116,17 +116,17 @@ def ET_Element_add_tag(el, tag_name, content = None, **attrs):
 
     if content:
         try:
-            tag.text = unicode(content)
+            tag.text = str(content)
         except Exception as e:
             #logging.error('error converting unicode characters')
             #import traceback
             #logging.error(traceback.print_exc())
 
             import string
-            tag.text = unicode("".join([c for c in content if c in string.printable]))
+            tag.text = str("".join([c for c in content if c in string.printable]))
 
     for k, v in attrs.items():
-        tag.set(k, unicode(v))
+        tag.set(k, str(v))
 
     return tag
 
@@ -157,7 +157,7 @@ def make_extra(el, v):
             item = value.add('item', key=k)
             make_extra(item, i)
     else:
-        value.text = unicode(v)
+        value.text = str(v)
 
 def write_to_file(root, tmp, filename):
     tree = ET.ElementTree(root)
@@ -212,7 +212,7 @@ def create_targz(tmp, files, start_time, options, user, state, set_state, file_f
     inf.add_section(DATE_AND_AUTHOR_INF_SECTION)
 
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'file-name', full_fname)
-    inf.set(DATE_AND_AUTHOR_INF_SECTION, 'author', unicode(user.id))
+    inf.set(DATE_AND_AUTHOR_INF_SECTION, 'author', str(user.id))
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'site', djsettings.APP_URL)
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'started', start_time.strftime(DATETIME_FORMAT))
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'finished', now.strftime(DATETIME_FORMAT))
@@ -328,7 +328,7 @@ def export(options, user):
         set_state()
     except Exception as e:
         full_state['running'] = False
-        full_state['errors'] = "%s: %s" % (e.__class__.__name__, unicode(e))
+        full_state['errors'] = "%s: %s" % (e.__class__.__name__, str(e))
         set_state()
         
         import traceback

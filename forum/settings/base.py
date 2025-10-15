@@ -1,5 +1,5 @@
 import django.dispatch
-from django.utils.encoding import force_unicode, smart_unicode
+from django.utils.encoding import force_str, smart_str
 from datetime import datetime, timedelta
 import logging
 
@@ -41,8 +41,8 @@ class BaseSetting(object):
     def __str__(self):
         return str(self.value)
 
-    def __unicode__(self):
-        return smart_unicode(self.value)
+    def __str__(self):
+        return smart_str(self.value)
 
     @property
     def value(self):

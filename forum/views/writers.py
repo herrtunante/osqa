@@ -3,14 +3,13 @@ import os.path
 
 import datetime
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils.html import *
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from django.contrib import messages
 
@@ -79,7 +78,7 @@ def ask(request):
         elif "text" in request.POST:
             form = AskForm(request.POST, user=request.user)
             if form.is_valid():
-                if request.user.is_authenticated() and request.user.email_valid_and_can_ask():
+                if request.user.is_authenticated and request.user.email_valid_and_can_ask():
                     ask_action = AskAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
                     question = ask_action.node
 
@@ -96,7 +95,7 @@ def ask(request):
                         'time': datetime.datetime.now()
                     }
 
-                    if request.user.is_authenticated():
+                    if request.user.is_authenticated:
                         messages.info(request, _("Your question is pending until you %s.") % html.hyperlink(
                             settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
 
@@ -110,10 +109,10 @@ def ask(request):
     if not form:
         form = AskForm(user=request.user)
 
-    return render_to_response('ask.html', {
+    return render(request, 'ask.html', {
         'form' : form,
         'tab' : 'ask'
-        }, context_instance=RequestContext(request))
+        })
 
 def convert_to_question(request, id):
     user = request.user
@@ -153,11 +152,11 @@ def _retag_question(request, question):
             return HttpResponseRedirect(question.get_absolute_url())
     else:
         form = RetagQuestionForm(question)
-    return render_to_response('question_retag.html', {
+    return render(request, 'question_retag.html', {
         'question': question,
         'form' : form,
         #'tags' : _get_tags_cache_json(),
-    }, context_instance=RequestContext(request))
+    })
 
 def _edit_question(request, question, template='question_edit.html', summary='', action_class=ReviseAction,
                    allow_rollback=True, url_getter=lambda q: q.get_absolute_url(), additional_context=None):
@@ -201,7 +200,7 @@ def _edit_question(request, question, template='question_edit.html', summary='',
     if not (additional_context is None):
         context.update(additional_context)
 
-    return render_to_response(template, context, context_instance=RequestContext(request))
+    return render(template, context)
 
 
 def edit_answer(request, id):
@@ -239,11 +238,11 @@ def edit_answer(request, id):
     else:
         revision_form = RevisionForm(answer)
         form = EditAnswerForm(answer, request.user)
-    return render_to_response('answer_edit.html', {
+    return render(request, 'answer_edit.html', {
                               'answer': answer,
                               'revision_form': revision_form,
                               'form': form,
-                              }, context_instance=RequestContext(request))
+                              })
 
 def answer(request, id):
     question = get_object_or_404(Question, id=id)
@@ -255,7 +254,7 @@ def answer(request, id):
             request.session['redirect_POST_data'] = request.POST
             return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
 
-        if request.user.is_authenticated() and request.user.email_valid_and_can_answer():
+        if request.user.is_authenticated and request.user.email_valid_and_can_answer():
             answer_action = AnswerAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(dict(question=question, **form.cleaned_data))
             answer = answer_action.node
 
@@ -272,7 +271,7 @@ def answer(request, id):
                 'time': datetime.datetime.now()
             }
 
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 messages.info(request, _("Your answer is pending until you %s.") % html.hyperlink(
                     settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
                 ))

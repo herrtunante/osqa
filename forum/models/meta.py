@@ -1,11 +1,11 @@
-from django.utils.translation import ugettext as _
-from base import *
+from django.utils.translation import gettext as _
+from .base import *
 
 class Vote(models.Model):
-    user = models.ForeignKey(User, related_name="votes")
-    node = models.ForeignKey(Node, related_name="votes")
+    user = models.ForeignKey(User, related_name="votes", on_delete=models.CASCADE)
+    node = models.ForeignKey(Node, related_name="votes", on_delete=models.CASCADE)
     value = models.SmallIntegerField()
-    action = models.OneToOneField(Action, related_name="vote")
+    action = models.OneToOneField(Action, related_name="vote", on_delete=models.CASCADE)
     voted_at = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
@@ -14,10 +14,10 @@ class Vote(models.Model):
 
 
 class Flag(models.Model):
-    user = models.ForeignKey(User, related_name="flags")
-    node = models.ForeignKey(Node, related_name="flags")
+    user = models.ForeignKey(User, related_name="flags", on_delete=models.CASCADE)
+    node = models.ForeignKey(Node, related_name="flags", on_delete=models.CASCADE)
     reason = models.CharField(max_length=300)
-    action = models.OneToOneField(Action, related_name="flag")
+    action = models.OneToOneField(Action, related_name="flag", on_delete=models.CASCADE)
     flagged_at = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
@@ -49,8 +49,6 @@ class Badge(BaseModel):
     def description(self):
         cls = self.get_handler()
         return cls and cls.description or _("No description available")
-
-    @models.permalink
     def get_absolute_url(self):
         return ('badge', [], {'id': self.id, 'slug': slugify(self.name)})
 
@@ -67,14 +65,14 @@ class Badge(BaseModel):
 
 
 class Award(models.Model):
-    user = models.ForeignKey(User)
-    badge = models.ForeignKey('Badge', related_name="awards")
-    node = models.ForeignKey(Node, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    badge = models.ForeignKey('Badge', related_name="awards", on_delete=models.CASCADE)
+    node = models.ForeignKey(Node, null=True, on_delete=models.CASCADE)
 
     awarded_at = models.DateTimeField(default=datetime.datetime.now)
 
-    trigger = models.ForeignKey(Action, related_name="awards", null=True)
-    action = models.OneToOneField(Action, related_name="award")
+    trigger = models.ForeignKey(Action, related_name="awards", null=True, on_delete=models.CASCADE)
+    action = models.OneToOneField(Action, related_name="award", on_delete=models.CASCADE)
 
 
     class Meta:

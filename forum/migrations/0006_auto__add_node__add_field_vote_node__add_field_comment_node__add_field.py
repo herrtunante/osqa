@@ -34,8 +34,8 @@ class Migration(SchemaMigration):
         # Adding M2M table for field tags on 'Node'
         db.create_table('forum_node_tags', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('node', models.ForeignKey(orm['forum.node'], null=False)),
-            ('tag', models.ForeignKey(orm['forum.tag'], null=False))
+            ('node', models.ForeignKey(orm['forum.node'], null=False, on_delete=models.CASCADE)),
+            ('tag', models.ForeignKey(orm['forum.tag'], null=False, on_delete=models.CASCADE))
         ))
         db.create_unique('forum_node_tags', ['node_id', 'tag_id'])
 

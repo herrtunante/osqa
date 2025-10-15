@@ -1,10 +1,10 @@
 import datetime
-from base import *
+from .base import *
 
 from django.conf import settings as django_settings
 from django.core.cache.backends.base import BaseCache
-from django.utils.translation import ugettext as _
-from django.utils.encoding import smart_unicode, force_unicode
+from django.utils.translation import gettext as _
+from django.utils.encoding import smart_str, force_str
 
 from forum import modules
 
@@ -16,7 +16,7 @@ class ActiveTagManager(CachedManager):
 
 class Tag(BaseModel):
     name            = models.CharField(max_length=255, unique=True)
-    created_by      = models.ForeignKey(User, related_name='created_tags')
+    created_by      = models.ForeignKey(User, related_name='created_tags', on_delete=models.CASCADE)
     created_at      = models.DateTimeField(default=datetime.datetime.now, blank=True, null=True)
     marked_by       = models.ManyToManyField(User, related_name="marked_tags", through="MarkedTag")
     # Denormalised data
@@ -28,8 +28,8 @@ class Tag(BaseModel):
         ordering = ('-used_count', 'name')
         app_label = 'forum'
 
-    def __unicode__(self):
-        return force_unicode(self.name)
+    def __str__(self):
+        return force_str(self.name)
 
     def add_to_usage_count(self, value):
         if self.used_count + value < 0:
@@ -59,15 +59,13 @@ class Tag(BaseModel):
     @classmethod
     def value_to_list_on_cache_query(cls):
         return 'name'
-
-    @models.permalink
     def get_absolute_url(self):
         return ('tag_questions', (), {'tag': self.name})
 
 class MarkedTag(models.Model):
     TAG_MARK_REASONS = (('good', _('interesting')), ('bad', _('ignored')))
-    tag = models.ForeignKey(Tag, related_name='user_selections')
-    user = models.ForeignKey(User, related_name='tag_selections')
+    tag = models.ForeignKey(Tag, related_name='user_selections', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='tag_selections', on_delete=models.CASCADE)
     reason = models.CharField(max_length=16, choices=TAG_MARK_REASONS)
 
     class Meta:

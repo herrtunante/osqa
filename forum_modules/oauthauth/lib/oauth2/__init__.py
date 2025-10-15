@@ -87,7 +87,7 @@ def build_xoauth_string(url, consumer, token=None):
     request.sign_request(signing_method, consumer, token)
 
     params = []
-    for k, v in sorted(request.iteritems()):
+    for k, v in sorted(request.items()):
         if v is not None:
             params.append('%s="%s"' % (k, escape(v)))
 
@@ -110,13 +110,13 @@ def to_utf8(s):
     return to_unicode(s).encode('utf-8')
 
 def to_unicode_if_string(s):
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return to_unicode(s)
     else:
         return s
 
 def to_utf8_if_string(s):
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return to_utf8(s)
     else:
         return s
@@ -126,7 +126,7 @@ def to_unicode_optional_iterator(x):
     Raise TypeError if x is a str containing non-utf8 bytes or if x is
     an iterable which contains such a str.
     """
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         return to_unicode(x)
 
     try:
@@ -142,7 +142,7 @@ def to_utf8_optional_iterator(x):
     Raise TypeError if x is a str or if x is an iterable which
     contains a str.
     """
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         return to_utf8(x)
 
     try:
@@ -345,7 +345,7 @@ class Request(dict):
             self.url = to_unicode(url)
         self.method = method
         if parameters is not None:
-            for k, v in parameters.iteritems():
+            for k, v in parameters.items():
                 k = to_unicode(k)
                 v = to_unicode_optional_iterator(v)
                 self[k] = v
@@ -382,7 +382,7 @@ class Request(dict):
  
     def get_nonoauth_parameters(self):
         """Get any non-OAuth parameters."""
-        return dict([(k, v) for k, v in self.iteritems() 
+        return dict([(k, v) for k, v in self.items() 
                     if not k.startswith('oauth_')])
  
     def to_header(self, realm=''):
@@ -402,7 +402,7 @@ class Request(dict):
     def to_postdata(self):
         """Serialize as post data for a POST request."""
         d = {}
-        for k, v in self.iteritems():
+        for k, v in self.items():
             d[k.encode('utf-8')] = to_utf8_optional_iterator(v)
 
         # tell urlencode to deal with sequence values and map them correctly
@@ -450,12 +450,12 @@ class Request(dict):
     def get_normalized_parameters(self):
         """Return a string that contains the parameters that must be signed."""
         items = []
-        for key, value in self.iteritems():
+        for key, value in self.items():
             if key == 'oauth_signature':
                 continue
             # 1.0a/9.1.1 states that kvp must be sorted by key, then by value,
             # so we unpack sequence values into multiple items for sorting.
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 items.append((to_utf8_if_string(key), to_utf8(value)))
             else:
                 try:
@@ -607,7 +607,7 @@ class Request(dict):
     def _split_url_string(param_str):
         """Turn URL string into parameters."""
         parameters = parse_qs(param_str.encode('utf-8'), keep_blank_values=True)
-        for k, v in parameters.iteritems():
+        for k, v in parameters.items():
             parameters[k] = urllib.unquote(v[0])
         return parameters
 

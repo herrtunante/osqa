@@ -28,7 +28,7 @@ SETTING_RE = re.compile(r'\|[A-Z_]+\|')
 def setting_rep_callback(m):
     setting_name = m.group(0).strip('|')
     if hasattr(settings, setting_name):
-        return unicode(getattr(settings, setting_name))
+        return str(getattr(settings, setting_name))
     else:
         return ''
 

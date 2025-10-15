@@ -2,11 +2,11 @@ import math
 from django.utils.datastructures import SortedDict
 from django import template
 from django.core.paginator import Paginator, EmptyPage
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.html import escape
 from django.http import Http404
-from django.utils.encoding import smart_unicode
-from django.utils.http import urlquote
+from django.utils.encoding import smart_str
+from urllib.parse import quote as urlquote
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags, escape
 from forum.utils.html import sanitize_html
@@ -76,7 +76,7 @@ class PaginatorContext(object):
         self.prefix = prefix
 
     def preferences(self, request):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.prop.pagination:
                 preferences = request.user.prop.pagination.get(self.id, {})
             else:
@@ -87,7 +87,7 @@ class PaginatorContext(object):
         return preferences
 
     def set_preferences(self, request, preferences):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             all_preferences = request.user.prop.pagination or {}
             all_preferences[self.id] = preferences
             request.user.prop.pagination = all_preferences
@@ -134,7 +134,7 @@ class PaginatorContext(object):
             session_prefs = self.preferences(request)
 
         sort = None
-        sticky = request.user.is_authenticated() and request.user.prop.preferences and request.user.prop.preferences.get('sticky_sorts', False)
+        sticky = request.user.is_authenticated and request.user.prop.preferences and request.user.prop.preferences.get('sticky_sorts', False)
 
         if self.has_sort:
             if request.GET.get(self.SORT, None):
@@ -175,7 +175,7 @@ page_sizes_template = template.loader.get_template('paginator/page_sizes.html')
 sort_tabs_template = template.loader.get_template('paginator/sort_tabs.html')
 
 def paginated(request, paginators, tpl_context):
-    if len(paginators) == 2 and isinstance(paginators[0], basestring):
+    if len(paginators) == 2 and isinstance(paginators[0], str):
         paginators = (paginators,)
 
     for list_name, context in paginators:
@@ -305,7 +305,7 @@ def _paginated(request, objects, context):
             sorts = [(n, s.label, url_builder(n), strip_tags(s.description)) for n, s in context.sort_methods.items()]
 
             for name, label, url, descr in sorts:
-                paginator.__dict__['%s_sort_link' % name] = smart_unicode(url)
+                paginator.__dict__['%s_sort_link' % name] = smart_str(url)
 
             return sort_tabs_template.render(template.Context({
                 'current': sort,

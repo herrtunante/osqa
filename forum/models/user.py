@@ -1,20 +1,20 @@
-from base import *
-from utils import PickledObjectField
+from .base import *
+from .utils import PickledObjectField
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User as DjangoUser, AnonymousUser as DjangoAnonymousUser
 from django.db.models import Q, Manager
-from django.core.urlresolvers import get_script_prefix
+from django.urls import get_script_prefix
 
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 
 from forum.settings import TRUNCATE_LONG_USERNAMES, TRUNCATE_USERNAMES_LONGER_THAN
 
 import string
 from random import Random
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 import logging
 
 class AnonymousUser(DjangoAnonymousUser):
@@ -148,8 +148,8 @@ class User(BaseModel, DjangoUser):
 
     objects = UserManager()
 
-    def __unicode__(self):
-        return smart_unicode(self.username)
+    def __str__(self):
+        return smart_str(self.username)
 
     @property
     def prop(self):
@@ -168,7 +168,7 @@ class User(BaseModel, DjangoUser):
 
 
     def _decorated_name(self):
-        username = smart_unicode(self.username)
+        username = smart_str(self.username)
 
         if len(username) > TRUNCATE_USERNAMES_LONGER_THAN and TRUNCATE_LONG_USERNAMES:
             username = '%s...' % username[:TRUNCATE_USERNAMES_LONGER_THAN-3]
@@ -209,11 +209,9 @@ class User(BaseModel, DjangoUser):
         if new:
             sub_settings = SubscriptionSettings(user=self)
             sub_settings.save()
-
-    @models.permalink
     def get_profile_url(self):
         keyword_arguments = {
-            'slug': slugify(smart_unicode(self.username))
+            'slug': slugify(smart_str(self.username))
         }
         if settings.INCLUDE_ID_IN_USER_URLS:
             keyword_arguments.update({
@@ -225,23 +223,17 @@ class User(BaseModel, DjangoUser):
         root_relative_url = self.get_profile_url()
         relative_url = root_relative_url[len(get_script_prefix()):]
         return '%s/%s' % (django_settings.APP_URL, relative_url)
-
-    @models.permalink
     def get_asked_url(self):
-        return ('user_questions', (), {'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_unicode(self.username))})
-
-    @models.permalink
+        return ('user_questions', (), {'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
     def get_user_subscriptions_url(self):
         keyword_arguments = {
-            'slug': slugify(smart_unicode(self.username))
+            'slug': slugify(smart_str(self.username))
         }
         if settings.INCLUDE_ID_IN_USER_URLS:
             keyword_arguments.update({
                 'id': self.id,
             })
         return ('user_subscriptions', (), keyword_arguments)
-
-    @models.permalink
     def get_answered_url(self):
         return ('user_questions', (), {'mode': _('answered-by'), 'user': self.id, 'slug': slugify(self.username)})
 
@@ -249,7 +241,7 @@ class User(BaseModel, DjangoUser):
         try:
             # Try to retrieve the Subscribed User URL.
             url = reverse('user_questions',
-                           kwargs={'mode': _('subscribed-by'), 'user': self.id, 'slug': slugify(smart_unicode(self.username))})
+                           kwargs={'mode': _('subscribed-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
             return url
         except Exception as e:
             # If some Exception has been raised, don't forget to log it.
@@ -463,7 +455,7 @@ class User(BaseModel, DjangoUser):
         app_label = 'forum'
 
 class UserProperty(BaseModel):
-    user = models.ForeignKey(User, related_name='properties')
+    user = models.ForeignKey(User, related_name='properties', on_delete=models.CASCADE)
     key = models.CharField(max_length=16)
     value = PickledObjectField()
 
@@ -534,7 +526,7 @@ class UserPropertyDict(object):
 
 
 class SubscriptionSettings(models.Model):
-    user = models.OneToOneField(User, related_name='subscription_settings', editable=False)
+    user = models.OneToOneField(User, related_name='subscription_settings', editable=False, on_delete=models.CASCADE)
 
     enable_notifications = models.BooleanField(default=True)
 
@@ -612,7 +604,7 @@ class ValidationHash(models.Model):
     seed = models.CharField(max_length=12)
     expiration = models.DateTimeField(default=one_day_from_now)
     type = models.CharField(max_length=12)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     objects = ValidationHashManager()
 
@@ -626,7 +618,7 @@ class ValidationHash(models.Model):
 class AuthKeyUserAssociation(models.Model):
     key = models.CharField(max_length=255, null=False, unique=True)
     provider = models.CharField(max_length=64)
-    user = models.ForeignKey(User, related_name="auth_keys")
+    user = models.ForeignKey(User, related_name="auth_keys", on_delete=models.CASCADE)
     added_at = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:

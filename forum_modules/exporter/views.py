@@ -5,9 +5,9 @@ import json
 
 from StringIO import StringIO
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from forum.views.admin import admin_tools_page, admin_page
 from forum.models import User
 from forms import ExporterForm
@@ -39,7 +39,7 @@ def exporter(request):
 
     available = []
 
-    folder = unicode(selsettings.EXPORTER_BACKUP_STORAGE)
+    folder = str(selsettings.EXPORTER_BACKUP_STORAGE)
 
     for f in os.listdir(folder):
         if (not os.path.isdir(os.path.join(folder, f))) and f.endswith('.backup.inf'):

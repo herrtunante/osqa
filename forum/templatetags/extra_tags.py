@@ -7,18 +7,18 @@ import re
 import logging
 import random
 from django import template
-from django.utils.encoding import smart_unicode, force_unicode, smart_str
+from django.utils.encoding import smart_str, force_str
 from django.utils.safestring import mark_safe
 from django.utils import dateformat
 from forum.models import Question, Answer, QuestionRevision, AnswerRevision, NodeRevision
-from django.utils.translation import ugettext as _
-from django.utils.translation import ungettext
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from forum import settings
 from django.template.defaulttags import url as default_url
 from forum import skins
 from forum.utils import html
-from extra_filters import decorated_int
-from django.core.urlresolvers import reverse
+from .extra_filters import decorated_int
+from django.urls import reverse
 
 register = template.Library()
 
@@ -70,7 +70,7 @@ def _get_score_badge(user):
         '<span class="bronze">&#9679;</span>'
         '<span class="badgecount">%(bronze)s</span>'
         '</span>')
-    BADGE_TEMPLATE = smart_unicode(BADGE_TEMPLATE, encoding='utf-8', strings_only=False, errors='strict')
+    BADGE_TEMPLATE = smart_str(BADGE_TEMPLATE, encoding='utf-8', strings_only=False, errors='strict')
     return mark_safe(BADGE_TEMPLATE % {
     'reputation' : user.reputation,
     'repstr': repstr,
@@ -111,18 +111,18 @@ def get_accept_rate(user):
     # If the user has more than one accepted answers the rate title will be in plural.
     if accepted_answers_count > 1:
         accept_rate_number_title = _('%(user)s has %(count)d accepted answers') % {
-            'user' :  smart_unicode(user.username),
+            'user' :  smart_str(user.username),
             'count' : int(accepted_answers_count)
         }
     # If the user has one accepted answer we'll be using singular.
     elif accepted_answers_count == 1:
-        accept_rate_number_title = _('%s has one accepted answer') % smart_unicode(user.username)
+        accept_rate_number_title = _('%s has one accepted answer') % smart_str(user.username)
     # This are the only options. Otherwise there are no accepted answers at all.
     else:
         if freeze:
             accept_rate_number_title = ""
         else:
-            accept_rate_number_title = _('%s has no accepted answers') % smart_unicode(user.username)
+            accept_rate_number_title = _('%s has no accepted answers') % smart_str(user.username)
 
     html_output = """
     <span title="%(accept_rate_title)s" class="accept_rate">%(accept_rate_label)s:</span>
@@ -166,11 +166,11 @@ def diff_date(date, limen=2):
     elif days == 1:
         return _('yesterday')
     elif minutes >= 60:
-        return ungettext('%(hr)d ' + _("hour ago"), '%(hr)d ' + _("hours ago"), hours) % {'hr':hours}
+        return ngettext('%(hr)d ' + _("hour ago"), '%(hr)d ' + _("hours ago"), hours) % {'hr':hours}
     elif diff.seconds >= 60:
-        return ungettext('%(min)d ' + _("min ago"), '%(min)d ' + _("mins ago"), minutes) % {'min':minutes}
+        return ngettext('%(min)d ' + _("min ago"), '%(min)d ' + _("mins ago"), minutes) % {'min':minutes}
     else:
-        return ungettext('%(sec)d ' + _("sec ago"), '%(sec)d ' + _("secs ago"), diff.seconds) % {'sec':diff.seconds}
+        return ngettext('%(sec)d ' + _("sec ago"), '%(sec)d ' + _("secs ago"), diff.seconds) % {'sec':diff.seconds}
 
 @register.simple_tag
 def media(url):
@@ -313,8 +313,7 @@ class DeclareNode(template.Node):
                 d['reverse'] = reverse
                 d['settings'] = settings
                 d['smart_str'] = smart_str
-                d['smart_unicode'] = smart_unicode
-                d['force_unicode'] = force_unicode
+                d['force_str'] = force_str
                 for c in clist:
                     d.update(c)
                 try:
@@ -349,7 +348,7 @@ def random_number(parser, token):
         tag_name, int_from, int_to = token.split_contents()
     except ValueError:
         # If we had no success -- raise an exception
-        raise template.TemplateSyntaxError, "%r tag requires exactly two arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly two arguments" % token.contents.split()[0])
 
     # Call the random Node
     return RandomNumberNode(int_from, int_to)

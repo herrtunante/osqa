@@ -1,6 +1,6 @@
 from django import forms
 import re
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from forum import settings
 from forum.models import User
@@ -13,7 +13,7 @@ def clean_next(next):
         return DEFAULT_NEXT
     next = urllib.unquote(next)
     if not isinstance(next, unicode):
-        next = unicode(next, 'utf-8')
+        next = str(next, 'utf-8')
     next = next.strip()
     if next.startswith('/'):
         return next

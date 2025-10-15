@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
-from base import *
+from .base import *
 import re
-from tag import Tag
+from .tag import Tag
 
 import markdown
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext as _
+from django.utils.encoding import smart_str
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
 from forum.utils.html import sanitize_html
 from forum.utils.userlinking import auto_user_link
 from forum.settings import SUMMARY_LENGTH
-from utils import PickledObjectField
+from .utils import PickledObjectField
 
 class NodeContent(models.Model):
     title      = models.CharField(max_length=300)
     tagnames   = models.CharField(max_length=125)
-    author     = models.ForeignKey(User, related_name='%(class)ss')
+    author     = models.ForeignKey(User, related_name='%(class)ss', on_delete=models.CASCADE)
     body       = models.TextField()
 
     @property
@@ -42,7 +42,7 @@ class NodeContent(models.Model):
             return ''
 
     def as_markdown(self, *extensions):
-        return self._as_markdown(smart_unicode(self.body), *extensions)
+        return self._as_markdown(smart_str(self.body), *extensions)
 
     @property
     def headline(self):
@@ -72,7 +72,7 @@ class NodeMetaClass(BaseMetaClass):
     def __new__(cls, *args, **kwargs):
         new_cls = super(NodeMetaClass, cls).__new__(cls, *args, **kwargs)
 
-        if not new_cls._meta.abstract and new_cls.__name__ is not 'Node':
+        if not new_cls._meta.abstract and new_cls.__name__ != 'Node':
             NodeMetaClass.types[new_cls.get_type()] = new_cls
 
         return new_cls
@@ -223,23 +223,23 @@ class Node(BaseModel, NodeContent):
     __metaclass__ = NodeMetaClass
 
     node_type            = models.CharField(max_length=16, default='node')
-    parent               = models.ForeignKey('Node', related_name='children', null=True)
-    abs_parent           = models.ForeignKey('Node', related_name='all_children', null=True)
+    parent               = models.ForeignKey('Node', related_name='children', null=True, on_delete=models.CASCADE)
+    abs_parent           = models.ForeignKey('Node', related_name='all_children', null=True, on_delete=models.CASCADE)
 
     added_at             = models.DateTimeField(default=datetime.datetime.now)
     score                 = models.IntegerField(default=0)
 
     state_string          = models.TextField(default='')
-    last_edited           = models.ForeignKey('Action', null=True, unique=True, related_name="edited_node")
+    last_edited           = models.ForeignKey('Action', null=True, unique=True, related_name="edited_node", on_delete=models.CASCADE)
 
-    last_activity_by       = models.ForeignKey(User, null=True)
+    last_activity_by       = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     last_activity_at       = models.DateTimeField(null=True, blank=True)
 
     tags                 = models.ManyToManyField('Tag', related_name='%(class)ss')
-    active_revision       = models.OneToOneField('NodeRevision', related_name='active', null=True)
+    active_revision       = models.OneToOneField('NodeRevision', related_name='active', null=True, on_delete=models.CASCADE)
 
     extra = PickledObjectField()
-    extra_ref = models.ForeignKey('Node', null=True)
+    extra_ref = models.ForeignKey('Node', null=True, on_delete=models.CASCADE)
     extra_count = models.IntegerField(default=0)
 
     marked = models.BooleanField(default=False)
@@ -251,7 +251,7 @@ class Node(BaseModel, NodeContent):
 
     objects = NodeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.headline
 
     @classmethod
@@ -337,8 +337,6 @@ class Node(BaseModel, NodeContent):
     @property
     def is_notifiable(self):
         return self._is_notifiable()
-
-    @models.permalink
     def get_revisions_url(self):
         return ('revisions', (), {'id': self.id})
 
@@ -519,7 +517,7 @@ class Node(BaseModel, NodeContent):
 
 
 class NodeRevision(BaseModel, NodeContent):
-    node       = models.ForeignKey(Node, related_name='revisions')
+    node       = models.ForeignKey(Node, related_name='revisions', on_delete=models.CASCADE)
     summary    = models.CharField(max_length=300)
     revision   = models.PositiveIntegerField()
     revised_at = models.DateTimeField(default=datetime.datetime.now)
@@ -530,9 +528,9 @@ class NodeRevision(BaseModel, NodeContent):
 
 
 class NodeState(models.Model):
-    node       = models.ForeignKey(Node, related_name='states')
+    node       = models.ForeignKey(Node, related_name='states', on_delete=models.CASCADE)
     state_type = models.CharField(max_length=16)
-    action     = models.OneToOneField('Action', related_name="node_state")
+    action     = models.OneToOneField('Action', related_name="node_state", on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('node', 'state_type')

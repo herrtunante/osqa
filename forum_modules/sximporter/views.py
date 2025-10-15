@@ -1,5 +1,4 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from forum.http_responses import HttpResponseUnauthorized
 from forum.models import User
 import importer
@@ -7,7 +6,7 @@ from zipfile import ZipFile
 import os
 
 def sximporter(request):
-    if (not User.objects.exists()) or (request.user.is_authenticated() and request.user.is_superuser):
+    if (not User.objects.exists()) or (request.user.is_authenticated and request.user.is_superuser):
         list = []
         if request.method == "POST" and "dump" in request.FILES:
             dump = ZipFile(request.FILES['dump'])
@@ -26,13 +25,13 @@ def sximporter(request):
             dump.close()
 
             options = dict([(k, v) for k, v in request.POST.items()])
-            options['authenticated_user'] = (request.user.is_authenticated() and (request.user,) or (None,))[0]
+            options['authenticated_user'] = (request.user.is_authenticated and (request.user,) or (None,))[0]
 
             importer.sximport(extract_to, options)
 
-        return render_to_response('modules/sximporter/page.html', {
+        return render(request, 'modules/sximporter/page.html', {
         'names': list
-        }, context_instance=RequestContext(request))
+        })
     else:
         return HttpResponseUnauthorized(request)
 

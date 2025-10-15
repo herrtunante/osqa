@@ -21,13 +21,13 @@ from forum.models import Question, Answer, Comment, User
 from forum.settings import APP_URL, VCS_REVISION, APP_TITLE, APP_DESCRIPTION
 from django import VERSION as DJANGO_VERSION
 from django.utils.html import escape
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 def generate_installation_key():
-    gen = lambda length: "".join( [random.choice(string.digits+string.letters) for i in xrange(length)])
+    gen = lambda length: "".join( [random.choice(string.digits+string.letters) for i in range(length)])
     return '%s-%s-%s-%s' % (gen(4), gen(4), gen(4), gen(4))
 
 # To get the site views count we get the SUM of all questions views.
@@ -179,8 +179,8 @@ def update_trigger():
     if (now - settings.LATEST_UPDATE_DATETIME) > datetime.timedelta(days=1):
         try:
             update_status = check_for_updates()
-            logging.log(logging.INFO, smart_unicode("Update process has been triggered: %s" % update_status))
+            logging.log(logging.INFO, smart_str("Update process has been triggered: %s" % update_status))
         except Exception as e:
-            logging.errror(smart_unicode(e))
+            logging.errror(smart_str(e))
         finally:
             settings.LATEST_UPDATE_DATETIME.set_value(now)

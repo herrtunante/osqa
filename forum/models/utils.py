@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.cache import cache
 from django.conf import settings
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_str
 
 try:
     from cPickle import loads, dumps
@@ -13,11 +13,11 @@ from base64 import b64encode, b64decode
 from zlib import compress, decompress
 import re
 
-from base import BaseModel
+from .base import BaseModel
 
 MAX_MARKABLE_STRING_LENGTH = 100
 
-class PickledObject(unicode):
+class PickledObject(str):
     pass
 
 def dbsafe_encode(value, compress_object=True):
@@ -35,10 +35,8 @@ def dbsafe_decode(value, compress_object=True):
     return value
 
 class PickledObjectField(models.Field):
-    __metaclass__ = models.SubfieldBase
-
     marker_re = re.compile(r'^T\[(?P<type>\w+)\](?P<value>.*)$', re.DOTALL)
-    markable_types = dict((t.__name__, t) for t in (str, int, unicode))
+    markable_types = dict((t.__name__, t) for t in (str, int))
 
     def __init__(self, *args, **kwargs):
         self.compress = kwargs.pop('compress', True)
@@ -69,6 +67,10 @@ class PickledObjectField(models.Field):
 
         return super(PickledObjectField, self).get_default()
 
+    def from_db_value(self, value, expression, connection):
+        """Django 2.0+ method to convert database value to Python"""
+        return self.to_python(value)
+
     def to_python(self, value):
         if value is not None:
             try:
@@ -83,11 +85,11 @@ class PickledObjectField(models.Field):
 
     def get_db_prep_value(self, value, connection, prepared=False):
         if value is not None and not isinstance(value, PickledObject):
-            if type(value).__name__ in self.markable_types and not (isinstance(value, basestring) and len(value
+            if type(value).__name__ in self.markable_types and not (isinstance(value, str) and len(value
                                                                                                           ) > MAX_MARKABLE_STRING_LENGTH):
-                value = unicode(self.generate_type_marked_value(value))
+                value = str(self.generate_type_marked_value(value))
             else:
-                value = unicode(dbsafe_encode(value, self.compress))
+                value = str(dbsafe_encode(value, self.compress))
         return value
 
     def value_to_string(self, obj):

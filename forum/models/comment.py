@@ -1,5 +1,5 @@
-from base import *
-from django.utils.translation import ugettext as _
+from .base import *
+from django.utils.translation import gettext as _
 import re
 
 class Comment(Node):
@@ -56,6 +56,6 @@ class Comment(Node):
     def get_absolute_url(self):
         return self.abs_parent.get_absolute_url() + "#%d" % self.id
 
-    def __unicode__(self):
+    def __str__(self):
         return self.body
 

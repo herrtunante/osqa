@@ -21,7 +21,7 @@ class LoadRegistryNode(template.Node):
                         if result:
                             result += separator
                         result += ui_object.render(context)
-            except (KeyError, Exception), e:
+            except (KeyError, Exception) as e:
                 if settings.DEBUG:
                     import traceback
                     logging.error("Exception %s rendering ui objects %s: \n%s" % (
@@ -36,7 +36,7 @@ def loadregistry(parser, token):
     try:
         tag_name, registry = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly one argument" % token.contents.split()[0])
 
     registry = ui.get_registry_by_name(registry)
     separator = parser.parse(('endloadregistry',))
@@ -71,7 +71,7 @@ def loopregistry(parser, token):
     try:
         tag_name, registry = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly one argument" % token.contents.split()[0])
 
     registry = ui.get_registry_by_name(registry)
     nodelist = parser.parse(('endloopregistry',))

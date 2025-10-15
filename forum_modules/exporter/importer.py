@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 import os, tarfile, datetime, ConfigParser, logging
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.core.cache import cache
 
 from south.db import db
@@ -85,7 +85,7 @@ class RowElement(ContentElement):
             parent.add(self)
 
     def add_to_content(self, ch):
-        self._content += unicode(ch)
+        self._content += str(ch)
 
     def add(self, sub):
         curr = self.sub_elements.get(sub.name, None)
@@ -292,7 +292,7 @@ def start_import(fname, tag_merge, user):
         reset_sequences()
     except Exception as e:
         full_state['running'] = False
-        full_state['errors'] = "%s: %s" % (e.__class__.__name__, unicode(e))
+        full_state['errors'] = "%s: %s" % (e.__class__.__name__, str(e))
         set_state()
 
         import traceback

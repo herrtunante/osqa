@@ -3,11 +3,10 @@ import json
 import time
 
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render_to_response, get_object_or_404
-from django.core.urlresolvers import reverse
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.template import RequestContext
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.db import models
 
 from django.contrib import messages
@@ -27,7 +26,7 @@ TOOLS = {}
 
 def super_user_required(fn):
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated() and request.user.is_superuser:
+        if request.user.is_authenticated and request.user.is_superuser:
             return fn(request, *args, **kwargs)
         else:
             return HttpResponseUnauthorized(request)
@@ -36,7 +35,7 @@ def super_user_required(fn):
 
 def staff_user_required(fn):
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated() and (request.user.is_staff or request.user.is_superuser):
+        if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
             return fn(request, *args, **kwargs)
         else:
             return HttpResponseUnauthorized(request)
@@ -55,18 +54,18 @@ def admin_page_wrapper(fn, request, *args, **kwargs):
             [s for s in Setting.sets.values() if not s.name in
             ('basic', 'users', 'email', 'paths', 'extkeys', 'repgain', 'minrep', 'voting', 'accept', 'badges', 'about', 'faq', 'sidebar',
             'form', 'moderation', 'css', 'headandfoot', 'head', 'view', 'urls')]
-            , lambda s1, s2: s1.weight - s2.weight)
+            , key=lambda s: s.weight)
 
     context['tools'] = [(name, fn.label) for name, fn in TOOLS.items()]
 
     # Show the navigation only to moderators and super users
-    if not context.has_key("hide_navigation"):
+    if "hide_navigation" not in context:
         context['hide_navigation'] = not request.user.is_superuser
 
     unsaved = request.session.get('previewing_settings', {})
     context['unsaved'] = set([getattr(settings, s).set.name for s in unsaved.keys() if hasattr(settings, s)])
 
-    return render_to_response(template, context, context_instance=RequestContext(request))
+    return render(template, context)
 
 def admin_page(fn):
     @super_user_required
@@ -98,7 +97,7 @@ class ActivityPaginatorContext(pagination.PaginatorContext):
 @admin_page
 def dashboard(request):
     return ('osqaadmin/dashboard.html', pagination.paginated(request, ("recent_activity", ActivityPaginatorContext()), {
-    'settings_pack': unicode(settings.SETTINGS_PACK),
+    'settings_pack': str(settings.SETTINGS_PACK),
     'statistics': get_statistics(),
     'recent_activity': get_recent_activity(),
     'flagged_posts': get_flagged_posts(),
@@ -588,8 +587,8 @@ def test_email_settings(request):
 
     send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
 
-    return render_to_response(
+    return render(
+        request,
         'osqaadmin/test_email_settings.html',
-        { 'user': user, },
-        RequestContext(request)
+        { 'user': user, }
     )

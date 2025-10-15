@@ -1,12 +1,11 @@
 import os
 from itertools import groupby
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.static import serve
 from django.views.decorators.cache import cache_page
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 
 from django.contrib import messages
@@ -31,8 +30,7 @@ def custom_css(request):
     return HttpResponse(or_preview(settings.CUSTOM_CSS, request), mimetype="text/css")
 
 def static(request, title, content):
-    return render_to_response('static.html', {'content' : content, 'title': title},
-                              context_instance=RequestContext(request))
+    return render(request, 'static.html', {'content' : content, 'title': title})
 
 def media(request, skin, path):
     response = serve(request, "%s/media/%s" % (skin, path),
@@ -46,11 +44,11 @@ def media(request, skin, path):
 
 
 def markdown_help(request):
-    return render_to_response('markdown_help.html', context_instance=RequestContext(request))
+    return render(request, 'markdown_help.html')
 
 @cache_page(60 * 60 * 24 * 30) #30 days
 def opensearch(request):
-    return render_to_response('opensearch.html', {'settings' : settings}, context_instance=RequestContext(request))
+    return render(request, 'opensearch.html', {'settings' : settings})
 
 
 def feedback(request):
@@ -59,9 +57,9 @@ def feedback(request):
         if form.is_valid():
             context = {
                  'user': request.user,
-                 'email': request.user.is_authenticated() and request.user.email or form.cleaned_data.get('email', None),
+                 'email': request.user.is_authenticated and request.user.email or form.cleaned_data.get('email', None),
                  'message': form.cleaned_data['message'],
-                 'name': request.user.is_authenticated() and request.user.username or form.cleaned_data.get('name', None),
+                 'name': request.user.is_authenticated and request.user.username or form.cleaned_data.get('name', None),
                  'ip': request.META['REMOTE_ADDR'],
             }
 
@@ -74,25 +72,25 @@ def feedback(request):
     else:
         form = FeedbackForm(request.user, initial={'next':get_next_url(request)})
 
-    return render_to_response('feedback.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'feedback.html', {'form': form})
 
 feedback.CANCEL_MESSAGE=_('We look forward to hearing your feedback! Please, give it next time :)')
 
 def privacy(request):
-    return render_to_response('privacy.html', context_instance=RequestContext(request))
+    return render(request, 'privacy.html')
 
 @decorate.withfn(login_required)
 def logout(request):
-    return render_to_response('logout.html', {
+    return render(request, 'logout.html', {
     'next' : get_next_url(request),
-    }, context_instance=RequestContext(request))
+    })
 
-@decorators.render('badges.html', 'badges', _('badges'), weight=300)
+@decorators.render(request, 'badges.html', 'badges', _('badges'), weight=300)
 def badges(request):
     from forum.badges.base import BadgesMeta
-    badges = sorted([Badge.objects.get(id=id) for id in BadgesMeta.by_id.keys()], lambda b1, b2: cmp(b1.name, b2.name))
+    badges = sorted([Badge.objects.get(id=id) for id in BadgesMeta.by_id.keys()], key=lambda b: b.name)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         my_badges = Award.objects.filter(user=request.user).values_list('badge_id', flat=True).distinct()
     else:
         my_badges = []
@@ -108,13 +106,13 @@ def badge(request, id, slug):
     award_count = len(awards)
 
     awards = sorted([dict(count=len(list(g)), user=k) for k, g in groupby(awards, lambda a: a.user)],
-                    lambda c1, c2: c2['count'] - c1['count'])
+                    key=lambda c: c['count'], reverse=True)
 
-    return render_to_response('badge.html', {
+    return render(request, 'badge.html', {
     'award_count': award_count,
     'awards' : awards,
     'badge' : badge,
-    }, context_instance=RequestContext(request))
+    })
 
 def page(request):
     path = request.path[1:]
@@ -157,12 +155,12 @@ def page(request):
     else:
         body = page.body
 
-    return render_to_response('page.html', {
+    return render(request, 'page.html', {
     'page' : page,
     'body' : body,
     'sidebar': sidebar,
     'base': base,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def error_handler(request):
@@ -187,7 +185,7 @@ def error_handler(request):
         %(stacktrace)s
         """ % {
             'path': request.path,
-            'user': request.user.is_authenticated() and ("%s (%s)" % (request.user.username, request.user.id)) or "<anonymous>",
+            'user': request.user.is_authenticated and ("%s (%s)" % (request.user.username, request.user.id)) or "<anonymous>",
             'method': request.method,
             'post': request.POST and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.POST.items()]) or "None",
             'get': request.GET and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.GET.items()]) or "None",

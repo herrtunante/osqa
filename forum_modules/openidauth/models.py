@@ -5,7 +5,7 @@ class OpenIdNonce(models.Model):
     timestamp  = models.IntegerField()
     salt       = models.CharField( max_length=50 )
 
-    def __unicode__(self):
+    def __str__(self):
         return "Nonce: %s" % self.nonce
 
     class Meta:
@@ -19,7 +19,7 @@ class OpenIdAssociation(models.Model):
     lifetime = models.IntegerField()
     assoc_type = models.TextField(max_length=64)
 
-    def __unicode__(self):
+    def __str__(self):
         return "Association: %s, %s" % (self.server_url, self.handle)
 
     class Meta:

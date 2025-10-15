@@ -1,7 +1,6 @@
-from django.conf.urls import patterns, url, include
-from django.utils.translation import ugettext as _
+from django.urls import re_path as url, include
+from django.utils.translation import gettext as _
 import views as app
 
-urlpatterns = patterns('',
-    url(r'^%s%s%s$' % (_('account/'), _('local/'),  _('register/')), app.register, name='auth_local_register'),
-)
+urlpatterns = [url(r'^%s%s%s$' % (_('account/'), _('local/'),  _('register/')), app.register, name='auth_local_register'),
+]

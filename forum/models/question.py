@@ -1,6 +1,6 @@
-from base import *
-from tag import Tag
-from django.utils.translation import ugettext as _
+from .base import *
+from .tag import Tag
+from django.utils.translation import gettext as _
 
 class QuestionManager(NodeManager):
     def search(self, keywords, **kwargs):
@@ -41,8 +41,6 @@ class Question(Node):
     @property
     def accepted_answers(self):
         return self.answers.filter(~models.Q(state_string__contains="(deleted)"), marked=True)
-
-    @models.permalink    
     def get_absolute_url(self):
         return ('question', (), {'id': self.id, 'slug': django_urlquote(slugify(self.title))})
         
@@ -67,8 +65,8 @@ class Question(Node):
 
 
 class QuestionSubscription(models.Model):
-    user = models.ForeignKey(User)
-    question = models.ForeignKey(Node)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(Node, on_delete=models.CASCADE)
     auto_subscription = models.BooleanField(default=True)
     last_view = models.DateTimeField(default=datetime.datetime.now())
 

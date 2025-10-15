@@ -48,20 +48,20 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
     if not settings.EMAIL_HOST:
         return
 
-    sender = Header(unicode(settings.APP_SHORT_NAME), 'utf-8')
+    sender = Header(str(settings.APP_SHORT_NAME), 'utf-8')
     
     if sender_data == None:
-        sender.append('<%s>' % unicode(settings.DEFAULT_FROM_EMAIL))
-        sender = u'%s <%s>' % (unicode(settings.APP_SHORT_NAME), unicode(settings.DEFAULT_FROM_EMAIL))
+        sender.append('<%s>' % str(settings.DEFAULT_FROM_EMAIL))
+        sender = u'%s <%s>' % (str(settings.APP_SHORT_NAME), str(settings.DEFAULT_FROM_EMAIL))
     else:
-        sender.append('<%s>' % unicode(sender_data['email']))
-        sender = u'%s <%s>' % (unicode(sender_data['name']), unicode(sender_data['email']))
+        sender.append('<%s>' % str(sender_data['email']))
+        sender = u'%s <%s>' % (str(sender_data['name']), str(sender_data['email']))
         
     
     if reply_to == None:
-        reply_to = unicode(settings.DEFAULT_REPLY_TO_EMAIL)
+        reply_to = str(settings.DEFAULT_REPLY_TO_EMAIL)
     else:
-        reply_to = unicode(reply_to)
+        reply_to = str(reply_to)
 
     try:
         connection = None
@@ -84,7 +84,7 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             if reply_to:
                 msgRoot['Reply-To'] = reply_to
 
-            msgRoot.preamble = 'This is a multi-part message from %s.' % unicode(settings.APP_SHORT_NAME).encode('utf8')
+            msgRoot.preamble = 'This is a multi-part message from %s.' % str(settings.APP_SHORT_NAME).encode('utf8')
 
             msgAlternative = MIMEMultipart('alternative')
             msgRoot.attach(msgAlternative)

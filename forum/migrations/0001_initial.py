@@ -189,16 +189,16 @@ class Migration(SchemaMigration):
         # Adding M2M table for field followed_by on 'Question'
         db.create_table(u'question_followed_by', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('question', models.ForeignKey(orm['forum.question'], null=False)),
-            ('user', models.ForeignKey(orm['forum.user'], null=False))
+            ('question', models.ForeignKey(orm['forum.question'], null=False, on_delete=models.CASCADE)),
+            ('user', models.ForeignKey(orm['forum.user'], null=False, on_delete=models.CASCADE))
         ))
         db.create_unique(u'question_followed_by', ['question_id', 'user_id'])
 
         # Adding M2M table for field tags on 'Question'
         db.create_table(u'question_tags', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('question', models.ForeignKey(orm['forum.question'], null=False)),
-            ('tag', models.ForeignKey(orm['forum.tag'], null=False))
+            ('question', models.ForeignKey(orm['forum.question'], null=False, on_delete=models.CASCADE)),
+            ('tag', models.ForeignKey(orm['forum.tag'], null=False, on_delete=models.CASCADE))
         ))
         db.create_unique(u'question_tags', ['question_id', 'tag_id'])
 

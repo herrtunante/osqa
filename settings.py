@@ -8,7 +8,8 @@ SECRET_KEY = 'a;::qCl1mfh?avagttOJ;8f5Rr54d,9qy7;o15M2cYO75?OQo51u3LnQ;!8N.:,7'
 
 CACHE_MAX_KEY_LENGTH = 235
 
-MIDDLEWARE_CLASSES = [
+# Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
+MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -20,24 +21,15 @@ MIDDLEWARE_CLASSES = [
     'forum.middleware.cancel.CancelActionMiddleware',
     'forum.middleware.admin_messages.AdminMessagesMiddleware',
     'forum.middleware.custom_pages.CustomPagesFallbackMiddleware',
-    'django.middleware.transaction.TransactionMiddleware',
+    # Note: django.middleware.transaction.TransactionMiddleware removed (deprecated in Django 1.6, removed in 1.8)
     'forum.middleware.django_cookies.CookiePostHandlerMiddleware',
 ]
 
-TEMPLATE_CONTEXT_PROCESSORS = [
-    'django.core.context_processors.request',
-    'forum.context.application_settings',
-    'django.contrib.messages.context_processors.messages',
-    'forum.user_messages.context_processors.user_messages',
-    'django.contrib.auth.context_processors.auth',
-]
+# Django 4.2: Required setting
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ROOT_URLCONF = 'urls'
 APPEND_SLASH = True
-
-TEMPLATE_DIRS = (
-    os.path.join(os.path.dirname(__file__),'forum','skins').replace('\\','/'),
-)
 
 
 FILE_UPLOAD_TEMP_DIR = os.path.join(os.path.dirname(__file__), 'tmp').replace('\\','/')
@@ -55,13 +47,34 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # User settings
 from settings_local import *
 
-template_loaders = (
+# Django 4.2: TEMPLATES configuration
+template_loaders = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     'forum.modules.template_loader.module_templates_loader',
     'forum.skins.load_template_source',
-)
-TEMPLATE_LOADERS = list(template_loaders) if DEBUG else [ ('django.template.loaders.cached.Loader', template_loaders) ]
+]
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(os.path.dirname(__file__), 'forum', 'skins').replace('\\', '/'),
+        ],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'forum.context.application_settings',
+                'django.contrib.messages.context_processors.messages',
+                'forum.user_messages.context_processors.user_messages',
+                'django.contrib.auth.context_processors.auth',
+            ],
+            'loaders': template_loaders if DEBUG else [
+                ('django.template.loaders.cached.Loader', template_loaders)
+            ],
+        },
+    },
+]
 
 try:
     if len(FORUM_SCRIPT_ALIAS) > 0:
@@ -87,21 +100,24 @@ if FORCE_SCRIPT_NAME.endswith('/'):
 MODULES_PACKAGE = 'forum_modules'
 MODULES_FOLDER = os.path.join(SITE_SRC_ROOT, MODULES_PACKAGE)
 
-MODULE_LIST = filter(lambda m: getattr(m, 'CAN_USE', True), [
+# Python 3: filter() returns iterator, convert to list
+MODULE_LIST = list(filter(lambda m: getattr(m, 'CAN_USE', True), [
         __import__('forum_modules.%s' % f, globals(), locals(), ['forum_modules'])
         for f in os.listdir(MODULES_FOLDER)
         if os.path.isdir(os.path.join(MODULES_FOLDER, f)) and
            os.path.exists(os.path.join(MODULES_FOLDER, "%s/__init__.py" % f)) and
            not f in DISABLED_MODULES
-])
+]))
 
-[MIDDLEWARE_CLASSES.extend(
+# Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
+[MIDDLEWARE.extend(
         ["%s.%s" % (m.__name__, mc) for mc in getattr(m, 'MIDDLEWARE_CLASSES', [])]
                           ) for m in MODULE_LIST]
 
-[TEMPLATE_LOADERS.extend(
+# Add module template loaders to TEMPLATES
+[TEMPLATES[0]['OPTIONS']['loaders'].extend(
         ["%s.%s" % (m.__name__, tl) for tl in getattr(m, 'TEMPLATE_LOADERS', [])]
-                          ) for m in MODULE_LIST]
+                          ) if isinstance(TEMPLATES[0]['OPTIONS']['loaders'], list) else None for m in MODULE_LIST]
 
 
 INSTALLED_APPS = [
@@ -119,16 +135,14 @@ INSTALLED_APPS = [
 if DEBUG:
     try:
         import debug_toolbar
-        MIDDLEWARE_CLASSES.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+        # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
+        MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
         INSTALLED_APPS.append('debug_toolbar')
     except:
         pass
 
-try:
-    import south
-    INSTALLED_APPS.append('south')
-except:
-    pass
+# Django 4.2: South removed - using Django's built-in migrations
+# South was for Django < 1.7, Django 4.2 has native migrations
 
 # Try loading Gunicorn web server
 try:
