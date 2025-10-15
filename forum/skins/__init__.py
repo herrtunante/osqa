@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.template.loaders import filesystem
-from django.template import TemplateDoesNotExist, Template as DJTemplate
+from django.template.loaders.base import Loader as BaseLoader
+from django.template import TemplateDoesNotExist, Origin
 from django.conf import settings as djsettings
 import os.path
 import logging
@@ -47,7 +47,7 @@ class Template(object):
             try:
                 self._load()
             except:
-                raise TemplateDoesNotExist, self._file_name
+                raise TemplateDoesNotExist(self._file_name)
 
         return self._source, self._file_name
 
@@ -67,7 +67,7 @@ class BaseTemplateLoader(object):
         if not djsettings.TEMPLATE_DEBUG:
             if name in self.cache:
                 if self.cache[name] is UNEXISTENT_TEMPLATE:
-                    raise TemplateDoesNotExist, name
+                    raise TemplateDoesNotExist(name)
 
                 try:
                     return self.cache[name].return_tuple()
@@ -85,7 +85,7 @@ class BaseTemplateLoader(object):
             if not djsettings.DEBUG:
                 self.cache[name] = UNEXISTENT_TEMPLATE
 
-            raise TemplateDoesNotExist, name
+            raise TemplateDoesNotExist(name)
 
     def load_template_source(self, name, dirs=None):
         raise NotImplementedError

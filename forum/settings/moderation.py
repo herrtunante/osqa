@@ -1,8 +1,8 @@
-from base import Setting, SettingSet
-from forms import StringListWidget
+from .base import Setting, SettingSet
+from .forms import StringListWidget
 
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import smart_str
+from django.utils.translation import gettext_lazy as _
 from django.forms.widgets import Textarea, RadioSelect
 
 MODERATION_SET = SettingSet('moderation', _('Moderation settings'), _("Define the moderation workflow of your site"), 100)

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from forum.badges.base import AbstractBadge
 from forum.models import Badge
 from forum.actions import *

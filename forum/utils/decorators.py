@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseForbidden, Http404
 
 def ajax_login_required(view_func):
     def wrap(request,*args,**kwargs):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return view_func(request,*args,**kwargs)
         else:
             json = json.dumps({'login_required':True})

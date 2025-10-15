@@ -3,12 +3,12 @@ import re
 
 from forum.models import Question, Action
 from django.template import Template, Context
-from django.utils.translation import ungettext, ugettext as _
+from django.utils.translation import ngettext, gettext as _
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe
 from django.conf import settings as django_settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django import template
 from forum.actions import *
 from forum import settings
@@ -19,7 +19,7 @@ register = template.Library()
 def vote_buttons(post, user):
     context = dict(post=post, user_vote='none')
 
-    if user.is_authenticated():
+    if user.is_authenticated:
         context['user_vote'] = {1: 'up', -1: 'down', None: 'none'}[VoteAction.get_for(user, post)]
 
     return context
@@ -28,7 +28,7 @@ def vote_buttons(post, user):
 def accept_button(answer, user):
     if not settings.DISABLE_ACCEPTING_FEATURE:
         return {
-            'can_accept': user.is_authenticated() and user.can_accept_answer(answer),
+            'can_accept': user.is_authenticated and user.can_accept_answer(answer),
             'answer': answer,
             'user': user
         }
@@ -105,13 +105,13 @@ def post_controls(post, user):
                                      title=_("answer permanent link"), command=True, withprompt=True, copy=True))
 
         # Users should be able to award points for an answer. Users cannot award their own answers
-        if user != post.author and user.is_authenticated() and user.reputation > 1:
+        if user != post.author and user.is_authenticated and user.reputation > 1:
             controls.append(post_control(_("award points"), reverse('award_points', kwargs={'user_id' : post.author.id,
-                                         'answer_id' : post.id}), title=_("award points to %s") % smart_unicode(post.author.username),
+                                         'answer_id' : post.id}), title=_("award points to %s") % smart_str(post.author.username),
                                          command=True, withprompt=True))
 
     # The other controls are visible only to authenticated users.
-    if user.is_authenticated():
+    if user.is_authenticated:
         try:
             edit_url = reverse('edit_' + post_type, kwargs={'id': post.id})
             if user.can_edit_post(post):
@@ -185,8 +185,8 @@ def post_controls(post, user):
             splitString = cleanedStr.split(" ")
             word_count = len(splitString) - 1
 
-            metrics = mark_safe("<b>%s %s / %s %s</b>" % (char_count, ungettext('character', 'characters', char_count),
-                                        word_count, ungettext('word', 'words', word_count)))
+            metrics = mark_safe("<b>%s %s / %s %s</b>" % (char_count, ngettext('character', 'characters', char_count),
+                                        word_count, ngettext('word', 'words', word_count)))
 
             menu.append(post_control(metrics, "#", command=False, withprompt=False))
 
@@ -199,7 +199,7 @@ def _comments(post, user):
     if len(all_comments) <= 5:
         top_scorers = all_comments
     else:
-        top_scorers = sorted(all_comments, lambda c1, c2: cmp(c2.score, c1.score))[0:5]
+        top_scorers = sorted(all_comments, key=lambda c: c.score, reverse=True)[0:5]
 
     comments = []
     showing = 0
@@ -226,7 +226,7 @@ def _comments(post, user):
     # Generate canned comments
     canned_comments = []
     for comment in settings.CANNED_COMMENTS:
-        t = Template(smart_unicode(comment))
+        t = Template(smart_str(comment))
         c = Context({
             'post' : post,
             'settings' : settings,

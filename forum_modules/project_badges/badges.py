@@ -1,4 +1,4 @@
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from forum.badges.base import AbstractBadge
 from forum.models import Badge, Tag
 from forum.actions import VoteUpAction

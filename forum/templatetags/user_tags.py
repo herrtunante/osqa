@@ -1,5 +1,5 @@
 from django import template
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 import logging
 
@@ -23,7 +23,7 @@ def user_signature(parser, token):
     try:
         tag_name, user, format = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly two arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly two arguments" % token.contents.split()[0])
 
     return UserSignatureNode(user, format)
 
@@ -40,7 +40,7 @@ class ActivityNode(template.Node):
             action = self.activity.resolve(context).leaf
             viewer = self.viewer.resolve(context)
             describe = mark_safe(action.describe(viewer))
-            return self.template.render(template.Context(dict(action=action, describe=describe)))
+            return self.template.render(dict(action=action, describe=describe))
         except Exception as e:
             import traceback
             msg = "Error in action describe: \n %s" % (
@@ -53,7 +53,7 @@ def activity_item(parser, token):
     try:
         tag_name, activity, viewer = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly two arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly two arguments" % token.contents.split()[0])
 
     return ActivityNode(activity, viewer)
 
@@ -63,7 +63,7 @@ def flagged_item(parser, token):
     try:
         tag_name, post, viewer = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly two arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly two arguments" % token.contents.split()[0])
 
     return ActivityNode(post, viewer)
 

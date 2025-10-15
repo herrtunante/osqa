@@ -8,8 +8,8 @@ except:
     old_version = True
 
 from django.http import HttpResponse
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext as _
+from django.utils.encoding import smart_str
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from models import Question
 from forum import settings
@@ -26,33 +26,33 @@ class BaseNodeFeed(Feed):
         description_template = "feeds/rss_description.html"
 
     def __init__(self, request, title, description, url):
-        self._title = u"%s" % smart_unicode(title)
-        self._description = mark_safe(u"%s" % smart_unicode(description))
+        self._title = u"%s" % smart_str(title)
+        self._description = mark_safe(u"%s" % smart_str(description))
         self._url = url
 
         if old_version:
             super(BaseNodeFeed, self).__init__('', request)
 
     def title(self):
-        return u"%s" % smart_unicode(self._title)
+        return u"%s" % smart_str(self._title)
 
     def link(self):
         return self._url
 
     def description(self):
-        return u"%s" % smart_unicode(self._description)
+        return u"%s" % smart_str(self._description)
 
     def item_title(self, item):
-        return u"%s" % smart_unicode(item.title)
+        return u"%s" % smart_str(item.title)
 
     def item_description(self, item):
-        return u"%s" % smart_unicode(item.html)
+        return u"%s" % smart_str(item.html)
 
     def item_link(self, item):
         return item.leaf.get_absolute_url()
 
     def item_author_name(self, item):
-        return u"%s" % smart_unicode(item.author.username)
+        return u"%s" % smart_str(item.author.username)
 
     def item_author_link(self, item):
         return item.author.get_profile_url()
@@ -90,7 +90,7 @@ class RssAnswerFeed(BaseNodeFeed):
 
     def __init__(self, request, question, include_comments=False):
         super(RssAnswerFeed, self).__init__(
-            request, _("Answers to: %s") % smart_unicode(question.title),
+            request, _("Answers to: %s") % smart_str(question.title),
             question.html,
             question.get_absolute_url()
         )
@@ -110,10 +110,10 @@ class RssAnswerFeed(BaseNodeFeed):
 
     def item_title(self, item):
         if item.node_type == "answer":
-            return _("Answer by %s") % smart_unicode(item.author.username)
+            return _("Answer by %s") % smart_str(item.author.username)
         else:
             return _("Comment by %(cauthor)s on %(pauthor)s's %(qora)s") % dict(
-                cauthor=smart_unicode(item.author.username),
-                pauthor=smart_unicode(item.parent.author.username),
+                cauthor=smart_str(item.author.username),
+                pauthor=smart_str(item.parent.author.username),
                 qora=(item.parent.node_type == "answer" and _("answer") or _("question"))
             )

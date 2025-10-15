@@ -1,8 +1,8 @@
-from base import Setting, SettingSet
+from .base import Setting, SettingSet
 from django.forms.widgets import Textarea, Select
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from static import RENDER_CHOICES
+from .static import RENDER_CHOICES
 
 SIDEBAR_SET = SettingSet('sidebar', 'Sidebar content', "Enter contents to display in the sidebar. You can use markdown and some basic html tags.", 10, True)
 

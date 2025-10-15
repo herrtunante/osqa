@@ -1,6 +1,6 @@
-from base import Setting, SettingSet
+from .base import Setting, SettingSet
 from django.forms.widgets import Textarea, RadioSelect, Select
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 RENDER_CHOICES = (
 ('markdown', _('Markdown')),

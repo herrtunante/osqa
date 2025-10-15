@@ -1,8 +1,8 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 from django.forms.widgets import PasswordInput
 from django.forms.widgets import RadioSelect
-from forms import TestEmailSettingsWidget
+from .forms import TestEmailSettingsWidget
 
 EMAIL_SET = SettingSet('email', _('Email settings'), _("Email server and other email related settings."), 50)
 

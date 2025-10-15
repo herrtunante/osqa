@@ -1,0 +1,24 @@
+# Virtual environments
+venv/
+osqa_env/
+test_venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Cache
+cache/
+*.log
+log/
+
+# OS files
+.DS_Store
+Thumbs.db

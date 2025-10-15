@@ -56,7 +56,7 @@ Usage example::
 
 
 import os, sys
-from urllib import urlencode
+from urllib.parse import urlencode
 from forum import settings
 
 import socket

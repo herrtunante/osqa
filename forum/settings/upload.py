@@ -1,6 +1,6 @@
 import os.path
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 UPLOAD_SET = SettingSet('paths', _('File upload settings'), _("File uploads related settings."), 600)
 

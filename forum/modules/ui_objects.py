@@ -1,9 +1,9 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django import template
 from forum.utils import html
 from forum.models.user import AnonymousUser
-from ui import Registry
+from .ui import Registry
 from copy import copy
 
 class Visibility(object):
@@ -22,9 +22,9 @@ class Visibility(object):
 
     def show_to(self, user):
         if self.by_reputation:
-            res = user.is_authenticated() and (user.reputation >= int(self.level) or user.is_staff or user.is_superuser)
+            res = user.is_authenticated and (user.reputation >= int(self.level) or user.is_staff or user.is_superuser)
         else:
-            res = self.level == 'public' or (user.is_authenticated() and (
+            res = self.level == 'public' or (user.is_authenticated and (
                 self.level == 'authenticated' or (
                 self.level == 'superuser' and user.is_superuser) or (
                 self.level == 'staff' and (user.is_staff or user.is_superuser)) or (

@@ -1,4 +1,4 @@
-from base import Setting, SettingSet
+from .base import Setting, SettingSet
 from django.forms.widgets import Textarea
 
 PAGES_SET = SettingSet('about', 'About page', "Define the text in the about page. You can use markdown and some basic html tags.", 2000, True)

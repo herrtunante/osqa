@@ -1,9 +1,9 @@
 import os.path
 
-from base import Setting, SettingSet
-from forms import ImageFormWidget
+from .base import Setting, SettingSet
+from .forms import ImageFormWidget
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.forms.widgets import Textarea
 
 BASIC_SET = SettingSet('basic', _('Basic settings'), _("The basic settings for your application"), 1)

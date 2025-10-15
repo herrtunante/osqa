@@ -1,5 +1,5 @@
-from django.utils.translation import ungettext, ugettext as _
-from django.core.urlresolvers import reverse
+from django.utils.translation import ngettext, gettext as _
+from django.urls import reverse
 from django.db.models import F
 from django.contrib import messages
 from forum.models.action import ActionProxy
@@ -115,7 +115,7 @@ class AwardPointsAction(ActionProxy):
         self._affected.message_set.create(
                 message=_("Congratulations, you have been awarded an extra %(points)s reputation %(points_label)s on <a href=\"%(answer_url)s\">this</a> answer.") % {
                         'points': self._value,
-                        'points_label': ungettext('point', 'points', self._value),
+                        'points_label': ngettext('point', 'points', self._value),
                         'answer_url': self.node.get_absolute_url()
                     })
 

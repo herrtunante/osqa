@@ -4,7 +4,7 @@ import datetime
 import logging
 from forum.models import User, Question, Comment, QuestionSubscription, SubscriptionSettings, Answer
 from forum.utils.mail import send_template_email
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from forum.actions import AskAction, AnswerAction, CommentAction, AcceptAnswerAction, UserJoinsAction, QuestionViewAction
 from forum import settings
 from django.db.models import Q, F
@@ -153,7 +153,7 @@ def member_joined(action, new):
 UserJoinsAction.hook(member_joined)
 
 def question_viewed(action, new):
-    if not action.viewuser.is_authenticated():
+    if not action.viewuser.is_authenticated:
         return
 
     try:

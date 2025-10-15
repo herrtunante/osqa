@@ -1,7 +1,7 @@
 from general import NextUrlField,  UserNameField,  UserEmailField, UserRealNameField, UserNameValidationField, UserNameValidationSumField, SetPasswordForm
 
 from forum.models import User
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from django import forms
 

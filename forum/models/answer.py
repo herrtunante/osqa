@@ -1,5 +1,5 @@
-from base import *
-from django.utils.translation import ugettext as _
+from .base import *
+from django.utils.translation import gettext as _
 
 class Answer(Node):
     friendly_name = _("answer")

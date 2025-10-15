@@ -6,3 +6,6 @@ log/django.osqa.log
 tmp/*
 osqa.wsgi
 settings_local.py
+/osqa_env/
+/test_venv/
+/venv/

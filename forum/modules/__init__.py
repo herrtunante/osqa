@@ -42,7 +42,7 @@ def get_modules_script_classes(script_name, base_class):
     for script in scripts:
         all_classes.update(dict([
             (n, c) for (n, c) in [(n, getattr(script, n)) for n in dir(script)]
-            if isinstance(c, (type, types.ClassType)) and issubclass(c, base_class)
+            if isinstance(c, type) and issubclass(c, base_class)
         ]))
 
     return all_classes
@@ -73,4 +73,4 @@ def get_handler(name, default):
     all = get_all_handlers(name)
     return len(all) and all[0] or default
 
-from decorators import decorate, ReturnImediatelyException
+from .decorators import decorate, ReturnImediatelyException

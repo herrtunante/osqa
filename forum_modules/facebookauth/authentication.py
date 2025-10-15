@@ -7,9 +7,9 @@ from urllib import urlopen,  urlencode
 from forum.authentication.base import AuthenticationConsumer, ConsumerTemplateContext, InvalidAuthentication
 
 from django.conf import settings as django_settings
-from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as _
+from django.utils.encoding import smart_str
+from django.urls import reverse
+from django.utils.translation import gettext as _
 
 import settings
 
@@ -61,7 +61,7 @@ class FacebookAuthConsumer(AuthenticationConsumer):
 
         # Check whether the length if the email is greater than 75, if it is -- just replace the email
         # with a blank string variable, otherwise we're going to have trouble with the Django model.
-        email = smart_unicode(profile['email'])
+        email = smart_str(profile['email'])
         if len(email) > 75:
             email = ''
 

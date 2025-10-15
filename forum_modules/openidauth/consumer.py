@@ -2,7 +2,7 @@
 
 import re
 
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from django.utils.html import escape
 
 from forum.authentication.base import AuthenticationConsumer, InvalidAuthentication
@@ -13,7 +13,7 @@ from openid.consumer.consumer import Consumer, SUCCESS, CANCEL, FAILURE, SETUP_N
 from openid.consumer.discover import DiscoveryFailure
 from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.extensions.ax import FetchRequest as AXFetchRequest, AttrInfo, FetchResponse as AXFetchResponse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from store import OsqaOpenIDStore
 
@@ -97,7 +97,7 @@ class OpenIdAbstractAuthConsumer(AuthenticationConsumer):
         consumer = Consumer(request.session, OsqaOpenIDStore())
 
         query_dict = dict([
-            (smart_unicode(k), smart_unicode(v)) for k, v in request.GET.items()
+            (smart_str(k), smart_str(v)) for k, v in request.GET.items()
         ])
 
         #for i in query_dict.items():

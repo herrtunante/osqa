@@ -1,10 +1,9 @@
 import os
-from string import strip
 from django import forms
 from forum.settings.base import Setting
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.core.files.storage import FileSystemStorage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 class DummySetting:
     pass
@@ -30,7 +29,7 @@ class SettingsSetForm(forms.Form):
                 field = forms.MultipleChoiceField(**setting.field_context)
             elif widget is forms.RadioSelect or isinstance(widget, forms.RadioSelect):
                 field = forms.ChoiceField(**setting.field_context)
-            elif isinstance(setting, (Setting.emulators.get(str, DummySetting), Setting.emulators.get(unicode, DummySetting))):
+            elif isinstance(setting, Setting.emulators.get(str, DummySetting)):
                 if not setting.field_context.get('widget', None):
                     setting.field_context['widget'] = forms.TextInput(attrs={'class': 'longstring'})
                 field = forms.CharField(**setting.field_context)
@@ -117,7 +116,7 @@ class CommaStringListWidget(forms.Textarea):
 
     def value_from_datadict(self, data, files, name):
         if 'submit' in data:
-            return map(strip, data[name].split(','))
+            return [s.strip() for s in data[name].split(',')]
         else:
             return ', '.join(data[name])    
 

@@ -1,8 +1,8 @@
-from forms import CommaStringListWidget, StringListWidget
+from .forms import CommaStringListWidget, StringListWidget
 from django.forms import CheckboxSelectMultiple
 from django.forms.widgets import RadioSelect
-from base import Setting, SettingSet
-from django.utils.translation import ugettext as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext as _
 
 USERS_SET = SettingSet('users', _('Users settings'), _("General settings for the OSQA users."), 20)
 

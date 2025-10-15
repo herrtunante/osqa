@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 REP_GAIN_SET = SettingSet('repgain', _('Reputation gains and losses config'), _("Configure the reputation points a user may gain or lose upon certain actions."), 200)
 

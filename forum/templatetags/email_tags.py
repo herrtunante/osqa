@@ -52,7 +52,7 @@ def content(parser, token):
             tag_name = token.split_contents()[0]
             base = None
         except:
-            raise template.TemplateSyntaxError, "%r tag requires at least two arguments" % token.contents.split()[0]
+            raise template.TemplateSyntaxError("%r tag requires at least two arguments" % token.contents.split()[0])
 
     nodelist = parser.parse(('end%s' % tag_name,))
 
@@ -89,7 +89,7 @@ def embedmedia(parser, token):
     try:
         tag_name, location, _, alias = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly four arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly four arguments" % token.contents.split()[0])
 
     return EmbedMediaNode(location, alias)
 

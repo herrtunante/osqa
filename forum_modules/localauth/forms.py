@@ -2,7 +2,7 @@ from forum.forms import NextUrlField, UserNameField, UserEmailField, SetPassword
 from forum.models import Question
 from forum.modules import call_all_handlers
 from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.contrib.auth import authenticate
 from django import forms
 import logging

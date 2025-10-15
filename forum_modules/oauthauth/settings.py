@@ -1,6 +1,6 @@
 from forum.settings import EXT_KEYS_SET
 from forum.settings.base import Setting
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 TWITTER_CONSUMER_KEY = Setting('TWITTER_CONSUMER_KEY', '', EXT_KEYS_SET, dict(
 label = _("Twitter consumer key"),

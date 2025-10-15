@@ -1,5 +1,4 @@
 import re
-from string import lower
 
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models.signals import post_save
@@ -9,7 +8,11 @@ from forum.actions import AwardAction
 
 import logging
 
-installed = dict([(b.cls, b) for b in Badge.objects.all()])
+try:
+    installed = dict([(b.cls, b) for b in Badge.objects.all()])
+except Exception:
+    # Database tables may not exist yet (e.g., during initial setup/check)
+    installed = {}
 
 class BadgesMeta(type):
     by_class = {}

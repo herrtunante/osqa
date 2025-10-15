@@ -1,5 +1,5 @@
-from base import *
-from django.utils.translation import ugettext as _
+from .base import *
+from django.utils.translation import gettext as _
 
 def silent_permalink(func):
     """
@@ -11,7 +11,7 @@ def silent_permalink(func):
         (viewname, viewargs)
         (viewname, viewargs, viewkwargs)
     """
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
     def inner(*args, **kwargs):
         bits = func(*args, **kwargs)
         try:

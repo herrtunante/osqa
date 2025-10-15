@@ -1,7 +1,7 @@
 from forum.authentication.base import AuthenticationConsumer, ConsumerTemplateContext, InvalidAuthentication
 from forum.models import User
 from forum.actions import UserJoinsAction
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from forum import settings
 
 class LDAPAuthConsumer(AuthenticationConsumer):

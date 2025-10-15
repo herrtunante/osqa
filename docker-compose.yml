@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  osqa:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./osqa.db:/app/osqa.db
+      - ./upfiles:/app/upfiles
+      - ./cache:/app/cache
+      - ./log:/app/log
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true

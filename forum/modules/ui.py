@@ -57,5 +57,5 @@ def get_registry_by_name(name):
 
 
 
-from ui_objects import *
+from .ui_objects import *
 

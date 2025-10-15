@@ -1,7 +1,7 @@
 from forum.settings.base import Setting
 from forum.settings.extkeys import EXT_KEYS_SET
 from forum.settings.minrep import MIN_REP_SET
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 WORDPRESS_API_KEY = Setting('WORDPRESS_API_KEY', '', EXT_KEYS_SET, dict(
 label = _("WordPress API key"),

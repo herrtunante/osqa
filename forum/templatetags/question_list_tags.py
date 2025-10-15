@@ -1,5 +1,5 @@
 from django import template
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from forum.models import Tag, MarkedTag
 from forum.templatetags import argument_parser
@@ -68,7 +68,7 @@ def tag_selector(context):
     request = context['request']
     show_interesting_tags = settings.SHOW_INTERESTING_TAGS_BOX
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         pt = MarkedTag.objects.filter(user=request.user)
         return {
             'request' : request,

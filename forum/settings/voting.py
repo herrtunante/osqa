@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 VOTE_RULES_SET = SettingSet('voting', _('Voting rules'), _("Configure the voting rules on your site."), 400)
 

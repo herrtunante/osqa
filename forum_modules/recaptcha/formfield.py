@@ -1,9 +1,8 @@
 from django import forms
 from lib import captcha
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode, smart_unicode
-from django.utils.translation import ugettext_lazy as _
-from django.template import RequestContext
+from django.utils.encoding import force_str, smart_str
+from django.utils.translation import gettext_lazy as _
 import settings
 
 class ReCaptchaField(forms.Field):
@@ -21,7 +20,7 @@ class ReCaptchaField(forms.Field):
 		
 	def clean(self, values):
 		super(ReCaptchaField, self).clean(values)
-		recaptcha_response_value = smart_unicode(values)
+		recaptcha_response_value = smart_str(values)
 		check_captcha = captcha.submit(recaptcha_response_value, settings.RECAPTCHA_PRIV_KEY, "0.0.0.0")
 
 		if not check_captcha.is_valid:
@@ -32,7 +31,7 @@ class ReCaptchaField(forms.Field):
 
 class ReCaptchaWidget(forms.Widget):
 	def render(self, name, value, attrs=None):
-		return mark_safe(force_unicode(captcha.displayhtml(settings.RECAPTCHA_PUB_KEY)))
+		return mark_safe(force_str(captcha.displayhtml(settings.RECAPTCHA_PUB_KEY)))
 
 	def value_from_datadict(self, data, files, name):
 

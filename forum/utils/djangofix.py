@@ -4,7 +4,6 @@ from forum.modules import decorate
 
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
-from django.utils.http import urlquote_plus
 
 slug_re = re.compile(r'\w+', re.UNICODE)
 

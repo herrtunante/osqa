@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 EXT_KEYS_SET = SettingSet('extkeys', _('External Keys'), _("Keys for various external providers that your application may optionally use."), 100)
 

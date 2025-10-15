@@ -7,6 +7,19 @@ from forum.http_responses import HttpResponseServiceUnavailable
 
 
 class RequestUtils(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = None
+        if hasattr(self, "process_request"):
+            response = self.process_request(request)
+        if response is None:
+            response = self.get_response(request)
+        if hasattr(self, "process_response"):
+            response = self.process_response(request, response)
+        return response
+
     def process_request(self, request):
         if MAINTAINANCE_MODE.value is not None and isinstance(MAINTAINANCE_MODE.value.get('allow_ips', None), list):
             ip = request.META['REMOTE_ADDR']

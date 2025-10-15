@@ -1,8 +1,8 @@
 import os.path
-from base import Setting, SettingSet, BaseSetting
+from .base import Setting, SettingSet, BaseSetting
 
 from django.forms.widgets import Textarea
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings as djsettings
 from django.utils.version import get_git_changeset
 
@@ -30,32 +30,32 @@ LANGUAGE_CODE = djsettings.LANGUAGE_CODE
 ONLINE_USERS = Setting('ONLINE_USERS', {})
 
 
-from basic import *
-from sidebar import *
-from email import *
-from extkeys import *
-from minrep import *
-from repgain import *
-from voting import *
-from upload import *
-from about import *
-from faq import *
-from form import *
-from view import *
-from moderation import *
-from users import *
-from static import *
-from urls import *
-from accept import *
-from sitemaps import *
+from .basic import *
+from .sidebar import *
+from .email import *
+from .extkeys import *
+from .minrep import *
+from .repgain import *
+from .voting import *
+from .upload import *
+from .about import *
+from .faq import *
+from .form import *
+from .view import *
+from .moderation import *
+from .users import *
+from .static import *
+from .urls import *
+from .accept import *
+from .sitemaps import *
 
-__all__ = locals().keys()
+__all__ = list(locals().keys())
 
 # Be able to import all module settings as well
 for k,v in get_modules_script_implementations('settings', BaseSetting).items():
    if not k in __all__:
         __all__.append(k)
-        exec "%s = v" % k
+        exec("%s = v" % k)
 
 
 BADGES_SET = SettingSet('badges', _('Badges config'), _("Configure badges on your OSQA site."), 500)

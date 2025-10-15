@@ -5,8 +5,8 @@ import time
 
 from forum.settings import APP_URL
 from forum.authentication.base import AuthenticationConsumer, InvalidAuthentication
-from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
+from django.utils.translation import gettext as _
+from django.urls import reverse
 
 from settings import TWITTER_AUTO_CALLBACK_REDIRECT
 from lib import oauth2

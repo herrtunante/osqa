@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 """ view settings """
 VIEW_SET = SettingSet('view', _('View settings'), _("Set up how certain parts of the site are displayed."), 20)

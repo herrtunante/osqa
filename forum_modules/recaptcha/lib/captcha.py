@@ -20,7 +20,7 @@ def displayhtml (public_key):
     
     <script type="text/javascript">
     	var onloadCallback = function() {
-      		grecaptcha.render('g-recaptcha', {
+      		grecaptcha.render(request, 'g-recaptcha', {
           		'sitekey' : '%(PublicKey)s',
           		'theme' : "light",
         	});

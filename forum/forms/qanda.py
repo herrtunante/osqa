@@ -2,9 +2,9 @@ import re
 from datetime import date
 from django import forms
 from forum.models import *
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from general import NextUrlField, UserNameField
 
 from forum import settings, REQUEST_HOLDER
@@ -153,7 +153,7 @@ class FeedbackForm(forms.Form):
 
     def __init__(self, user, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             self.fields['name'] = forms.CharField(label=_('Your name:'), required=False)
             self.fields['email'] = forms.EmailField(label=_('Email (not shared with anyone):'), required=True)
 
@@ -179,7 +179,7 @@ class AskForm(forms.Form):
 
         self.fields['tags']   = TagNamesField(user)
         
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -200,7 +200,7 @@ class AnswerForm(forms.Form):
     def __init__(self, data=None, user=None, *args, **kwargs):
         super(AnswerForm, self).__init__(data, *args, **kwargs)
         
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -234,7 +234,7 @@ class RevisionForm(forms.Form):
 
         date_format = '%c'
         self.fields['revision'].choices = [
-            (r[0], u'%s - %s (%s) %s' % (r[0], smart_unicode(r[1]), r[2].strftime(date_format), r[3]))
+            (r[0], u'%s - %s (%s) %s' % (r[0], smart_str(r[1]), r[2].strftime(date_format), r[3]))
             for r in revisions]
 
         self.fields['revision'].initial = post.active_revision.revision
@@ -256,7 +256,7 @@ class EditQuestionForm(forms.Form):
         self.fields['tags'] = TagNamesField(user)
         self.fields['tags'].initial = revision.tagnames
 
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -282,7 +282,7 @@ class EditAnswerForm(forms.Form):
 
         self.fields['text'].initial = revision.body
 
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -306,7 +306,7 @@ class EditUserForm(forms.Form):
 
     def __init__(self, user, *args, **kwargs):
         super(EditUserForm, self).__init__(*args, **kwargs)
-        if settings.EDITABLE_SCREEN_NAME or (REQUEST_HOLDER.request.user.is_authenticated() and REQUEST_HOLDER.request.user.is_superuser):
+        if settings.EDITABLE_SCREEN_NAME or (REQUEST_HOLDER.request.user.is_authenticated and REQUEST_HOLDER.request.user.is_superuser):
             self.fields['username'] = UserNameField(label=_('Screen name'))
             self.fields['username'].initial = user.username
             self.fields['username'].user_instance = user

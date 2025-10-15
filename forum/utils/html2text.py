@@ -7,11 +7,10 @@
 # $Id: html2text.py,v 1.7 2002/12/17 16:56:17 fresh Exp $
 
 import sgmllib
-from string import lower, replace, split, join
 
 class HTML2Text(sgmllib.SGMLParser):
 
-    from htmlentitydefs import entitydefs # replace entitydefs from sgmllib
+    from html.entities import entitydefs # replace entitydefs from sgmllib
 
     def __init__(self, ignore_tags=(), indent_width=4, page_width=80):
         sgmllib.SGMLParser.__init__(self)
@@ -26,7 +25,7 @@ class HTML2Text(sgmllib.SGMLParser):
 
     def add_text(self,text):
         # convert text into words
-        words = split(replace(text,'\n',' '))
+        words = text.replace('\n', ' ').split()
         self.line.extend(words)
 
     def add_break(self):
@@ -53,14 +52,14 @@ class HTML2Text(sgmllib.SGMLParser):
                     out_line.append(word)
                     len_out_line = len_out_line + len_word
                 else:
-                    out_para = out_para + indent_string + join(out_line, ' ') + '\n'
+                    out_para = out_para + indent_string + ' '.join(out_line) + '\n'
                     out_line=[word]
                     len_out_line=len_word
 
-            out_para = out_para + indent_string + join(out_line, ' ')
+            out_para = out_para + indent_string + ' '.join(out_line)
             out_paras.append(out_para)
 
-        self.result = join(out_paras,'\n\n')
+        self.result = '\n\n'.join(out_paras)
 
 
     def mod_indent(self,i):
@@ -74,7 +73,7 @@ class HTML2Text(sgmllib.SGMLParser):
 
     def unknown_starttag(self, tag, attrs):
         """ Convert HTML to something meaningful in plain text """
-        tag = lower(tag)
+        tag = tag.lower()
 
         if tag not in self.ignore_tags:
             if tag[0]=='h' or tag in ['br','pre','p','hr']:
@@ -86,7 +85,7 @@ class HTML2Text(sgmllib.SGMLParser):
                 src = ''
 
                 for k, v in attrs:
-                    if lower(k) == 'src':
+                    if k.lower() == 'src':
                         src = v
 
                 self.add_break()
@@ -116,7 +115,7 @@ class HTML2Text(sgmllib.SGMLParser):
 
     def unknown_endtag(self, tag):
         """ Convert HTML to something meaningful in plain text """
-        tag = lower(tag)
+        tag = tag.lower()
 
         if tag not in self.ignore_tags:
             if tag[0]=='h' or tag in ['pre']:
