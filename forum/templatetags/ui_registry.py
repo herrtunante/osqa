@@ -57,7 +57,7 @@ class LoopRegistryNode(template.Node):
                 try:
                     ui_object.update_context(context)
                     result += self.nodelist.render(context)
-                except Exception, e:
+                except Exception as e:
                     import traceback
                     logging.error("Exception %s updating ui loop context %s: \n%s" % (
                         e, ui_object, traceback.format_exc()

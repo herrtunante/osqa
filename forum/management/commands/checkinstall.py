@@ -23,7 +23,7 @@ class Command(NoArgsCommand):
         except ImportError:
             print NOT_FOUND_ERROR % dict(what='html5lib')
             print HOW_TO_INSTALL % dict(what='html5lib', where='http://code.google.com/p/html5lib/')
-        except Exception, e:
+        except Exception as e:
             print IMPORT_ERROR_MESSAGE % dict(what='html5lib')
             traceback.print_exc(file=sys.stdout)
 
@@ -38,7 +38,7 @@ class Command(NoArgsCommand):
         except ImportError:
             print NOT_FOUND_ERROR % dict(what='markdown')
             print HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/')
-        except Exception, e:
+        except Exception as e:
             print IMPORT_ERROR_MESSAGE % dict(what='markdown')
             traceback.print_exc(file=sys.stdout)
 
@@ -56,7 +56,7 @@ class Command(NoArgsCommand):
         except ImportError:
             print NOT_FOUND_ERROR % dict(what='south')
             print HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/')
-        except Exception, e:
+        except Exception as e:
             print IMPORT_ERROR_MESSAGE % dict(what='south')
             traceback.print_exc(file=sys.stdout)
 
@@ -67,7 +67,7 @@ class Command(NoArgsCommand):
             from forum.models import User
             User.objects.all().count()
             print "  Connection OK"
-        except Exception, e:
+        except Exception as e:
             print "There seems to be a problem with your database: %s" % str(e)
 
 

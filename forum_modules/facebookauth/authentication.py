@@ -50,7 +50,7 @@ class FacebookAuthConsumer(AuthenticationConsumer):
 
             # Return the association key
             return assoc_key
-        except Exception, e:
+        except Exception as e:
             logging.error("Problem during facebook authentication: %s" % e)
             raise InvalidAuthentication(_("Something wrond happened during Facebook authentication, administrators will be notified"))
 

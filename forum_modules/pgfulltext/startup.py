@@ -15,7 +15,7 @@ if int(settings.PG_FTSTRIGGERS_VERSION) < VERSION:
 
         settings.PG_FTSTRIGGERS_VERSION.set_value(VERSION)
         
-    except Exception, e:
+    except Exception as e:
         #import sys, traceback
         #traceback.print_exc(file=sys.stdout)
         pass

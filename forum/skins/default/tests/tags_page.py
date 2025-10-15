@@ -13,11 +13,11 @@ class tags_page(unittest.TestCase):
         sel.click("nav_tags")
         sel.wait_for_page_to_load("30000")
         try: self.failUnless(sel.is_text_present("Tag list"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        except AssertionError as e: self.verificationErrors.append(str(e))
         try: self.failUnless(sel.is_text_present("by name"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        except AssertionError as e: self.verificationErrors.append(str(e))
         try: self.failUnless(sel.is_text_present("by popularity"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        except AssertionError as e: self.verificationErrors.append(str(e))
     
     def tearDown(self):
         self.selenium.stop()

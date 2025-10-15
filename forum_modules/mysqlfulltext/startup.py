@@ -28,7 +28,7 @@ if f_name:
         settings.MYSQL_FTS_INSTALLED.set_value(True)
         settings.MYSQL_FTS_VERSION.set_value(VERSION)
 
-    except Exception, e:
+    except Exception as e:
         #import sys, traceback
         #traceback.print_exc(file=sys.stdout)
         pass

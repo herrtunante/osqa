@@ -49,7 +49,7 @@ class DecoratableObject(object):
             for dec in self._params_decoration:
                 try:
                     args, kwargs = dec(*args, **kwargs)
-                except ReturnImediatelyException, e:
+                except ReturnImediatelyException as e:
                     return e.ret
 
         res = self._callable(*args, **kwargs)

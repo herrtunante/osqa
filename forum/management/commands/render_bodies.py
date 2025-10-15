@@ -15,5 +15,5 @@ class Command(BaseCommand):
                 node.body = node.rendered(node.body)
                 node.save()
                 print node.body
-            except Exception, e:
+            except Exception as e:
                 logging.error(e)

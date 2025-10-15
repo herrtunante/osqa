@@ -107,7 +107,7 @@ def Etree_pretty__write(self, file, node, encoding, namespaces,
 def make_date(date, with_time=True):
     try:
         return date.strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
-    except ValueError, e:
+    except ValueError as e:
         return date.replace(year=1900).strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
 
 
@@ -117,7 +117,7 @@ def ET_Element_add_tag(el, tag_name, content = None, **attrs):
     if content:
         try:
             tag.text = unicode(content)
-        except Exception, e:
+        except Exception as e:
             #logging.error('error converting unicode characters')
             #import traceback
             #logging.error(traceback.print_exc())
@@ -326,7 +326,7 @@ def export(options, user):
         state['overall']['fname'] = fname
 
         set_state()
-    except Exception, e:
+    except Exception as e:
         full_state['running'] = False
         full_state['errors'] = "%s: %s" % (e.__class__.__name__, unicode(e))
         set_state()

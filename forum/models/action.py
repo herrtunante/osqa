@@ -193,7 +193,7 @@ def trigger_hooks(action, hooks, new):
             for hook in hooklist:
                 try:
                     hook(action=action, new=new)
-                except Exception, e:
+                except Exception as e:
                     import traceback
                     logging.error("Error in %s hook: %s" % (cls.__name__, str(e)))
                     logging.error(traceback.format_exc())

@@ -101,13 +101,13 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
 
             try:
                 connection.sendmail(sender, [recipient.email], msgRoot.as_string())
-            except SMTPRecipientsRefused, e:
+            except SMTPRecipientsRefused as e:
                 logging.error("Email address not accepted.  Exception: %s" % e)
-            except Exception, e:
+            except Exception as e:
                 logging.error("Couldn't send mail using the sendmail method: %s" % e)
                 try:
                     connection.quit()
-                except Exception, e:
+                except Exception as e:
                     logging.error(e)
                 finally:
                     connection = None
@@ -118,5 +118,5 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             pass
         except socket.sslerror:
             connection.close()
-    except Exception, e:
+    except Exception as e:
         logging.error('Email sending has failed: %s' % e)

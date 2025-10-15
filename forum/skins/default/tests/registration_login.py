@@ -33,7 +33,7 @@ class registration_login(unittest.TestCase):
         sel.click("blogin")
         sel.wait_for_page_to_load("30000")
         try: self.failUnless(sel.is_element_present("link=%s" % self.account_name))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        except AssertionError as e: self.verificationErrors.append(str(e))
     
     def tearDown(self):
         self.selenium.stop()

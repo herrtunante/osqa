@@ -54,7 +54,7 @@ def exporter(request):
                             'author': User.objects.get(id=inf.get(DATE_AND_AUTHOR_INF_SECTION, 'author')),
                             'date': datetime.datetime.strptime(inf.get(DATE_AND_AUTHOR_INF_SECTION, 'finished'), DATETIME_FORMAT)
                         })
-            except Exception, e:
+            except Exception as e:
                 pass
 
     return ('modules/exporter/exporter.html', {

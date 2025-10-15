@@ -17,7 +17,7 @@ class ExtendedUser(AuthenticationMiddleware):
                     return forward_suspended_user(request, user)
 
                 return None
-            except Exception, e:
+            except Exception as e:
                 import traceback
                 logging.error("Unable to convert auth_user %s to forum_user: \n%s" % (
                     request.user.id, traceback.format_exc()

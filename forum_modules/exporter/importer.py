@@ -290,7 +290,7 @@ def start_import(fname, tag_merge, user):
         settings.MERGE_MAPPINGS.set_value(dict(merged_nodes=data['nodes_map'], merged_users=data['users_map']))
 
         reset_sequences()
-    except Exception, e:
+    except Exception as e:
         full_state['running'] = False
         full_state['errors'] = "%s: %s" % (e.__class__.__name__, unicode(e))
         set_state()

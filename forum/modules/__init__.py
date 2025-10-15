@@ -16,7 +16,7 @@ def get_modules_script(script_name):
 
         try:
             all.append(__import__('%s.%s' % (m.__name__, script_name), globals(), locals(), [m.__name__]))
-        except Exception, e:
+        except Exception as e:
             if isinstance(e, ImportError) and str(e).endswith(script_name):
                 continue
             logging.exception("Error importing %s from module %s", script_name, m)

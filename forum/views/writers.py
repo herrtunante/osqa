@@ -65,7 +65,7 @@ def upload(request):#ajax upload file to a question or answer
         result = xml_template % ('', _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff'"), '')
     except FileSizeNotAllow:
         result = xml_template % ('', _("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, '')
-    except Exception, e:
+    except Exception as e:
         result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you. %s' % e), '')
 
     return HttpResponse(result, mimetype="application/xml")

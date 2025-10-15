@@ -41,7 +41,7 @@ class ActivityNode(template.Node):
             viewer = self.viewer.resolve(context)
             describe = mark_safe(action.describe(viewer))
             return self.template.render(template.Context(dict(action=action, describe=describe)))
-        except Exception, e:
+        except Exception as e:
             import traceback
             msg = "Error in action describe: \n %s" % (
                 traceback.format_exc()

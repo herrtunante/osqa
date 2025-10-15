@@ -147,7 +147,7 @@ def check_for_updates():
         check_request = urllib2.Request('%s%s' % (settings.UPDATE_SERVER_URL, '/site_check/'), data, headers=headers)
         check_response = urllib2.urlopen(check_request)
         content = check_response.read()
-    except urllib2.HTTPError, error:
+    except urllib2.HTTPError as error:
         content = error.read()
     except:
         return _("Wasn't able to check to the update server.")
@@ -180,7 +180,7 @@ def update_trigger():
         try:
             update_status = check_for_updates()
             logging.log(logging.INFO, smart_unicode("Update process has been triggered: %s" % update_status))
-        except Exception, e:
+        except Exception as e:
             logging.errror(smart_unicode(e))
         finally:
             settings.LATEST_UPDATE_DATETIME.set_value(now)

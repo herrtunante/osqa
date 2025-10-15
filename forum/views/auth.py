@@ -93,9 +93,9 @@ def prepare_provider_signin(request, provider):
                                                                                 kwargs={'provider': provider}))
 
             return HttpResponseRedirect(request_url)
-        except NotImplementedError, e:
+        except NotImplementedError as e:
             return process_provider_signin(request, provider)
-        except InvalidAuthentication, e:
+        except InvalidAuthentication as e:
             request.session['auth_error'] = e.message
 
         return HttpResponseRedirect(reverse('auth_signin'))
@@ -109,7 +109,7 @@ def process_provider_signin(request, provider):
 
         try:
             assoc_key = provider_class.process_authentication_request(request)
-        except InvalidAuthentication, e:
+        except InvalidAuthentication as e:
             request.session['auth_error'] = e.message
             return HttpResponseRedirect(reverse('auth_signin'))
 

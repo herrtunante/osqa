@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         if db.backend_name == "postgres" and not "pgfulltext" in settings.DISABLED_MODULES:
             try:
                 import forum_modules.pgfulltext.management
-            except Exception, e:
+            except Exception as e:
                 pass
     
     

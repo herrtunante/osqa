@@ -251,7 +251,7 @@ class User(BaseModel, DjangoUser):
             url = reverse('user_questions',
                            kwargs={'mode': _('subscribed-by'), 'user': self.id, 'slug': slugify(smart_unicode(self.username))})
             return url
-        except Exception, e:
+        except Exception as e:
             # If some Exception has been raised, don't forget to log it.
             logging.error("Error retrieving a subscribed user URL: %s" % e)
 

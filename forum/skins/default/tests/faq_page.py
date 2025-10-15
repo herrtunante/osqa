@@ -11,7 +11,7 @@ class faq_page(unittest.TestCase):
         sel = self.selenium
         sel.open("/faq/")
         try: self.failUnless(sel.is_text_present("FAQ"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        except AssertionError as e: self.verificationErrors.append(str(e))
     
     def tearDown(self):
         self.selenium.stop()

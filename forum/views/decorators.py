@@ -59,7 +59,7 @@ def command(func, request, *args, **kwargs):
             return response
 
         response['success'] = True
-    except Exception, e:
+    except Exception as e:
         import traceback
         #traceback.print_exc()
 

@@ -406,7 +406,7 @@ def question(request, id, slug='', answer=None):
         subscription = False
     try:
         focused_answer_id = int(request.GET.get("focusedAnswerId", None))
-    except TypeError, ValueError:
+    except TypeError as ValueError:
         focused_answer_id = None
 
     return pagination.paginated(request, ('answers', AnswerPaginatorContext()), {

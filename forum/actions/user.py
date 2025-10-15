@@ -97,7 +97,7 @@ class BonusRepAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer), 'message': message
                 }
-        except Exception, e:
+        except Exception as e:
             return ''
 
 class AwardPointsAction(ActionProxy):
@@ -133,7 +133,7 @@ class AwardPointsAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer),
                 }
-        except Exception, e:
+        except Exception as e:
             return ''
 
 class AwardAction(ActionProxy):

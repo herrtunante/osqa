@@ -19,7 +19,7 @@ def create_subscription_if_not_exists(question, user):
         subscription = QuestionSubscription(question=question, user=user)
         subscription.save()
         return subscription
-    except Exception, e:
+    except Exception as e:
         logging.error(e)
 
     return False

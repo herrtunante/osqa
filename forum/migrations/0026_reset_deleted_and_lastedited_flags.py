@@ -16,7 +16,7 @@ class Migration(DataMigration):
             try:
                 d = orm.Action.objects.get(node=n, action_type="delete", canceled=False)
                 n.deleted_id = d.id
-            except Exception, e:
+            except Exception as e:
                 n.deleted = None
 
             if orm.Action.objects.filter(node=n, action_type="revise").count() > 0:
