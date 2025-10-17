@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from models import Question
+from .models import Question
 from forum import settings
 from forum.modules import decorate
 from forum.utils.pagination import generate_uri

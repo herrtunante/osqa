@@ -29,7 +29,7 @@ def my_view(request):
     return response
 """
 
-from Cookie import SimpleCookie, Morsel
+from http.cookies import SimpleCookie, Morsel
 from django.utils.encoding import smart_str, smart_str
 import copy
 
@@ -42,6 +42,14 @@ class CookiePreHandlerMiddleware(object):
 
     This should be the first middleware you load.
     """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        self.process_request(request)
+        response = self.get_response(request)
+        return response
+
     def process_request(self, request):
         cookies = CookieHandler()
         for k, v in request.COOKIES.items():
@@ -55,6 +63,14 @@ class CookiePostHandlerMiddleware(object):
 
     This should be the last middleware you load.
     """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response = self.process_response(request, response)
+        return response
+
     def process_response(self, request, response):
         if hasattr(request, '_orig_cookies') and request.COOKIES != request._orig_cookies:
             for k,v in request.COOKIES.items():

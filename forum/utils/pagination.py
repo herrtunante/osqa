@@ -1,5 +1,5 @@
 import math
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from django import template
 from django.core.paginator import Paginator, EmptyPage
 from django.utils.translation import gettext as _
@@ -15,7 +15,7 @@ import logging
 def generate_uri(querydict, exclude=None):
     all = []
 
-    for k, l in querydict.iterlists():
+    for k, l in querydict.lists():
         if (not exclude) or (not k in exclude):
             all += ["%s=%s" % (k, escape(urlquote(strip_tags(v)))) for v in l]
         
@@ -51,7 +51,7 @@ class PaginatorContext(object):
         self.id = id
         if sort_methods:
             self.has_sort = True
-            self.sort_methods = SortedDict(data=sort_methods)
+            self.sort_methods = OrderedDict(sort_methods)
 
             if not default_sort:
                 default_sort = sort_methods[0][0]
@@ -275,7 +275,8 @@ def _paginated(request, objects, context):
         paginator.page_numbers_context = page_numbers_context
 
         def page_nums():
-            return page_numbers_template.render(template.Context(page_numbers_context))
+            # Django 2.0+: template.render() requires dict, not Context
+            return page_numbers_template.render(page_numbers_context)
 
         paginator.page_numbers = page_nums
     else:

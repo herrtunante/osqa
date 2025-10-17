@@ -24,10 +24,10 @@ from forum.settings import ONLINE_USERS
 
 from django.contrib import messages
 
-import json 
+import json
 import time
 import datetime
-import decorators
+from . import decorators
 
 class UserReputationSort(pagination.SimpleSort):
     def apply(self, objects):
@@ -56,9 +56,10 @@ class UserAnswersPaginatorContext(pagination.PaginatorContext):
 
 USERS_PAGE_SIZE = 35# refactor - move to some constants file
 
-@decorators.render(request, 'users/users.html', 'users', _('users'), weight=200)
+@decorators.render('users/users.html', 'users', _('users'), weight=200)
 def users(request):
-    suser = request.REQUEST.get('q', "")
+    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
+    suser = request.GET.get('q', "")
     users = User.objects.all()
 
     if suser != "":
@@ -70,9 +71,10 @@ def users(request):
     })
 
 
-@decorators.render(request, 'users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
+@decorators.render('users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
 def online_users(request):
-    suser = request.REQUEST.get('q', "")
+    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
+    suser = request.GET.get('q', "")
 
     sort = ""
     if request.GET.get("sort", None):

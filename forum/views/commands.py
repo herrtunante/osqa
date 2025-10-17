@@ -21,7 +21,7 @@ from forum.actions import *
 from forum.modules import decorate
 from forum import settings
 
-from decorators import command, CommandException, RefreshPageCommand
+from .decorators import command, CommandException, RefreshPageCommand
 
 class NotEnoughRepPointsException(CommandException):
     def __init__(self, action, user_reputation=None, reputation_required=None, node=None):

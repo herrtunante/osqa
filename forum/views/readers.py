@@ -1,7 +1,7 @@
 # encoding:utf-8
 import datetime
 import logging
-from urllib import unquote
+from urllib.parse import unquote
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -25,7 +25,7 @@ from forum.http_responses import HttpResponseUnauthorized
 from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
 
-import decorators
+from . import decorators
 
 class HottestQuestionsSort(pagination.SortBase):
     def apply(self, questions):
@@ -93,7 +93,7 @@ def feed(request):
                 settings.APP_TITLE + _(' - ')+ _('latest questions'),
                 settings.APP_DESCRIPTION)(request)
 
-@decorators.render(request, 'index.html')
+@decorators.render('index.html')
 def index(request):
     paginator_context = QuestionListPaginatorContext()
     paginator_context.base_path = reverse('questions')
@@ -103,7 +103,7 @@ def index(request):
                          feed_url=reverse('latest_questions_feed'),
                          paginator_context=paginator_context)
 
-@decorators.render(request, 'questions.html', 'unanswered', _('unanswered'), weight=400)
+@decorators.render('questions.html', 'unanswered', _('unanswered'), weight=400)
 def unanswered(request):
     return question_list(request,
                          Question.objects.exclude(id__in=Question.objects.filter(children__marked=True).distinct()).exclude(marked=True),
@@ -111,13 +111,13 @@ def unanswered(request):
                          None,
                          _("Unanswered Questions"))
 
-@decorators.render(request, 'questions.html', 'questions', _('questions'), weight=0)
+@decorators.render('questions.html', 'questions', _('questions'), weight=0)
 def questions(request):
     return question_list(request,
                          Question.objects.all(),
                          _('questions'))
 
-@decorators.render(request, 'questions.html')
+@decorators.render('questions.html')
 def tag(request, tag):
     try:
         tag = Tag.active.get(name=unquote(tag))
@@ -160,7 +160,7 @@ def tag(request, tag):
 
     return context
 
-@decorators.render(request, 'questions.html', 'questions', tabbed=False)
+@decorators.render('questions.html', 'questions', tabbed=False)
 def user_questions(request, mode, user, slug):
     user = get_object_or_404(User, id=user)
 
@@ -263,7 +263,7 @@ def search(request):
     else:
         return render(request, "search.html")
 
-@decorators.render(request, 'questions.html')
+@decorators.render('questions.html')
 def question_search(request, keywords):
     rank_feed = False
     can_rank, initial = Question.objects.search(keywords)
@@ -291,7 +291,7 @@ def question_search(request, keywords):
                          feed_url=feed_url, feed_sort=rank_feed and (can_rank,) or '-added_at')
 
 
-@decorators.render(request, 'tags.html', 'tags', _('tags'), weight=100)
+@decorators.render('tags.html', 'tags', _('tags'), weight=100)
 def tags(request):
     stag = ""
     tags = Tag.active.all()
@@ -355,7 +355,7 @@ def answer_redirect(request, answer):
     return HttpResponseRedirect("%s?%s=%s&focusedAnswerId=%s#%s" % (
         answer.question.get_absolute_url(), _('page'), page, answer.id, answer.id))
 
-@decorators.render(request, "question.html", 'questions')
+@decorators.render("question.html", 'questions')
 def question(request, id, slug='', answer=None):
     try:
         question = Question.objects.get(id=id)

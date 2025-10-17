@@ -6,7 +6,7 @@ from django.urls import re_path, include
 from django.conf import settings as djsettings
 from django.contrib import admin
 from forum import views as app
-from forum.sitemap import OsqaSitemap
+from forum.sitemap import OsqaSitemap, index as sitemap_index, sitemap_section_index, sitemap
 from django.utils.translation import gettext as _
 from django.shortcuts import redirect
 from django.views.static import serve
@@ -31,12 +31,12 @@ core_urls = [
     re_path(r'^$', app.readers.index, name='index'),
     #re_path(r'^%s(.*)' % _('nimda/'), admin.site.urls),
     #re_path(r'^%s(.*)' % _('nimda/'), include(admin.site.urls)),
-    re_path(r'^nimda/', include(admin.site.urls)),
+    re_path(r'^nimda/', admin.site.urls),
 
-                        
-    re_path(r'^sitemap.xml$', 'django.contrib.sitemaps.views.index', {'sitemaps': sitemaps}),
-    re_path(r'^sitemap-(?P<section>.+)-(?P<page>\d+)\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}, name="sitemap_section_page"),
-    re_path(r'^sitemap-(?P<section>.+)\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}, name="sitemap_section_index"),
+
+    re_path(r'^sitemap.xml$', sitemap_index, {'sitemaps': sitemaps}),
+    re_path(r'^sitemap-(?P<section>.+)-(?P<page>\d+)\.xml$', sitemap, {'sitemaps': sitemaps}, name="sitemap_section_page"),
+    re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap_section_index, {'sitemaps': sitemaps}, name="sitemap_section_index"),
 
     re_path(r'^favicon\.ico$', app.meta.favicon),
     re_path(r'^cstyle\.css$', app.meta.custom_css, name='custom_css'),

@@ -18,7 +18,8 @@ class CancelActionMiddleware(object):
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if 'cancel' in request.REQUEST:
+        # Django 1.7+: request.REQUEST removed, check both GET and POST
+        if 'cancel' in request.GET or 'cancel' in request.POST:
             #todo use session messages for the anonymous users
             try:
                 msg = getattr(view_func,'CANCEL_MESSAGE')

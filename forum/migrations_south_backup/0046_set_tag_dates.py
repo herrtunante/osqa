@@ -4,7 +4,7 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 from forum.models import Tag, Question
-from urllib import unquote
+from urllib.parse import unquote
 
 class Migration(DataMigration):
 

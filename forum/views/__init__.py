@@ -1,10 +1,10 @@
-import readers
-import writers
-import commands
-import users
-import meta
-import auth
-import admin
+from . import readers
+from . import writers
+from . import commands
+from . import users
+from . import meta
+from . import auth
+from . import admin
 
 #from forum.modules.decorators import decorate_all
 

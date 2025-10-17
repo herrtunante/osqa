@@ -6,7 +6,7 @@ __author__ = 'Aaron Swartz <me@aaronsw.com>'
 __copyright__ = '(C) 2003 Aaron Swartz. GNU GPL 2.'
 __version__ = '0.22'
 
-import difflib, string
+import difflib
 
 def isTag(x): return x[0] == "<" and x[-1] == ">"
 
@@ -28,8 +28,8 @@ def textDiff(a, b):
 			out.append('<ins >'+''.join(b[e[3]:e[4]]) + "</ins>")
 		elif e[0] == "equal":
 			out.append(''.join(b[e[3]:e[4]]))
-		else: 
-			raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
+		else:
+			raise Exception("Um, something's broken. I didn't expect a '" + repr(e[0]) + "'.")
 	return ''.join(out)
 
 def html2list(x, b=0):
@@ -49,18 +49,18 @@ def html2list(x, b=0):
 				if b: cur = '['
 				else: cur = c
 				mode = 'tag'
-			elif c in string.whitespace: out.append(cur+c); cur = ''
+			elif c.isspace(): out.append(cur+c); cur = ''
 			else: cur += c
 	out.append(cur)
-	return filter(lambda x: x is not '', out)
+	return list(filter(lambda x: x != '', out))
 
 if __name__ == '__main__':
 	import sys
 	try:
 		a, b = sys.argv[1:3]
 	except ValueError:
-		print "htmldiff: highlight the differences between two html files"
-		print "usage: " + sys.argv[0] + " a b"
+		print("htmldiff: highlight the differences between two html files")
+		print("usage: " + sys.argv[0] + " a b")
 		sys.exit(1)
-	print textDiff(open(a).read(), open(b).read())
+	print(textDiff(open(a).read(), open(b).read()))
 	

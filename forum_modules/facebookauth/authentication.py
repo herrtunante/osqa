@@ -3,7 +3,8 @@
 import cgi
 import logging
 
-from urllib import urlopen,  urlencode
+from urllib.request import urlopen
+from urllib.parse import urlencode
 from forum.authentication.base import AuthenticationConsumer, ConsumerTemplateContext, InvalidAuthentication
 
 from django.conf import settings as django_settings

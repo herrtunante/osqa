@@ -20,7 +20,7 @@ from forum.http_responses import HttpResponseNotFound, HttpResponseIntServerErro
 from forum.utils.mail import send_template_email
 from forum.templatetags.extra_filters import or_preview
 
-import decorators
+from . import decorators
 import logging, traceback
 
 def favicon(request):
@@ -85,7 +85,7 @@ def logout(request):
     'next' : get_next_url(request),
     })
 
-@decorators.render(request, 'badges.html', 'badges', _('badges'), weight=300)
+@decorators.render('badges.html', 'badges', _('badges'), weight=300)
 def badges(request):
     from forum.badges.base import BadgesMeta
     badges = sorted([Badge.objects.get(id=id) for id in BadgesMeta.by_id.keys()], key=lambda b: b.name)
@@ -114,7 +114,7 @@ def badge(request, id, slug):
     'badge' : badge,
     })
 
-def page(request):
+def page(request, exception=None):
     path = request.path[1:]
 
     if path in settings.STATIC_PAGE_REGISTRY:

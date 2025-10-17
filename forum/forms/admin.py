@@ -2,7 +2,7 @@ import socket
 from django import forms
 from django.utils.translation import gettext as _
 from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
-from qanda import TitleField, EditorField
+from .qanda import TitleField, EditorField
 from forum import settings
 from forum.models.node import NodeMetaClass
 from forum.models import User

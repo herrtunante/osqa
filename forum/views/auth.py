@@ -2,8 +2,8 @@
 
 import datetime
 import logging
-import urllib
-from urlparse import urlparse
+import urllib.parse
+from urllib.parse import urlparse
 
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -15,7 +15,7 @@ from django.contrib.auth import login, logout
 
 from django.contrib import messages
 
-from writers import manage_pending_data
+from .writers import manage_pending_data
 
 from forum.actions import EmailValidationAction
 from forum.utils import html
@@ -30,7 +30,7 @@ from forum.models import User, AuthKeyUserAssociation, ValidationHash
 from forum.actions import UserJoinsAction, UserLoginAction
 from forum import settings
 
-from vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
+from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
 
 def signin_page(request):
     referer = request.META.get('HTTP_REFERER', '/')
@@ -80,7 +80,8 @@ def signin_page(request):
             RequestContext(request))
 
 def prepare_provider_signin(request, provider):
-    force_email_request = request.REQUEST.get('validate_email', 'yes') == 'yes'
+    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
+    force_email_request = request.GET.get('validate_email', 'yes') == 'yes'
     request.session['force_email_request'] = force_email_request
 
     if provider in AUTH_PROVIDERS:
@@ -290,7 +291,7 @@ def send_validation_email(request):
         # We don't care if there are previous cashes in the database... In every case we have to create a new one
         hash = ValidationHash.objects.create_new(request.user, 'email', [request.user.email])
 
-        additional_get_params = urllib.urlencode(dict([k, v.encode('utf-8')] for k, v in request.GET.items()))
+        additional_get_params = urllib.parse.urlencode(dict([k, v.encode('utf-8')] for k, v in request.GET.items()))
         send_template_email([request.user], "auth/mail_validation.html", {
             'validation_code': hash,
             'additional_get_params' : additional_get_params
@@ -408,7 +409,7 @@ def login_and_forward(request, user, forward=None, message=None):
         else:
             return manage_pending_data(request, _('save'), forward)
 
-    additional_get_params = urllib.urlencode(dict([k, v.encode('utf-8')] for k, v in request.GET.items()))
+    additional_get_params = urllib.parse.urlencode(dict([k, v.encode('utf-8')] for k, v in request.GET.items()))
 
     parsed_forward = urlparse(forward)
 

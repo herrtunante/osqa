@@ -19,7 +19,7 @@ from forum.models import *
 from forum.utils import html
 from forum.http_responses import HttpResponseUnauthorized
 
-from vars import PENDING_SUBMISSION_SESSION_ATTR
+from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
 @csrf_exempt
 def upload(request):#ajax upload file to a question or answer

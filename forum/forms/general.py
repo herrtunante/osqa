@@ -20,7 +20,9 @@ def clean_next(next):
     return DEFAULT_NEXT
 
 def get_next_url(request):
-    return clean_next(request.REQUEST.get('next'))
+    # Django 1.7+: request.REQUEST removed, check GET then POST
+    next_url = request.GET.get('next') or request.POST.get('next')
+    return clean_next(next_url)
 
 class StrippedNonEmptyCharField(forms.CharField):
     def clean(self,value):

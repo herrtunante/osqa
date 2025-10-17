@@ -5,7 +5,7 @@ from forum.models import *
 from django.utils.translation import gettext as _
 
 from django.utils.encoding import smart_str
-from general import NextUrlField, UserNameField
+from .general import NextUrlField, UserNameField
 
 from forum import settings, REQUEST_HOLDER
 
