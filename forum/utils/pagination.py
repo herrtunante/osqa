@@ -278,7 +278,8 @@ def _paginated(request, objects, context):
             # Django 2.0+: template.render() requires dict, not Context
             return page_numbers_template.render(page_numbers_context)
 
-        paginator.page_numbers = page_nums
+        # Call the function immediately to get the rendered string
+        paginator.page_numbers = page_nums()
     else:
         paginator.page_numbers = ''
 
@@ -297,7 +298,8 @@ def _paginated(request, objects, context):
                 'sizes': sizes
             })
 
-        paginator.page_sizes = page_sizes
+        # Call the function immediately to get the rendered string
+        paginator.page_sizes = page_sizes()
     else:
         paginator.page_sizes = ''
 

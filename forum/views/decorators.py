@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render as django_render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
@@ -19,7 +19,7 @@ def login_required(func, request, *args, **kwargs):
         return func(request, *args, **kwargs)
 
 def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
-    def decorator(func):        
+    def decorator(func):
         def decorated(context, request, *args, **kwargs):
             if request.user.is_authenticated:
                 ONLINE_USERS[request.user] = datetime.now()
@@ -30,7 +30,7 @@ def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
             if tab is not None:
                 context['tab'] = tab
 
-            return render(context.pop('template', template), context)
+            return django_render(request, context.pop('template', template), context)
 
         if tabbed and tab and tab_title:
             ui.register(ui.PAGE_TOP_TABS,
