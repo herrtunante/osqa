@@ -291,10 +291,11 @@ def _paginated(request, objects, context):
 
             sizes = [(s, url_builder(s)) for s in context.pagesizes]
 
-            return page_sizes_template.render(template.Context({
+            # Django 2.0+: template.render() requires dict, not Context
+            return page_sizes_template.render({
                 'current': pagesize,
                 'sizes': sizes
-            }))
+            })
 
         paginator.page_sizes = page_sizes
     else:
@@ -308,11 +309,12 @@ def _paginated(request, objects, context):
             for name, label, url, descr in sorts:
                 paginator.__dict__['%s_sort_link' % name] = smart_str(url)
 
-            return sort_tabs_template.render(template.Context({
+            # Django 2.0+: template.render() requires dict, not Context
+            return sort_tabs_template.render({
                 'current': sort,
                 'sorts': sorts,
                 'sticky': session_prefs.get('sticky_sort', False)
-            }))
+            })
         paginator.sort_tabs = sort_tabs()
         paginator.sort_description = mark_safe(context.sort_methods[sort].description)
         paginator.current_sort = sort
