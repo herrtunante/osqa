@@ -41,8 +41,33 @@ class BaseSetting(object):
     def __str__(self):
         return str(self.value)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_str(self.value)
+
+    # Python 3: Implement comparison operators for use in templates and code
+    def __lt__(self, other):
+        return self.value < other
+
+    def __le__(self, other):
+        return self.value <= other
+
+    def __gt__(self, other):
+        return self.value > other
+
+    def __ge__(self, other):
+        return self.value >= other
+
+    def __eq__(self, other):
+        return self.value == other
+
+    def __ne__(self, other):
+        return self.value != other
+
+    def __int__(self):
+        return int(self.value)
+
+    def __float__(self):
+        return float(self.value)
 
     @property
     def value(self):

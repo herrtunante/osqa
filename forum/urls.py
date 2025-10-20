@@ -193,3 +193,13 @@ def urlname(name):
 
 urlpatterns += core_defined
 
+# Django Debug Toolbar URLs
+if djsettings.DEBUG:
+    try:
+        import debug_toolbar
+        urlpatterns = [
+            re_path(r'^__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
+    except ImportError:
+        pass
+
