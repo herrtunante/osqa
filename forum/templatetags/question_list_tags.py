@@ -15,12 +15,13 @@ class QuestionItemNode(template.Node):
         self.options = options
 
     def render(self, context):
-        return self.template.render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        return self.template.render({
             'question': self.question.resolve(context),
             'question_summary': self.options.get('question_summary', 'no' ) == 'yes',
             'favorite_count': self.options.get('favorite_count', 'no') == 'yes',
             'signature_type': self.options.get('signature_type', 'lite'),
-        }))
+        })
 
 class SubscriptionItemNode(template.Node):
     template = template.loader.get_template('question_list/subscription_item.html')
@@ -31,11 +32,12 @@ class SubscriptionItemNode(template.Node):
         self.options = options
 
     def render(self, context):
-        return self.template.render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        return self.template.render({
             'question': self.question.resolve(context),
             'subscription': self.subscription.resolve(context),
             'signature_type': self.options.get('signature_type', 'lite'),
-        }))
+        })
 
 @register.tag
 def question_list_item(parser, token):

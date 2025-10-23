@@ -507,10 +507,11 @@ class Node(BaseModel, NodeContent):
         
         super(Node, self).save(*args, **kwargs)
         if tags_changed:
+            # Django 4.2: Use .set() for many-to-many assignment
             if self.tagnames.strip():
-                self.tags = list(Tag.objects.filter(name__in=self.tagname_list()))
+                self.tags.set(Tag.objects.filter(name__in=self.tagname_list()))
             else:
-                self.tags = []
+                self.tags.set([])
 
     class Meta:
         app_label = 'forum'

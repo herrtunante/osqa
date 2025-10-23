@@ -13,10 +13,11 @@ class UserSignatureNode(template.Node):
         self.format = template.Variable(format)
 
     def render(self, context):
-        return self.template.render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        return self.template.render({
         'user': self.user.resolve(context),
         'format': self.format.resolve(context)
-        }))
+        })
 
 @register.tag
 def user_signature(parser, token):

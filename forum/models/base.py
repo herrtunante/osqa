@@ -70,7 +70,9 @@ class CachedQuerySet(models.query.QuerySet):
         return obj
 
     def _base_clone(self):
-        return self._clone(klass=models.query.QuerySet)
+        # Django 4.2: _clone() no longer accepts 'klass' parameter
+        # Return a regular QuerySet clone instead of CachedQuerySet
+        return models.query.QuerySet(self.model, using=self._db)
 
     def get(self, *args, **kwargs):
         key = self.model.infer_cache_key(kwargs)
@@ -194,9 +196,16 @@ class CachedManager(models.Manager):
         return CachedQuerySet(self.model)
 
     def get_or_create(self, *args, **kwargs):
+        # Django 4.2: separate 'defaults' from lookup kwargs
+        # 'defaults' is a special parameter for get_or_create, not a query field
+        defaults = kwargs.pop('defaults', {})
+        lookup_kwargs = kwargs.copy()
+
         try:
-            return self.get(*args, **kwargs)
-        except:
+            return self.get(*args, **lookup_kwargs), False
+        except self.model.DoesNotExist:
+            # Put defaults back for create
+            kwargs['defaults'] = defaults
             return super(CachedManager, self).get_or_create(*args, **kwargs)
 
 
@@ -277,7 +286,8 @@ class BaseModel(models.Model):
         ])
 
     def save(self, full_save=False, *args, **kwargs):
-        put_back = [k for k, v in self.__dict__.items() if isinstance(v, models.expressions.ExpressionNode)]
+        # Django 4.2: ExpressionNode renamed to Expression
+        put_back = [k for k, v in self.__dict__.items() if isinstance(v, models.expressions.Expression)]
 
         if hasattr(self, '_state'):
             self._state.db = 'default'

@@ -15,31 +15,31 @@ IMPORT_ERROR_MESSAGE = """Importing %(what)s is throwing an exception. Here's th
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **options):
-        print "Checking dependencies:"
+        print("Checking dependencies:")
 
         try:
             import html5lib
-            print "  Found html5lib - OK"
+            print("  Found html5lib - OK")
         except ImportError:
-            print NOT_FOUND_ERROR % dict(what='html5lib')
-            print HOW_TO_INSTALL % dict(what='html5lib', where='http://code.google.com/p/html5lib/')
+            print(NOT_FOUND_ERROR % dict(what='html5lib'))
+            print(HOW_TO_INSTALL % dict(what='html5lib', where='http://code.google.com/p/html5lib/'))
         except Exception as e:
-            print IMPORT_ERROR_MESSAGE % dict(what='html5lib')
+            print(IMPORT_ERROR_MESSAGE % dict(what='html5lib'))
             traceback.print_exc(file=sys.stdout)
 
         try:
             import markdown
             version = int(re.findall('^\d+', markdown.version)[0])
             if version < 2:
-                print OLD_VERSION_ERROR % dict(what='markdown', version=markdown.version, minimum='2.0')
-                print HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/')
+                print(OLD_VERSION_ERROR % dict(what='markdown', version=markdown.version, minimum='2.0'))
+                print(HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/'))
             else:
-                print OK_MESSAGE % dict(what='markdown', version=markdown.version)
+                print(OK_MESSAGE % dict(what='markdown', version=markdown.version))
         except ImportError:
-            print NOT_FOUND_ERROR % dict(what='markdown')
-            print HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/')
+            print(NOT_FOUND_ERROR % dict(what='markdown'))
+            print(HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/'))
         except Exception as e:
-            print IMPORT_ERROR_MESSAGE % dict(what='markdown')
+            print(IMPORT_ERROR_MESSAGE % dict(what='markdown'))
             traceback.print_exc(file=sys.stdout)
 
         try:
@@ -47,39 +47,39 @@ class Command(NoArgsCommand):
             version = re.findall('\d+', south.__version__)
 
             if int(version[1]) < 6 and int(version[0]) == 0:
-                print OLD_VERSION_ERROR % dict(what='south', version=south.__version__, minimum='0.6')
-                print HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/')
+                print(OLD_VERSION_ERROR % dict(what='south', version=south.__version__, minimum='0.6'))
+                print(HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/'))
             else:
-                print OK_MESSAGE % dict(what='south', version=south.__version__)
+                print(OK_MESSAGE % dict(what='south', version=south.__version__))
 
 
         except ImportError:
-            print NOT_FOUND_ERROR % dict(what='south')
-            print HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/')
+            print(NOT_FOUND_ERROR % dict(what='south'))
+            print(HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/'))
         except Exception as e:
-            print IMPORT_ERROR_MESSAGE % dict(what='south')
+            print(IMPORT_ERROR_MESSAGE % dict(what='south'))
             traceback.print_exc(file=sys.stdout)
 
 
-        print "\n\nChecking database connection:"
+        print("\n\nChecking database connection:")
 
         try:
             from forum.models import User
             User.objects.all().count()
-            print "  Connection OK"
+            print("  Connection OK")
         except Exception as e:
-            print "There seems to be a problem with your database: %s" % str(e)
+            print("There seems to be a problem with your database: %s" % str(e))
 
 
 
         from django.conf import settings
 
-        print "\n\nChecking important settings:"
+        print("\n\nChecking important settings:")
 
         if not re.match('^https?:\/\/\w+', settings.APP_URL):
-            print " Your APP_URL does not seem to be a valid url. Please fill this setting with the URL of your OSQA installation"
+            print(" Your APP_URL does not seem to be a valid url. Please fill this setting with the URL of your OSQA installation")
         else:
-            print " APP_URL - %s" % settings.APP_URL
-            print " APP_BASE_URL - %s" % settings.APP_BASE_URL
+            print(" APP_URL - %s" % settings.APP_URL)
+            print(" APP_BASE_URL - %s" % settings.APP_BASE_URL)
 
         

@@ -188,7 +188,8 @@ def media(url):
 
 @register.simple_tag
 def get_tag_font_size(tag):
-    occurrences_of_current_tag = tag.used_count
+    # Django 4.2/Python 3: Ensure numeric value for math operations
+    occurrences_of_current_tag = int(tag.used_count) if tag.used_count else 1
 
     # Occurrences count settings
     min_occurs = int(settings.TAGS_CLOUD_MIN_OCCURS)

@@ -9,10 +9,11 @@ SECRET_KEY = 'a;::qCl1mfh?avagttOJ;8f5Rr54d,9qy7;o15M2cYO75?OQo51u3LnQ;!8N.:,7'
 CACHE_MAX_KEY_LENGTH = 235
 
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
+# Note: SessionMiddleware must come before CsrfViewMiddleware when using CSRF_USE_SESSIONS
 MIDDLEWARE = [
-    'django.middleware.csrf.CsrfViewMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
     'forum.middleware.extended_user.ExtendedUser',
@@ -42,6 +43,12 @@ ALLOW_MAX_FILE_SIZE = 1024 * 1024
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
+# Django 4.2: CSRF token configuration
+# Use session-based CSRF tokens to avoid cookie length compatibility issues
+# between Django 1.6 (32 chars) and Django 4.2 (64 chars)
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access if needed
+
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # User settings
@@ -64,6 +71,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                'django.template.context_processors.csrf',
                 'forum.context.application_settings',
                 'django.contrib.messages.context_processors.messages',
                 'forum.user_messages.context_processors.user_messages',

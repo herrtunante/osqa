@@ -38,24 +38,24 @@ def create_revision(node):
 class Command(BaseCommand):
 
     def handle(self,*args, **options):
-        print 'Running MaintainDb'
+        print('Running MaintainDb')
 
         nodes = Node.objects.all()
 
         for node in nodes:
             if node.active_revision is None:
-                print "Node #%(node_id)d: NodeRevision doesn't exist" % dict(node_id=node.id)
+                print("Node #%(node_id)d: NodeRevision doesn't exist" % dict(node_id=node.id))
 
                 # We currently don't have any active revision for this Node. Let's check if there are any revisions
                 # at all for it. If there are any we activate the last.
                 if node.revisions.all().count() > 0:
-                    print "  We have revisions for Node #%(node_id)d." % dict(node_id=node.id)
+                    print("  We have revisions for Node #%(node_id)d." % dict(node_id=node.id))
 
                     # If there are already some revisions connected to the current node, we activate the latest
                     activate_latest_revision(node)
                 else:
-                    print "  We don't have revisions for Node #%(node_id)d. We're "\
-                          "going to create a new one from the current node content."% dict(node_id=node.id)
+                    print("  We don't have revisions for Node #%(node_id)d. We're "
+                          "going to create a new one from the current node content." % dict(node_id=node.id))
 
                     # First of all we're going to create a new revision according to the current node data...
                     create_revision(node)
@@ -63,13 +63,13 @@ class Command(BaseCommand):
                     # ...and after that we're going to activate it
                     activate_latest_revision(node)
 
-                    #print rev.node
+                    #print(rev.node)
 
             if node.node_type == "question":
                 # Reset the answer count cache
                 node.reset_answer_count_cache()
-                print "Question #%(question_id)d: Answer count cache has been reset" % { 'question_id' : node.id }
+                print("Question #%(question_id)d: Answer count cache has been reset" % { 'question_id' : node.id })
 
                 # Reset the accepted count cache
                 node.reset_accepted_count_cache()
-                print "Question #%(question_id)d: Resetting the accepted count cache" % { 'question_id' : node.id }
+                print("Question #%(question_id)d: Resetting the accepted count cache" % { 'question_id' : node.id })

@@ -156,7 +156,8 @@ def tag(request, tag):
     question_context = dict(question_context)
 
     # Create the combined context
-    context = dict(question_context.items() + tag_context.items())
+    # Python 3: Use dict unpacking instead of adding dict.items()
+    context = {**question_context, **tag_context}
 
     return context
 
@@ -427,11 +428,12 @@ def revisions(request, id):
     rev_ctx = []
 
     for i, revision in enumerate(revisions):
-        rev_ctx.append(dict(inst=revision, html=template.loader.get_template('node/revision.html').render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        rev_ctx.append(dict(inst=revision, html=template.loader.get_template('node/revision.html').render({
         'title': revision.title,
         'html': revision.html,
         'tags': revision.tagname_list(),
-        }))))
+        })))
 
         if i > 0:
             rev_ctx[i]['diff'] = mark_safe(htmldiff(rev_ctx[i-1]['html'], rev_ctx[i]['html']))

@@ -195,7 +195,8 @@ class User(BaseModel, DjangoUser):
 
     @property
     def gravatar(self):
-        return md5(self.email.lower()).hexdigest()
+        # Python 3: md5() requires bytes, not strings
+        return md5(self.email.lower().encode('utf-8')).hexdigest()
     
     def save(self, *args, **kwargs):
         # If the community doesn't allow negative reputation, set it to 0
@@ -557,10 +558,13 @@ from forum.utils.time import one_day_from_now
 
 class ValidationHashManager(models.Manager):
     def _generate_md5_hash(self, user, type, hash_data, seed):
-        return md5("%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)).hexdigest()
+        # Python 3: md5() requires bytes, not strings
+        hash_string = "%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)
+        return md5(hash_string.encode('utf-8')).hexdigest()
 
     def create_new(self, user, type, hash_data=[], expiration=None):
-        seed = ''.join(Random().sample(string.letters+string.digits, 12))
+        # Python 3: string.letters renamed to string.ascii_letters
+        seed = ''.join(Random().sample(string.ascii_letters+string.digits, 12))
         hash = self._generate_md5_hash(user, type, hash_data, seed)
 
         obj = ValidationHash(hash_code=hash, seed=seed, user=user, type=type)

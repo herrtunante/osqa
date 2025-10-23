@@ -69,6 +69,10 @@ class BaseSetting(object):
     def __float__(self):
         return float(self.value)
 
+    # Python 3: Add __bool__ for boolean context
+    def __bool__(self):
+        return bool(self.value)
+
     @property
     def value(self):
         if self._temp:
@@ -80,7 +84,8 @@ class BaseSetting(object):
 
         try:
             kv = KeyValue.objects.get(key=self.name)
-            v = kv.value
+            # Django 4.2: Parse the value from database string to correct type
+            v = self._parse(kv.value)
             self._temp = (v, datetime.now() + timedelta(seconds=TMP_MINICACHE_SECONDS))
             return v
         except KeyValue.DoesNotExist:
@@ -116,6 +121,9 @@ class BaseSetting(object):
     def _parse(self, value):
         if not isinstance(value, self.base_type):
             try:
+                # Django 4.2: Handle boolean string conversion properly
+                if self.base_type is bool and isinstance(value, str):
+                    return value.lower() in ('true', '1', 'yes', 'on')
                 return self.base_type(value)
             except:
                 pass
