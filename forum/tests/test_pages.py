@@ -1,3 +1,4 @@
+from forum.actions import VoteUpAction
 from forum.models import Question
 
 from .base import OSQATestCase
@@ -24,3 +25,26 @@ class AnonymousPagesTest(OSQATestCase):
     def test_feed_and_sitemap(self):
         self.assertContains(self.client.get('/feeds/rss/'), 'A question title')
         self.assertContains(self.client.get('/sitemap.xml'), 'http://testserver/sitemap-questions.xml')
+
+
+class PaginationTest(OSQATestCase):
+    def test_later_pages(self):
+        user = self.create_user('alice')
+        # 8 pages of 15: the page links around page 4 are computed from
+        # visible_page_range / 2, which must stay an integer.
+        for i in range(106):
+            Question(author=user, title='Question number %d title' % i, body='Body text', tagnames='one').save()
+
+        for page in (1, 4, 8):
+            with self.subTest(page=page):
+                self.assertCleanPage(self.client.get('/questions/?page=%d&pagesize=15' % page))
+
+    def test_reputation_tab_with_history(self):
+        alice = self.create_user('alice')
+        bob = self.create_user('bob', reputation=1000)
+        question = Question(author=alice, title='A question title', body='Body text', tagnames='one')
+        question.save()
+        VoteUpAction(user=bob, node=question, ip='127.0.0.1').save()
+
+        self.assertTrue(alice.reputes.exists())
+        self.assertCleanPage(self.client.get(alice.get_profile_url() + '/reputation/'))

@@ -229,8 +229,8 @@ def _paginated(request, objects, context):
         has_previous = page > 1
         has_next = page < total_pages
 
-        range_start = page - context.visible_page_range / 2
-        range_end = page + context.visible_page_range / 2
+        range_start = page - context.visible_page_range // 2
+        range_end = page + context.visible_page_range // 2
 
         if range_start < 1:
             range_end = context.visible_page_range

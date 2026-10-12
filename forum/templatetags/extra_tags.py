@@ -143,7 +143,7 @@ def get_age(birthday):
     month = birthday.month
     day = birthday.day
     diff = current_time - datetime.datetime(year, month, day, 0, 0, 0)
-    return diff.days / 365
+    return diff.days // 365
 
 @register.simple_tag
 def diff_date(date, limen=2):

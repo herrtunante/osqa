@@ -24,6 +24,7 @@ from forum.settings import ONLINE_USERS
 
 from django.contrib import messages
 
+import itertools
 import json
 import time
 import datetime
@@ -396,12 +397,12 @@ def user_recent(request, user, **kwargs):
 @user_view('users/reputation.html', 'reputation', _('reputation history'), _('graph of user karma'))
 def user_reputation(request, user, **kwargs):
     rep = list(user.reputes.order_by('date'))
-    values = [r.value for r in rep]
-    redux = lambda x, y: x+y
+    # Running total of reputation for the graph (reduce() is no longer a builtin).
+    totals = itertools.accumulate(r.value for r in rep)
 
     graph_data = json.dumps([
-    (time.mktime(rep[i].date.timetuple()) * 1000, reduce(redux, values[:i+1], 0))
-    for i in range(len(values))
+    (time.mktime(r.date.timetuple()) * 1000, total)
+    for r, total in zip(rep, totals)
     ])
 
     rep = user.reputes.filter(action__canceled=False).order_by('-date')[0:20]

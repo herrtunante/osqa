@@ -346,7 +346,7 @@ def answer_redirect(request, answer):
     count = answer.question.answers.filter(Q(marked=True) | filter).exclude(state_string="(deleted)").count()
     pagesize = pc.pagesize(request)
 
-    page = count / pagesize
+    page = count // pagesize
     
     if count % pagesize:
         page += 1
