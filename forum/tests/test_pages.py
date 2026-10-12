@@ -192,3 +192,11 @@ class SidebarDefaultsMigrationTest(OSQATestCase):
         response = self.client.get('/')
         self.assertNotContains(response, 'webfaction')
         self.assertNotContains(response, 'osqa.net')
+
+
+class GravatarTagTest(OSQATestCase):
+    def test_alt_text_is_the_escaped_username(self):
+        from forum.templatetags.extra_tags import gravatar
+        html = gravatar({'gravatar': 'abc', 'username': 'José <b>'}, 32)
+        self.assertIn('alt="José &lt;b&gt;"', html)
+        self.assertIn('loading="lazy"', html)

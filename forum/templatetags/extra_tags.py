@@ -7,6 +7,7 @@ import re
 import logging
 import random
 from django import template
+from django.utils.html import escape
 from django.utils.encoding import smart_str, force_str
 from django.utils.safestring import mark_safe
 from django.utils import dateformat
@@ -25,7 +26,7 @@ register = template.Library()
 GRAVATAR_TEMPLATE = ('<img class="gravatar" width="%(size)s" height="%(size)s" '
 'src="https://secure.gravatar.com/avatar/%(gravatar_hash)s'
 '?s=%(size)s&amp;d=%(default)s&amp;r=%(rating)s" '
-'alt="%(username)s\'s gravatar image" />')
+'alt="%(username)s" loading="lazy" decoding="async" />')
 
 @register.simple_tag
 def gravatar(user, size):
@@ -40,7 +41,7 @@ def gravatar(user, size):
     'gravatar_hash': gravatar,
     'default': settings.GRAVATAR_DEFAULT_IMAGE,
     'rating': settings.GRAVATAR_ALLOWED_RATING,
-    'username': template.defaultfilters.urlencode(username),
+    'username': escape(username),
     })
 
 

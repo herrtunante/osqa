@@ -1943,6 +1943,428 @@ div.comment-tools a:hover {
     color: var(--brand-dark);
 }
 
+/* ---- Avatars --------------------------------------------------------- */
+
+/* A grey circle (not alt text) when Gravatar is blocked or unreachable. */
+img.gravatar {
+    display: inline-block;
+    border-radius: 50%;
+    background: var(--code-inline-bg);
+    color: transparent;
+    font-size: 0;
+    object-fit: cover;
+    vertical-align: middle;
+}
+
+/* ---- Post author card ------------------------------------------------- */
+
+.post-update-info {
+    width: auto;
+    min-width: 200px;
+    max-width: 260px;
+    padding: 10px 12px;
+    border: 1px solid var(--info-border);
+    border-radius: 8px;
+    background: var(--brand-soft);
+}
+
+.post-update-info.post-update-info-edited {
+    border-color: var(--border);
+    background: transparent;
+}
+
+.post-update-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.post-update-info .post-update-info-when strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.post-update-info-who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.post-update-info-who img.gravatar {
+    float: none;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+}
+
+.post-update-info-who p a {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.post-update-info-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.post-update-info-container .post-update-info {
+    float: none;
+    margin: 0 0 8px;
+}
+
+/* ---- "more" menu ------------------------------------------------------- */
+
+.context-menu-trigger::after {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 4px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.context-menu-dropdown li {
+    list-style: none;
+}
+
+.context-menu-dropdown li a {
+    display: block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.context-menu-dropdown li a:hover {
+    background: var(--hover-overlay);
+    text-decoration: none;
+}
+
+/* ---- Feed icons -------------------------------------------------------- */
+
+a.feed-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f26522'/%3E%3Cpath d='M6.5 11a6.5 6.5 0 016.5 6.5M6.5 6.5a11 11 0 0111 11' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='7.3' cy='16.7' r='1.6' fill='white'/%3E%3C/svg%3E") no-repeat center / contain !important;
+}
+
+img[src*="feed-icon-small"] {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---- Badges ------------------------------------------------------------ */
+
+.badge1 {
+    color: #e3a500;
+}
+
+.silver, .badge2 {
+    color: #9aa4b0;
+}
+
+.bronze, .badge3 {
+    color: #c27c3a;
+}
+
+.badgecount {
+    margin-right: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+.score, .accept_rate, .post-score, .item-count, .questions-count, .scoreNumber, .tag-number {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- Profile header ---------------------------------------------------- */
+
+.user-info-table, .user-info-table > tbody {
+    display: block;
+    width: 100%;
+}
+
+.user-info-table > tbody > tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px 32px;
+}
+
+.user-info-table > tbody > tr > td {
+    display: block;
+    width: auto !important;
+}
+
+.user-info-table > tbody > tr > td:first-child {
+    flex: 0 0 auto;
+    text-align: center;
+}
+
+.user-info-table > tbody > tr > td:nth-child(2) {
+    flex: 1 1 280px;
+}
+
+.user-info-table img.gravatar {
+    width: 112px;
+    max-width: none;
+    height: 112px;
+    box-shadow: 0 0 0 4px var(--surface), 0 0 0 5px var(--border);
+}
+
+.user-info-table .scoreNumber {
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.user-info-table .scoreNumber + p b {
+    color: var(--muted) !important;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.user-details {
+    border-collapse: collapse;
+}
+
+.user-details h3 {
+    margin-bottom: 6px;
+    font-size: 16px;
+}
+
+.user-details td {
+    padding: 3px 16px 3px 0;
+    vertical-align: top;
+}
+
+.user-details td:first-child {
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* ---- jQuery UI widgets (date picker, slider) --------------------------- */
+
+.ui-widget {
+    font-family: var(--font);
+    font-size: 14px;
+}
+
+.ui-widget.ui-widget-content, .ui-datepicker {
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 10px 30px rgba(16, 24, 40, .15);
+}
+
+.ui-datepicker .ui-widget-header {
+    border: 0;
+    background: none;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.ui-datepicker select {
+    padding: 2px 4px;
+    font-size: 13px;
+}
+
+.ui-datepicker th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default {
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--text);
+    text-align: center;
+}
+
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-state-default:hover {
+    border: 0;
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.ui-state-highlight, .ui-widget-content .ui-state-highlight {
+    border: 0;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active {
+    border: 0;
+    background: var(--brand);
+    color: #fff;
+}
+
+.ui-slider.ui-widget-content {
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--border);
+    box-shadow: none;
+}
+
+.ui-slider .ui-slider-handle {
+    top: -6px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--brand) !important;
+    border-radius: 50%;
+    background: var(--surface) !important;
+    cursor: grab;
+}
+
+/* ---- Sign-in ----------------------------------------------------------- */
+
+.signin_form fieldset {
+    padding: 16px 18px;
+    background: var(--surface);
+}
+
+.signin_form fieldset legend, .signin_form fieldset > span:first-child {
+    font-weight: 600;
+}
+
+h3.or_label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 12px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+h3.or_label::before, h3.or_label::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--border);
+}
+
+/* ---- Markdown editor toolbar ---------------------------------------- */
+
+/* SVG icons instead of the wmd sprite. wmd.js sets the sprite offset inline:
+   0px normal, -20px disabled (undo/redo), -40px hover. */
+#wmd-button-row {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: auto;
+    margin: 4px 0;
+    padding: 0;
+}
+
+#wmd-button-row li.wmd-button {
+    position: relative;
+    left: auto !important;
+    right: auto !important;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    border-radius: 6px;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 18px !important;
+    cursor: pointer;
+}
+
+#wmd-button-row li.wmd-button > a {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
+#wmd-button-row li.wmd-button[style*=" -40px;"] {
+    background-color: var(--hover-overlay);
+}
+
+#wmd-button-row li.wmd-button[style*=" -20px;"] {
+    opacity: .35;
+    cursor: default;
+}
+
+#wmd-button-row li.wmd-spacer {
+    position: static;
+    width: 1px;
+    height: 18px;
+    margin: 0 6px;
+    background: var(--border);
+}
+
+#wmd-button-row #wmd-help-button {
+    margin-left: auto;
+}
+
+#wmd-button-row #wmd-bold-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 5h6a3.5 3.5 0 010 7H7zM7 12h7a3.5 3.5 0 010 7H7z'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-italic-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 5h8M6 19h8M14 5l-4 14'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-link-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-quote-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h5v5H5zM10 12c0 3-1.5 5-4 6M14 7h5v5h-5zM19 12c0 3-1.5 5-4 6'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-code-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 8l-4 4 4 4M15 8l4 4-4 4'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-image-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Ccircle cx='8.5' cy='10' r='1.5'/%3E%3Cpath d='M21 16l-5-5-8 8'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-olist-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 6h10M10 12h10M10 18h10M4 4.5h1.5V9M4 9h3M4 14.5c.5-1 2.8-1 2.8.5 0 1-2.8 2-2.8 3.5h3'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-ulist-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-heading-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4v16M18 4v16M6 12h12'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-hr-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M8 6h8M8 18h8'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-undo-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-redo-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3'/%3E%3C/svg%3E") !important;
+}
+
+#wmd-button-row #wmd-help-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01'/%3E%3C/svg%3E") !important;
+}
+
 /* ---- Dark mode ------------------------------------------------------ */
 
 /* Follows the device setting; Admin > View settings > "Dark mode" turns it off. */
@@ -2033,10 +2455,6 @@ div.comment-tools a:hover {
 
     :root[data-color-scheme="auto"] .notify p.darkred {
         color: inherit;
-    }
-
-    :root[data-color-scheme="auto"] #wmd-button-row li {
-        filter: invert(.85) hue-rotate(180deg);
     }
 
     :root[data-color-scheme="auto"] .score, :root[data-color-scheme="auto"] .accept_rate,

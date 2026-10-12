@@ -433,6 +433,13 @@ $(function() {
         var $trigger = $menu.find('.context-menu-trigger');
         var $dropdown = $menu.find('.context-menu-dropdown');
 
+        $trigger.on('keydown', function(evt) {
+            if (evt.key === 'Enter' || evt.key === ' ') {
+                evt.preventDefault();
+                $trigger.click();
+            }
+        });
+
         $trigger.click(function() {
             $dropdown.slideToggle('fast', function() {
                 if ($dropdown.is(':visible')) {
