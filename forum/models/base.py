@@ -193,17 +193,26 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
         if reset_fields:
             self._original_state.update(dict([(f, None) for f in reset_fields]))
 
+    def _changed(self, field):
+        # Deferred fields (e.g. instances loaded by the delete collector with
+        # .only()) are neither in __dict__ nor in the original state.
+        return field.attname in self.__dict__ and \
+               self._original_state.get(field.attname) != self.__dict__[field.attname]
+
     def get_dirty_fields(self):
-        return [f.name for f in self._meta.fields if self._original_state[f.attname] != self.__dict__[f.attname]]
+        return [f.name for f in self._meta.fields if self._changed(f)]
 
     def _as_dict(self):
-        return dict([(name, getattr(self, name)) for name in
+        # Only loaded values: reading a deferred field would query the database
+        # and build another instance, which recursed without end on delete().
+        return dict([(name, self.__dict__[name]) for name in
                      ([f.attname for f in self._meta.fields] + [k for k in self.__dict__.keys() if k.endswith('_dencache_')])
+                     if name in self.__dict__
         ])
 
     def _get_update_kwargs(self):
         return dict([
-            (f.name, getattr(self, f.name)) for f in self._meta.fields if self._original_state[f.attname] != self.__dict__[f.attname]
+            (f.name, getattr(self, f.name)) for f in self._meta.fields if self._changed(f)
         ])
 
     def save(self, full_save=False, *args, **kwargs):
@@ -272,6 +281,9 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
             return None
 
     def cache(self):
+        # A partially loaded instance must not be served as the full object later.
+        if self.get_deferred_fields():
+            return
         cache.set(self.cache_key(), self._as_dict(), 60 * 60)
 
     def uncache(self):

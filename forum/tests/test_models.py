@@ -83,3 +83,17 @@ class MarkdownTest(OSQATestCase):
     def test_limited_syntax_has_no_images(self):
         html = Node._as_markdown('![x][1]\n\n[1]: http://example.com/a.png', 'limitedsyntax')
         self.assertNotIn('<img', html)
+
+
+class BulkDeleteTest(OSQATestCase):
+    def test_queryset_delete_with_children(self):
+        from forum.models import Answer
+        user = self.create_user('alice')
+        question = Question(author=user, title='A question title', body='Body text', tagnames='one')
+        question.save()
+        Answer(author=user, parent=question, body='An answer long enough').save()
+
+        Question.objects.filter(id=question.id).delete()
+
+        self.assertFalse(Node.objects.filter(id=question.id).exists())
+        self.assertFalse(Node.objects.filter(parent_id=question.id).exists())
