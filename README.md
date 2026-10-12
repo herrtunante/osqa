@@ -69,6 +69,12 @@ are mounted from the host, not baked into the image.
   scores.
 - Migrations `0003`-`0005` add indexes to large tables (nodes, actions); run
   `migrate` during a quiet period on big sites.
+- The OpenID, Twitter, old Facebook, stats, updates and Sphinx modules were
+  removed: their services no longer exist (stats/updates reported to the
+  defunct osqa.net). Migration `0006` drops the OpenID tables. Users who only
+  signed in with one of those providers can request a temporary login link by
+  email ("Forgot your password?") and then connect Google, GitHub or Facebook,
+  or set a password, from their account settings.
 - A database created by the old Django 1.6/South version is not migrated in
   place: create a fresh database with `migrate` and import the old data into it
   (next section).
@@ -109,16 +115,34 @@ suite and `makemigrations --check` on Python 3.11 and 3.13.
 Optional features live in `forum_modules/` and are switched off with
 `DISABLED_MODULES` in `settings_local.py`.
 
-- Working and covered by tests: `localauth` (username/password login),
-  `default_badges` (the standard badges; thresholds under Admin > Badges) and
-  `robotstxt`.
-- Load, but untested on Python 3: `mysqlfulltext` and `pgfulltext` (enabled
-  automatically on that database).
-- Not yet ported to Python 3; they fail to import and are skipped with an error
-  in the log: `openidauth`, `oauthauth`, `facebookauth`, `akismet`, `exporter`, `sximporter` and
-  `updates`. `ldapauth`, `stats`, `recaptcha`, `project_badges` and
-  `sphinxfulltext` have not been checked. Add the modules you don't need to
-  `DISABLED_MODULES` to keep the log clean.
+All modules below except the full-text search ones are covered by the test suite.
+
+| Module | What it does | Setup |
+|---|---|---|
+| `localauth` | Username/password login and registration | - |
+| `oauth2auth` | "Sign in with Google / GitHub / Facebook" (OAuth 2.0 / OpenID Connect) | Admin > External Keys; see below |
+| `ldapauth` | Login against an LDAP directory | `pip install python-ldap`; LDAP settings in the admin. Disables itself without python-ldap |
+| `default_badges` | The standard badges | Thresholds under Admin > Badges |
+| `project_badges` | "Bug Buster" badge for questions tagged `bug` | Disabled by default |
+| `akismet` | Spam check of new posts with Akismet | Akismet API key in the admin; does nothing without it |
+| `recaptcha` | reCAPTCHA v2 on registration | Disabled by default; site and secret keys in the admin |
+| `exporter` | Full-site XML backup (Admin > Tools > XML data exporter) and restore (XML data importer) | - |
+| `sximporter` | Import of a StackExchange data dump (`/admin/sximporter/`) | Old StackExchange 1.0 dump format only |
+| `robotstxt` | Editable `/robots.txt` | - |
+| `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Enabled automatically on that database; not yet tested on Python 3 |
+
+### Social login
+
+For each provider you want, create an OAuth app and enter its client id and
+secret under Admin > External Keys; the button appears on the sign-in page once
+both are set. Register this redirect (callback) URI with the provider:
+
+- Google (Google Cloud console > Credentials): `<APP_URL>/account/google/done/`
+- GitHub (Settings > Developer settings > OAuth Apps): `<APP_URL>/account/github/done/`
+- Facebook (developers.facebook.com, Facebook Login): `<APP_URL>/account/facebook/done/`
+
+Signed-in users can connect more providers from their account's
+authentication settings.
 
 ## Layout
 

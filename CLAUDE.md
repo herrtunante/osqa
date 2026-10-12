@@ -43,7 +43,7 @@ OSQA has a pluggable module system in `forum_modules/`:
 - Modules are auto-discovered from directories with `__init__.py`
 - Each module can provide middleware, template loaders, and settings
 - Modules can be disabled via `DISABLED_MODULES` in settings
-- Available modules: authentication providers (LDAP, OAuth, OpenID, Facebook), full-text search (MySQL, PostgreSQL, Sphinx), badges, stats, exporter
+- Available modules: see the table in `README.md` (authentication, badges, spam checks, backup/import, full-text search)
 
 ### Settings System
 
@@ -133,12 +133,10 @@ When querying nodes, use the manager methods to get the correct subclass:
 
 ### Authentication
 
-Authentication providers are modules (only `localauth` is ported to Python 3 so far):
+Authentication providers are modules (`forum/authentication/` collects their `*AuthConsumer` / `*AuthContext` classes; names ending in `AbstractAuthConsumer` are skipped):
 - `localauth`: Standard username/password
-- `openidauth`: OpenID authentication
-- `oauthauth`: OAuth (Twitter, Google, etc.)
-- `facebookauth`: Facebook Connect
-- `ldapauth`: LDAP integration
+- `oauth2auth`: Google, GitHub and Facebook via the OAuth 2.0 authorization code flow; keys in Admin > External Keys, a provider is shown only when its context's `is_enabled()` is true
+- `ldapauth`: LDAP integration (needs python-ldap)
 
 ### User Interface Registry
 
@@ -153,8 +151,7 @@ Smoke tests live in `forum/tests/` and run against SQLite using `settings_local_
 ```bash
 OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 ```
-- Always pass the `forum.tests` label: unlabelled discovery also imports the
-  vendored `httplib2` tests under `forum_modules/oauthauth/lib`, which hang.
+- Always pass the `forum.tests` label.
 - `forum.tests.base.OSQATestCase` clears the cache, runs action hooks inline
   and captures outgoing email in `self.sent_mail`.
 - CI (`.github/workflows/tests.yml`) runs the suite and `makemigrations --check`.

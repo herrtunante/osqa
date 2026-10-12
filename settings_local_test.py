@@ -33,4 +33,4 @@ USE_I18N = True
 LANGUAGE_CODE = 'en'
 OSQA_DEFAULT_SKIN = 'default'
 
-DISABLED_MODULES = ['books', 'recaptcha', 'project_badges', 'stats']
+DISABLED_MODULES = ['recaptcha', 'project_badges']
