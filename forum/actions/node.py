@@ -23,6 +23,8 @@ class AskAction(NodeEditAction):
 
     def process_data(self, **data):
         processed_data = self.create_revision_data(True, **data)
+        # Node.summary is a read-only property; the initial revision gets no summary.
+        processed_data.pop('summary', None)
         if 'added_at' in data:
             processed_data['added_at'] = data['added_at']
 
@@ -42,7 +44,9 @@ class AnswerAction(NodeEditAction):
     verb = _("answered")
 
     def process_data(self, **data):
-        answer = Answer(author=self.user, parent=data['question'], **self.create_revision_data(True, **data))
+        revision_data = self.create_revision_data(True, **data)
+        revision_data.pop('summary', None)
+        answer = Answer(author=self.user, parent=data['question'], **revision_data)
         answer.save()
         self.node = answer
 
