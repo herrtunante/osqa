@@ -17,7 +17,6 @@ from django.template.defaultfilters import slugify
 from django.db.models.signals import post_delete, post_save, pre_save, pre_delete
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_str
 from django.contrib.sitemaps import ping_google
 import django.dispatch
 from forum import settings
@@ -28,37 +27,7 @@ if not hasattr(cache, 'get_many'):
     #put django 1.2 code here
     pass
 
-class LazyQueryList(object):
-    def __init__(self, model, items):
-        self.items = items
-        self.model = model
-
-    def __getitem__(self, k):
-        return self.model.objects.get(id=self.items[k][0])
-
-    def __iter__(self):
-        for id in self.items:
-            yield self.model.objects.get(id=id[0])
-
-    def __len__(self):
-        return len(self.items)
-
-class ToFetch(str):
-    pass
-
 class CachedQuerySet(models.query.QuerySet):
-
-    def lazy(self):
-        if not len(self.query.aggregates):
-            values_list = ['id']
-
-            if len(self.query.extra):
-                extra_keys = self.query.extra.keys()
-                values_list += extra_keys
-
-            return LazyQueryList(self.model, list(self.values_list(*values_list)))
-        else:
-            return self
 
     def obj_from_datadict(self, datadict):
         obj = self.model()
@@ -69,19 +38,23 @@ class CachedQuerySet(models.query.QuerySet):
 
         return obj
 
-    def _base_clone(self):
-        # Django 4.2: _clone() no longer accepts 'klass' parameter
-        # Return a regular QuerySet clone instead of CachedQuerySet
-        return models.query.QuerySet(self.model, using=self._db)
+    def _can_use_object_cache(self, args, kwargs):
+        # The object cache is keyed by primary key only, so it may only answer
+        # a lookup that is nothing but a pk lookup on an otherwise unfiltered
+        # queryset (filters added by the model's default manager are allowed).
+        if args or len(kwargs) != 1 or self.query.is_sliced or self.query.extra:
+            return False
+
+        return self.query.where == self.model.objects.get_queryset().query.where
 
     def get(self, *args, **kwargs):
-        key = self.model.infer_cache_key(kwargs)
+        key = self._can_use_object_cache(args, kwargs) and self.model.infer_cache_key(kwargs) or None
 
         if key is not None:
             obj = cache.get(key)
 
             if obj is None:
-                obj = self._base_clone().get(*args, **kwargs)
+                obj = super(CachedQuerySet, self).get(*args, **kwargs)
                 obj.cache()
             else:
                 obj = self.obj_from_datadict(obj)
@@ -90,7 +63,7 @@ class CachedQuerySet(models.query.QuerySet):
 
             return obj
 
-        return self._base_clone().get(*args, **kwargs)
+        return super(CachedQuerySet, self).get(*args, **kwargs)
 
     def _fetch_from_query_cache(self, key):
         invalidation_key = self.model._get_cache_query_invalidation_key()
@@ -115,69 +88,6 @@ class CachedQuerySet(models.query.QuerySet):
         result = super(CachedQuerySet, self).count()
         cache.set(cache_key, (datetime.datetime.now(), result), 60 * 60)
         return result
-
-    def iterator(self):
-        cache_key = self.model._generate_cache_key("QUERY:%s" % self._get_query_hash())
-        on_cache_query_attr = self.model.value_to_list_on_cache_query()
-
-        to_return = None
-        to_cache = {}
-
-        with_aggregates = len(self.query.aggregates) > 0
-        key_list = self._fetch_from_query_cache(cache_key)
-
-        if key_list is None:
-            if not with_aggregates:
-                values_list = [on_cache_query_attr]
-
-                if len(self.query.extra):
-                    values_list += self.query.extra.keys()
-
-                key_list = [v[0] for v in self.values_list(*values_list)]
-                to_cache[cache_key] = (datetime.datetime.now(), key_list)
-            else:
-                to_return = list(super(CachedQuerySet, self).iterator())
-                to_cache[cache_key] = (datetime.datetime.now(), [
-                    (row.__dict__[on_cache_query_attr], dict([(k, row.__dict__[k]) for k in self.query.aggregates.keys()]))
-                    for row in to_return])
-        elif with_aggregates:
-            tmp = key_list
-            key_list = [k[0] for k in tmp]
-            with_aggregates = [k[1] for k in tmp]
-            del tmp
-
-        if (not to_return) and key_list:
-            row_keys = [self.model.infer_cache_key({on_cache_query_attr: attr}) for attr in key_list]
-            cached = cache.get_many(row_keys)
-
-            to_return = [
-                (ck in cached) and self.obj_from_datadict(cached[ck]) or ToFetch(force_str(key_list[i])) for i, ck in enumerate(row_keys)
-            ]
-
-            if len(cached) != len(row_keys):
-                to_fetch = [str(tr) for tr in to_return if isinstance(tr, ToFetch)]
-
-                fetched = dict([(force_str(r.__dict__[on_cache_query_attr]), r) for r in
-                              models.query.QuerySet(self.model).filter(**{"%s__in" % on_cache_query_attr: to_fetch})])
-
-                to_return = [(isinstance(tr, ToFetch) and fetched[str(tr)] or tr) for tr in to_return]
-                to_cache.update(dict([(self.model.infer_cache_key({on_cache_query_attr: attr}), r._as_dict()) for attr, r in fetched.items()]))
-
-            if with_aggregates:
-                for i, r in enumerate(to_return):
-                    r.__dict__.update(with_aggregates[i])
-
-
-        if len(to_cache):
-            cache.set_many(to_cache, 60 * 60)
-
-        if to_return:
-            for row in to_return:
-                if hasattr(row, 'leaf'):
-                    row = row.leaf
-
-                row.reset_original_state()
-                yield row
 
     def _get_query_hash(self):
         try:
