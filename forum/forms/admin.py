@@ -52,7 +52,7 @@ RENDER_CHOICES = (
 )
 
 class UrlFieldWidget(forms.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not value:
             value = ''
 

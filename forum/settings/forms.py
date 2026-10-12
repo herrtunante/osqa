@@ -57,7 +57,7 @@ class SettingsSetForm(forms.Form):
             setting.set_value(self.cleaned_data[setting.name])
 
 class ImageFormWidget(forms.Widget):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return """
             <img src="%(value)s" /><br />
             %(change)s: <input type="file" name="%(name)s" />
@@ -86,7 +86,7 @@ class ImageFormWidget(forms.Widget):
                 return data[name]
 
 class StringListWidget(forms.Widget):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         ret = ""
         for s in value:
             ret += """
@@ -110,8 +110,8 @@ class StringListWidget(forms.Widget):
             return data[name]
 
 class CommaStringListWidget(forms.Textarea):
-    def render(self, name, value, attrs=None):
-        return super(CommaStringListWidget, self).render(name, ', '.join(value), attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        return super(CommaStringListWidget, self).render(name, ', '.join(value), attrs, renderer)
 
 
     def value_from_datadict(self, data, files, name):
@@ -121,7 +121,7 @@ class CommaStringListWidget(forms.Textarea):
             return ', '.join(data[name])    
 
 class TestEmailSettingsWidget(forms.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not value:
             value = ''
 

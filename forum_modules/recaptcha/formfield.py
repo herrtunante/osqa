@@ -30,7 +30,7 @@ class ReCaptchaField(forms.Field):
 
 
 class ReCaptchaWidget(forms.Widget):
-	def render(self, name, value, attrs=None):
+	def render(self, name, value, attrs=None, renderer=None):
 		return mark_safe(force_str(captcha.displayhtml(settings.RECAPTCHA_PUB_KEY)))
 
 	def value_from_datadict(self, data, files, name):
