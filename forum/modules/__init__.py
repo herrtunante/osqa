@@ -17,7 +17,8 @@ def get_modules_script(script_name):
         try:
             all.append(__import__('%s.%s' % (m.__name__, script_name), globals(), locals(), [m.__name__]))
         except Exception as e:
-            if isinstance(e, ImportError) and str(e).endswith(script_name):
+            # The module simply doesn't provide this script; anything else is a real error.
+            if isinstance(e, ModuleNotFoundError) and e.name == '%s.%s' % (m.__name__, script_name):
                 continue
             logging.exception("Error importing %s from module %s", script_name, m)
 
@@ -42,7 +43,7 @@ def get_modules_script_classes(script_name, base_class):
     for script in scripts:
         all_classes.update(dict([
             (n, c) for (n, c) in [(n, getattr(script, n)) for n in dir(script)]
-            if isinstance(c, type) and issubclass(c, base_class)
+            if isinstance(c, type) and issubclass(c, base_class) and c is not base_class
         ]))
 
     return all_classes
