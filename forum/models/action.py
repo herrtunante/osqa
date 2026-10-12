@@ -178,14 +178,26 @@ class Action(BaseModel):
 
     def trigger_hooks(self, threaded, new=True):
         if threaded:
-            thread = Thread(target=trigger_hooks, args=[self, Action.hooks, new])
-            thread.setDaemon(True)
-            thread.start()
+            Thread(target=trigger_hooks_in_thread, args=[self, Action.hooks, new], daemon=True).start()
         else:
             trigger_hooks(self, Action.hooks, new)
 
     class Meta:
         app_label = 'forum'
+        # A user's recent activity, and per-day limits (votes, flags) by type.
+        indexes = [
+            models.Index(fields=['user', 'action_date'], name='action_user_date_idx'),
+            models.Index(fields=['user', 'action_type', 'action_date'], name='action_user_type_date_idx'),
+        ]
+
+def trigger_hooks_in_thread(action, hooks, new):
+    from django.db import connections
+    try:
+        trigger_hooks(action, hooks, new)
+    finally:
+        # The thread opened its own database connections; they are never reused,
+        # so close them instead of leaving one open per action until GC.
+        connections.close_all()
 
 def trigger_hooks(action, hooks, new):
     for cls, hooklist in hooks.items():
@@ -317,4 +329,5 @@ class ActionRepute(models.Model):
 
     class Meta:
         app_label = 'forum'
+        indexes = [models.Index(fields=['user', 'date'], name='repute_user_date_idx')]
 

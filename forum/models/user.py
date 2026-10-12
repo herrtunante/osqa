@@ -454,6 +454,10 @@ class User(BaseModel, DjangoUser):
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to User are loaded through the base manager; use the
+        # cached manager so they hit the object cache.
+        base_manager_name = 'objects'
+        indexes = [models.Index(fields=['reputation'], name='user_reputation_idx')]
 
 class UserProperty(BaseModel):
     user = models.ForeignKey(User, related_name='properties', on_delete=models.CASCADE)
@@ -482,16 +486,20 @@ class UserPropertyDict(object):
         self.__dict__['_user'] = user
 
     def __get_property(self, name):
-        if self.__dict__.get('__%s__' % name, None):
-            return self.__dict__['__%s__' % name]
+        # Remember missing properties too, so each access doesn't query again.
+        key = '__%s__' % name
+        if key in self.__dict__:
+            return self.__dict__[key]
         try:
             user = self.__dict__['_user']
             prop = UserProperty.objects.get(user=user, key=name)
-            self.__dict__['__%s__' % name] = prop
+        except UserProperty.DoesNotExist:
+            prop = None
+
+        self.__dict__[key] = prop
+        if prop is not None:
             self.__dict__[name] = prop.value
-            return prop
-        except:
-            return None
+        return prop
 
 
     def __getattr__(self, name):
@@ -522,8 +530,8 @@ class UserPropertyDict(object):
         else:
             if current:
                 current.delete()
-                del self.__dict__[name]
-                del self.__dict__['__%s__' % name]
+                self.__dict__.pop(name, None)
+                self.__dict__['__%s__' % name] = None
 
 
 class SubscriptionSettings(models.Model):

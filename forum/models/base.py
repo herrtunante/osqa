@@ -46,7 +46,20 @@ class CachedQuerySet(models.query.QuerySet):
 
         return self.query.where == self.model.objects.get_queryset().query.where
 
+    def _pk_lookup_from_q(self, args, kwargs):
+        # Forward foreign keys are resolved with get(Q(<pk attname>=value)) since
+        # Django 1.7; turn that into a pk lookup so it can use the object cache.
+        if len(args) == 1 and not kwargs and isinstance(args[0], models.Q):
+            q = args[0]
+            if not q.negated and len(q.children) == 1 and isinstance(q.children[0], tuple):
+                key, value = q.children[0]
+                pk = self.model._meta.pk
+                if key in ('pk', pk.name, pk.attname):
+                    return (), {'pk': value}
+        return args, kwargs
+
     def get(self, *args, **kwargs):
+        args, kwargs = self._pk_lookup_from_q(args, kwargs)
         key = self._can_use_object_cache(args, kwargs) and self.model.infer_cache_key(kwargs) or None
 
         if key is not None:

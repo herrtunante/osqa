@@ -72,6 +72,7 @@ class QuestionSubscription(models.Model):
 
     class Meta:
         app_label = 'forum'
+        indexes = [models.Index(fields=['user', 'last_view'], name='subscription_user_view_idx')]
 
 
 class QuestionRevision(NodeRevision):

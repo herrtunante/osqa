@@ -10,17 +10,41 @@ from django.utils.safestring import mark_safe
 from django.conf import settings as django_settings
 from django.urls import reverse
 from django import template
+from django.db.models import Q
 from forum.actions import *
-from forum import settings
+from forum.models import Vote
+from forum import settings, REQUEST_HOLDER
 
 register = template.Library()
+
+
+def _user_vote(user, post):
+    """The user's vote value on post (1, -1 or None).
+
+    A question page shows vote state for every post and comment; load all of
+    the user's votes under the same question in one query and keep them for
+    the rest of the request instead of querying once per post.
+    """
+    root_id = post.abs_parent_id or post.id
+    request = REQUEST_HOLDER.request
+    memo = getattr(request, '_osqa_user_votes', None)
+    if memo is None:
+        memo = {}
+        if request is not None:
+            request._osqa_user_votes = memo
+
+    key = (user.id, root_id)
+    if key not in memo:
+        memo[key] = dict(Vote.objects.filter(user=user).filter(Q(node_id=root_id) | Q(node__abs_parent_id=root_id))
+                         .values_list('node_id', 'value'))
+    return memo[key].get(post.id)
 
 @register.inclusion_tag('node/vote_buttons.html')
 def vote_buttons(post, user):
     context = dict(post=post, user_vote='none')
 
     if user.is_authenticated:
-        context['user_vote'] = {1: 'up', -1: 'down', None: 'none'}[VoteAction.get_for(user, post)]
+        context['user_vote'] = {1: 'up', -1: 'down', None: 'none'}[_user_vote(user, post)]
 
     return context
 
@@ -216,7 +240,7 @@ def _comments(post, user):
             showing += 1
         
         if context['can_like']:
-            context['likes'] = VoteAction.get_for(user, c) == 1
+            context['likes'] = _user_vote(user, c) == 1
 
         context['user'] = c.user
         context['comment'] = c.comment

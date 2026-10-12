@@ -526,6 +526,12 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
         # Foreign keys to Node (parent, action.node, ...) are loaded through the
         # base manager; use NodeManager so they come back as Question, Answer, etc.
         base_manager_name = 'objects'
+        # Question lists filter by type and sort by activity, date or score.
+        indexes = [
+            models.Index(fields=['node_type', 'last_activity_at'], name='node_type_activity_idx'),
+            models.Index(fields=['node_type', 'added_at'], name='node_type_added_idx'),
+            models.Index(fields=['node_type', 'score'], name='node_type_score_idx'),
+        ]
 
 
 class NodeRevision(BaseModel, NodeContent):

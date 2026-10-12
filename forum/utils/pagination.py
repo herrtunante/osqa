@@ -76,6 +76,8 @@ class PaginatorContext(object):
         self.prefix = prefix
 
     def preferences(self, request):
+        # A copy: callers modify it, and set_preferences() compares it with the
+        # stored value to avoid a write on every page view.
         if request.user.is_authenticated:
             if request.user.prop.pagination:
                 preferences = request.user.prop.pagination.get(self.id, {})
@@ -84,15 +86,19 @@ class PaginatorContext(object):
         else:
             preferences = request.session.get('paginator_%s%s' % (self.prefix, self.id), {})
 
-        return preferences
+        return dict(preferences)
 
     def set_preferences(self, request, preferences):
         if request.user.is_authenticated:
-            all_preferences = request.user.prop.pagination or {}
+            all_preferences = dict(request.user.prop.pagination or {})
+            if all_preferences.get(self.id, {}) == preferences:
+                return
             all_preferences[self.id] = preferences
             request.user.prop.pagination = all_preferences
         else:
-            request.session['paginator_%s%s' % (self.prefix, self.id)] = preferences
+            key = 'paginator_%s%s' % (self.prefix, self.id)
+            if request.session.get(key, {}) != preferences:
+                request.session[key] = preferences
 
     def pagesize(self, request, session_prefs=None):
         if not session_prefs:

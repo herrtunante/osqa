@@ -62,6 +62,7 @@ class Badge(BaseModel):
 
     class Meta:
         app_label = 'forum'
+        base_manager_name = 'objects'
 
 
 class Award(models.Model):
@@ -78,3 +79,4 @@ class Award(models.Model):
     class Meta:
         unique_together = ('user', 'badge', 'node')
         app_label = 'forum'
+        indexes = [models.Index(fields=['awarded_at'], name='award_awarded_at_idx')]

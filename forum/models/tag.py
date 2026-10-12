@@ -27,6 +27,7 @@ class Tag(BaseModel):
     class Meta:
         ordering = ('-used_count', 'name')
         app_label = 'forum'
+        indexes = [models.Index(fields=['used_count', 'name'], name='tag_used_count_idx')]
 
     def __str__(self):
         return force_str(self.name)

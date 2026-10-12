@@ -212,5 +212,13 @@ class QuestionViewAction(DummyActionProxy):
         super(QuestionViewAction, self).__init__(ip)
 
     def process_action(self):
-        self.node.extra_count = F('extra_count') + 1
-        self.node.save()
+        # A plain UPDATE: node.save() would also reset the query-cache timestamp
+        # shared by all nodes, discarding every cached count on the site for
+        # each question view. View counts don't affect those counts.
+        node = self.node
+        nodes = type(node).objects.filter(id=node.id)
+        nodes.update(extra_count=F('extra_count') + 1)
+        # Read the stored value back: badges compare it exactly.
+        node.extra_count = nodes.values_list('extra_count', flat=True)[0]
+        node.reset_original_state()
+        node.cache()
