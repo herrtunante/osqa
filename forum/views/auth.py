@@ -42,24 +42,24 @@ def signin_page(request):
 
     all_providers = [provider.context for provider in AUTH_PROVIDERS.values() if provider.context]
 
-    sort = lambda c1, c2: c1.weight - c2.weight
+    sort = lambda c: c.weight
     can_show = lambda c: not request.user.is_authenticated or c.show_to_logged_in_user
 
     bigicon_providers = sorted([
     context for context in all_providers if context.mode == 'BIGICON' and can_show(context)
-    ], sort)
+    ], key=sort)
 
     smallicon_providers = sorted([
     context for context in all_providers if context.mode == 'SMALLICON' and can_show(context)
-    ], sort)
+    ], key=sort)
 
     top_stackitem_providers = sorted([
     context for context in all_providers if context.mode == 'TOP_STACK_ITEM' and can_show(context)
-    ], sort)
+    ], key=sort)
 
     stackitem_providers = sorted([
     context for context in all_providers if context.mode == 'STACK_ITEM' and can_show(context)
-    ], sort)
+    ], key=sort)
 
     try:
         msg = request.session['auth_error']
@@ -68,6 +68,7 @@ def signin_page(request):
         msg = None
 
     return render(
+            request,
             'auth/signin.html',
             {
             'msg': msg,
@@ -76,8 +77,7 @@ def signin_page(request):
             'top_stackitem_providers': top_stackitem_providers,
             'stackitem_providers': stackitem_providers,
             'smallicon_providers': smallicon_providers,
-            },
-            RequestContext(request))
+            })
 
 def prepare_provider_signin(request, provider):
     # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
@@ -258,8 +258,7 @@ def request_temp_login(request):
     else:
         form = TemporaryLoginRequestForm()
 
-    return render(
-            'auth/temp_login_request.html', {'form': form})
+    return render(request, 'auth/temp_login_request.html', {'form': form})
 
 def temp_signin(request, user, code):
     user = get_object_or_404(User, id=user)

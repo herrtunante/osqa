@@ -317,7 +317,7 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
                 "page_title" : rev_page_title,
                 "can_view_private": (user == request.user) or request.user.is_superuser
             })
-            return render(template, context)
+            return render(request, template, context)
 
         decorated = decorate.result.withfn(result, needs_params=True)(decorated)
 

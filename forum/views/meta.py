@@ -27,7 +27,7 @@ def favicon(request):
     return HttpResponseRedirect(str(settings.APP_FAVICON))
 
 def custom_css(request):
-    return HttpResponse(or_preview(settings.CUSTOM_CSS, request), mimetype="text/css")
+    return HttpResponse(or_preview(settings.CUSTOM_CSS, request), content_type="text/css")
 
 def static(request, title, content):
     return render(request, 'static.html', {'content' : content, 'title': title})
@@ -144,13 +144,13 @@ def page(request, exception=None):
             sidebar = mark_safe(sidebar)
 
     else:
-        return HttpResponse(page.body, mimetype=page.extra.get('mimetype', 'text/html'))
+        return HttpResponse(page.body, content_type=page.extra.get('mimetype', 'text/html'))
 
-    render = page.extra.get('render', 'markdown')
+    body_render = page.extra.get('render', 'markdown')
 
-    if render == 'markdown':
+    if body_render == 'markdown':
         body = page.as_markdown()
-    elif render == 'html':
+    elif body_render == 'html':
         body = mark_safe(page.body)
     else:
         body = page.body

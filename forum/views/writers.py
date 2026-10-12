@@ -67,7 +67,7 @@ def upload(request):#ajax upload file to a question or answer
     except Exception as e:
         result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you. %s' % e), '')
 
-    return HttpResponse(result, mimetype="application/xml")
+    return HttpResponse(result, content_type="application/xml")
 
 def ask(request):
     form = None
@@ -200,7 +200,7 @@ def _edit_question(request, question, template='question_edit.html', summary='',
     if not (additional_context is None):
         context.update(additional_context)
 
-    return render(template, context)
+    return render(request, template, context)
 
 
 def edit_answer(request, id):

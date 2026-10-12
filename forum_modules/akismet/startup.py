@@ -45,12 +45,12 @@ def check_spam(param, comment_type):
                 post_data = request.POST
                 captcha_form = SimpleCaptchaForm(request.POST)
                 
-                if request.is_ajax():
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     response = {
                     'success': False,
                     'error_message': _("Sorry, but akismet thinks your %s is spam.") % comment_type
                     }
-                    return HttpResponse(json.dumps(response), mimetype="application/json")
+                    return HttpResponse(json.dumps(response), content_type="application/json")
                 else:
                     captcha_checked = False
                     try:

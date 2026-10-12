@@ -47,7 +47,7 @@ class RefreshPageCommand(HttpResponse):
     def __init__(self):
         super(RefreshPageCommand, self).__init__(
                 content=json.dumps({'commands': {'refresh_page': []}, 'success': True}),
-                mimetype="application/json")
+                content_type="application/json")
 
 def command(func, request, *args, **kwargs):
     try:
@@ -64,7 +64,7 @@ def command(func, request, *args, **kwargs):
         if isinstance(e, CommandException):
             response = {
             'success': False,
-            'error_message': e.message
+            'error_message': str(e)
             }
         else:
             logging.error("%s: %s" % (func.__name__, str(e)))
@@ -74,8 +74,8 @@ def command(func, request, *args, **kwargs):
             'error_message': _("We're sorry, but an unknown error ocurred.<br />Please try again in a while.")
             }
 
-    if request.is_ajax():
-        return HttpResponse(json.dumps(response), mimetype="application/json")
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return HttpResponse(json.dumps(response), content_type="application/json")
     else:
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 

@@ -65,7 +65,7 @@ def admin_page_wrapper(fn, request, *args, **kwargs):
     unsaved = request.session.get('previewing_settings', {})
     context['unsaved'] = set([getattr(settings, s).set.name for s in unsaved.keys() if hasattr(settings, s)])
 
-    return render(template, context)
+    return render(request, template, context)
 
 def admin_page(fn):
     @super_user_required
@@ -206,7 +206,7 @@ def get_default(request, set_name, var_name):
 
     setting.to_default()
 
-    if request.is_ajax():
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return HttpResponse(setting.default)
     else:
         return HttpResponseRedirect(reverse('admin_set', kwargs={'set_name': set_name}))

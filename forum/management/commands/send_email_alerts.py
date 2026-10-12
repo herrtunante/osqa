@@ -26,7 +26,7 @@ class DigestQuestionsIndex(object):
         for q in new_questions:
             q.hotness=hotness(q)
 
-        self.questions = sorted(new_questions, lambda q1, q2: q2.hotness - q1.hotness)
+        self.questions = sorted(new_questions, key=lambda q: q.hotness, reverse=True)
         self.count = len(self.questions)
 
     def unseen_question(self, user, question):

@@ -11,10 +11,14 @@ from django.urls import get_script_prefix
 from django.utils.encoding import smart_str
 from django.core.paginator import EmptyPage, PageNotAnInteger
 
+def _root_relative_reverse(*args, **kwargs):
+    # APP_URL already contains any script prefix, so build the path without it.
+    return '/' + urlresolvers.reverse(*args, **kwargs)[len(get_script_prefix()):]
+
 def index(request, sitemaps):
     sites = []
     for section in sitemaps.keys():
-        sitemap_url = urlresolvers.reverse('sitemap_section_index', prefix='/', kwargs={'section': section})
+        sitemap_url = _root_relative_reverse('sitemap_section_index', kwargs={'section': section})
 
         # Replace double forward slashes with single ones
         final_url = '%s%s' % (settings.APP_URL, sitemap_url)
@@ -25,7 +29,7 @@ def index(request, sitemaps):
         sites.append(final_url)
 
     xml = loader.render_to_string('sitemap_index.xml', {'sitemaps': sites})
-    return HttpResponse(xml, mimetype='application/xml')
+    return HttpResponse(xml, content_type='application/xml')
 
 def sitemap_section_index(request, section, sitemaps):
     try:
@@ -38,7 +42,7 @@ def sitemap_section_index(request, section, sitemaps):
     locations = []
 
     for page in paginator.page_range:
-        location = urlresolvers.reverse('sitemap_section_page', prefix='/', kwargs={ 'page' : page, 'section' : section })
+        location = _root_relative_reverse('sitemap_section_page', kwargs={ 'page' : page, 'section' : section })
         location = '%s%s' % (settings.APP_URL, location)
         location = re.sub("/+", "/", location)
         location = location.replace('http:/', 'http://')
@@ -46,7 +50,7 @@ def sitemap_section_index(request, section, sitemaps):
         locations.append(location)
 
     xml = loader.render_to_string('sitemap_section_index.xml', { 'locations' : locations, })
-    return HttpResponse(xml, mimetype='application/xml')
+    return HttpResponse(xml, content_type='application/xml')
 
 def sitemap(request, sitemaps, section=None, page=1):
     maps, urls = [], []
@@ -68,7 +72,7 @@ def sitemap(request, sitemaps, section=None, page=1):
         except PageNotAnInteger:
             raise Http404("No page '%s'" % page)
     xml = smart_str(loader.render_to_string('sitemap.xml', {'urlset': urls}))
-    return HttpResponse(xml, mimetype='application/xml')
+    return HttpResponse(xml, content_type='application/xml')
 
 class OsqaSitemap(Sitemap):
     limit = QUESTIONS_SITEMAP_LIMIT
