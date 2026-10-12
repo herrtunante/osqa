@@ -1,4 +1,4 @@
-from django.utils.html import strip_tags
+from django.utils.html import strip_tags, escape
 from django.utils.translation import gettext as _
 from forum.models.action import ActionProxy
 from forum.models import Comment, Question, Answer, NodeRevision
@@ -139,8 +139,8 @@ class RollbackAction(ActionProxy):
         return _("%(user)s reverted %(post_desc)s from revision %(initial)d (%(initial_sum)s) to revision %(final)d (%(final_sum)s)") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'post_desc': self.describe_node(viewer, self.node),
-            'initial': revisions[0].revision, 'initial_sum': revisions[0].summary,
-            'final': revisions[1].revision, 'final_sum': revisions[1].summary,
+            'initial': revisions[0].revision, 'initial_sum': escape(revisions[0].summary),
+            'final': revisions[1].revision, 'final_sum': escape(revisions[1].summary),
         }
 
     def get_absolute_url(self):
@@ -164,7 +164,7 @@ class CloseAction(ActionProxy):
         return _("%(user)s closed %(post_desc)s: %(reason)s") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'post_desc': self.describe_node(viewer, self.node),
-            'reason': self.extra
+            'reason': escape(self.extra)
         }
 
 class AnswerToCommentAction(ActionProxy):

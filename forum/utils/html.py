@@ -1,7 +1,7 @@
 """Utilities for working with HTML."""
 import bleach
 from urllib.parse import quote_plus
-from django.utils.html import strip_tags
+from django.utils.html import strip_tags, conditional_escape
 from forum.utils.html2text import HTML2Text
 from django.utils.safestring import mark_safe
 from forum import settings
@@ -45,11 +45,16 @@ def html2text(s, ignore_tags=(), indent_width=4, page_width=80):
     parser.generate()
     return mark_safe(parser.result)
 
+def _attrs(attrs):
+    return " ".join('%s="%s"' % (k, conditional_escape(v)) for k, v in attrs.items())
+
+# content/title may contain user input (question titles, usernames); it is
+# escaped unless it is already marked safe (e.g. a nested hyperlink).
 def buildtag(name, content, **attrs):
-    return mark_safe('<%s %s>%s</%s>' % (name, " ".join('%s="%s"' % i for i in attrs.items()), str(content), name))
+    return mark_safe('<%s %s>%s</%s>' % (name, _attrs(attrs), conditional_escape(content), name))
 
 def hyperlink(url, title, **attrs):
-    return mark_safe('<a href="%s" %s>%s</a>' % (url, " ".join('%s="%s"' % i for i in attrs.items()), title))
+    return mark_safe('<a href="%s" %s>%s</a>' % (conditional_escape(url), _attrs(attrs), conditional_escape(title)))
 
 def objlink(obj, **attrs):
     link = obj.get_absolute_url()

@@ -1,3 +1,4 @@
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.db.models import F
 from forum.models.action import ActionProxy, DummyActionProxy
@@ -120,7 +121,7 @@ class FlagAction(ActionProxy):
     def describe(self, viewer=None):
         return _("%(user)s flagged %(post_desc)s: %(reason)s") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'post_desc': self.describe_node(viewer, self.node), 'reason': self.extra
+            'post_desc': self.describe_node(viewer, self.node), 'reason': escape(self.extra)
         }
 
 

@@ -2,6 +2,7 @@ from django.utils.translation import ngettext, gettext as _
 from django.urls import reverse
 from django.db.models import F
 from django.contrib import messages
+from django.utils.html import escape
 from forum.models.action import ActionProxy
 from forum.models import Award, Badge, ValidationHash, User
 from forum import settings, REQUEST_HOLDER
@@ -219,10 +220,11 @@ class ReportAction(ActionProxy):
 
     def describe(self, viewer=None):
 
-        return _("%(user)s reported %(reported) : %(msg)s") % {
-            'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
-            'reporter': self.extra.get('reported').username,
-            'msg': self.extra.get('publicmsg', _('N/A'))
+        reported = self.extra.get('reported')
+        return _("%(user)s reported %(reported)s : %(msg)s") % {
+            'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
+            'reported': self.hyperlink(reported.get_profile_url(), self.friendly_username(viewer, reported)),
+            'msg': escape(self.extra.get('publicmsg', _('N/A')))
         }
 
 class SuspendAction(ActionProxy):
