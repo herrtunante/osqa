@@ -10,20 +10,6 @@
 			</a>
 		</div>
 	  
-		<div id="top">
-		    {% loadregistry header_links %}{% endloadregistry %}
-		</div>
-
-    <div id="nav">
-        {% loopregistry page_top_tabs %}{% spaceless %}
-            <a id="nav_{{ tab_name }}"{% if tab == tab_name %} class="on"{% endif %} href="{{ tab_url }}" >{{ tab_title }}</a>
-        {% endspaceless %}{% endloopregistry %}
-        <a id="nav_ask" href="{% url "ask" %}" class="special">{% trans "ask a question" %}</a>
-    </div>
-  </div>
-
-  <div class="clear"></div>
-  
 	<div id="searchBar">
     {% if settings.GOOGLE_CSE_ID %}
         <div class="gcse-container">
@@ -42,18 +28,32 @@
     <form action="{% url "search" %}" method="get" role="search">
         <div class="search-field">
             <input type="search" class="searchInput" value="{{ keywords }}" name="q" id="keywords"
-                aria-label="{% trans "Search" %}" placeholder="{% trans "Search questions, tags or users" %}" />
-            <input type="submit" class="searchBtn" value="{% trans "search" %}" />
-        </div>
-        <div class="options">
-            <input id="type-question" type="radio" value="question" name="t" 
-                checked="checked" /><label for="type-question">{% trans "questions" %}</label>
-            <input id="type-tag" type="radio" value="tag" name="t" /><label for="type-tag">{% trans "tags" %}</label>
-            <input id="type-user" type="radio" value="user" name="t" /><label for="type-user">{% trans "users" %}</label>
+                aria-label="{% trans "Search" %}" placeholder="{% trans "Search..." %}" />
+            <select name="t" class="search-type" aria-label="{% trans "Search in" %}">
+                <option value="question">{% trans "questions" %}</option>
+                <option value="tag"{% if tab == "tags" %} selected="selected"{% endif %}>{% trans "tags" %}</option>
+                <option value="user"{% if tab == "users" %} selected="selected"{% endif %}>{% trans "users" %}</option>
+            </select>
+            <button type="submit" class="searchBtn" aria-label="{% trans "search" %}" title="{% trans "search" %}"></button>
         </div>
     </form>
     {% endif %}
 	</div>
+
+		<div id="top">
+		    {% loadregistry header_links %}{% endloadregistry %}
+		</div>
+
+    <div id="nav">
+        {% loopregistry page_top_tabs %}{% spaceless %}
+            <a id="nav_{{ tab_name }}"{% if tab == tab_name %} class="on"{% endif %} href="{{ tab_url }}" >{{ tab_title }}</a>
+        {% endspaceless %}{% endloopregistry %}
+        <a id="nav_ask" href="{% url "ask" %}" class="special">{% trans "ask a question" %}</a>
+    </div>
+  </div>
+
+  <div class="clear"></div>
+  
 
 	{% if settings.USE_ANNOUNCEMENT_BAR|or_preview:request %}
   <div id="announcement">

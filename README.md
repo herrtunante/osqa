@@ -75,6 +75,9 @@ are mounted from the host, not baked into the image.
   signed in with one of those providers can request a temporary login link by
   email ("Forgot your password?") and then connect Google, GitHub or Facebook,
   or set a password, from their account settings.
+- Migration `0007` hides the two default sidebar blocks (the WebFaction hosting
+  advert and "Learn more about OSQA", both pointing at services that no longer
+  exist) when they still contain the shipped text; edited blocks are kept.
 - A database created by the old Django 1.6/South version is not migrated in
   place: create a fresh database with `migrate` and import the old data into it
   (next section).

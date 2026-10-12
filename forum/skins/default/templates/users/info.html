@@ -121,11 +121,9 @@
             </table>
         </td>
         <td width="380">
-            {% if not view_user.is_suspended %}
+            {% if not view_user.is_suspended and view_user.about %}
             <div class="user-about">
-            {% if view_user.about %}
                 {{view_user.about|static_content:"markdown-safe"}}
-            {% endif %}
             </div>
             {% endif %}
         </td>

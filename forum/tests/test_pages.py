@@ -82,6 +82,10 @@ class LayoutTest(OSQATestCase):
         settings.GOOGLE_CSE_ID.set_value('')
         response = self.client.get('/')
         self.assertContains(response, 'name="q" id="keywords"')
+        self.assertContains(response, '<select name="t" class="search-type"')
+        self.assertContains(self.client.get('/tags/'), '<option value="tag" selected="selected">')
+        self.assertRedirects(self.client.get('/search/', {'q': 'gis', 't': 'tag'}), '/tags/?q=gis',
+                             fetch_redirect_response=False)
         self.assertNotContains(response, 'cse.google.com')
 
         settings.GOOGLE_CSE_ID.set_value('123:abc')
@@ -133,3 +137,36 @@ class ErrorPageTest(OSQATestCase):
         self.assertEqual(response.status_code, 404)
         self.assertContains(response, '/contact/?next=%2Fno-such-page%2F', status_code=404)
         self.assertNotContains(response, 'linkhelp.clients.google.com', status_code=404)
+
+
+class SidebarDefaultsMigrationTest(OSQATestCase):
+    def run_migration(self):
+        import importlib
+        from django.apps import apps
+        migration = importlib.import_module('forum.migrations.0007_remove_dead_sidebar_defaults')
+        migration.hide_old_default_blocks(apps, None)
+        return migration
+
+    def test_old_default_blocks_are_hidden_and_edited_ones_kept(self):
+        from forum.models import KeyValue
+        import importlib
+        old = importlib.import_module('forum.migrations.0007_remove_dead_sidebar_defaults').OLD_DEFAULTS
+
+        # Saved through the admin form: same text, different line endings.
+        KeyValue(key='SIDEBAR_UPPER_TEXT', value=old['SIDEBAR_UPPER'].replace('\n', '\r\n')).save()
+        KeyValue(key='SIDEBAR_UPPER_SHOW', value=True).save()
+        KeyValue(key='SIDEBAR_LOWER_TEXT', value='## Our community rules').save()
+        KeyValue(key='SIDEBAR_LOWER_SHOW', value=True).save()
+
+        self.run_migration()
+
+        values = {kv.key: kv.value for kv in KeyValue.objects.filter(key__startswith='SIDEBAR_')}
+        self.assertEqual(values['SIDEBAR_UPPER_TEXT'], '')
+        self.assertIs(values['SIDEBAR_UPPER_SHOW'], False)
+        self.assertEqual(values['SIDEBAR_LOWER_TEXT'], '## Our community rules')
+        self.assertIs(values['SIDEBAR_LOWER_SHOW'], True)
+
+    def test_new_site_shows_no_dead_blocks(self):
+        response = self.client.get('/')
+        self.assertNotContains(response, 'webfaction')
+        self.assertNotContains(response, 'osqa.net')
