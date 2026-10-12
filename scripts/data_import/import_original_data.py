@@ -384,6 +384,11 @@ if nodes:
     for node_type, count in sorted(nodes):
         print(f"    - {node_type}: {count:,}")
 
+# The data was written with raw SQL: drop cached objects and query results
+# from any earlier database so the site doesn't serve stale rows.
+from django.core.cache import cache
+cache.clear()
+
 print("\n✓ Original forum data imported successfully!")
 print("\nYou can now run the development server:")
 print("  ./venv/bin/python manage.py runserver")

@@ -64,6 +64,11 @@ are mounted from the host, not baked into the image.
 - Sessions are now stored as JSON, so existing sessions are dropped once.
 - An old `CACHE_BACKEND = 'file://...'` line keeps working; it is translated
   into `CACHES`.
+- Cancelling a vote didn't lower the post score in earlier versions of the
+  port; run Admin > Recalculate scores and reputation once to fix stored
+  scores.
+- Migrations `0003`-`0005` add indexes to large tables (nodes, actions); run
+  `migrate` during a quiet period on big sites.
 - A database created by the old Django 1.6/South version is not migrated in
   place: create a fresh database with `migrate` and import the old data into it
   (next section).
@@ -80,7 +85,11 @@ python manage.py migrate                                 # with DATABASES pointi
 python scripts/data_import/import_original_data.py
 ```
 
-The dump file name is set at the top of `split_insert_statements.py`.
+The dump file name is set at the top of `split_insert_statements.py`. The
+import clears the cache when it finishes; clear it yourself (`rm -rf cache/*`
+for the default file cache) whenever you replace or edit the database outside
+the site, since posts and users are served from the cache. After importing,
+run Admin > Recalculate scores and reputation.
 `docs/data-migration-guide.md` describes other approaches (MySQL to
 MySQL/PostgreSQL) and how to verify the result; `docs/database-tables.md` lists
 the tables.
