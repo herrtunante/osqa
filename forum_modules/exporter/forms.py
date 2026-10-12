@@ -13,3 +13,5 @@ class ExporterForm(forms.Form):
     uplodaded_files = forms.BooleanField(label=_('Uploaded files'), help_text=_('Include uploaded files in the backup'), required=False, initial=True)
     import_skins_folder = forms.BooleanField(label=_('Skins folder'), help_text=_('Include skins folder in the backup'), required=False, initial=False)
     
+class ImporterForm(forms.Form):
+    dump = forms.FileField(label=_('Backup file'), help_text=_('A backup made with the XML data exporter (zip or tar.gz)'), required=True)

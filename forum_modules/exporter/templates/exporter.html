@@ -16,7 +16,7 @@
 <ul>
     {% for b in available %}
     <li>
-        {{ b.date }} by {{ b.author }}
+        <a href="{% url "exporter_download" %}?file={{ b.file|urlencode }}">{{ b.date }}</a> by {{ b.author }}
     </li>
     {% endfor %}
 </ul>

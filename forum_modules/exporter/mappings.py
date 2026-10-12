@@ -5,7 +5,8 @@ from forum.views import readers
 from forum.modules import decorate
 from forum.models import Question
 
-import settings, logging
+from . import settings
+import logging
 
 @decorate(readers.question, needs_origin=True)
 def match_question_slug(origin, request, id, slug='', answer=None):
@@ -14,14 +15,18 @@ def match_question_slug(origin, request, id, slug='', answer=None):
     except:
         raise Http404()
 
-    if settings.MERGE_MAPPINGS and (int(id) in settings.MERGE_MAPPINGS.get('merged_nodes', {})):
+    merged_nodes = settings.MERGE_MAPPINGS and settings.MERGE_MAPPINGS.get('merged_nodes', {}) or {}
+
+    if id in merged_nodes:
+        # An old link to a question imported from a backup: the id is now used
+        # by another question (with another slug), or by none at all.
         try:
             question = Question.objects.get(id=id)
 
             if slug != slugify(question.title):
-                return origin(request, settings.MERGE_MAPPINGS['merged_nodes'][int(id)], slug, answer)
+                return origin(request, merged_nodes[id], slug, answer)
 
-        except:
-            pass
+        except Question.DoesNotExist:
+            return origin(request, merged_nodes[id], slug, answer)
 
     return origin(request, id, slug, answer)

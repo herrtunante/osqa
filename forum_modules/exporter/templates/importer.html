@@ -10,5 +10,17 @@
 {% endblock %}
 
 {% block admincontent %}
-
+<p>
+    {% trans "Restore the users, questions, answers, comments, votes, tags and awards of a backup made with the XML data exporter. The data is added to this site; users with the same email address are merged." %}
+</p>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="POST" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table>
+    {{ form.as_table }}
+    </table>
+    <input type="submit" name="start" value="{% trans "Start" %}" />
+</form>
 {% endblock %}

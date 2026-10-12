@@ -61,9 +61,9 @@
             } else if (state == null || data[name] != state[name]) {
                 var width = $bar.width();
 
-                $bar.find('.state_parsed').html(data[name].parsed);
-                $bar.find('.state_count').html(data[name].count);
-                $bar.find('.state_status').html(data[name].status);
+                $bar.find('.state_parsed').text(data[name].parsed);
+                $bar.find('.state_count').text(data[name].count);
+                $bar.find('.state_status').text(data[name].status);
 
                 var rel_parse = data[name].parsed / data[name].count;
 
@@ -84,7 +84,7 @@
                     set_state('{{ s.id }}', data.state);
                 {% endfor %}
 
-                $('#time_started').html(data.time_started);
+                $('#time_started').text(data.time_started);
 
                 state = data;
 
@@ -94,7 +94,7 @@
                     if (data.errors == false) {
                         if (exporting) {
                             $('#wait_message').html('{% trans "Your backup is ready to be downloaded."%}');
-                            $('#download_link_a').attr('href', '{% url "exporter_download" %}?file=' + data.state.overall.fname)
+                            $('#download_link_a').attr('href', '{% url "exporter_download" %}?file=' + encodeURIComponent(data.state.overall.fname))
                             $('#download_link').slideDown();
                         } else {
                             $('#wait_message').html('{% trans "All data sucessfully imported."%}')
@@ -106,8 +106,8 @@
                         } else {
                             msg = '{% trans "An error has occurred during the import proccess"%}';
                         }
-                        $('#wait_message').html(msg + ': ' + data.errors + '<br />' +
-                        '{% trans "Please check the log file for a full stack trace." %}')
+                        $('#wait_message').text(msg + ': ' + data.errors).append('<br />').append(
+                            document.createTextNode('{% trans "Please check the log file for a full stack trace." %}'))
                     }
                 }
 

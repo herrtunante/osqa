@@ -1,2 +1,2 @@
-import views
-import mappings
+from . import views
+from . import mappings
