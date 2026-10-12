@@ -165,8 +165,14 @@ class AwardAction(ActionProxy):
 
         self.user.save()
 
-                   
-        messages.add_message(REQUEST_HOLDER.request, messages.INFO, _(
+        # Badges are often awarded to someone other than the user making the
+        # request (e.g. the asker when somebody votes), or from a background
+        # thread with no request at all: only tell the recipient directly.
+        request = REQUEST_HOLDER.request
+        if request is None or request.user != self.user:
+            return
+
+        messages.add_message(request, messages.INFO, _(
 
                 """Congratulations, you have received a badge '%(badge_name)s'. <a href="%(badge_url)s">Find out who has it, too</a>."""
         ) % dict(

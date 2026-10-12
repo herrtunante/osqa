@@ -49,6 +49,10 @@ from .urls import *
 from .accept import *
 from .sitemaps import *
 
+# Defined before the module settings below are loaded: modules such as
+# default_badges import it.
+BADGES_SET = SettingSet('badges', _('Badges config'), _("Configure badges on your OSQA site."), 500)
+
 __all__ = list(locals().keys())
 
 # Be able to import all module settings as well
@@ -57,7 +61,5 @@ for k,v in get_modules_script_implementations('settings', BaseSetting).items():
         __all__.append(k)
         exec("%s = v" % k)
 
-
-BADGES_SET = SettingSet('badges', _('Badges config'), _("Configure badges on your OSQA site."), 500)
 
 

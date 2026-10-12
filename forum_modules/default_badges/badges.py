@@ -5,7 +5,7 @@ from forum.models import Badge
 from forum.actions import *
 from forum.models import Vote, Flag
 
-import settings
+from . import settings
 
 class QuestionViewBadge(AbstractBadge):
     abstract = True
@@ -117,7 +117,9 @@ class StellarQuestion(FavoriteQuestionBadge):
 class Disciplined(AbstractBadge):
     listen_to = (DeleteAction,)
     name = _("Disciplined")
-    description = _('Deleted own post with score of %s or higher') % settings.DISCIPLINED_MIN_SCORE
+    @property
+    def description(self):
+        return _('Deleted own post with score of %s or higher') % settings.DISCIPLINED_MIN_SCORE
 
     def award_to(self, action):
         if (action.node.author == action.user) and (action.node.score >= int(settings.DISCIPLINED_MIN_SCORE)):
@@ -126,7 +128,9 @@ class Disciplined(AbstractBadge):
 class PeerPressure(AbstractBadge):
     listen_to = (DeleteAction,)
     name = _("Peer Pressure")
-    description = _('Deleted own post with score of %s or lower') % settings.PEER_PRESSURE_MAX_SCORE
+    @property
+    def description(self):
+        return _('Deleted own post with score of %s or lower') % settings.PEER_PRESSURE_MAX_SCORE
 
     def award_to(self, action):
         if (action.node.author == action.user) and (action.node.score <= int(settings.PEER_PRESSURE_MAX_SCORE)):
@@ -207,7 +211,9 @@ class CivicDuty(AbstractBadge):
     award_once = True
     listen_to = (VoteUpAction, VoteDownAction)
     name = _("Civic Duty")
-    description = _('Voted %s times') % settings.CIVIC_DUTY_VOTES
+    @property
+    def description(self):
+        return _('Voted %s times') % settings.CIVIC_DUTY_VOTES
 
     def award_to(self, action):
         if (action.user.vote_up_count + action.user.vote_down_count) == int(settings.CIVIC_DUTY_VOTES):
@@ -218,7 +224,9 @@ class Pundit(AbstractBadge):
     award_once = True
     listen_to = (CommentAction,)
     name = _("Pundit")
-    description = _('Left %s comments') % settings.PUNDIT_COMMENT_COUNT
+    @property
+    def description(self):
+        return _('Left %s comments') % settings.PUNDIT_COMMENT_COUNT
 
     def award_to(self, action):
         if action.user.nodes.filter_state(deleted=False).filter(node_type="comment").count() == int(
@@ -229,7 +237,9 @@ class Pundit(AbstractBadge):
 class SelfLearner(AbstractBadge):
     listen_to = (VoteUpAction, )
     name = _("Self Learner")
-    description = _('Answered your own question with at least %s up votes') % settings.SELF_LEARNER_UP_VOTES
+    @property
+    def description(self):
+        return _('Answered your own question with at least %s up votes') % settings.SELF_LEARNER_UP_VOTES
 
     def award_to(self, action):
         if (action.node.node_type == "answer") and (action.node.author == action.node.parent.author) and (
@@ -242,7 +252,9 @@ class StrunkAndWhite(AbstractBadge):
     award_once = True
     listen_to = (ReviseAction,)
     name = _("Strunk & White")
-    description = _('Edited %s entries') % settings.STRUNK_AND_WHITE_EDITS
+    @property
+    def description(self):
+        return _('Edited %s entries') % settings.STRUNK_AND_WHITE_EDITS
 
     def award_to(self, action):
         if (ReviseAction.objects.filter(user=action.user).count() == int(settings.STRUNK_AND_WHITE_EDITS)):
@@ -278,7 +290,9 @@ class Enlightened(AbstractBadge):
     award_once = True
     listen_to = (VoteUpAction, AcceptAnswerAction)
     name = _("Enlightened")
-    description = _('First answer was accepted with at least %s up votes') % settings.ENLIGHTENED_UP_VOTES
+    @property
+    def description(self):
+        return _('First answer was accepted with at least %s up votes') % settings.ENLIGHTENED_UP_VOTES
 
     def award_to(self, action):
         if (action.node.node_type == "answer") and (action.node.accepted) and (
@@ -290,7 +304,9 @@ class Guru(AbstractBadge):
     type = Badge.SILVER
     listen_to = (VoteUpAction, AcceptAnswerAction)
     name = _("Guru")
-    description = _('Accepted answer and voted up %s times') % settings.GURU_UP_VOTES
+    @property
+    def description(self):
+        return _('Accepted answer and voted up %s times') % settings.GURU_UP_VOTES
 
     def award_to(self, action):
         if (action.node.node_type == "answer") and (action.node.accepted) and (
@@ -302,7 +318,9 @@ class Necromancer(AbstractBadge):
     type = Badge.SILVER
     listen_to = (VoteUpAction,)
     name = _("Necromancer")
-    description = _('Answered a question more than %(dif_days)s days later with at least %(up_votes)s votes') % \
+    @property
+    def description(self):
+        return _('Answered a question more than %(dif_days)s days later with at least %(up_votes)s votes') % \
             {'dif_days': settings.NECROMANCER_DIF_DAYS, 'up_votes': settings.NECROMANCER_UP_VOTES}
 
     def award_to(self, action):
@@ -315,7 +333,9 @@ class Taxonomist(AbstractBadge):
     type = Badge.SILVER
     listen_to = tuple()
     name = _("Taxonomist")
-    description = _('Created a tag used by %s questions') % settings.TAXONOMIST_USE_COUNT
+    @property
+    def description(self):
+        return _('Created a tag used by %s questions') % settings.TAXONOMIST_USE_COUNT
 
     def award_to(self, action):
         return None

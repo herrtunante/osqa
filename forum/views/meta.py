@@ -89,7 +89,8 @@ def logout(request):
 @decorators.render('badges.html', 'badges', _('badges'), weight=300)
 def badges(request):
     from forum.badges.base import BadgesMeta
-    badges = sorted([Badge.objects.get(id=id) for id in BadgesMeta.by_id.keys()], key=lambda b: b.name)
+    BadgesMeta.install()
+    badges = sorted(Badge.objects.filter(cls__in=list(BadgesMeta.by_class)), key=lambda b: b.name)
 
     if request.user.is_authenticated:
         my_badges = Award.objects.filter(user=request.user).values_list('badge_id', flat=True).distinct()

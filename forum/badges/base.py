@@ -8,28 +8,17 @@ from forum.actions import AwardAction
 
 import logging
 
-try:
-    installed = dict([(b.cls, b) for b in Badge.objects.all()])
-except Exception:
-    # Database tables may not exist yet (e.g., during initial setup/check)
-    installed = {}
-
 class BadgesMeta(type):
+    # Badge handlers by class name; Badge.cls in the database holds the same name.
     by_class = {}
-    by_id = {}
 
     def __new__(mcs, name, bases, dic):
         badge = type.__new__(mcs, name, bases, dic)
 
+        # Badge rows are created on demand (see install() and db_object()), not
+        # here: this runs at import time, possibly before the tables exist or
+        # against a different database than the one used later (tests).
         if not dic.get('abstract', False):
-            if not name in installed:
-                ondb = Badge(cls=name, type=dic.get('type', Badge.BRONZE))
-                ondb.save()
-            else:
-                ondb = installed[name]
-
-            badge.ondb = ondb.id
-
             inst = badge()
 
             def hook(action, new):
@@ -42,9 +31,16 @@ class BadgesMeta(type):
                 action.hook(hook)
 
             BadgesMeta.by_class[name] = inst
-            BadgesMeta.by_id[ondb.id] = inst
 
         return badge
+
+    @classmethod
+    def install(mcs):
+        """Create the Badge rows of registered badges that are not in the database yet."""
+        existing = set(Badge.objects.values_list('cls', flat=True))
+        for name, inst in mcs.by_class.items():
+            if name not in existing:
+                Badge(cls=name, type=getattr(inst, 'type', Badge.BRONZE)).save()
 
 class AbstractBadge(object, metaclass=BadgesMeta):
 
@@ -60,8 +56,12 @@ class AbstractBadge(object, metaclass=BadgesMeta):
         raise NotImplementedError
 
     @classmethod
+    def db_object(cls):
+        return Badge.objects.get_or_create(cls=cls.__name__, defaults={'type': getattr(cls, 'type', Badge.BRONZE)})[0]
+
+    @classmethod
     def award(cls, user, action, once=False):
-        db_object = Badge.objects.get(id=cls.ondb)
+        db_object = cls.db_object()
         try:
             if once:
                 node = None

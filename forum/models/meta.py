@@ -38,7 +38,7 @@ class Badge(BaseModel):
 
     def get_handler(self):
         from forum.badges import BadgesMeta
-        return BadgesMeta.by_id.get(self.id, None)
+        return BadgesMeta.by_class.get(self.cls, None)
 
     @property
     def name(self):

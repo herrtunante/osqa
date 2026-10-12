@@ -100,13 +100,13 @@ suite and `makemigrations --check` on Python 3.11 and 3.13.
 Optional features live in `forum_modules/` and are switched off with
 `DISABLED_MODULES` in `settings_local.py`.
 
-- Working and covered by tests: `localauth` (username/password login) and
+- Working and covered by tests: `localauth` (username/password login),
+  `default_badges` (the standard badges; thresholds under Admin > Badges) and
   `robotstxt`.
 - Load, but untested on Python 3: `mysqlfulltext` and `pgfulltext` (enabled
   automatically on that database).
 - Not yet ported to Python 3; they fail to import and are skipped with an error
-  in the log: `default_badges` (so no badges are awarded), `openidauth`,
-  `oauthauth`, `facebookauth`, `akismet`, `exporter`, `sximporter` and
+  in the log: `openidauth`, `oauthauth`, `facebookauth`, `akismet`, `exporter`, `sximporter` and
   `updates`. `ldapauth`, `stats`, `recaptcha`, `project_badges` and
   `sphinxfulltext` have not been checked. Add the modules you don't need to
   `DISABLED_MODULES` to keep the log clean.
