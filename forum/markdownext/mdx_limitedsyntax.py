@@ -4,8 +4,9 @@ from django.utils.html import strip_tags
 from forum.utils.html import sanitize_html
 
 class LimitedSyntaxExtension(markdown.Extension):
-    def extendMarkdown(self, md, md_globals):
-        del md.inlinePatterns["image_reference"]
+    def extendMarkdown(self, md):
+        md.inlinePatterns.deregister("image_reference")
 
-def makeExtension(configs=None) :
-    return LimitedSyntaxExtension(configs=configs)
+def makeExtension(**kwargs):
+    return LimitedSyntaxExtension(**kwargs)
+

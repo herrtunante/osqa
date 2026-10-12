@@ -56,9 +56,7 @@ def contained_in(item, container):
 @register.filter
 def static_content(content, render_mode):
     if render_mode == 'markdown':
-        # Markdown 3.x+: extensions must be keyword argument
-        # Note: removed "settingsparser" extension as it doesn't exist
-        return mark_safe(markdown.markdown(str(content)))
+        return mark_safe(markdown.markdown(str(content), extensions=['forum.markdownext.mdx_settingsparser']))
     elif render_mode == 'markdown-safe':
         # Markdown 3.x+: safe_mode removed, use bleach or html.escape instead
         import html

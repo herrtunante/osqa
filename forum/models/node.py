@@ -14,6 +14,14 @@ from forum.utils.userlinking import auto_user_link
 from forum.settings import SUMMARY_LENGTH
 from .utils import PickledObjectField
 
+# Short names used by callers, mapped to the OSQA markdown extension modules.
+MARKDOWN_EXTENSIONS = {
+    'auto_linker': 'forum.markdownext.mdx_auto_linker',
+    'limitedsyntax': 'forum.markdownext.mdx_limitedsyntax',
+    'settingsparser': 'forum.markdownext.mdx_settingsparser',
+}
+
+
 class NodeContent(models.Model):
     title      = models.CharField(max_length=300)
     tagnames   = models.CharField(max_length=125)
@@ -34,6 +42,7 @@ class NodeContent(models.Model):
     @classmethod
     def _as_markdown(cls, content, *extensions):
         try:
+            extensions = [MARKDOWN_EXTENSIONS.get(e, e) for e in extensions]
             return mark_safe(sanitize_html(markdown.markdown(content, extensions=extensions)))
         except Exception as e:
             import traceback
