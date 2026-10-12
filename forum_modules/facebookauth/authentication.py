@@ -10,6 +10,7 @@ from forum.authentication.base import AuthenticationConsumer, ConsumerTemplateCo
 from django.conf import settings as django_settings
 from django.utils.encoding import smart_str
 from django.urls import reverse
+from forum.utils.urls import root_relative_reverse
 from django.utils.translation import gettext as _
 
 import settings
@@ -32,7 +33,7 @@ class FacebookAuthConsumer(AuthenticationConsumer):
 
     def process_authentication_request(self, request):
         try:
-            redirect_uri = "%s%s" % (django_settings.APP_URL, reverse('auth_provider_done', prefix='/', kwargs={'provider': 'facebook'}))
+            redirect_uri = "%s%s" % (django_settings.APP_URL, root_relative_reverse('auth_provider_done', kwargs={'provider': 'facebook'}))
             args = dict(client_id=settings.FB_API_KEY, redirect_uri=redirect_uri)
 
             args["client_secret"] = settings.FB_APP_SECRET  #facebook APP Secret

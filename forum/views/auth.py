@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from forum.utils.urls import root_relative_reverse
 from django.http import HttpResponseRedirect, Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -89,7 +90,7 @@ def prepare_provider_signin(request, provider):
 
         try:
             request_url = provider_class.prepare_authentication_request(request,
-                                                                        reverse('auth_provider_done', prefix='/',
+                                                                        root_relative_reverse('auth_provider_done',
                                                                                 kwargs={'provider': provider}))
 
             return HttpResponseRedirect(request_url)

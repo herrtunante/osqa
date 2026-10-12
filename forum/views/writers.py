@@ -4,6 +4,7 @@ import os.path
 import datetime
 
 from django.urls import reverse
+from forum.utils.urls import root_relative_reverse
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
@@ -97,7 +98,7 @@ def ask(request):
 
                     if request.user.is_authenticated:
                         messages.info(request, _("Your question is pending until you %s.") % html.hyperlink(
-                            settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
+                            settings.APP_URL + root_relative_reverse('send_validation_email'), _("validate your email")
 
                         ))
                         return HttpResponseRedirect(reverse('index'))
@@ -273,7 +274,7 @@ def answer(request, id):
 
             if request.user.is_authenticated:
                 messages.info(request, _("Your answer is pending until you %s.") % html.hyperlink(
-                    settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
+                    settings.APP_URL + root_relative_reverse('send_validation_email'), _("validate your email")
                 ))
                 return HttpResponseRedirect(question.get_absolute_url())
             else:
