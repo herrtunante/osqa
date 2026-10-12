@@ -1,4 +1,4 @@
-{% extends "osqaadmin/base.html" %}
+{% extends basetemplate %}
 
 {% load i18n %}
 {% load user_tags %}
@@ -15,7 +15,7 @@
     {% csrf_token %}
     <input type="file" name="dump" /><br>
     {% trans "Your user id in stack exchange" %}
-    <input type="test" name="owneruid" size="3" value="2" /><br />
+    <input type="text" name="owneruid" size="3" value="2" /><br />
 
     <input type="checkbox" checked="checked" name="mergesimilar" />
     {% trans "Merge users with same user name and email" %}<br />
