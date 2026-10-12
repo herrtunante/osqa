@@ -320,7 +320,8 @@ def recalculate_denormalized(request):
         n.save()
 
     for u in User.objects.all():
-        u.reputation = u.reputes.aggregate(reputation=models.Sum('value'))['reputation']
+        # Sum() of no rows is None; users without reputation history have 0.
+        u.reputation = u.reputes.aggregate(reputation=models.Sum('value'))['reputation'] or 0
         u.save()
 
     messages.info(request, _('All values recalculated'))

@@ -184,6 +184,12 @@ class Action(BaseModel):
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to Action (vote.action, node states, awards) are loaded
+        # through the base manager; use ActionManager, whose get() returns the
+        # action's proxy class (VoteUpAction, DeleteAction, ...). With a plain
+        # Action, cancel() ran the no-op Action.cancel_action(): cancelling a
+        # vote left the score, undelete left the post deleted, etc.
+        base_manager_name = 'objects'
         # A user's recent activity, and per-day limits (votes, flags) by type.
         indexes = [
             models.Index(fields=['user', 'action_date'], name='action_user_date_idx'),

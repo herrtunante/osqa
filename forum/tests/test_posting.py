@@ -1,4 +1,4 @@
-from forum.models import Question, Answer, Comment
+from forum.models import Question, Answer, Comment, User
 
 from .base import OSQATestCase
 
@@ -104,3 +104,63 @@ class PendingSubmissionTest(OSQATestCase):
         self.client.get(question.get_absolute_url())
         self.client.get(question.get_absolute_url())
         self.assertEqual(Question.objects.get(id=question.id).extra_count, 1)
+
+
+class UndoActionsTest(OSQATestCase):
+    """Cancelling an action must run the action type's own cancel logic."""
+
+    def setUp(self):
+        super().setUp()
+        self.asker = self.create_user('alice')
+        self.other = self.create_user('bob', reputation=1000)
+        self.admin = self.create_user('admin', is_superuser=True, is_staff=True)
+        self.question = Question(author=self.asker, title='A question title', body='Body text', tagnames='one')
+        self.question.save()
+
+    def test_cancel_vote_restores_score_and_reputation(self):
+        self.login(self.other)
+        self.command('/vote/%d/up/' % self.question.id)
+        self.assertEqual(Question.objects.get(id=self.question.id).score, 1)
+        self.command('/vote/%d/up/' % self.question.id)
+        self.assertEqual(Question.objects.filter(id=self.question.id).values_list('score', flat=True)[0], 0)
+        self.assertEqual(User.objects.filter(id=self.asker.id).values_list('reputation', flat=True)[0], 0)
+
+    def test_unfavorite(self):
+        self.login(self.other)
+        self.command('/mark_favorite/%d/' % self.question.id)
+        self.command('/mark_favorite/%d/' % self.question.id)
+        self.assertEqual(Question.objects.get(id=self.question.id).favorite_count, 0)
+
+    def test_unaccept_and_undelete(self):
+        answer = Answer(author=self.other, parent=self.question, body='An answer long enough to pass')
+        answer.save()
+
+        self.login(self.asker)
+        self.command('/accept_answer/%d/' % answer.id)
+        self.assertTrue(Answer.objects.get(id=answer.id).nis.accepted)
+        self.command('/accept_answer/%d/' % answer.id)
+        self.assertFalse(Answer.objects.filter(id=answer.id).values_list('marked', flat=True)[0])
+
+        self.login(self.admin)
+        self.command('/delete/%d/' % answer.id)
+        self.assertIn('(deleted)', Answer.objects.filter(id=answer.id).values_list('state_string', flat=True)[0])
+        self.command('/delete/%d/' % answer.id)
+        self.assertNotIn('(deleted)', Answer.objects.filter(id=answer.id).values_list('state_string', flat=True)[0])
+
+    def test_unlike_comment(self):
+        comment = Comment(author=self.asker, parent=self.question, body='A comment that is long enough')
+        comment.save()
+        self.login(self.other)
+        self.command('/like_comment/%d/' % comment.id)
+        self.assertEqual(Comment.objects.filter(id=comment.id).values_list('score', flat=True)[0], 1)
+        self.command('/like_comment/%d/' % comment.id)
+        self.assertEqual(Comment.objects.filter(id=comment.id).values_list('score', flat=True)[0], 0)
+
+    def test_admin_recalculate_fixes_stored_scores(self):
+        self.login(self.other)
+        self.command('/vote/%d/up/' % self.question.id)
+        Question.objects.filter(id=self.question.id).update(score=5)   # e.g. left over from an old cancel bug
+
+        self.login(self.admin)
+        self.assertEqual(self.client.post('/admin/denormalize/').status_code, 302)
+        self.assertEqual(Question.objects.filter(id=self.question.id).values_list('score', flat=True)[0], 1)
