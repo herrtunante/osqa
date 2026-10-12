@@ -219,8 +219,7 @@ class NodeStateQuery(object):
         return "(%s)" % name in node.state_string
 
 
-class Node(BaseModel, NodeContent):
-    __metaclass__ = NodeMetaClass
+class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
     node_type            = models.CharField(max_length=16, default='node')
     parent               = models.ForeignKey('Node', related_name='children', null=True, on_delete=models.CASCADE)

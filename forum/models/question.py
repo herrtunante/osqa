@@ -68,7 +68,7 @@ class QuestionSubscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Node, on_delete=models.CASCADE)
     auto_subscription = models.BooleanField(default=True)
-    last_view = models.DateTimeField(default=datetime.datetime.now())
+    last_view = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         app_label = 'forum'

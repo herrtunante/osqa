@@ -253,8 +253,7 @@ class BaseMetaClass(type(models.Model)):
             field.setup_class(new_cls, name)
 
 
-class BaseModel(models.Model):
-    __metaclass__ = BaseMetaClass
+class BaseModel(models.Model, metaclass=BaseMetaClass):
 
     objects = CachedManager()
 

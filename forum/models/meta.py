@@ -53,7 +53,7 @@ class Badge(BaseModel):
         return ('badge', [], {'id': self.id, 'slug': slugify(self.name)})
 
     def save(self, *args, **kwargs):
-        if isinstance(self.awarded_count, models.expressions.ExpressionNode):
+        if isinstance(self.awarded_count, models.expressions.Expression):
             super(Badge, self).save(*args, **kwargs)
             self.awarded_count = self.__class__.objects.filter(id=self.id).values_list('awarded_count', flat=True)[0]
         else:

@@ -46,8 +46,7 @@ class BadgesMeta(type):
 
         return badge
 
-class AbstractBadge(object):
-    __metaclass__ = BadgesMeta
+class AbstractBadge(object, metaclass=BadgesMeta):
 
     abstract = True
     award_once = False

@@ -211,8 +211,7 @@ class ActionProxyMetaClass(BaseMetaClass):
         new_cls.Meta = Meta
         return new_cls
 
-class ActionProxy(Action):
-    __metaclass__ = ActionProxyMetaClass
+class ActionProxy(Action, metaclass=ActionProxyMetaClass):
 
     def friendly_username(self, viewer, user):
         return (viewer == user) and _('You') or smart_str(user.username)
@@ -252,8 +251,7 @@ class DummyActionProxyMetaClass(type):
         ActionProxyMetaClass.types[new_cls.get_type()] = new_cls
         return new_cls
 
-class DummyActionProxy(object):
-    __metaclass__ = DummyActionProxyMetaClass
+class DummyActionProxy(object, metaclass=DummyActionProxyMetaClass):
 
     hooks = []
 
