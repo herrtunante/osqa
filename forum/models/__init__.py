@@ -10,12 +10,6 @@ from .meta import Vote, Flag, Badge, Award
 from .utils import KeyValue
 from .page import Page
 
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], [r"^forum\.models\.\w+\.\w+"])
-except:
-    pass
-
 from .base import *
 
 __all__ = [

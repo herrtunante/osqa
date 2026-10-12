@@ -10,3 +10,11 @@ settings_local.py
 /test_venv/
 /venv/
 /cache/
+.claude/settings.local.json
+# Production data dumps and local databases used by scripts/data_import
+importData/
+/*.sql
+/*.db
+/*.sqlite3
+*.log
+__pycache__/

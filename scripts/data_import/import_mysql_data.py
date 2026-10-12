@@ -9,6 +9,10 @@ import re
 import sqlite3
 from datetime import datetime
 
+# Run from the repository root: 'settings' and the importData/ and osqa.db
+# paths below are resolved from the current directory.
+import sys
+sys.path.insert(0, os.getcwd())
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 django.setup()
 

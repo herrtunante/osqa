@@ -42,24 +42,6 @@ class Command(NoArgsCommand):
             print(IMPORT_ERROR_MESSAGE % dict(what='markdown'))
             traceback.print_exc(file=sys.stdout)
 
-        try:
-            import south
-            version = re.findall('\d+', south.__version__)
-
-            if int(version[1]) < 6 and int(version[0]) == 0:
-                print(OLD_VERSION_ERROR % dict(what='south', version=south.__version__, minimum='0.6'))
-                print(HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/'))
-            else:
-                print(OK_MESSAGE % dict(what='south', version=south.__version__))
-
-
-        except ImportError:
-            print(NOT_FOUND_ERROR % dict(what='south'))
-            print(HOW_TO_INSTALL % dict(what='south', where='http://south.aeracode.org/'))
-        except Exception as e:
-            print(IMPORT_ERROR_MESSAGE % dict(what='south'))
-            traceback.print_exc(file=sys.stdout)
-
 
         print("\n\nChecking database connection:")
 

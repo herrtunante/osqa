@@ -8,8 +8,16 @@ import django
 import random
 from datetime import datetime, timedelta
 
+# Run from the repository root: 'settings' and the importData/ and osqa.db
+# paths below are resolved from the current directory.
+import sys
+sys.path.insert(0, os.getcwd())
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 django.setup()
+
+from django.conf import settings as django_settings
+if not django_settings.DEBUG:
+    sys.exit('Refusing to run with DEBUG = False: this creates users with known passwords.')
 
 from django.contrib.auth.models import User as DjangoUser
 from forum.models import User, Node, Tag, Vote, Badge, Award, KeyValue
