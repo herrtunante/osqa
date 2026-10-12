@@ -536,7 +536,8 @@ def node_management(request):
     if type_filter:
         nodes = nodes.filter(node_type__in=type_filter)
 
-    state_types = NodeState.objects.filter(node__in=nodes).values_list('state_type', flat=True).distinct('state_type')
+    # Plain DISTINCT: distinct('state_type') is DISTINCT ON, PostgreSQL only.
+    state_types = NodeState.objects.filter(node__in=nodes).order_by().values_list('state_type', flat=True).distinct()
     state_filter = [s for s in state_filter if s in state_types]
 
     if state_filter:

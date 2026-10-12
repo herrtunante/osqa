@@ -100,7 +100,9 @@ class CreateUserForm(SimpleRegistrationForm, SetPasswordForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateUserForm, self).__init__(*args, **kwargs)
-        self.fields.keyOrder = ['username', 'email', 'validate_email', 'password1', 'password2']
+        # Keep only these fields, in this order (fields.keyOrder was removed in Django 1.7).
+        self.fields = dict((name, self.fields[name]) for name in
+                           ['username', 'email', 'validate_email', 'password1', 'password2'])
         self.fields['email'].label = _('email address')
 
 

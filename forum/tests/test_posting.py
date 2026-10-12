@@ -164,3 +164,23 @@ class UndoActionsTest(OSQATestCase):
         self.login(self.admin)
         self.assertEqual(self.client.post('/admin/denormalize/').status_code, 302)
         self.assertEqual(Question.objects.filter(id=self.question.id).values_list('score', flat=True)[0], 1)
+
+
+class AdminToolsTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = self.create_user('admin', is_superuser=True, is_staff=True)
+        Question(author=self.admin, title='A question title', body='Body text', tagnames='one').save()
+        self.login(self.admin)
+
+    def test_tool_pages_render(self):
+        for url in ['/admin/tools/createuser/', '/admin/tools/nodeman/', '/admin/tools/exporter/',
+                    '/admin/tools/importer/', '/admin/sximporter/']:
+            with self.subTest(url=url):
+                self.assertCleanPage(self.client.get(url))
+
+    def test_create_user(self):
+        response = self.client.post('/admin/tools/createuser/', {
+            'username': 'newbie', 'email': 'newbie@example.com', 'password1': 's3cret-pass', 'password2': 's3cret-pass'})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.get(username='newbie').check_password('s3cret-pass'))
