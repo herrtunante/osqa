@@ -84,11 +84,11 @@ def ask(request):
                     return HttpResponseRedirect(question.get_absolute_url())
                 else:
                     request.session[PENDING_SUBMISSION_SESSION_ATTR] = {
-                        'POST': request.POST,
+                        'POST': request.POST.urlencode(),
                         'data_name': _("question"),
                         'type': 'ask',
                         'submission_url': reverse('ask'),
-                        'time': datetime.datetime.now()
+                        'time': datetime.datetime.now().isoformat()
                     }
 
                     if request.user.is_authenticated:
@@ -247,7 +247,7 @@ def answer(request, id):
         form = AnswerForm(request.POST, request.user)
 
         if request.session.pop('reviewing_pending_data', False) or not form.is_valid():
-            request.session['redirect_POST_data'] = request.POST
+            request.session['redirect_POST_data'] = request.POST.urlencode()
             return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
 
         if request.user.is_authenticated and request.user.email_valid_and_can_answer():
@@ -260,11 +260,11 @@ def answer(request, id):
             return HttpResponseRedirect(answer.get_absolute_url())
         else:
             request.session[PENDING_SUBMISSION_SESSION_ATTR] = {
-                'POST': request.POST,
+                'POST': request.POST.urlencode(),
                 'data_name': _("answer"),
                 'type': 'answer',
                 'submission_url': reverse('answer', kwargs={'id': id}),
-                'time': datetime.datetime.now()
+                'time': datetime.datetime.now().isoformat()
             }
 
             if request.user.is_authenticated:

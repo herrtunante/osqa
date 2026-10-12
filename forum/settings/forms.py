@@ -2,6 +2,7 @@ import os
 from django import forms
 from forum.settings.base import Setting
 from django.utils.translation import gettext as _
+from django.utils.safestring import mark_safe
 from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
 
@@ -47,10 +48,34 @@ class SettingsSetForm(forms.Form):
         self.set = set
 
     def as_table(self):
-        return self._html_output(
-                u'<tr><th>%(label)s' + ('<br /><a class="fieldtool context" href="#">%s</a><span class="sep">|</span><a class="fieldtool default" href="#">%s</a></th>' % (
-                    _('context'), _('default'))) + u'<td>%(errors)s%(field)s%(help_text)s</td>',
-                u'<tr><td colspan="2">%s</td></tr>', '</td></tr>', u'<br />%s', False)
+        # Same markup the old BaseForm._html_output() call produced (removed in
+        # Django 5.0): one row per setting with "context" and "default" tools.
+        tools = ('<br /><a class="fieldtool context" href="#">%s</a><span class="sep">|</span>'
+                 '<a class="fieldtool default" href="#">%s</a>') % (_('context'), _('default'))
+        rows = []
+        hidden = []
+
+        top_errors = self.non_field_errors()
+        if top_errors:
+            rows.append('<tr><td colspan="2">%s</td></tr>' % top_errors)
+
+        for name in self.fields:
+            bf = self[name]
+            if bf.is_hidden:
+                hidden.append(str(bf))
+                continue
+
+            help_text = bf.help_text and '<br />%s' % bf.help_text or ''
+            rows.append('<tr><th>%s%s</th><td>%s%s%s</td></tr>' % (
+                bf.label and bf.label_tag() or '', tools, bf.errors, bf, help_text))
+
+        if hidden:
+            if rows:
+                rows[-1] = rows[-1][:-len('</td></tr>')] + ''.join(hidden) + '</td></tr>'
+            else:
+                rows.append('<tr><td colspan="2">%s</td></tr>' % ''.join(hidden))
+
+        return mark_safe('\n'.join(rows))
 
     def save(self):
         for setting in self.set:

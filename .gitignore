@@ -9,3 +9,4 @@ settings_local.py
 /osqa_env/
 /test_venv/
 /venv/
+/cache/

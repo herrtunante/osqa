@@ -1,4 +1,5 @@
 import forum
+from django.http import QueryDict
 
 from forum.settings import MAINTAINANCE_MODE, APP_LOGO, APP_TITLE
 
@@ -28,7 +29,8 @@ class RequestUtils(object):
                 return HttpResponseServiceUnavailable(MAINTAINANCE_MODE.value.get('message', ''))
 
         if request.session.get('redirect_POST_data', None):
-            request.POST = request.session.pop('redirect_POST_data')
+            # Stored urlencoded: sessions are JSON-serialized.
+            request.POST = QueryDict(request.session.pop('redirect_POST_data'))
             request.META['REQUEST_METHOD'] = "POST"
 
         self.request = request

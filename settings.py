@@ -39,12 +39,16 @@ APPEND_SLASH = True
 FILE_UPLOAD_TEMP_DIR = os.path.join(os.path.dirname(__file__), 'tmp').replace('\\','/')
 FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.MemoryFileUploadHandler",
  "django.core.files.uploadhandler.TemporaryFileUploadHandler",)
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
+
+# OSQA stores naive local datetimes; Django 5.0 changed the default to True.
+USE_TZ = False
 
 ALLOW_FILE_TYPES = ('.jpg', '.jpeg', '.gif', '.bmp', '.png', '.tiff')
 ALLOW_MAX_FILE_SIZE = 1024 * 1024
-
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 # Django 4.2: CSRF token configuration
 # Use session-based CSRF tokens to avoid cookie length compatibility issues
@@ -59,6 +63,28 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 import importlib
 _settings_local = importlib.import_module(os.environ.get('OSQA_SETTINGS_LOCAL', 'settings_local'))
 globals().update(dict((k, v) for k, v in vars(_settings_local).items() if not k.startswith('_')))
+
+# Cache: the model layer caches objects and query results, so the cache must be
+# shared by all worker processes (file or memcached, not the per-process
+# default). Settings files written for old OSQA versions set CACHE_BACKEND,
+# which Django ignores since 1.3; translate it.
+if 'CACHES' not in globals():
+    _cache_backend = globals().get('CACHE_BACKEND', 'file://' + os.path.join(os.path.dirname(__file__), 'cache'))
+    _scheme, _, _location = _cache_backend.partition('://')
+    _location = _location.rstrip('/')
+    if _scheme == 'dummy':
+        CACHES = {'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
+    elif _scheme == 'locmem':
+        CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+    elif _scheme == 'memcached':
+        CACHES = {'default': {'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+                              'LOCATION': _location.split(';')}}
+    elif _scheme == 'file':
+        CACHES = {'default': {'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+                              'LOCATION': _location, 'OPTIONS': {'MAX_ENTRIES': 10000}}}
+    else:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured("Unsupported CACHE_BACKEND %r; define CACHES in settings_local.py" % _cache_backend)
 
 if not SECRET_KEY:
     from django.core.exceptions import ImproperlyConfigured

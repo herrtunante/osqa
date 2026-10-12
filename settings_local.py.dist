@@ -65,8 +65,16 @@ DATABASES = {
     }
 }
 
-CACHE_BACKEND = 'file://%s' % os.path.join(os.path.dirname(__file__),'cache').replace('\\','/')
-#CACHE_BACKEND = 'dummy://'
+# The cache must be shared by all worker processes. Memcached is recommended:
+#CACHES = {'default': {'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+#                      'LOCATION': '127.0.0.1:11211'}}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(os.path.dirname(__file__), 'cache'),
+        'OPTIONS': {'MAX_ENTRIES': 10000},
+    }
+}
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Customize the values below if OSQA is in a subfolder and especially you're planning on
 # running multiple Django applications (OSQA or others) on the same domain in different

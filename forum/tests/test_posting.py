@@ -79,3 +79,28 @@ class AdminPagesTest(OSQATestCase):
         for url in ['/admin/', '/admin/settings/basic/', '/admin/flagged_posts/']:
             with self.subTest(url=url):
                 self.assertCleanPage(self.client.get(url))
+
+
+class PendingSubmissionTest(OSQATestCase):
+    """Anonymous submissions are kept in the (JSON-serialized) session until login."""
+
+    def test_question_asked_before_login_is_posted_after_login(self):
+        self.create_user('carol', password='right-pass')
+        self.client.post('/questions/ask/', {
+            'title': 'A question asked before logging in',
+            'text': 'Some body text that is long enough to pass validation',
+            'tags': 'pending',
+        })
+        self.assertFalse(Question.objects.filter(title='A question asked before logging in').exists())
+
+        self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'}, follow=True)
+        question = Question.objects.get(title='A question asked before logging in')
+        self.assertEqual(question.author.username, 'carol')
+
+    def test_question_page_records_view_once(self):
+        user = self.create_user('alice')
+        question = Question(author=user, title='A question title', body='Body text', tagnames='one')
+        question.save()
+        self.client.get(question.get_absolute_url())
+        self.client.get(question.get_absolute_url())
+        self.assertEqual(Question.objects.get(id=question.id).extra_count, 1)

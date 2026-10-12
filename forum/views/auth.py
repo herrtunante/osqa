@@ -406,7 +406,7 @@ def login_and_forward(request, user, forward=None, message=None):
     pending_data = request.session.get(PENDING_SUBMISSION_SESSION_ATTR, None)
 
     if pending_data and (user.email_isvalid or pending_data['type'] not in settings.REQUIRE_EMAIL_VALIDATION_TO):
-        submission_time = pending_data['time']
+        submission_time = datetime.datetime.fromisoformat(pending_data['time'])
         if submission_time < datetime.datetime.now() - datetime.timedelta(minutes=int(settings.HOLD_PENDING_POSTS_MINUTES)):
             del request.session[PENDING_SUBMISSION_SESSION_ATTR]
         elif submission_time < datetime.datetime.now() - datetime.timedelta(minutes=int(settings.WARN_PENDING_POSTS_MINUTES)):

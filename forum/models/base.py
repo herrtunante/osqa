@@ -17,7 +17,6 @@ from django.template.defaultfilters import slugify
 from django.db.models.signals import post_delete, post_save, pre_save, pre_delete
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from django.contrib.sitemaps import ping_google
 import django.dispatch
 from forum import settings
 import logging
