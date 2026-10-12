@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 
 from django.contrib import messages
 
+from forum.utils.redact import redact_params, redact_meta, REDACTED
 from forum import settings
 from forum.views.decorators import login_required
 from forum.forms import FeedbackForm
@@ -187,10 +188,11 @@ def error_handler(request):
             'path': request.path,
             'user': request.user.is_authenticated and ("%s (%s)" % (request.user.username, request.user.id)) or "<anonymous>",
             'method': request.method,
-            'post': request.POST and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.POST.items()]) or "None",
-            'get': request.GET and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.GET.items()]) or "None",
-            'cookies': request.COOKIES and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.COOKIES.items()]) or "None",
-            'headers': request.META and "".join(["\t\t%s: %s\n" % (k, v) for k, v in request.META.items()]) or "None",
+            'post': request.POST and "".join(["\t\t%s: %s\n" % (k, v) for k, v in redact_params(request.POST)]) or "None",
+            'get': request.GET and "".join(["\t\t%s: %s\n" % (k, v) for k, v in redact_params(request.GET)]) or "None",
+            # Cookie values (session id, CSRF token) would let a log reader hijack the session.
+            'cookies': request.COOKIES and "".join(["\t\t%s: %s\n" % (k, REDACTED) for k in request.COOKIES]) or "None",
+            'headers': request.META and "".join(["\t\t%s: %s\n" % (k, v) for k, v in redact_meta(request.META)]) or "None",
             'stacktrace': stacktrace
         }
     except:
