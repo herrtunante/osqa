@@ -5,17 +5,16 @@ from django.utils.safestring import mark_safe
 from forum import settings
 from forum.models import User
 from forum.modules import call_all_handlers
-import urllib
+from urllib.parse import unquote
+from django.utils.http import url_has_allowed_host_and_scheme
 
 DEFAULT_NEXT = getattr(settings, 'APP_BASE_URL')
 def clean_next(next):
     if next is None:
         return DEFAULT_NEXT
-    next = urllib.unquote(next)
-    if not isinstance(next, unicode):
-        next = str(next, 'utf-8')
-    next = next.strip()
-    if next.startswith('/'):
+    next = unquote(next).strip()
+    # Only accept paths on this site; "//host" and "/\\host" would leave it.
+    if next.startswith('/') and url_has_allowed_host_and_scheme(next, allowed_hosts=None):
         return next
     return DEFAULT_NEXT
 
