@@ -3,10 +3,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.utils.encoding import force_str
 
-try:
-    from cPickle import loads, dumps
-except ImportError:
-    from pickle import loads, dumps
+from pickle import loads, dumps
 
 from copy import deepcopy
 from base64 import b64encode, b64decode
@@ -25,18 +22,25 @@ def dbsafe_encode(value, compress_object=True):
         value = b64encode(dumps(deepcopy(value)))
     else:
         value = b64encode(compress(dumps(deepcopy(value))))
-    return PickledObject(value)
+    return PickledObject(value.decode('ascii'))
 
 def dbsafe_decode(value, compress_object=True):
-    if not compress_object:
-        value = loads(b64decode(value))
-    else:
-        value = loads(decompress(b64decode(value)))
-    return value
+    # Values written by an earlier version of the port were stored as the repr
+    # of the base64 bytes ("b'...'"); strip that wrapper so they can be read.
+    if value.startswith("b'") and value.endswith("'"):
+        value = value[2:-1]
+
+    value = b64decode(value)
+
+    if compress_object:
+        value = decompress(value)
+
+    # latin1 lets Python 3 load pickles written by the Python 2 version of OSQA.
+    return loads(value, encoding='latin1')
 
 class PickledObjectField(models.Field):
     marker_re = re.compile(r'^T\[(?P<type>\w+)\](?P<value>.*)$', re.DOTALL)
-    markable_types = dict((t.__name__, t) for t in (str, int))
+    markable_types = dict([(t.__name__, t) for t in (str, int)] + [('unicode', str), ('long', int)])
 
     def __init__(self, *args, **kwargs):
         self.compress = kwargs.pop('compress', True)
