@@ -76,6 +76,17 @@ class LayoutTest(OSQATestCase):
                 self.assertEqual(asset.status_code, 200)
                 asset.close()
 
+    def test_dark_mode_setting(self):
+        from forum import settings
+        self.addCleanup(setattr, settings.DARK_MODE, '_temp', None)
+
+        self.assertContains(self.client.get('/'), 'data-color-scheme="auto"')
+
+        settings.DARK_MODE.set_value(False)
+        response = self.client.get('/')
+        self.assertNotContains(response, 'data-color-scheme')
+        self.assertNotContains(response, 'name="color-scheme"')
+
     def test_logo_url_has_no_double_slash(self):
         from forum import settings
         self.addCleanup(setattr, settings.APP_LOGO, '_temp', None)

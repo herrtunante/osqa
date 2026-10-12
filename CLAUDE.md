@@ -124,7 +124,8 @@ When querying nodes, use the manager methods to get the correct subclass:
 - Skins are in `forum/skins/` (default skin is configurable)
 - Template loaders check: filesystem → app directories → module templates → skins
 - Django template engine with custom tags in `forum/templatetags/`; a custom `Node.render()` must return a string
-- The default skin is responsive: `media/style/modern.css` (CSS variables, flex layout, phone breakpoint at 640px) overrides the fixed-width legacy `style.css`; check new UI at 390px width as well as desktop
+- The default skin is responsive: `media/style/modern.css` (CSS variables, flex layout, phone breakpoint at 640px) overrides the fixed-width legacy `style.css`; check new UI at 390px width as well as desktop, and in dark mode (colours come from the variables, redefined under `prefers-color-scheme: dark`)
+- JavaScript runs on jQuery 3.7 (self-hosted in `media/vendor/`): use `.on()` delegation, `.prop()` for checked/disabled and `.val()` for values; `media/js/osqa.compat.js` only shims the bundled minified plugins
 
 ### Caching
 
@@ -172,7 +173,7 @@ OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 
 6. **Metaclasses**: Use `class X(Base, metaclass=M)`; a `__metaclass__` attribute is silently ignored by Python 3 and breaks node types, denormalized counts, action proxies and badges
 
-7. **Command views**: `@decorate.withfn(command)` views only accept POST; mark a view `@prompt` if it renders a form on GET (and act only on POST). The JS sends the CSRF token from the page's `csrfmiddlewaretoken` input
+7. **Command views**: `@decorate.withfn(command)` views only accept POST; mark a view `@prompt` if it renders a form on GET (and act only on POST). `media/js/osqa.csrf.js` sends the CSRF token from `<meta name="csrf-token">` with every AJAX request
 
 8. **HTML in descriptions**: `forum.utils.html.hyperlink()`/`buildtag()` escape their text; escape any other user text interpolated into `Action.describe()` output, which templates render with `|safe`
 

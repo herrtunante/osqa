@@ -402,6 +402,41 @@ blockquote blockquote {
     margin-bottom: 10px;
 }
 
+.questions-count-label {
+    color: black;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+.reputation-history {
+    padding: 5px;
+    font-size: 13px;
+}
+
+#diagram {
+    float: left;
+    width: 550px;
+    height: 250px;
+}
+
+.reputation-list {
+    float: right;
+    width: 385px;
+    height: 300px;
+    overflow-y: auto;
+    word-wrap: break-word;
+}
+
+.reputation-change {
+    float: left;
+    margin-right: 5px;
+    padding: 2px 10px;
+    background: #eee;
+    font-family: arial;
+    font-weight: bold;
+    text-align: right;
+}
+
 .questions-count {
     color: #A40000;
     font-family: sans-serif;
