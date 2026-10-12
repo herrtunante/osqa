@@ -1,17 +1,19 @@
-# Django 4.2 LTS - Supported until April 2026
-Django==4.2.11
+# Django 5.2 LTS - supported until April 2028
+Django==5.2.18
 
 # Core dependencies
-markdown==3.5.2
+markdown==3.11
 html5lib==1.1
-bleach==6.1.0
+bleach==6.4.0
 sgmllib3k==1.0.0
 python3-openid==3.2.0
+
+# Database driver for the default MySQL setup (needs the MySQL client headers,
+# e.g. apt-get install default-libmysqlclient-dev pkg-config)
+mysqlclient==2.3.0
+
+# Cache backend for CACHES 'PyMemcacheCache' (recommended in production)
 pymemcache==4.0.0
-pytz==2024.1
 
-# Development tools
-django-debug-toolbar==4.3.0
-
-# Note: South removed - Django 4.2 has built-in migrations
-# Note: django-endless-pagination - need to find Django 4.2 compatible alternative or replace
+# WSGI server
+gunicorn==26.2.0

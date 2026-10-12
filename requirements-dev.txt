@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Enabled automatically when DEBUG = True
+django-debug-toolbar==8.0.0
