@@ -2,7 +2,7 @@ from forum.models import User
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
-from forms import ClassicRegisterForm
+from .forms import ClassicRegisterForm
 from forum.views.auth import login_and_forward
 from forum.actions import UserJoinsAction
 

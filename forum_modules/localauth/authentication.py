@@ -1,5 +1,5 @@
 from forum.authentication.base import AuthenticationConsumer, ConsumerTemplateContext, InvalidAuthentication
-from forms import ClassicLoginForm
+from .forms import ClassicLoginForm
 
 class LocalAuthConsumer(AuthenticationConsumer):
     def process_authentication_request(self, request):
@@ -8,7 +8,7 @@ class LocalAuthConsumer(AuthenticationConsumer):
         if form_auth.is_valid():
             return form_auth.get_user()
         else:
-            raise InvalidAuthentication(" ".join(form_auth.errors.values()[0]))
+            raise InvalidAuthentication(" ".join(list(form_auth.errors.values())[0]))
 
 class LocalAuthContext(ConsumerTemplateContext):
     mode = 'STACK_ITEM'                      

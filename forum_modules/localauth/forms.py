@@ -97,7 +97,7 @@ class ClassicLoginForm(forms.Form):
         elif username == None:
             error_list.append(_('Please enter user name'))
         if len(error_list) > 0:
-            self._errors['__all__'] = forms.util.ErrorList(error_list)
+            self._errors['__all__'] = forms.utils.ErrorList(error_list)
 
         return self.cleaned_data
 
