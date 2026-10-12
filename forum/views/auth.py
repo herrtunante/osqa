@@ -49,7 +49,9 @@ def signin_page(request):
     if on_this_site and not referer.replace(settings.APP_URL, '') == reverse('auth_signin'):
         request.session[ON_SIGNIN_SESSION_ATTR] = referer
 
-    all_providers = [provider.context for provider in AUTH_PROVIDERS.values() if provider.context]
+    # Providers that need configuration (e.g. OAuth client keys) define is_enabled().
+    all_providers = [provider.context for provider in AUTH_PROVIDERS.values()
+                     if provider.context and getattr(provider.context, 'is_enabled', lambda: True)()]
 
     sort = lambda c: c.weight
     can_show = lambda c: not request.user.is_authenticated or c.show_to_logged_in_user
@@ -207,11 +209,7 @@ def external_register(request):
 
         provider_class = AUTH_PROVIDERS[auth_provider].consumer
 
-        if provider_class.__class__.__name__ == 'FacebookAuthConsumer':
-            user_data = provider_class.get_user_data(request.session['access_token'])
-        else:
-            user_data = provider_class.get_user_data(request.session['assoc_key'])
-
+        user_data = provider_class.get_user_data(request.session['assoc_key'])
 
         if not user_data:
             user_data = request.session.get('auth_consumer_data', {})
@@ -220,7 +218,8 @@ def external_register(request):
         email = user_data.get('email', '')
         real_name = user_data.get('real_name', '')
 
-        if email:
+        # Only treat the address as validated when the provider says it verified it.
+        if email and user_data.get('email_verified', True):
             request.session['auth_validated_email'] = email
 
         form1 = SimpleRegistrationForm(initial={

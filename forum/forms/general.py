@@ -163,7 +163,7 @@ class UserNameValidationField(StrippedNonEmptyCharField):
                 error_messages=error_messages,
                 **kw
                 )
-       super(UserNameValidationField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
+       super(UserNameValidationField,self).__init__(required=False, widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200)), label="Human test",
             error_messages={
                             'invalid':_('please probe you are not a robot by not filling this')
@@ -173,11 +173,13 @@ class UserNameValidationField(StrippedNonEmptyCharField):
 
 
     
-    def validate(self, value):
-        if value not in self.empty_values:
+    # Honeypot: humans leave it empty. StrippedNonEmptyCharField.clean() doesn't
+    # call validate(), and the field must not be required.
+    def clean(self, value):
+        value = (value or '').strip()
+        if value:
             raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
-        else:
-            return value
+        return value
         
 class UserNameValidationSumField(StrippedNonEmptyCharField):
     def __init__(self,**kw):
@@ -191,11 +193,12 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
             )
 
     
-    def validate(self, value):
-        if value != 14:
+    def clean(self, value):
+        # Form data is text: compare with '14', not the integer 14.
+        value = (value or '').strip()
+        if value != '14':
             raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
-        else:
-            return value
+        return value
    
 
 class SetPasswordForm(forms.Form):

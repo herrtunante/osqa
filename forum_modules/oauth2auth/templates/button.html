@@ -1,0 +1,2 @@
+{% load i18n %}
+<a class="provider_direct oauth2_button" href="{% url "auth_provider_signin" provider=provider.id %}">{% blocktrans with name=provider.human_name %}Sign in with {{ name }}{% endblocktrans %}</a>
