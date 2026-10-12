@@ -523,6 +523,9 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to Node (parent, action.node, ...) are loaded through the
+        # base manager; use NodeManager so they come back as Question, Answer, etc.
+        base_manager_name = 'objects'
 
 
 class NodeRevision(BaseModel, NodeContent):
