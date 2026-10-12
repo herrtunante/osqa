@@ -48,6 +48,7 @@ class ActivityNode(template.Node):
                 traceback.format_exc()
             )
             logging.error(msg)
+            return ''
 
 @register.tag
 def activity_item(parser, token):

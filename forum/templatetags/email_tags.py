@@ -21,6 +21,7 @@ class MultiUserMailMessage(template.Node):
             messages.append((recipient, context['subject'], context['htmlcontent'], context['textcontent'], context['embeddedmedia']))
         
         create_and_send_mail_messages(messages, sender_data=context['sender'], reply_to=context['reply_to'])
+        return ''
 
 @register.tag
 def email(parser, token):
@@ -37,6 +38,7 @@ class EmailPartNode(template.Node):
 
     def render(self, context):
         context[self.varname] = self.nodelist.render(context).strip()
+        return ''
 
 @register.tag
 def subject(parser, token):
@@ -59,7 +61,7 @@ def content(parser, token):
     if base:
         base = template.loader.get_template(base)
 
-        basenodes = base.nodelist
+        basenodes = base.template.nodelist
         content = [i for i,n in enumerate(basenodes) if isinstance(n, template.loader_tags.BlockNode) and n.name == "content"]
         if len(content):
             index = content[0]
@@ -81,7 +83,7 @@ class EmbedMediaNode(template.Node):
 
     def render(self, context):
         context['embeddedmedia'][self.alias] = self.location.resolve(context)
-        pass
+        return ''
 
 
 @register.tag

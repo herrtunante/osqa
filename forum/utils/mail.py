@@ -1,5 +1,6 @@
 import email
 import socket
+import ssl
 import os
 import logging
 
@@ -27,7 +28,7 @@ from threading import Thread
 def send_template_email(recipients, template, context, sender=None, reply_to = None):
     t = loader.get_template(template)
     context.update(dict(recipients=recipients, settings=settings, sender=sender, reply_to=reply_to))
-    t.render(Context(context))
+    t.render(context)
 
 def create_connection():
     connection = SMTP(str(settings.EMAIL_HOST), str(settings.EMAIL_PORT),
@@ -84,13 +85,13 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             if reply_to:
                 msgRoot['Reply-To'] = reply_to
 
-            msgRoot.preamble = 'This is a multi-part message from %s.' % str(settings.APP_SHORT_NAME).encode('utf8')
+            msgRoot.preamble = 'This is a multi-part message from %s.' % str(settings.APP_SHORT_NAME)
 
             msgAlternative = MIMEMultipart('alternative')
             msgRoot.attach(msgAlternative)
 
-            msgAlternative.attach(MIMEText(text.encode('utf-8'), _charset='utf-8'))
-            msgAlternative.attach(MIMEText(html.encode('utf-8'), 'html', _charset='utf-8'))
+            msgAlternative.attach(MIMEText(text, 'plain', 'utf-8'))
+            msgAlternative.attach(MIMEText(html, 'html', 'utf-8'))
 
             for alias, location in media.items():
                 fp = open(location, 'rb')
@@ -116,7 +117,7 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             connection.quit()
         except AttributeError:
             pass
-        except socket.sslerror:
+        except ssl.SSLError:
             connection.close()
     except Exception as e:
         logging.error('Email sending has failed: %s' % e)
