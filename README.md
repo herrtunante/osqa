@@ -144,6 +144,18 @@ both are set. Register this redirect (callback) URI with the provider:
 Signed-in users can connect more providers from their account's
 authentication settings.
 
+## Look and feel
+
+The default skin is responsive (phones, tablets, desktops). Its modern styles
+live in `forum/skins/default/media/style/modern.css`, loaded after the legacy
+`style.css`; the colour tokens at the top of that file (`--brand`, `--accent`,
+...) are the quickest way to re-brand the site. Admin > Custom CSS is loaded
+last and can override them, e.g. `:root { --brand: #00704a; }`.
+
+The header search box uses Google Programmable Search when Admin > External
+Keys > "Google custom search engine ID" is set (it defaults to the engine this
+fork used before), and the site's own search when it is empty.
+
 ## Layout
 
 - `forum/` - the application: models, views, actions, templates (`skins/`),

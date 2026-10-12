@@ -55,3 +55,36 @@ class RobotsTxtTest(OSQATestCase):
         response = self.client.get('/robots.txt')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/plain')
+
+
+class LayoutTest(OSQATestCase):
+    def test_mobile_viewport_and_stylesheet(self):
+        response = self.client.get('/')
+        self.assertContains(response, '<!DOCTYPE html>')
+        self.assertContains(response, '<meta name="viewport" content="width=device-width, initial-scale=1" />')
+        self.assertContains(response, '/media/style/modern.css')
+        self.assertNotContains(response, 'http://www.google.com/jsapi')
+
+    def test_logo_url_has_no_double_slash(self):
+        from forum import settings
+        self.addCleanup(setattr, settings.APP_LOGO, '_temp', None)
+        for value, src in [('/upfiles/logo.png', 'src="/upfiles/logo.png"'),
+                           ('upfiles/logo.png', 'src="/upfiles/logo.png"'),
+                           ('https://cdn.example.org/logo.png', 'src="https://cdn.example.org/logo.png"')]:
+            with self.subTest(value=value):
+                settings.APP_LOGO.set_value(value)
+                self.assertContains(self.client.get('/'), src)
+
+    def test_search_box(self):
+        from forum import settings
+        self.addCleanup(setattr, settings.GOOGLE_CSE_ID, '_temp', None)
+
+        settings.GOOGLE_CSE_ID.set_value('')
+        response = self.client.get('/')
+        self.assertContains(response, 'name="q" id="keywords"')
+        self.assertNotContains(response, 'cse.google.com')
+
+        settings.GOOGLE_CSE_ID.set_value('123:abc')
+        response = self.client.get('/')
+        self.assertContains(response, "encodeURIComponent('123:abc')")
+        self.assertNotContains(response, 'id="keywords"')

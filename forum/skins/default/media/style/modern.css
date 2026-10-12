@@ -1,0 +1,1179 @@
+/*
+ * Modern, responsive layer for the default skin.
+ *
+ * Loaded after style.css and before the admin's custom CSS, so it overrides
+ * the legacy fixed-width (990px) layout and can itself be overridden from
+ * Admin > Custom CSS. The colour tokens below are the easiest place to
+ * re-brand the site.
+ */
+
+:root {
+    --brand: #2c5aa0;
+    --brand-dark: #1f4278;
+    --brand-soft: #eaf1fb;
+    --accent: #c2410c;
+    --accent-dark: #9a3412;
+    --success: #1a7f37;
+    --success-soft: #e6f6ea;
+    --danger-soft: #fdeeee;
+    --text: #1f2328;
+    --muted: #5f6b7a;
+    --border: #dfe3e8;
+    --surface: #ffffff;
+    --background: #f5f7fa;
+    --radius: 8px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+    --content-width: 1140px;
+    --sidebar-width: 280px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ---- Base ---------------------------------------------------------- */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+a {
+    color: var(--brand);
+}
+
+a:hover {
+    color: var(--brand-dark);
+}
+
+p {
+    font-size: inherit;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    line-height: 1.3;
+}
+
+img, video, iframe, embed, object {
+    max-width: 100%;
+}
+
+img {
+    height: auto;
+}
+
+pre {
+    width: auto;
+    max-width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #f6f8fa;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+code {
+    font-family: var(--mono);
+    white-space: normal;
+}
+
+pre code {
+    white-space: inherit;
+}
+
+:not(pre) > code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #eff1f3;
+}
+
+blockquote {
+    max-width: none;
+    margin: 0 0 12px;
+    padding: 8px 14px;
+    border-left: 4px solid var(--border);
+    background: #f6f8fa;
+    color: #3d4752;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+}
+
+:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+/* ---- Page layout --------------------------------------------------- */
+
+#roof, #wrapper, #announcement, #ground, #searchBar, #custom_header, #custom_footer {
+    width: auto;
+    max-width: var(--content-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#wrapper {
+    width: 100%;
+    padding: 0 16px;
+    background: transparent;
+}
+
+#room {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 0;
+    background: transparent;
+}
+
+#CALeft, #CAFull {
+    float: none;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+#CAFull {
+    flex-basis: 100%;
+}
+
+#CARight {
+    float: none;
+    flex: 0 0 var(--sidebar-width);
+    width: var(--sidebar-width);
+    min-width: 0;
+}
+
+#room > #tail {
+    flex: 1 1 100%;
+}
+
+#tail:empty, .spacer3 {
+    display: none;
+}
+
+/* ---- Header -------------------------------------------------------- */
+
+#roof {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    max-width: none;
+    padding: 10px max(16px, calc((100% - var(--content-width)) / 2 + 16px)) 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+#roof + .clear {
+    display: none;
+}
+
+#logo {
+    float: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+#logo a {
+    display: inline-block;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#logo img {
+    display: block;
+    max-height: 48px;
+    width: auto;
+}
+
+#top {
+    float: none;
+    width: auto;
+    margin: 0 0 0 auto;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px 6px;
+}
+
+#top a {
+    height: auto;
+    margin: 0;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    text-decoration: none;
+}
+
+#top a:hover {
+    background: var(--background);
+    color: var(--text);
+}
+
+#top img {
+    vertical-align: middle;
+}
+
+#nav {
+    float: none;
+    width: 100%;
+    margin: 0;
+    min-width: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+#nav::-webkit-scrollbar {
+    display: none;
+}
+
+#nav a, #nav a.on {
+    float: none;
+    flex: none;
+    height: auto;
+    margin: 0;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-decoration: none;
+}
+
+#nav a:hover {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom-color: var(--border);
+}
+
+#nav a.on {
+    color: var(--brand);
+    font-weight: 600;
+    border-bottom-color: var(--brand);
+}
+
+#nav a#nav_ask, #nav a#nav_ask.on {
+    float: none;
+    margin: 0 0 6px auto;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#nav a#nav_ask:hover {
+    background: var(--accent-dark);
+    text-decoration: none;
+}
+
+/* ---- Search -------------------------------------------------------- */
+
+#searchBar {
+    width: 100%;
+    margin-top: 16px;
+    padding: 0 16px;
+    border: 0;
+    background: none;
+    text-align: left;
+}
+
+#searchBar .search-field {
+    display: flex;
+    gap: 8px;
+}
+
+#searchBar .searchInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-size: 16px;
+    box-shadow: var(--shadow);
+}
+
+#searchBar .searchInput:focus {
+    border-color: var(--brand);
+    outline: 2px solid rgba(44, 90, 160, .2);
+    outline-offset: 0;
+}
+
+#searchBar .searchBtn {
+    width: auto;
+    height: auto;
+}
+
+#searchBar .options {
+    padding: 6px 2px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+#searchBar .options input {
+    margin: 0 4px 0 0;
+}
+
+#searchBar .options label {
+    margin-right: 14px;
+}
+
+#searchBar .gcse-container {
+    margin: 0;
+}
+
+#announcement {
+    margin-top: 16px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+}
+
+/* ---- Buttons and forms --------------------------------------------- */
+
+input[type="submit"], input[type="button"], button, .submit, a.button, .searchBtn {
+    display: inline-block;
+    padding: 9px 16px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="submit"]:hover, input[type="button"]:hover, button:hover, .submit:hover, a.button:hover, .searchBtn:hover {
+    border-color: var(--brand-dark);
+    background: var(--brand-dark);
+    color: #fff;
+    text-decoration: none;
+}
+
+input[type="text"], input[type="password"], input[type="email"], input[type="url"], input[type="search"],
+input[type="number"], input:not([type]), select, textarea {
+    max-width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    line-height: 1.4;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="url"]:focus,
+input:not([type]):focus, select:focus, textarea:focus {
+    border-color: var(--brand);
+    outline: 2px solid rgba(44, 90, 160, .2);
+    outline-offset: 0;
+}
+
+textarea, #editor, .wmd-preview {
+    width: 100%;
+}
+
+#editor {
+    min-height: 220px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.wmd-preview {
+    border-radius: 6px;
+    padding: 12px;
+}
+
+#wmd-button-bar {
+    overflow-x: auto;
+}
+
+/* ---- Headings, tabs and paging ------------------------------------- */
+
+.headNormal, .headUser {
+    margin-bottom: 16px;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.headNormal h1 {
+    font-size: 24px;
+}
+
+.headNormal h1 a {
+    color: var(--text);
+}
+
+.tabBar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: auto;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    background: none;
+}
+
+.headQuestions, .headUsers, .headMedals {
+    float: none;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: none;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.tabsA {
+    float: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    height: auto;
+    padding: 3px;
+    border-radius: 8px;
+    background: var(--background);
+}
+
+.tabsA a, .sticky-sort-tabs {
+    float: none;
+    height: auto;
+    margin: 0;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.tabsA a:hover {
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.tabsA a.on, .tabsA a.on:hover {
+    background: var(--surface);
+    color: var(--brand);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+}
+
+.paginator .page, .paginator .page a:visited, .paginator .curr,
+.paginator .prev a, .paginator .next a {
+    display: inline-block;
+    min-width: 32px;
+    margin: 2px;
+    padding: 5px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: center;
+}
+
+.paginator .curr {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #fff;
+}
+
+.paginator .page:hover, .paginator .prev a:hover, .paginator .next a:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    color: var(--brand);
+}
+
+.pager, .pagesize {
+    margin: 12px 0;
+}
+
+/* ---- Tags and medals ----------------------------------------------- */
+
+.tags {
+    line-height: 2.2;
+}
+
+.tags a, span.tag, .post-tag, a.tag-link {
+    display: inline-block;
+    margin: 0 2px 2px 0;
+    padding: 1px 9px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.8;
+    text-decoration: none;
+}
+
+.tags a:hover, a.post-tag:hover {
+    background: var(--brand);
+    color: #fff;
+    text-decoration: none;
+}
+
+.medal {
+    display: inline-block;
+    padding: 2px 10px 2px 8px;
+    border: 1px solid #f0e2a6;
+    border-radius: 999px;
+    background: #fff8db;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+a.medal:hover {
+    background: #ffefad;
+    border-color: #e3c95b;
+}
+
+/* ---- Question list ------------------------------------------------- */
+
+#listA {
+    float: none;
+}
+
+.short-summary {
+    float: none;
+    width: 100%;
+    display: flex;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+}
+
+.user-stats-table .short-summary {
+    width: 100%;
+}
+
+.short-summary .counts {
+    float: none;
+    flex: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.short-summary .votes, .short-summary .status, .short-summary .views {
+    float: none;
+    width: 58px;
+    height: auto;
+    margin: 0;
+    padding: 6px 2px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.short-summary .counts .item-count {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.short-summary .status.answered {
+    border-color: var(--success);
+    background: none;
+    color: var(--success);
+}
+
+.short-summary .status.answered-accepted {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+}
+
+.short-summary .status.unanswered {
+    border-color: transparent;
+    background: var(--danger-soft);
+    color: #a4282a;
+}
+
+.short-summary .question-summary-wrapper {
+    float: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+}
+
+.short-summary h2 {
+    padding: 0 0 4px;
+}
+
+.short-summary h2 a {
+    color: var(--brand);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.short-summary .summary {
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.short-summary .userinfo {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---- Question and answers ------------------------------------------ */
+
+#question-table, .answer > table {
+    border-collapse: collapse;
+}
+
+#question-table td, .answer > table td {
+    padding: 0;
+}
+
+#question-table > tbody > tr > td:first-child, .answer > table > tbody > tr > td:first-child {
+    width: 52px !important;
+    padding-right: 12px;
+}
+
+.vote-buttons {
+    float: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+a.post-vote, .favorite-mark, a.accept-answer {
+    width: 40px;
+    height: 36px;
+    border-radius: 6px;
+}
+
+a.post-vote:hover, a.favorite-mark:hover, a.accept-answer:hover {
+    background-color: var(--background);
+}
+
+.post-score {
+    padding: 0;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.favorite-count {
+    font-family: inherit;
+}
+
+.question-body, .answer-body {
+    min-height: 0;
+    font-size: 15px;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+}
+
+.question-body img, .answer-body img {
+    max-width: 100%;
+}
+
+div.question-body p, div.answer-body p {
+    max-width: none;
+}
+
+.question-body table, .answer-body table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.answer {
+    width: auto;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.accepted-answer {
+    margin: 0 -12px;
+    padding: 16px 12px;
+    border-left: 3px solid var(--success);
+    border-bottom-color: var(--border);
+    border-radius: 0 6px 6px 0;
+    background: var(--success-soft);
+}
+
+.answered-by-owner {
+    background: none;
+}
+
+.accepted-answer .comments-container, .answered-by-owner .comments-container {
+    background: none;
+}
+
+.focusedAnswer {
+    background: #fffbe6;
+}
+
+.post-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 4px;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.post-controls .action-link a, .context-menu-trigger {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    color: var(--muted);
+}
+
+.post-controls .action-link a:hover, .context-menu-trigger:hover {
+    background: var(--background);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.action-link-separator {
+    display: none;
+}
+
+.post-update-info {
+    width: auto;
+    min-width: 180px;
+    margin: 0 0 8px 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--brand-soft);
+}
+
+.post-update-info p {
+    font-size: 12px;
+}
+
+.post-update-info img {
+    width: 32px;
+    border-radius: 4px;
+}
+
+.comments-container {
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.comment {
+    padding: 4px 0;
+    border-top: 1px solid #eef0f3;
+    font-size: 13px;
+}
+
+.question-status {
+    margin: 12px 0;
+    padding: 12px;
+    border-radius: 6px;
+    background: #fff8db;
+}
+
+.preview-toggle {
+    margin-top: 6px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* ---- Sidebar ------------------------------------------------------- */
+
+.boxA, .boxC {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    overflow-wrap: break-word;
+}
+
+.boxA h3 {
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.boxA .body {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 14px;
+}
+
+.boxC h3, .boxC h2 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.boxC p {
+    font-size: 13px;
+}
+
+.questions-related p {
+    line-height: 1.45;
+}
+
+/* ---- Lists: tags, users, badges ------------------------------------ */
+
+.tagsList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 4px 12px;
+    min-height: 0;
+}
+
+.tagsList li {
+    float: none;
+    width: auto;
+}
+
+#medalList .badgeListItem {
+    width: auto;
+}
+
+#revisions {
+    width: 100%;
+}
+
+/* ---- Footer and notifications -------------------------------------- */
+
+#ground {
+    width: 100%;
+    max-width: none;
+    margin-top: 32px;
+    padding: 24px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+#ground a {
+    color: var(--muted);
+}
+
+#ground a:hover {
+    color: var(--brand);
+}
+
+#ground p {
+    margin: 6px 0 12px;
+}
+
+.footerLinks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 0;
+}
+
+.notify {
+    padding: 0 48px;
+    background: #fff4d6;
+    border-bottom: 1px solid #f0d58a;
+    color: #5c4300;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+}
+
+.notify p {
+    font-size: 14px;
+    margin: 8px 0;
+}
+
+.notify p.darkred {
+    color: inherit;
+}
+
+#close-notify {
+    top: 50%;
+    right: 6px;
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #5c4300;
+    font-size: 22px;
+    line-height: 36px;
+    text-align: center;
+}
+
+#close-notify:hover {
+    background: rgba(0, 0, 0, .06);
+}
+
+/* ---- Tablets ------------------------------------------------------- */
+
+@media (max-width: 960px) {
+    #room {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #CALeft, #CAFull, #CARight {
+        flex: none;
+        width: 100%;
+    }
+
+    #CARight {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    #CARight > * {
+        margin-bottom: 0;
+    }
+}
+
+/* ---- Phones -------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    body {
+        font-size: 15px;
+    }
+
+    #roof {
+        padding: 8px 12px 0;
+        gap: 4px 8px;
+    }
+
+    #logo img {
+        max-height: 36px;
+    }
+
+    #top a {
+        padding: 6px;
+        font-size: 13px;
+    }
+
+    #nav {
+        margin: 0 -12px;
+        padding: 0 12px;
+        width: calc(100% + 24px);
+    }
+
+    #nav a, #nav a.on {
+        padding: 10px 10px;
+        font-size: 14px;
+    }
+
+    /* Keep "ask a question" in view while the tabs scroll underneath it. */
+    #nav a#nav_ask, #nav a#nav_ask.on {
+        position: sticky;
+        right: 0;
+        padding: 7px 12px;
+        font-size: 13px;
+        box-shadow: -16px 0 12px -4px var(--surface);
+    }
+
+    #wrapper, #searchBar {
+        padding: 0 10px;
+    }
+
+    #searchBar {
+        margin-top: 12px;
+    }
+
+    #room {
+        gap: 16px;
+        padding: 12px 0;
+    }
+
+    #CALeft, #CAFull {
+        padding: 14px 12px;
+        border-radius: var(--radius);
+    }
+
+    .headNormal h1 {
+        font-size: 20px;
+    }
+
+    .tabBar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabsA {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .tabsA a {
+        flex: none;
+    }
+
+    /* Question list: counts become a compact row above the title. */
+    .short-summary {
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 0;
+    }
+
+    .short-summary .counts {
+        order: 0;
+        gap: 6px;
+    }
+
+    .short-summary .votes, .short-summary .status, .short-summary .views {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        width: auto;
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+
+    .short-summary .counts .item-count {
+        font-size: 14px;
+    }
+
+    .short-summary .favorites {
+        display: none;
+    }
+
+    .short-summary h2 a {
+        font-size: 16px;
+    }
+
+    .short-summary .userinfo {
+        float: none;
+        margin-top: 4px;
+    }
+
+    /* Question page */
+    #question-table > tbody > tr > td:first-child, .answer > table > tbody > tr > td:first-child {
+        width: 44px !important;
+        padding-right: 8px;
+    }
+
+    a.post-vote, .favorite-mark, a.accept-answer {
+        width: 40px;
+        height: 40px;
+    }
+
+    .question-body, .answer-body {
+        font-size: 15px;
+    }
+
+    .post-controls {
+        float: none;
+    }
+
+    .post-update-info {
+        float: none;
+        display: block;
+        width: 100%;
+        margin: 0 0 8px;
+    }
+
+    .accepted-answer {
+        margin: 0 -12px;
+        padding: 16px 12px 16px 9px;
+    }
+
+    /* Forms: full width, 16px text so iOS does not zoom on focus. */
+    input[type="text"], input[type="password"], input[type="email"], input[type="url"], input[type="search"],
+    input[type="number"], input:not([type]), select, textarea {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    input[type="radio"], input[type="checkbox"] {
+        width: auto;
+    }
+
+    table.form-as-table, table.form-as-table tbody, table.form-as-table tr,
+    table.form-as-table th, table.form-as-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .tagsList {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    #medalList .badgeListDescription {
+        max-width: none;
+    }
+
+    #CARight {
+        grid-template-columns: 1fr;
+    }
+}

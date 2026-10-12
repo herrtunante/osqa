@@ -13,3 +13,8 @@ label = _("Google analytics key"),
 help_text = _("Your Google analytics key. You can get one at the <a href='http://www.google.com/analytics/'>Google analytics official website</a>"),
 required=False))
 
+
+GOOGLE_CSE_ID = Setting('GOOGLE_CSE_ID', '011544878288102132035:auatq0p6-wo', EXT_KEYS_SET, dict(
+label = _("Google custom search engine ID"),
+help_text = _("The search engine ID (cx) of a <a href='https://programmablesearchengine.google.com/'>Google Programmable Search Engine</a> to use for the search box in the header. Leave it empty to use the site's own search."),
+required=False))

@@ -4,18 +4,19 @@
 
 #admin_form input[type="text"], #admin_form input[type="submit"], #admin_form textarea, .string_list_widget_button {
     line-height: 22px;
-    font-size: 140%;
-    font-family: sans-serif;
-    border: 1px solid #999;
-    color: black;
+    font-size: 15px;
+    font-family: inherit;
+    border: 1px solid var(--border, #999);
+    color: var(--text, black);
 }
 
 #admin_form input[type="text"], #admin_form input[type="submit"], .string_list_widget_button {
-    height: 28px;
+    height: auto;
 }
 
 #admin_form input[type="text"], #admin_form textarea {
-    width: 550px;    
+    width: 550px;
+    max-width: 100%;
 }
 
 #admin_form th input[type="text"] {
@@ -33,7 +34,7 @@
 }
 
 #admin_form td {
-    color: gray;
+    color: var(--muted, gray);
 }
 
 #admin_page_description {
@@ -43,6 +44,7 @@
 
 .string_list_widget input[type=text] {
     width: 520px;
+    max-width: calc(100% - 40px);
 }
 
 .string_list_widget_button {
@@ -60,4 +62,29 @@ table caption {
     font-size: 120%;
 	padding: 3px 0;
     text-align: left;
+}
+
+/* Phones: label above field instead of a two-column table. */
+@media (max-width: 640px) {
+    #admin_form, #admin_form tbody, #admin_form tr, #admin_form th, #admin_form td {
+        display: block;
+        width: 100%;
+    }
+
+    #admin_form {
+        border-spacing: 0;
+    }
+
+    #admin_form th {
+        padding-top: 12px;
+        text-align: left;
+    }
+
+    #admin_form input[type="text"], #admin_form textarea {
+        width: 100%;
+    }
+
+    .string_list_widget_button.add {
+        left: 0;
+    }
 }

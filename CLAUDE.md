@@ -124,6 +124,7 @@ When querying nodes, use the manager methods to get the correct subclass:
 - Skins are in `forum/skins/` (default skin is configurable)
 - Template loaders check: filesystem → app directories → module templates → skins
 - Django template engine with custom tags in `forum/templatetags/`; a custom `Node.render()` must return a string
+- The default skin is responsive: `media/style/modern.css` (CSS variables, flex layout, phone breakpoint at 640px) overrides the fixed-width legacy `style.css`; check new UI at 390px width as well as desktop
 
 ### Caching
 

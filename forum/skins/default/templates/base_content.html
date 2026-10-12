@@ -1,13 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <!-- base_content.html -->
 {% load i18n extra_tags extra_filters ui_registry %}
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="{{ settings.LANGUAGE_CODE }}">
     <head>{% block after_head_js %}{% endblock %}
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#2c5aa0" />
         <title>{% block fulltitle %}{% block title %}{% endblock %} - {{ settings.APP_SHORT_NAME }}{% endblock %}</title>
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />
         {% block meta %}{% endblock %}
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         {% if settings.GOOGLE_SITEMAP_CODE %}
         <meta name="google-site-verification" content="{{ settings.GOOGLE_SITEMAP_CODE }}" />
         {% endif %}
@@ -16,24 +18,15 @@
         <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
         <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media  "/media/style/modern.css" %}" rel="stylesheet" type="text/css" />
         {% if settings.USE_CUSTOM_CSS|or_preview:request %}
         <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
         {% endif %}
-        <!--<link rel="stylesheet" type="text/css" href="http://jquery-ui.googlecode.com/svn/tags/latest/themes/base/jquery-ui.css" />-->
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/smoothness/jquery-ui.css" />
-        <!--[if IE 6]>
-        <style type="text/css">
-        img, div, a { behavior: url({% media "/media/iepngfix/iepngfix.htc" %}) }
-        </style>
-        <![endif]-->
         {% block forestyle %}{% endblock %}
 
-        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
         <script type="text/javascript">
         /*<![CDATA[*/
-            //google.load("jquery", "1");
-            //google.load("jqueryui", "1", {autoload:true});
-
             var i18nLang = '{{ settings.LANGUAGE_CODE }}';
             var appUrl = '{{ settings.APP_URL }}'
             var scriptUrl = '{{ settings.FORCE_SCRIPT_NAME }}/'
