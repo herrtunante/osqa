@@ -12,7 +12,9 @@ from django.http import HttpResponseRedirect, Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.utils.encoding import smart_str
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth import login, logout
+from django.views.decorators.http import require_POST
 
 from django.contrib import messages
 
@@ -25,6 +27,7 @@ from forum.modules import decorate
 from forum.forms import SimpleRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils.mail import send_template_email
+from forum.utils.redact import redact_meta
 from forum.authentication.base import InvalidAuthentication
 from forum.authentication import AUTH_PROVIDERS
 from forum.models import User, AuthKeyUserAssociation, ValidationHash
@@ -38,7 +41,12 @@ def signin_page(request):
 
     # If the referer is equal to the sign up page, e. g. if the previous login attempt was not successful we do not
     # change the sign in URL. The user should go to the same page.
-    if not referer.replace(settings.APP_URL, '') == reverse('auth_signin'):
+    # The referer is sent by the browser and may point to another site; only
+    # remember it as the post-login destination if it is on this site.
+    on_this_site = url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()},
+                                                   require_https=request.is_secure())
+
+    if on_this_site and not referer.replace(settings.APP_URL, '') == reverse('auth_signin'):
         request.session[ON_SIGNIN_SESSION_ATTR] = referer
 
     all_providers = [provider.context for provider in AUTH_PROVIDERS.values() if provider.context]
@@ -178,7 +186,7 @@ def external_register(request):
                         "Oops, something went wrong in the middle of this process. Please try again. Note that you need to have cookies enabled for the authentication to work."
                         )
                 logging.error("Missing session data when trying to complete user registration: %s" % ", ".join(
-                        ["%s: %s" % (k, v) for k, v in request.META.items()]))
+                        ["%s: %s" % (k, v) for k, v in redact_meta(request.META)]))
                 return HttpResponseRedirect(reverse('auth_signin'))
 
             uassoc = AuthKeyUserAssociation(user=user_, key=assoc_key, provider=auth_provider)
@@ -194,7 +202,7 @@ def external_register(request):
             request.session['auth_error'] = _(
                     "Oops, something went wrong in the middle of this process. Please try again.")
             logging.error("Missing session data when trying to complete user registration: %s" % ", ".join(
-                    ["%s: %s" % (k, v) for k, v in request.META.items()]))
+                    ["%s: %s" % (k, v) for k, v in redact_meta(request.META)]))
             return HttpResponseRedirect(reverse('auth_signin'))
 
         provider_class = AUTH_PROVIDERS[auth_provider].consumer
@@ -367,6 +375,7 @@ def auth_settings(request, id):
     'allow_local_auth': AUTH_PROVIDERS.get('local', None),
     })
 
+@require_POST
 def remove_external_provider(request, id):
     association = get_object_or_404(AuthKeyUserAssociation, id=id)
     if not (request.user.is_superuser or request.user == association.user):

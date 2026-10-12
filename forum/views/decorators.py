@@ -4,7 +4,7 @@ import logging
 
 from datetime import datetime
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import render as django_render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -49,7 +49,21 @@ class RefreshPageCommand(HttpResponse):
                 content=json.dumps({'commands': {'refresh_page': []}, 'success': True}),
                 content_type="application/json")
 
+def prompt(func):
+    """Mark a command view that may be requested with GET.
+
+    Such a view must only render its prompt (a form or read-only data) on GET
+    and act on POST. Every other command view rejects non-POST requests.
+    """
+    func.allows_get = True
+    return func
+
 def command(func, request, *args, **kwargs):
+    # Commands change state, so a plain link or <img> on another page must not
+    # trigger them; POST also gets CSRF protection.
+    if request.method != 'POST' and not getattr(func, 'allows_get', False):
+        return HttpResponseNotAllowed(['POST'])
+
     try:
         response = func(request, *args, **kwargs)
 

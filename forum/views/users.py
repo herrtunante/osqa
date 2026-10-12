@@ -5,7 +5,7 @@ from django.template.defaultfilters import slugify
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, Http404
 from forum.http_responses import HttpResponseUnauthorized
 from django.utils.translation import gettext as _
 from urllib.parse import quote as urlquote_plus
@@ -182,7 +182,7 @@ def user_powers(request, id, action, status):
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers are allowed to alter other users permissions."))
 
-    if (action == 'remove' and 'status' == 'super') and not request.user.is_siteowner():
+    if (action == 'remove' and status == 'super') and not request.user.is_siteowner:
         raise decorators.CommandException(_("Only the site owner can remove the super user status from other user."))
 
     user = get_object_or_404(User, id=id)
@@ -200,8 +200,9 @@ def user_powers(request, id, action, status):
 
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def award_points(request, id):
-    if not request.POST:
+    if request.method != 'POST':
         return render(request, 'users/karma_bonus.html')
 
     if not request.user.is_superuser:
@@ -224,11 +225,17 @@ def award_points(request, id):
     
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def suspend(request, id):
     user = get_object_or_404(User, id=id)
 
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers can suspend other users"))
+
+    if request.method != 'POST':
+        if user.is_suspended():
+            return HttpResponseNotAllowed(['POST'])
+        return render(request, 'users/suspend_user.html')
 
     if not request.POST.get('bantype', None):
         if user.is_suspended():
@@ -256,10 +263,11 @@ def suspend(request, id):
     return decorators.RefreshPageCommand()
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def report_user(request, id):
     user = get_object_or_404(User, id=id)
 
-    if not request.POST.get('publicmsg', None):
+    if request.method != 'POST' or not request.POST.get('publicmsg', None):
         return render(request, 'users/report_user.html')
 
     data = {

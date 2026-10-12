@@ -3,6 +3,7 @@ import json
 import time
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -231,6 +232,7 @@ def get_statistics():
     }
 
 @super_user_required
+@require_POST
 def go_bootstrap(request):
 #todo: this is the quick and dirty way of implementing a bootstrap mode
     try:
@@ -293,6 +295,7 @@ def go_bootstrap(request):
     return HttpResponseRedirect(reverse('admin_index'))
 
 @super_user_required
+@require_POST
 def go_defaults(request):
     for setting in Setting.sets['badges']:
         setting.to_default()
@@ -308,6 +311,7 @@ def go_defaults(request):
 
 
 @super_user_required
+@require_POST
 def recalculate_denormalized(request):
     for n in Node.objects.all():
         n = n.leaf
@@ -407,7 +411,8 @@ def edit_page(request, id=None):
     'published': published
     })
 
-@admin_page
+@super_user_required
+@require_POST
 def delete_page(request, id=None):
     page = get_object_or_404(Page, id=id)
     page.delete()

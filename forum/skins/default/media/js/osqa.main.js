@@ -22,7 +22,9 @@ $('html').ajaxSend(function(event, xhr, settings) {
     try {
         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
             // Only send the token to relative URLs i.e. locally.
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            // With CSRF_USE_SESSIONS there is no csrftoken cookie; use the
+            // token rendered into the page by {% csrf_token %} instead.
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken') || $('input[name=csrfmiddlewaretoken]').val());
         }
     } catch (e) {}
 });
@@ -425,12 +427,12 @@ $(function() {
                 extra_class: 'confirm',
                 yes_callback: function() {
                     start_command();
-                    $.getJSON(ajax_url, function(data) {
+                    $.post(ajax_url, {}, function(data) {
                         process_ajax_response(data, evt);
                         $dialog.fadeOut('fast', function() {
                             $dialog.remove();
                         });
-                    });
+                    }, 'json');
                 },
                 yes_text: messages.yes,
                 show_no: true,

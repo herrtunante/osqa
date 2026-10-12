@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from django.utils.translation import ngettext, gettext as _
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, Http404
 from django.shortcuts import get_object_or_404, render
 
 from django.contrib import messages
@@ -21,7 +21,7 @@ from forum.actions import *
 from forum.modules import decorate
 from forum import settings
 
-from .decorators import command, CommandException, RefreshPageCommand
+from .decorators import command, prompt, CommandException, RefreshPageCommand
 
 class NotEnoughRepPointsException(CommandException):
     def __init__(self, action, user_reputation=None, reputation_required=None, node=None):
@@ -137,8 +137,9 @@ def vote_post(request, id, vote_type):
     return response
 
 @decorate.withfn(command)
+@prompt
 def flag_post(request, id):
-    if not request.POST:
+    if request.method != 'POST':
         return render(request, 'node/report.html', {'types': settings.FLAG_TYPES})
 
     post = get_object_or_404(Node, id=id)
@@ -302,6 +303,7 @@ def comment(request, id):
         }
 
 @decorate.withfn(command)
+@prompt
 def node_markdown(request, id):
     user = request.user
 
@@ -309,6 +311,10 @@ def node_markdown(request, id):
         raise AnonymousNotAllowedException(_('accept answers'))
 
     node = get_object_or_404(Node, id=id)
+
+    if node.nis.deleted and not user.can_view_deleted_post(node):
+        raise Http404()
+
     return HttpResponse(node.active_revision.body, content_type="text/plain")
 
 
@@ -390,8 +396,11 @@ def delete_post(request, id):
     return ret
 
 @decorate.withfn(command)
+@prompt
 def close(request, id, close):
-    if close and not request.POST:
+    if request.method != 'POST':
+        if not close:
+            return HttpResponseNotAllowed(['POST'])
         return render(request, 'node/report.html', {'types': settings.CLOSE_TYPES})
 
     question = get_object_or_404(Question, id=id)
@@ -443,6 +452,7 @@ def wikify(request, id):
     return RefreshPageCommand()
 
 @decorate.withfn(command)
+@prompt
 def convert_to_comment(request, id):
     user = request.user
     answer = get_object_or_404(Answer, id=id)
@@ -455,7 +465,7 @@ def convert_to_comment(request, id):
     if not user.can_convert_to_comment(answer):
         raise NotEnoughRepPointsException(_("convert answers to comments"))
 
-    if not request.POST:
+    if request.method != 'POST':
         description = lambda a: _("Answer by %(uname)s: %(snippet)s...") % {'uname': smart_str(a.author.username),
                                                                             'snippet': a.summary[:10]}
         nodes = [(question.id, _("Question"))]
@@ -505,9 +515,12 @@ def subscribe(request, id, user=None):
         except User.DoesNotExist:
             raise Http404()
 
-        if not (request.user.is_a_super_user_or_staff() or user.is_authenticated):
+        # Only staff may change another user's subscription.
+        if not (request.user.is_authenticated and (request.user == user or request.user.is_a_super_user_or_staff())):
             raise CommandException(_("You do not have the correct credentials to preform this action."))
     else:
+        if not request.user.is_authenticated:
+            raise AnonymousNotAllowedException(_('subscribe to questions'))
         user = request.user
 
     question = get_object_or_404(Question, id=id)
@@ -531,6 +544,9 @@ def subscribe(request, id, user=None):
 #internally grouped views - used by the tagging system
 @ajax_login_required
 def mark_tag(request, tag=None, **kwargs):#tagging system
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
     action = kwargs['action']
     ts = MarkedTag.objects.filter(user=request.user, tag__name=tag)
     if action == 'remove':
@@ -586,6 +602,7 @@ def related_questions(request):
         raise Http404()
 
 @decorate.withfn(command)
+@prompt
 def answer_permanent_link(request, id):
     # Getting the current answer object
     answer = get_object_or_404(Answer, id=id)
@@ -593,7 +610,7 @@ def answer_permanent_link(request, id):
     # Getting the current object URL -- the Application URL + the object relative URL
     url = '%s%s' % (settings.APP_BASE_URL, answer.get_absolute_url())
 
-    if not request.POST:
+    if request.method != 'POST':
         # Display the template
         return render(request, 'node/permanent_link.html', { 'url' : url, })
 
@@ -605,6 +622,7 @@ def answer_permanent_link(request, id):
     }
 
 @decorate.withfn(command)
+@prompt
 def award_points(request, user_id, answer_id):
     user = request.user
     awarded_user = get_object_or_404(User, id=user_id)
@@ -618,7 +636,7 @@ def award_points(request, user_id, answer_id):
     if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('award'))
 
-    if not request.POST:
+    if request.method != 'POST':
         return render(request, "node/award_points.html", {
             'user' : user,
             'awarded_user' : awarded_user,

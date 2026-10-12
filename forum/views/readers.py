@@ -424,6 +424,13 @@ REVISION_TEMPLATE = template.loader.get_template('node/revision.html')
 
 def revisions(request, id):
     post = get_object_or_404(Node, id=id).leaf
+
+    # Same rule as the question page: deleted posts (or posts under a deleted
+    # question) are only visible to users allowed to see deleted content.
+    for node in (post, post.abs_parent):
+        if node is not None and node.nis.deleted and not request.user.can_view_deleted_post(node):
+            raise Http404()
+
     revisions = list(post.revisions.order_by('revised_at'))
     rev_ctx = []
 

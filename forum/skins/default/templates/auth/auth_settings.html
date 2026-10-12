@@ -9,7 +9,10 @@
     <p class="message">{% blocktrans %}These are the external authentication providers currently associated with your account.{% endblocktrans %}</p>
     <div>
         {% for key in auth_keys %}
-            <p>{{ key.name }} (<a href="{% url "user_remove_external_provider" id=key.id %}">{% trans "remove" %}</a>)</p>
+            <form method="post" action="{% url "user_remove_external_provider" id=key.id %}">
+                {% csrf_token %}
+                <p>{{ key.name }} (<button type="submit" class="link">{% trans "remove" %}</button>)</p>
+            </form>
         {% endfor %}
     </div>
 {% endif %}

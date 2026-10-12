@@ -6,7 +6,6 @@ import datetime
 from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
 from django.core.files.storage import FileSystemStorage
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils.html import *
@@ -22,7 +21,6 @@ from forum.http_responses import HttpResponseUnauthorized
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
-@csrf_exempt
 def upload(request):#ajax upload file to a question or answer
     class FileTypeNotAllow(Exception):
         pass
@@ -48,15 +46,12 @@ def upload(request):#ajax upload file to a question or answer
         if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico'):
             raise FileTypeNotAllow()
 
+        # check file size (in bytes) before writing anything to disk
+        if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
+            raise FileSizeNotAllow()
+
         storage = FileSystemStorage(str(settings.UPFILES_FOLDER), str(settings.UPFILES_ALIAS))
         new_file_name = storage.save("_".join(f.name.split()), f)
-        # check file size
-        # byte
-        size = storage.size(new_file_name)
-
-        if size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
-            storage.delete(new_file_name)
-            raise FileSizeNotAllow()
 
         result = xml_template % ('Good', '', str(settings.UPFILES_ALIAS) + new_file_name)
     except UploadPermissionNotAuthorized:

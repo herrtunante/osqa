@@ -48,10 +48,10 @@
                                 {% endif %}
                             {% endif %}
                             {% if settings_pack != "default" %}
-                                <button onclick="if (window.confirm('{% trans "Are you sure you want to revert to the defaults?" %}')) window.location='{% url "admin_go_defaults" %}';">{% trans "revert to defaults" %}</button>
+                                <form method="post" action="{% url "admin_go_defaults" %}" style="display: inline;" onsubmit="return window.confirm('{% trans "Are you sure you want to revert to the defaults?" %}');">{% csrf_token %}<button type="submit">{% trans "revert to defaults" %}</button></form>
                             {% endif %}
                             {% if settings_pack != "bootstrap" %}
-                                <button onclick="if (window.confirm('{% trans "Are you sure you want to run bootstrap mode?" %}')) window.location='{% url "admin_go_bootstrap" %}';">{% trans "go bootstrap" %}</button>
+                                <form method="post" action="{% url "admin_go_bootstrap" %}" style="display: inline;" onsubmit="return window.confirm('{% trans "Are you sure you want to run bootstrap mode?" %}');">{% csrf_token %}<button type="submit">{% trans "go bootstrap" %}</button></form>
                             {% endif %}
                         </td>
                     </tr>
@@ -63,7 +63,7 @@
                     </tr>
                 </table>
                 <h3>{%trans "Recalculate scores and reputation" %}</h3>
-                 <button onclick="if (window.confirm('{% trans "This is a heavy operation, are you sure?" %}')) window.location='{% url "admin_denormalize" %}';">{% trans "Recalculate" %}</button>
+                 <form method="post" action="{% url "admin_denormalize" %}" style="display: inline;" onsubmit="return window.confirm('{% trans "This is a heavy operation, are you sure?" %}');">{% csrf_token %}<button type="submit">{% trans "Recalculate" %}</button></form>
             </td>
         </tr>
         <tr>
