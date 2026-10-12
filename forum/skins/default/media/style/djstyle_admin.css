@@ -37,7 +37,7 @@ input.longstring {
 }
 
 .string_list_widget_button {
-    background:url("../img/admin/nav-bg.gif") repeat-x scroll center bottom #dcdcdc;
+    background: #f0f0f0;
     border-color:#DDDDDD #AAAAAA #AAAAAA #DDDDDD;
     border-style:solid;
     border-width:1px;
@@ -61,4 +61,34 @@ input.longstring {
     background: transparent url('../images/indicator.gif') top left no-repeat;
     padding: 7px 25px;
     min-height: 24px;
+}
+
+/* Django's changelists.css scrolls .results sideways; the standard interface has no such rule. */
+.results {
+    overflow-x: auto;
+}
+
+@media (max-width: 767px) {
+    #admin_form, #admin_form tbody, #admin_form tr, #admin_form th, #admin_form td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #admin_form tr th {
+        white-space: normal;
+    }
+
+    .string-list-input input {
+        width: 100%;
+    }
+
+    .string_list_widget_button.add {
+        left: 0;
+    }
+
+    #changelist-search input[type="text"] {
+        width: 100%;
+        max-width: 100%;
+    }
 }

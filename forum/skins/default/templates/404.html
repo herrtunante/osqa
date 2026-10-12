@@ -31,11 +31,6 @@
 				<a href="{% if settings.CONTACT_URL %}{{ settings.CONTACT_URL }}{% else %}{% url "feedback" %}{% endif %}">{% trans "report this problem" %}</a></li>
             </ul>
         </div>
-        <script type="text/javascript">
-            var GOOG_FIXURL_LANG = '{{settings.LANGUAGE_CODE}}';
-            var GOOG_FIXURL_SITE = '{{site_url}}';
-        </script>
-        <script type="text/javascript" src="http://linkhelp.clients.google.com/tbproxy/lh/wm/fixurl.js"></script>
         <ul>
             <li><a href="#" id="linkPrevious">{% trans "back to previous page" %} &raquo;</a></li>
             <li><a href="{% url "questions" %}">{% trans "see all questions" %} &raquo;</a></li>

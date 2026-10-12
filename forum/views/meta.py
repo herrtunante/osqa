@@ -1,6 +1,7 @@
 import os
 from itertools import groupby
 
+import django.contrib.admin
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.static import serve
@@ -33,9 +34,23 @@ def custom_css(request):
 def static(request, title, content):
     return render(request, 'static.html', {'content' : content, 'title': title})
 
+DJANGO_ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(django.contrib.admin.__file__), 'static', 'admin')
+
+
 def media(request, skin, path):
     response = serve(request, "%s/media/%s" % (skin, path),
                  document_root=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skins').replace('\\', '/'))
+    return _with_charset(response)
+
+
+def django_admin_media(request, path):
+    """Django's own admin CSS, JS and icons, used by the django-style admin
+    interface. Served like the skin media so no collectstatic/web server
+    setup is needed."""
+    return _with_charset(serve(request, path, document_root=DJANGO_ADMIN_MEDIA_ROOT))
+
+
+def _with_charset(response):
     content_type = response.get('Content-Type', '')
     if ('charset=' not in content_type):
         if (content_type.startswith('text') or content_type=='application/x-javascript'):

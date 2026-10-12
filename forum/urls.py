@@ -41,6 +41,7 @@ core_urls = [
     re_path(r'^favicon\.ico$', app.meta.favicon),
     re_path(r'^cstyle\.css$', app.meta.custom_css, name='custom_css'),
     
+    re_path(r'^m/django_admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_media'),
     re_path(r'^m/(?P<skin>\w+)/media/(?P<path>.*)$', app.meta.media , name='osqa_media'),
     re_path(r'^%s(?P<path>.*)$' % _('upfiles/'), serve, {'document_root': os.path.join(APP_PATH, 'upfiles').replace('\\', '/')}, name='uploaded_file',),
     

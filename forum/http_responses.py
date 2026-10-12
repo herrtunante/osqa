@@ -16,25 +16,27 @@ class HttpResponseUnauthorized(HttpResponse):
     def __init__(self, request):
         if request.user.is_authenticated:
             super(HttpResponseUnauthorized, self).__init__(
-                content=render_to_string('403.html'),
+                content=render_to_string('403.html', request=request),
                 status=403
             )
         else:
             super(HttpResponseUnauthorized, self).__init__(
-                content=render_to_string('401.html'),
+                content=render_to_string('401.html', request=request),
                 status=401
             )
 
 class HttpResponseNotFound(HttpResponse):
     def __init__(self, request):
         super(HttpResponseNotFound, self).__init__(
-            content=render_to_string('404.html'),
+            content=render_to_string('404.html', request=request),
             status=404
         )
 
 class HttpResponseIntServerError(HttpResponse):
     def __init__(self, request):
-        super(HttpResponseIntServerError, self).__init__(
-            content=render_to_string('500.html'),
-            status=500
-        )
+        try:
+            content = render_to_string('500.html', request=request)
+        except Exception:
+            # Whatever broke the request may break the context processors too.
+            content = render_to_string('500.html')
+        super(HttpResponseIntServerError, self).__init__(content=content, status=500)

@@ -152,6 +152,10 @@ live in `forum/skins/default/media/style/modern.css`, loaded after the legacy
 ...) are the quickest way to re-brand the site. Admin > Custom CSS is loaded
 last and can override them, e.g. `:root { --brand: #00704a; }`.
 
+Admin > "Switch to django style interface" uses Django's own admin stylesheets;
+OSQA serves them itself from `/m/django_admin/`, like the skin media under
+`/m/`, so no `collectstatic` or web-server configuration is needed.
+
 The header search box uses Google Programmable Search when Admin > External
 Keys > "Google custom search engine ID" is set (it defaults to the engine this
 fork used before), and the site's own search when it is empty.

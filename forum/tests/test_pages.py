@@ -88,3 +88,48 @@ class LayoutTest(OSQATestCase):
         response = self.client.get('/')
         self.assertContains(response, "encodeURIComponent('123:abc')")
         self.assertNotContains(response, 'id="keywords"')
+
+
+class AdminInterfaceTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        from forum import settings
+        self.addCleanup(setattr, settings.DJSTYLE_ADMIN_INTERFACE, '_temp', None)
+        admin = self.create_user('admin')
+        admin.is_superuser = True
+        admin.save()
+        self.login(admin)
+
+    def test_django_style_admin_assets_are_served(self):
+        self.client.get('/admin/switch_interface/?to=djstyle')
+        page = self.client.get('/admin/settings/basic/')
+        self.assertCleanPage(page)
+        self.assertContains(page, 'href="/m/django_admin/css/base.css"')
+
+        for path in ('css/base.css', 'css/responsive.css', 'js/core.js', 'img/icon-alert.svg'):
+            with self.subTest(path=path):
+                response = self.client.get('/m/django_admin/' + path)
+                self.assertEqual(response.status_code, 200)
+                response.close()
+        with self.assertLogs('django.security', level='ERROR'):
+            self.assertEqual(self.client.get('/m/django_admin/../../__init__.py').status_code, 400)
+
+    def test_node_manager_in_both_interfaces(self):
+        for interface in ('djstyle', 'default'):
+            with self.subTest(interface=interface):
+                self.client.get('/admin/switch_interface/?to=%s' % interface)
+                page = self.client.get('/admin/tools/nodeman/')
+                self.assertCleanPage(page)
+                self.assertContains(page, 'class="changelist-form-container"')
+                self.assertNotContains(page, "{% static")
+
+
+class ErrorPageTest(OSQATestCase):
+    def test_not_found_page_renders_with_request(self):
+        # The footer's feedback link needs the request; without it the
+        # registry logged a KeyError on every 404.
+        with self.assertNoLogs(level='ERROR'):
+            response = self.client.get('/no-such-page/')
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, '/contact/?next=%2Fno-such-page%2F', status_code=404)
+        self.assertNotContains(response, 'linkhelp.clients.google.com', status_code=404)
