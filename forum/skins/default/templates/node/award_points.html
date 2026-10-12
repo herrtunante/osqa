@@ -61,9 +61,9 @@
         }
     });
 
-    $('#points_input').live('change keyup', function(evt) {
+    $(document).off('.awardpoints').on('change.awardpoints keyup.awardpoints', '#points_input', function(evt) {
         if ($(this).val() > user_reputation) {
-            $(this).attr('value', user_reputation);
+            $(this).val(user_reputation);
         }
 
         points_award_confirm(Number($(this).val()), evt);

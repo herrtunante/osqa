@@ -122,8 +122,8 @@
             var signin_url = "{% url "auth_provider_signin" provider='PROVIDER' %}";
 
             function set_validate_email() {
-                var validate = $('#validate_email').attr('checked') ? 'yes' : 'no';
-                $('.validate_email').attr('value', validate);
+                var validate = $('#validate_email').prop('checked') ? 'yes' : 'no';
+                $('.validate_email').val(validate);
 
                 $('.provider_direct').each(function() {
                     var current_url = $(this).attr('href');

@@ -1,5 +1,5 @@
 $(function() {
-    $('.string_list_widget_button').live('click', function() {
+    $(document).on('click', '.string_list_widget_button', function() {
         $but = $(this);
 
         if ($but.is('.add')) {

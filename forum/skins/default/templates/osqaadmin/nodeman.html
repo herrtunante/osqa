@@ -15,10 +15,10 @@
             $('.node-type-link').click(function() {
                 var link_type = $(this).attr('href').substring(1);
 
-                if ($('#type-filter-container').find('input[value=' + link_type + ']').length == 0) {
+                if ($('#type-filter-container').find('input[value="' + link_type + '"]').length == 0) {
                     $('#type-filter-container').append($("<input name=\"node_type\" type=\"hidden\" value=\"" + link_type + "\" />"));
                 } else {
-                    $('#type-filter-container').find('input[value=' + link_type + ']').remove();
+                    $('#type-filter-container').find('input[value="' + link_type + '"]').remove();
                 }
 
                 $form.submit();                
@@ -32,19 +32,19 @@
             $('.state-type-link').click(function() {
                 var state_type = $(this).attr('href').substring(1);
 
-                if ($('#state-filter-container').find('input[value=' + state_type + ']').length == 0) {
+                if ($('#state-filter-container').find('input[value="' + state_type + '"]').length == 0) {
                     $('#state-filter-container').append($("<input name=\"state_type\" type=\"hidden\" value=\"" + state_type + "\" />"));
                 } else {
-                    $('#state-filter-container').find('input[value=' + state_type + ']').remove();
+                    $('#state-filter-container').find('input[value="' + state_type + '"]').remove();
                 }
 
                 $form.submit();
             });
 
             $('.action-select').change(function() {
-                $('#action-toggle').removeAttr('checked');
+                $('#action-toggle').prop('checked', false);
                 var $tr = $(this).parents('tr');
-                if ($(this).attr('checked')) {
+                if ($(this).prop('checked')) {
                     $tr.addClass('selected');
                 } else {
                     $tr.removeClass('selected');
@@ -55,12 +55,12 @@
                 var $rows = $('#result_list').find('tbody').find('tr');
                 var $boxes = $('#result_list').find('tbody').find('input');
 
-                if ($(this).attr('checked')) {
+                if ($(this).prop('checked')) {
                     $rows.addClass('selected');
-                    $boxes.attr('checked', 'checked')
+                    $boxes.prop('checked', true)
                 } else {
                     $rows.removeClass('selected');
-                    $boxes.removeAttr('checked');
+                    $boxes.prop('checked', false);
                 }
             });
 
@@ -79,7 +79,7 @@
             });
 
             $('#author-selector').result(function(event, data, formatted) {
-                if ($('#author-filter-container').find('input[value=' + data[0] + ']').length == 0) {
+                if ($('#author-filter-container').find('input[value="' + data[0] + '"]').length == 0) {
                     $('#author-filter-container').append($("<input name=\"authors\" type=\"hidden\" value=\"" + data[0] + "\" />"));
                     $form.submit();
                 }
@@ -87,8 +87,8 @@
 
             $('.author-filter-remover').click(function() {
                 var id = $(this).attr('rel');
-                if ($('#author-filter-container').find('input[value=' + id + ']').length > 0) {
-                    $('#author-filter-container').find('input[value=' + id + ']').remove();
+                if ($('#author-filter-container').find('input[value="' + id + '"]').length > 0) {
+                    $('#author-filter-container').find('input[value="' + id + '"]').remove();
                     $form.submit();
                 }
             });
@@ -108,7 +108,7 @@
             });
 
             $('#tag-selector').result(function(event, data, formatted) {
-                if ($('#tag-filter-container').find('input[value=' + data[0] + ']').length == 0) {
+                if ($('#tag-filter-container').find('input[value="' + data[0] + '"]').length == 0) {
                     $('#tag-filter-container').append($("<input name=\"tags\" type=\"hidden\" value=\"" + data[0] + "\" />"));
                     $form.submit();
                 }
@@ -116,8 +116,8 @@
 
             $('.tag-filter-remover').click(function() {
                 var id = $(this).attr('rel');
-                if ($('#tag-filter-container').find('input[value=' + id + ']').length > 0) {
-                    $('#tag-filter-container').find('input[value=' + id + ']').remove();
+                if ($('#tag-filter-container').find('input[value="' + id + '"]').length > 0) {
+                    $('#tag-filter-container').find('input[value="' + id + '"]').remove();
                     $form.submit();
                 }
             });
@@ -129,11 +129,11 @@
 
             $('#filter-name-box').keyup(function() {
                 if ($(this).val().trim().length > 0) {
-                    $('#save-filter-button').removeAttr('disabled');
+                    $('#save-filter-button').prop('disabled', false);
                     $('#save-filter-button').css('color', 'black');
                 } else {
                     $('#save-filter-button').css('color', '#AAA');
-                    $('#save-filter-button').attr('disabled', 'disabled');
+                    $('#save-filter-button').prop('disabled', true);
                 }
             });
 

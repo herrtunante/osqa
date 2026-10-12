@@ -1,34 +1,3 @@
-/**
- * We do not want the CSRF protection enabled for the AJAX post requests, it causes only trouble.
- * Get the csrftoken cookie and pass it to the X-CSRFToken HTTP request property.
- */
-
-$('html').ajaxSend(function(event, xhr, settings) {
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    try {
-        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-            // Only send the token to relative URLs i.e. locally.
-            // With CSRF_USE_SESSIONS there is no csrftoken cookie; use the
-            // token rendered into the page by {% csrf_token %} instead.
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken') || $('input[name=csrfmiddlewaretoken]').val());
-        }
-    } catch (e) {}
-});
-
 var response_commands = {
     refresh_page: function() {
         window.location.reload(true)
@@ -409,7 +378,7 @@ $(function() {
         //alert(comment_box_cursor_position);
     });
 
-    $('a.ajax-command').live('click', function(evt) {
+    $(document).on('click', 'a.ajax-command', function(evt) {
         if (running) return false;
 
         var el = $(this);
@@ -504,7 +473,7 @@ $(function() {
             var comment_in_form = false;
             var interval = null;
 
-            var hcheck = !($.browser.msie || $.browser.opera);
+            var hcheck = true;
 
             $textarea.css("padding-top", 0).css("padding-bottom", 0).css("resize", "none");
             textarea.style.overflow = 'hidden';
@@ -523,7 +492,7 @@ $(function() {
 
                 $chars_counter.removeClass('warn');
                 $chars_counter.html(min_length);
-                $button.attr("disabled","disabled");
+                $button.prop("disabled", true);
 
                 interval = null;
             }
@@ -554,9 +523,9 @@ $(function() {
                 }
 
                 if (length > max_length || length < min_length) {
-                    $button.attr("disabled","disabled");
+                    $button.prop("disabled", true);
                 } else {
-                    $button.removeAttr("disabled");
+                    $button.prop("disabled", false);
                 }
 
                 var current_height = textarea.style.height;
@@ -594,7 +563,7 @@ $(function() {
                 return false;
             });
 
-            $('#' + $comments_container.attr('id') + ' .comment-edit').live('click', function() {
+            $(document).on('click', '#' + $comments_container.attr('id') + ' .comment-edit', function() {
                 var $link = $(this);
                 var comment_id = /comment-(\d+)-edit/.exec($link.attr('id'))[1];
                 var $comment = $('#comment-' + comment_id);
@@ -637,7 +606,7 @@ $(function() {
 
             // Submit comment with CTRL + Enter
             $textarea.keydown(function(e) {
-                if (e.ctrlKey && e.keyCode == 13 && !$button.attr('disabled')) {
+                if (e.ctrlKey && e.keyCode == 13 && !$button.prop('disabled')) {
                     // console.log('submit');
                     $(this).parent().find('input.comment-submit').click();
                 }
@@ -757,7 +726,7 @@ function pickedTags(){
     };
 
     var handlePickedTag = function(obj,reason){
-        var tagname = $.trim($(obj).prev().attr('value'));
+        var tagname = String($(obj).prev().val()).trim();
         var to_target = interestingTags;
         var from_target = ignoredTags;
         var to_tag_container;

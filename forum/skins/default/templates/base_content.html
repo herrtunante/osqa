@@ -6,6 +6,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#2c5aa0" />
+        <meta name="csrf-token" content="{{ csrf_token }}" />
         <title>{% block fulltitle %}{% block title %}{% endblock %} - {{ settings.APP_SHORT_NAME }}{% endblock %}</title>
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />
@@ -13,8 +14,10 @@
         {% if settings.GOOGLE_SITEMAP_CODE %}
         <meta name="google-site-verification" content="{{ settings.GOOGLE_SITEMAP_CODE }}" />
         {% endif %}
-        <script type="text/javascript" charset="UTF-8" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/js/osqa.compat.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.13.3/jquery-ui.min.js" %}"></script>
         <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
         <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
@@ -22,7 +25,7 @@
         {% if settings.USE_CUSTOM_CSS|or_preview:request %}
         <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
         {% endif %}
-        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/smoothness/jquery-ui.css" />
+        <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.13.3/jquery-ui.min.css" %}" />
         {% block forestyle %}{% endblock %}
 
         <script type="text/javascript">

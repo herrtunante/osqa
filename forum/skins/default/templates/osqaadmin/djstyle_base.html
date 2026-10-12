@@ -5,12 +5,15 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="csrf-token" content="{{ csrf_token }}"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/base.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/forms.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/changelists.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/responsive.css" %}" type="text/css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/djstyle_admin.css" %}"/>
-    <script type="text/javascript" charset="UTF-8" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
+    <script type="text/javascript" src="{% media "/media/js/osqa.compat.js" %}"></script>
+    <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
     <script type="text/javascript" src="{% media "/media/js/osqa.admin.js" %}"></script>
     {% block adminjs %}{% endblock %}
     <title>{% trans "OSQA administration area" %} - {% block subtitle %}{% endblock %}</title>

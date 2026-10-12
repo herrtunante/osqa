@@ -64,6 +64,17 @@ class LayoutTest(OSQATestCase):
         self.assertContains(response, '<meta name="viewport" content="width=device-width, initial-scale=1" />')
         self.assertContains(response, '/media/style/modern.css')
         self.assertNotContains(response, 'http://www.google.com/jsapi')
+        # jQuery is served by the site itself, and every page carries the
+        # CSRF token for the AJAX commands.
+        self.assertContains(response, '/media/vendor/jquery-3.7.1.min.js')
+        self.assertNotContains(response, 'ajax.googleapis.com')
+        self.assertRegex(response.content.decode(), r'<meta name="csrf-token" content="\w{32,}" />')
+        for path in ('/m/default/media/vendor/jquery-3.7.1.min.js', '/m/default/media/js/osqa.compat.js',
+                     '/m/default/media/js/osqa.csrf.js', '/m/default/media/vendor/jquery-ui-1.13.3/jquery-ui.min.js'):
+            with self.subTest(path=path):
+                asset = self.client.get(path)
+                self.assertEqual(asset.status_code, 200)
+                asset.close()
 
     def test_logo_url_has_no_double_slash(self):
         from forum import settings
