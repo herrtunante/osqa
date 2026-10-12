@@ -36,6 +36,16 @@ ADMINS = ()
 MANAGERS = ADMINS
 
 DEBUG = False
+
+# Required. Keep it secret and unique per site; changing it logs everybody out.
+# Generate one with:
+#   python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'
+SECRET_KEY = ''
+
+# When the site is served over HTTPS:
+#SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
+#SECURE_HSTS_SECONDS = 31536000
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }

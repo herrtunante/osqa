@@ -4,18 +4,21 @@ import sys
 
 SITE_ID = 1
 
-SECRET_KEY = 'a;::qCl1mfh?avagttOJ;8f5Rr54d,9qy7;o15M2cYO75?OQo51u3LnQ;!8N.:,7'
+# Set SECRET_KEY in settings_local.py or the OSQA_SECRET_KEY environment variable.
+SECRET_KEY = os.environ.get('OSQA_SECRET_KEY', '')
 
 CACHE_MAX_KEY_LENGTH = 235
 
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
 # Note: SessionMiddleware must come before CsrfViewMiddleware when using CSRF_USE_SESSIONS
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'forum.middleware.extended_user.ExtendedUser',
     'forum.middleware.anon_user.ConnectToSessionMessagesMiddleware',
     'forum.middleware.request_utils.RequestUtils',
@@ -56,6 +59,15 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 import importlib
 _settings_local = importlib.import_module(os.environ.get('OSQA_SETTINGS_LOCAL', 'settings_local'))
 globals().update(dict((k, v) for k, v in vars(_settings_local).items() if not k.startswith('_')))
+
+if not SECRET_KEY:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        "SECRET_KEY is not set. Add SECRET_KEY = '...' to settings_local.py or set OSQA_SECRET_KEY; generate one with: "
+        "python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'")
+
+# The file upload dialog reads its result from a hidden same-origin iframe.
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Django 4.2: TEMPLATES configuration
 template_loaders = [

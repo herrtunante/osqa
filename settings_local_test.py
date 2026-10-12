@@ -13,6 +13,7 @@ LOGGING = {
 }
 
 DEBUG = False
+SECRET_KEY = 'test-only-secret-key-not-for-production'
 ALLOWED_HOSTS = ('testserver', 'localhost')
 
 DATABASES = {
