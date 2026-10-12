@@ -1,0 +1,23 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Check for missing migrations
+        run: OSQA_SETTINGS_LOCAL=settings_local_test python manage.py makemigrations --check --dry-run
+      - name: Run tests
+        run: OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
