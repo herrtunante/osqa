@@ -42,7 +42,7 @@ class Question(Node):
     def accepted_answers(self):
         return self.answers.filter(~models.Q(state_string__contains="(deleted)"), marked=True)
     def get_absolute_url(self):
-        return ('question', (), {'id': self.id, 'slug': django_urlquote(slugify(self.title))})
+        return reverse('question', kwargs={'id': self.id, 'slug': django_urlquote(slugify(self.title))})
         
     def meta_description(self):
         return self.summary

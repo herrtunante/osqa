@@ -218,14 +218,14 @@ class User(BaseModel, DjangoUser):
             keyword_arguments.update({
                 'id': self.id,
             })
-        return ('user_profile', (), keyword_arguments)
+        return reverse('user_profile', kwargs=keyword_arguments)
 
     def get_absolute_url(self):
         root_relative_url = self.get_profile_url()
         relative_url = root_relative_url[len(get_script_prefix()):]
         return '%s/%s' % (django_settings.APP_URL, relative_url)
     def get_asked_url(self):
-        return ('user_questions', (), {'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
+        return reverse('user_questions', kwargs={'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
     def get_user_subscriptions_url(self):
         keyword_arguments = {
             'slug': slugify(smart_str(self.username))
@@ -234,9 +234,9 @@ class User(BaseModel, DjangoUser):
             keyword_arguments.update({
                 'id': self.id,
             })
-        return ('user_subscriptions', (), keyword_arguments)
+        return reverse('user_subscriptions', kwargs=keyword_arguments)
     def get_answered_url(self):
-        return ('user_questions', (), {'mode': _('answered-by'), 'user': self.id, 'slug': slugify(self.username)})
+        return reverse('user_questions', kwargs={'mode': _('answered-by'), 'user': self.id, 'slug': slugify(self.username)})
 
     def get_subscribed_url(self):
         try:

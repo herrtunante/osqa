@@ -60,7 +60,7 @@ class Tag(BaseModel):
     def value_to_list_on_cache_query(cls):
         return 'name'
     def get_absolute_url(self):
-        return ('tag_questions', (), {'tag': self.name})
+        return reverse('tag_questions', kwargs={'tag': self.name})
 
 class MarkedTag(models.Model):
     TAG_MARK_REASONS = (('good', _('interesting')), ('bad', _('ignored')))

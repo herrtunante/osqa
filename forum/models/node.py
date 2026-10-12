@@ -337,7 +337,7 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
     def is_notifiable(self):
         return self._is_notifiable()
     def get_revisions_url(self):
-        return ('revisions', (), {'id': self.id})
+        return reverse('revisions', kwargs={'id': self.id})
 
     def update_last_activity(self, user, save=False, time=None):
         if not time:

@@ -50,7 +50,7 @@ class Badge(BaseModel):
         cls = self.get_handler()
         return cls and cls.description or _("No description available")
     def get_absolute_url(self):
-        return ('badge', [], {'id': self.id, 'slug': slugify(self.name)})
+        return reverse('badge', kwargs={'id': self.id, 'slug': slugify(self.name)})
 
     def save(self, *args, **kwargs):
         if isinstance(self.awarded_count, models.expressions.Expression):
