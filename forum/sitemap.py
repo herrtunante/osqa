@@ -23,7 +23,8 @@ def index(request, sitemaps):
         final_url = final_url.replace('http:/', 'http://')
         final_url = final_url.replace('https:/', 'https://')
 
-        sites.append(final_url)
+        # Django's sitemap_index.xml (4.1+) reads site.location
+        sites.append({'location': final_url})
 
     xml = loader.render_to_string('sitemap_index.xml', {'sitemaps': sites})
     return HttpResponse(xml, content_type='application/xml')

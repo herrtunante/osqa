@@ -68,8 +68,6 @@ def answer_posted(action, new):
     answer = action.node
     question = answer.question
 
-    logging.error("Answer posted: %s" % str(answer.is_notifiable))
-
     if not answer.is_notifiable or not question.is_notifiable:
         return
 
