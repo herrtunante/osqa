@@ -4,10 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-OSQA is an open source Q&A system built on Django 1.6.0. It provides Stack Overflow-like functionality including questions, answers, comments, voting, badges, reputation points, and user moderation.
+OSQA is an open source Q&A system. It provides Stack Overflow-like functionality including questions, answers, comments, voting, badges, reputation points, and user moderation.
 
-Project site: http://meta.osqa.net
-Homepage: http://www.osqa.net
+It runs on Django 5.2 LTS and Python 3.11+; it was ported from Django 1.6 / Python 2 (notes in `docs/upgrade-history/`). See `README.md` for setup and deployment.
 
 ## Core Architecture
 
@@ -78,8 +77,7 @@ pip install -r requirements.txt
 
 3. Database setup:
 ```bash
-python manage.py syncdb
-python manage.py migrate  # If South is installed
+python manage.py migrate
 ```
 
 ### Running the Application
@@ -89,15 +87,13 @@ Development server:
 python manage.py runserver
 ```
 
-Production deployment uses WSGI (see `OSQA.wsgi` or `osqa.wsgi.dist`)
+Production: `gunicorn wsgi:application` (see `wsgi.py`, `Dockerfile`), or mod_wsgi with `osqa.wsgi.dist`
 
 ### Database Migrations
 
-This project uses South for migrations:
-```bash
-python manage.py migrate forum
-python manage.py migrate <module_name>
-```
+Django migrations live in `forum/migrations/`. After changing models run
+`python manage.py makemigrations forum`; CI fails if a migration is missing.
+Action subclasses are proxy models on the single `forum_action` table.
 
 ### Management Commands
 
@@ -127,17 +123,17 @@ When querying nodes, use the manager methods to get the correct subclass:
 
 - Skins are in `forum/skins/` (default skin is configurable)
 - Template loaders check: filesystem → app directories → module templates → skins
-- Uses Django 1.6 template system with custom tags in `forum/templatetags/`
+- Django template engine with custom tags in `forum/templatetags/`; a custom `Node.render()` must return a string
 
 ### Caching
 
-- File-based cache by default (configured in `settings_local.py`)
-- Models use `CachedManager` and `CachedQuerySet` for cache-aware queries
+- `CACHES` must be shared by all worker processes (file cache by default, memcached recommended); `settings.py` translates an old `CACHE_BACKEND` string
+- Models use `CachedManager` and `CachedQuerySet`; `get()` uses the per-object cache only for a bare pk lookup
 - Cache keys are generated with `_generate_cache_key` method
 
 ### Authentication
 
-Multiple authentication backends available as modules:
+Authentication providers are modules (only `localauth` is ported to Python 3 so far):
 - `localauth`: Standard username/password
 - `openidauth`: OpenID authentication
 - `oauthauth`: OAuth (Twitter, Google, etc.)
@@ -175,3 +171,13 @@ OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 4. **Cache Issues**: Clear cache directory during development if seeing stale data
 
 5. **Database**: This codebase uses MySQL by default; other databases may require adjustments to full-text search modules
+
+6. **Metaclasses**: Use `class X(Base, metaclass=M)`; a `__metaclass__` attribute is silently ignored by Python 3 and breaks node types, denormalized counts, action proxies and badges
+
+7. **Command views**: `@decorate.withfn(command)` views only accept POST; mark a view `@prompt` if it renders a form on GET (and act only on POST). The JS sends the CSRF token from the page's `csrfmiddlewaretoken` input
+
+8. **HTML in descriptions**: `forum.utils.html.hyperlink()`/`buildtag()` escape their text; escape any other user text interpolated into `Action.describe()` output, which templates render with `|safe`
+
+9. **Sessions are JSON**: store only JSON-serializable values (e.g. `QueryDict.urlencode()`, ISO datetimes)
+
+10. **Line endings**: several files (this one, `requirements.txt`, `settings_local.py.dist`, many templates) use CRLF; preserve them when editing

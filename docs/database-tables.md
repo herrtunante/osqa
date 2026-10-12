@@ -373,4 +373,4 @@
 - **Ready for migration:** Schema is created and waiting for data
 - **Action tables:** 34 different action types track all user activities
 - **Polymorphic design:** `forum_node` contains questions, answers, and comments
-- **See `DATABASE_MIGRATION_GUIDE.md` for detailed migration instructions**
+- **See `data-migration-guide.md` for detailed migration instructions**
