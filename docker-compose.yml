@@ -1,16 +1,13 @@
-version: '3.8'
-
 services:
   osqa:
     build: .
+    # Published on localhost only; put a reverse proxy (TLS) in front of it.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
+    environment:
+      OSQA_SECRET_KEY: ${OSQA_SECRET_KEY:?set OSQA_SECRET_KEY (e.g. in .env)}
     volumes:
-      - ./osqa.db:/app/osqa.db
-      - ./upfiles:/app/upfiles
+      - ./settings_local.py:/app/settings_local.py:ro
+      - ./forum/upfiles:/app/forum/upfiles
       - ./cache:/app/cache
       - ./log:/app/log
-    environment:
-      - PYTHONUNBUFFERED=1
-    stdin_open: true
-    tty: true

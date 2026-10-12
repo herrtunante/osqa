@@ -6,18 +6,29 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Git
+# Git / CI / IDE
 .git/
-.gitignore
-
-# IDE
+.github/
 .vscode/
 .idea/
+.claude/
 
-# Cache
+# Local configuration and data: mounted at runtime, never baked into the image
+settings_local.py
+.env
+importData/
+*.sql
+!forum_modules/**/*.sql
+*.db
+*.sqlite3
+forum/upfiles/*
+!forum/upfiles/logo.png
+
+# Runtime directories
 cache/
-*.log
 log/
+tmp/
+*.log
 
 # OS files
 .DS_Store
