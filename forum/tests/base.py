@@ -1,0 +1,57 @@
+import json
+from unittest import mock
+
+from django.core.cache import cache
+from django.test import TestCase
+
+from forum.models import User
+from forum.models.action import Action
+
+
+class OSQATestCase(TestCase):
+    """Base class: clean cache, synchronous action hooks and captured email."""
+
+    AJAX = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+    def setUp(self):
+        super().setUp()
+        # Model instances and query results are cached outside the database,
+        # so they would otherwise leak between tests.
+        cache.clear()
+        self.addCleanup(cache.clear)
+
+        # Action hooks run in a background thread, which can't see the test
+        # transaction; run them inline instead.
+        trigger_hooks = Action.trigger_hooks
+        patcher = mock.patch.object(
+            Action, 'trigger_hooks', lambda action, threaded, new=True: trigger_hooks(action, False, new))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self.sent_mail = []
+        patcher = mock.patch('forum.templatetags.email_tags.create_and_send_mail_messages',
+                             lambda messages, **kwargs: self.sent_mail.extend(messages))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def create_user(self, username, password='secret-pass', **fields):
+        user = User(username=username, email='%s@example.com' % username, **fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def login(self, user):
+        self.client.force_login(user)
+
+    def command(self, url, data=None):
+        """POST to an AJAX command view and return the decoded JSON response."""
+        response = self.client.post(url, data or {}, **self.AJAX)
+        self.assertEqual(response.status_code, 200)
+        return json.loads(response.content)
+
+    def assertCleanPage(self, response, status=200):
+        """The page rendered and shows no leftovers of broken URL or counter code."""
+        self.assertEqual(response.status_code, status)
+        body = response.content.decode('utf-8')
+        for marker in ("', (), {", 'DenormalizedField object', '/((),'):
+            self.assertNotIn(marker, body)

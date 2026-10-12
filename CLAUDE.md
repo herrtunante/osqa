@@ -153,8 +153,15 @@ The `forum/registry.py` and `forum/modules/ui.py` system registers UI elements:
 
 ## Testing
 
-Limited test coverage exists:
-- Run tests: `python manage.py test forum`
+Smoke tests live in `forum/tests/` and run against SQLite using `settings_local_test.py`:
+```bash
+OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
+```
+- Always pass the `forum.tests` label: unlabelled discovery also imports the
+  vendored `httplib2` tests under `forum_modules/oauthauth/lib`, which hang.
+- `forum.tests.base.OSQATestCase` clears the cache, runs action hooks inline
+  and captures outgoing email in `self.sent_mail`.
+- CI (`.github/workflows/tests.yml`) runs the suite and `makemigrations --check`.
 - UI test command available: `python manage.py test_ui`
 
 ## Common Pitfalls

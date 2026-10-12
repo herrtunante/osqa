@@ -51,8 +51,11 @@ CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access if needed
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-# User settings
-from settings_local import *
+# User settings. OSQA_SETTINGS_LOCAL selects a different module, e.g. the test
+# suite runs with OSQA_SETTINGS_LOCAL=settings_local_test.
+import importlib
+_settings_local = importlib.import_module(os.environ.get('OSQA_SETTINGS_LOCAL', 'settings_local'))
+globals().update(dict((k, v) for k, v in vars(_settings_local).items() if not k.startswith('_')))
 
 # Django 4.2: TEMPLATES configuration
 template_loaders = [
