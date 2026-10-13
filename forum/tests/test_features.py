@@ -1,3 +1,4 @@
+from django.urls import reverse
 from forum.models import Question
 from forum.models.node import normalize_fences
 from forum.utils.html import html2text, sanitize_html
@@ -54,6 +55,34 @@ class SanitizerTest(OSQATestCase):
         text = html2text('<p>Hello <strong>bold</strong> <a href="http://x.org/">link</a></p><ul><li>one</li></ul>')
         self.assertIn('Hello **bold** [link](http://x.org/)', text)
         self.assertIn('* one', text)
+
+
+class EditorPreviewTest(OSQATestCase):
+    def preview(self, text):
+        return self.client.post(reverse('markdown_preview'), {'text': text})
+
+    def test_preview_matches_saved_post_rendering(self):
+        bob = self.create_user('bob')
+        text = 'Hi @bob, see:\n\n```python\nprint(1)\n    ```\n\n<script>x()</script>*done*'
+        response = self.preview(text)
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('<code class="language-python">print(1)', html)
+        self.assertIn('data-user="%d"' % bob.id, html)
+        self.assertNotIn('<script', html)
+        question = Question(author=bob, title='A question title long enough', tagnames='gis', body=text)
+        question.save()
+        self.assertEqual(html, question.body)
+
+    def test_preview_limits(self):
+        self.assertEqual(self.preview('   ').content, b'')
+        self.assertEqual(self.client.get(reverse('markdown_preview')).status_code, 405)
+        self.assertEqual(self.preview('x' * 100001).status_code, 413)
+
+    def test_editor_pages_point_the_preview_at_the_server(self):
+        response = self.client.get(reverse('ask'))
+        self.assertContains(response, 'data-preview-url="%s"' % reverse('markdown_preview'))
+        self.assertNotContains(response, 'showdown.js')
 
 
 class SearchMetadataTest(OSQATestCase):

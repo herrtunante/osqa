@@ -4,9 +4,7 @@
 {% load extra_tags %}
 {% block title %}{% spaceless %}{% trans "Edit question" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/showdown.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/html_sanitizer.js" %}'></script>
         <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
         <script type="text/javascript">
 		//todo move javascript out        
@@ -104,7 +102,7 @@
                     
                     </table>   
                 </div>
-                <div id="previewer" class="wmd-preview"></div>
+                <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
             </div>
             <div class="form-item">
                 <strong>{{ form.tags.label_tag }}:</strong> <span class="form-error"></span><br/>

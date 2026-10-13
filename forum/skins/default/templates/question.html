@@ -28,9 +28,7 @@
 {% block forejs %}
         {% if not question.nis.closed %}
         <script type='text/javascript' src='{% media  "/media/js/osqa.question.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/wmd/showdown.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/html_sanitizer.js" %}'></script>
         <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
 
         {% if embed_youtube_videos %}
@@ -261,7 +259,7 @@
                         </table>
                     </div>
                     {{ answer.text.errors }}
-                    <div id="previewer" class="wmd-preview"></div>
+                    <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
                 </div>
 
                 {% if answer.recaptcha %}

@@ -47,6 +47,13 @@ def normalize_fences(content):
     return '\n'.join(lines)
 
 
+def render_markdown(content):
+    """Turns post Markdown into the sanitized HTML stored for each revision
+    (also used by the editor preview): fenced code, auto links, @mentions."""
+    html, mentioned = link_mentions(NodeContent._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code'))
+    return mark_safe(html)
+
+
 class NodeContent(models.Model):
     title      = models.CharField(max_length=300)
     tagnames   = models.CharField(max_length=125)
@@ -62,8 +69,7 @@ class NodeContent(models.Model):
         return self.body
 
     def rendered(self, content):
-        html, mentioned = link_mentions(self._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code'))
-        return mark_safe(html)
+        return render_markdown(content)
 
     @classmethod
     def _as_markdown(cls, content, *extensions):

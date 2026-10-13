@@ -129,7 +129,7 @@ When querying nodes, use the manager methods to get the correct subclass:
 
 ### Content features
 
-- Post HTML is rendered once per revision (`Node.rendered()`, stored in `body`): fenced code (`normalize_fences`), then `forum/utils/mentions.py` links `@username`; `forum.utils.html.sanitize_html` (nh3) holds the tag/attribute allow-list; notifications read mention ids from `data-user` attributes, which the sanitizer never accepts from user HTML
+- Post HTML is rendered once per revision (`Node.rendered()` → `forum.models.node.render_markdown()`, stored in `body`; the editor preview POSTs to `markdown_preview`, which uses the same function): fenced code (`normalize_fences`), then `forum/utils/mentions.py` links `@username`; `forum.utils.html.sanitize_html` (nh3) holds the tag/attribute allow-list; notifications read mention ids from `data-user` attributes, which the sanitizer never accepts from user HTML
 - A question closed as a duplicate keeps `{'duplicate_of': id}` in `Node.extra` (`Question.duplicate_of`)
 - `TagSynonym` maps tag names to tags; `TagNamesField` resolves synonyms when tags are entered
 

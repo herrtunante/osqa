@@ -9,7 +9,7 @@ from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404
 from django.utils.html import *
 from django.utils.translation import gettext as _
 
@@ -18,6 +18,7 @@ from django.contrib import messages
 from forum.actions import AskAction, AnswerAction, ReviseAction, RollbackAction, RetagAction, AnswerToQuestionAction, CommentToQuestionAction
 from forum.forms import *
 from forum.models import *
+from forum.models.node import render_markdown
 from forum.utils import html
 from forum.http_responses import HttpResponseUnauthorized
 
@@ -39,6 +40,20 @@ def looks_like_image(f):
     if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
         return True
     return any(head.startswith(signature) for signature in IMAGE_SIGNATURES)
+
+
+# Longer than any post body the forms accept; the preview refuses anything bigger.
+MAX_PREVIEW_LENGTH = 100000
+
+
+def markdown_preview(request):
+    """Renders editor Markdown exactly as a saved post would be rendered."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    text = request.POST.get('text', '')
+    if len(text) > MAX_PREVIEW_LENGTH:
+        return HttpResponse(status=413)
+    return HttpResponse(render_markdown(text) if text.strip() else '', content_type='text/html; charset=utf-8')
 
 
 def upload(request):#ajax upload file to a question or answer

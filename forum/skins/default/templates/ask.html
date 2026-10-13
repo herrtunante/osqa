@@ -3,9 +3,7 @@
 {% load i18n extra_tags extra_filters %}
 {% block title %}{% spaceless %}{% trans "Ask a question" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/showdown.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/html_sanitizer.js" %}'></script>
         <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
         <script type="text/html" id="question-summary-template">
             <div class="answer-summary">
@@ -114,7 +112,7 @@
 
                     </table>
                 </div>
-                <div id="previewer" class="wmd-preview"></div>
+                <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
                 <span class="form-error"></span>
             </div>
 

@@ -1258,38 +1258,7 @@ Attacklab.wmdBase = function(){
 				});
 			}
 			
-			if (inputBox.form) {
-				var submitCallback = inputBox.form.onsubmit;
-				inputBox.form.onsubmit = function(){
-					convertToHtml();
-					if (submitCallback) {
-						return submitCallback.apply(this, arguments);
-					}
-				};
-			}
 		};
-		
-		// Convert the contents of the input textarea to HTML in the output/preview panels.
-		var convertToHtml = function(){
-		
-			if (wmd.showdown) {
-				var markdownConverter = new wmd.showdown.converter();
-			}
-			var text = inputBox.value;
-			
-			var callback = function(){
-				inputBox.value = text;
-			};
-			
-			if (!/markdown/.test(wmd.wmd_env.output.toLowerCase())) {
-				if (markdownConverter) {
-					inputBox.value = markdownConverter.makeHtml(text);
-					top.setTimeout(callback, 0);
-				}
-			}
-			return true;
-		};
-		
 		
 		this.undo = function(){
 			if (undoMgr) {
@@ -1850,10 +1819,10 @@ Attacklab.wmdBase = function(){
 	wmd.previewManager = function(){
 		
 		var managerObj = this;
-		var converter;
+		var previewRequest = 0;
 		var poller;
 		var timeout;
-		var elapsedTime;
+		var elapsedTime = 400; // pause in typing before the preview is requested
 		var oldInputText;
 		var htmlOut;
 		var maxDelay = 3000;
@@ -1907,23 +1876,23 @@ Attacklab.wmdBase = function(){
 				oldInputText = text;
 			}
 			
-			var prevTime = new Date().getTime();
+			// The server renders the preview with the same Markdown pipeline as
+			// saved posts (fenced code, @mentions, sanitizing), so it matches the
+			// published post. Only the newest request may update the panel.
+			var request = ++previewRequest;
+			var url = wmd.panels.preview && wmd.panels.preview.getAttribute("data-preview-url");
+			var show = function(html){
+				if (request === previewRequest) {
+					pushPreviewHtml(html);
+					htmlOut = html;
+				}
+			};
 			
-			if (!converter && wmd.showdown) {
-				converter = new wmd.showdown.converter();
+			if (!url || !/\S/.test(text)) {
+				show("");
+				return;
 			}
-			
-			if (converter) {
-				text = converter.makeHtml(text);
-			}
-			
-			// Calculate the processing time of the HTML creation.
-			// It's used as the delay time in the event listener.
-			var currTime = new Date().getTime();
-			elapsedTime = currTime - prevTime;
-			
-			pushPreviewHtml(text);
-			htmlOut = text;
+			jQuery.post(url, {text: text}).done(show);
 		};
 		
 		// setTimeout is already used.  Used as an event listener.

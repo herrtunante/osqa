@@ -174,7 +174,9 @@ fork used before), and the site's own search when it is empty.
 ## Features added in this fork
 
 - Fenced code blocks (```` ```python ````) and syntax highlighting (highlight.js,
-  self-hosted) in posts and the editor preview.
+  self-hosted) in posts and the editor preview. The preview is rendered by the
+  server with the same Markdown pipeline as published posts, so what you see is
+  what gets posted.
 - `@username` mentions in posts and comments, with autocomplete and an email to
   the mentioned user (controlled by the "mentions me" notification setting).
 - Close as duplicate with a link to the original question; moderators can move

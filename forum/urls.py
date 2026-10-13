@@ -124,6 +124,7 @@ core_urls = [
     # (r'^admin/doc/' % _('admin/doc'), include('django.contrib.admindocs.urls')),
     
     re_path(r'^%s$' % _('upload/'), app.writers.upload, name='upload'),
+    re_path(r'^%s$' % _('preview/'), app.writers.markdown_preview, name='markdown_preview'),
     re_path(r'^%s$' % _('search/'), app.readers.search, name='search'),
     re_path(r'^%s$' % _('contact/'), app.meta.feedback, name='feedback'),
 
