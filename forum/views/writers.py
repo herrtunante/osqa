@@ -182,8 +182,10 @@ def _edit_question(request, question, template='question_edit.html', summary='',
                    allow_rollback=True, url_getter=lambda q: q.get_absolute_url(), additional_context=None):
     if request.method == 'POST':
         revision_form = RevisionForm(question, data=request.POST)
-        revision_form.is_valid()
-        revision = question.revisions.get(revision=revision_form.cleaned_data['revision'])
+        if revision_form.is_valid():
+            revision = question.revisions.get(revision=revision_form.cleaned_data['revision'])
+        else:
+            revision = question.active_revision
 
         if 'select_revision' in request.POST:
             form = EditQuestionForm(question, request.user, revision)
@@ -232,8 +234,10 @@ def edit_answer(request, id):
 
     if request.method == "POST":
         revision_form = RevisionForm(answer, data=request.POST)
-        revision_form.is_valid()
-        revision = answer.revisions.get(revision=revision_form.cleaned_data['revision'])
+        if revision_form.is_valid():
+            revision = answer.revisions.get(revision=revision_form.cleaned_data['revision'])
+        else:
+            revision = answer.active_revision
 
         if 'select_revision' in request.POST:
             form = EditAnswerForm(answer, request.user, revision)

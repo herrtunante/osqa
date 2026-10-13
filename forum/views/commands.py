@@ -609,14 +609,23 @@ def matching_tags(request):
     return HttpResponse(tag_output, content_type="text/plain")
 
 def matching_users(request):
-    if len(request.GET['q']) == 0:
+    query = request.GET.get('q', '').strip()
+    if len(query) == 0:
         raise CommandException(_("Invalid request"))
 
-    possible_users = User.objects.filter(username__icontains = request.GET['q'])
+    try:
+        limit = min(max(int(request.GET.get('limit', 20)), 1), 50)
+    except ValueError:
+        limit = 20
+
+    # Usernames starting with the query first (for @mention autocomplete), then the rest.
+    users = User.objects.filter(is_active=True, username__icontains=query)
+    prefix = list(users.filter(username__istartswith=query).order_by('-reputation')[:limit])
+    possible_users = prefix + list(users.exclude(id__in=[u.id for u in prefix]).order_by('-reputation')[:limit - len(prefix)])
     output = ''
 
     for user in possible_users:
-        output += ("%s|%s|%s\n" % (user.id, user.decorated_name, user.reputation))
+        output += ("%s|%s|%s|%s\n" % (user.id, user.decorated_name, user.reputation, user.username))
 
     return HttpResponse(output, content_type="text/plain")
 

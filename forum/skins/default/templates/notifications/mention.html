@@ -1,0 +1,36 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
+    author_name = html.mark_safe(smart_str(author.username))
+    question_title = html.mark_safe(smart_str(question.title))
+    author_link = html.objlink(author, style=settings.EMAIL_ANCHOR_STYLE)
+    question_link = html.objlink(question, style=settings.EMAIL_ANCHOR_STYLE)
+    post_url = html.mark_safe(settings.APP_BASE_URL + node.get_absolute_url())
+    safe_body = html.html2text(smart_str(node.body))
+{% enddeclare %}
+
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} {{ author_name }} mentioned you in: {{ question_title }}{% endblocktrans %}{% endsubject %}
+
+    {% htmlcontent notifications/base.html %}
+        <p style="{{ p_style }}">
+            {% blocktrans %}{{ author_link }} mentioned you in {{ question_link }}:{% endblocktrans %}
+        </p>
+
+        <blockquote>
+        {{ node.body|safe }}
+        </blockquote>
+
+        <p style="{{ p_style }}"><a style="{{ a_style }}" href="{{ post_url }}">{% trans "View it on the site" %}</a></p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans %}{{ author_name }} mentioned you in "{{ question_title }}":{% endblocktrans %}
+
+{{ safe_body }}
+
+{{ post_url }}
+{% endtextcontent %}
+
+{% endemail %}

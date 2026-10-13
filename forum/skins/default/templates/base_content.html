@@ -55,6 +55,7 @@
                 close: "{% trans "Close" %}",
                 ok: "{% trans "Ok" %}",
                 matching_tags_url: "{% url "matching_tags" %}",
+                matching_users_url: "{% url "matching_users" %}",
                 word: "{% trans "word" %}",
                 words: "{% trans "words" %}",
                 character: "{% trans "character" %}",
@@ -72,6 +73,7 @@
         <script defer src="{% media "/media/js/osqa.highlight.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.mentions.js" %}"></script>
         {% if user_messages %}
         <script type="text/javascript">
             $(document).ready(function() {

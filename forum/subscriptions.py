@@ -5,7 +5,8 @@ import logging
 from forum.models import User, Question, Comment, QuestionSubscription, SubscriptionSettings, Answer
 from forum.utils.mail import send_template_email
 from django.utils.translation import gettext as _
-from forum.actions import AskAction, AnswerAction, CommentAction, AcceptAnswerAction, UserJoinsAction, QuestionViewAction
+from forum.actions import AskAction, AnswerAction, CommentAction, AcceptAnswerAction, UserJoinsAction, QuestionViewAction, ReviseAction
+from forum.utils.mentions import mentioned_user_ids
 from forum import settings
 from django.db.models import Q, F
 
@@ -32,18 +33,40 @@ def filter_subscribers(subscribers):
     else:
         return subscribers
 
+def notify_mentioned(node, author, user_ids):
+    """Email the users mentioned (@username) in a post or comment. Returns their ids."""
+    user_ids = set(user_ids) - {author.id}
+    if not user_ids or not node.is_notifiable:
+        return set()
+
+    question = node.leaf.absolute_parent
+    if not question.is_notifiable:
+        return set()
+
+    users = filter_subscribers(User.objects.filter(
+        id__in=user_ids,
+        subscription_settings__enable_notifications=True,
+        subscription_settings__notify_reply_to_comments=True,
+    ))
+    send_template_email(users, "notifications/mention.html",
+                        {'node': node.leaf, 'question': question, 'author': author})
+    return user_ids
+
+
 def question_posted(action, new):
     question = action.node
 
     if not question.is_notifiable:
         return
 
+    mentioned = notify_mentioned(question, question.author, mentioned_user_ids(question.body))
+
     subscribers = User.objects.filter(
             Q(subscription_settings__enable_notifications=True, subscription_settings__new_question='i') |
             (Q(subscription_settings__new_question_watched_tags='i') &
               Q(marked_tags__name__in=question.tagnames.split(' ')) &
               Q(tag_selections__reason='good'))
-    ).exclude(id=question.author.id).distinct()
+    ).exclude(id=question.author.id).exclude(id__in=mentioned).distinct()
 
     subscribers = filter_subscribers(subscribers)
 
@@ -71,11 +94,13 @@ def answer_posted(action, new):
     if not answer.is_notifiable or not question.is_notifiable:
         return
 
+    mentioned = notify_mentioned(answer, answer.author, mentioned_user_ids(answer.body))
+
     subscribers = question.subscribers.filter(
             subscription_settings__enable_notifications=True,
             subscription_settings__notify_answers=True,
             subscription_settings__subscribed_questions='i'
-    ).exclude(id=answer.author.id).distinct()
+    ).exclude(id=answer.author.id).exclude(id__in=mentioned).distinct()
 
     subscribers = filter_subscribers(subscribers)
 
@@ -100,15 +125,12 @@ def comment_posted(action, new):
 
     q_filter = Q(subscription_settings__notify_comments=True) | Q(subscription_settings__notify_comments_own_post=True, id=post.author.id)
 
-    inreply = re.search('@\w+', comment.comment)
-    if inreply is not None:
-        q_filter = q_filter | Q(subscription_settings__notify_reply_to_comments=True,
-                                username__istartswith=inreply.group(0)[1:],
-                                nodes__parent=post, nodes__node_type="comment")
+    # Replies use @username: the people mentioned get a "mentioned you" email instead.
+    mentioned = notify_mentioned(comment, comment.user, mentioned_user_ids(comment.body))
 
     subscribers = question.subscribers.filter(
             q_filter, subscription_settings__subscribed_questions='i', subscription_settings__enable_notifications=True
-    ).exclude(id=comment.user.id).distinct()
+    ).exclude(id=comment.user.id).exclude(id__in=mentioned).distinct()
 
     subscribers = filter_subscribers(subscribers)
 
@@ -118,6 +140,19 @@ def comment_posted(action, new):
     create_subscription_if_not_exists(question, comment.user)
 
 CommentAction.hook(comment_posted)
+
+
+def post_edited(action, new):
+    """An edit notifies only the people it newly mentions."""
+    node = action.node.leaf
+    try:
+        previous = node.revisions.get(revision=int(action.extra) - 1)
+        before = mentioned_user_ids(node.rendered(previous.body))
+    except Exception:
+        before = set()
+    notify_mentioned(node, action.user, mentioned_user_ids(node.body) - before)
+
+ReviseAction.hook(post_edited)
 
 
 def answer_accepted(action, new):

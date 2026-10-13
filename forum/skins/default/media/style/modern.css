@@ -2084,6 +2084,50 @@ div.dialog.prompt .close-move-answers {
     margin-top: 8px;
 }
 
+/* ---- @mentions -------------------------------------------------------- */
+
+a.mention {
+    padding: 0 3px;
+    border-radius: 4px;
+    background: var(--brand-soft);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.mention-suggestions {
+    position: absolute;
+    z-index: 1200;
+    min-width: 200px;
+    margin: 0;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    list-style: none;
+    box-shadow: 0 10px 30px rgba(16, 24, 40, .15);
+}
+
+.mention-suggestions li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.mention-suggestions li.active {
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+}
+
+.mention-suggestions .mention-rep {
+    color: var(--muted);
+    font-size: 12px;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */

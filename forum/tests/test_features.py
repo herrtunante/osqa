@@ -200,3 +200,84 @@ class DuplicateTest(OSQATestCase):
         dialog = self.client.get('/questions/%d/close/' % self.duplicate.id).content.decode()
         self.assertIn('name="duplicate_of"', dialog)
         self.assertIn('name="move_answers"', dialog)
+
+
+class MentionTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        self.alice = self.create_user('alice', email_isvalid=True)
+        self.bob = self.create_user('bob', email_isvalid=True)
+        self.john = self.create_user('John Smith', email_isvalid=True)
+        self.question = Question(author=self.alice, title='How do I reproject a shapefile?', tagnames='gis',
+                                 body='Question body text that is long enough.')
+        self.question.save()
+
+    def link(self, text):
+        from forum.utils.mentions import link_mentions
+        return link_mentions(text)
+
+    def test_linking(self):
+        html, users = self.link('<p>Thanks @Bob and @John Smith said, ask @nobody or mail me@alice.org</p>')
+        self.assertEqual({u.username for u in users}, {'bob', 'John Smith'})
+        self.assertIn('<a class="mention" data-user="%d" href="%s">@bob</a> and' % (self.bob.id, self.bob.get_profile_url()), html)
+        self.assertIn('>@John Smith</a> said', html)
+        self.assertIn('@nobody', html)
+        self.assertIn('me@alice.org', html)
+
+    def test_no_prefix_matches_and_no_code(self):
+        html, users = self.link('<p>@bo and @bobby</p><pre><code>@bob.route("/")</code></pre><p><a href="/x">@bob</a></p>')
+        self.assertEqual(users, [])
+
+    def test_mentions_cannot_be_faked_with_raw_html(self):
+        from forum.models import Answer
+        answer = Answer(author=self.alice, parent=self.question,
+                        body='<a class="mention" data-user="%d" href="/x">hi</a> long enough answer' % self.bob.id)
+        answer.save()
+        self.assertNotIn('data-user', answer.body)
+
+    def answer(self, user, text):
+        from forum.models import Answer
+        self.login(user)
+        response = self.client.post('/questions/%d/answer/' % self.question.id, {'text': text})
+        self.assertEqual(response.status_code, 302)
+        return Answer.objects.filter(parent=self.question).latest('id')
+
+    def mentioned(self):
+        return {m[0].username for m in self.sent_mail if 'mentioned you' in m[1]}
+
+    def test_comment_mention_notifies_once(self):
+        from forum.models import QuestionSubscription, Comment
+        QuestionSubscription(question=self.question, user=self.bob).save()
+        self.sent_mail.clear()
+        self.login(self.alice)
+        reply = self.command('/comment/%d/' % self.question.id, {'comment': '@bob could you check the projection settings?'})
+        self.assertTrue(reply['success'], reply)
+        to_bob = [m for m in self.sent_mail if m[0] == self.bob]
+        self.assertEqual(len(to_bob), 1)
+        self.assertIn('alice mentioned you in: How do I reproject a shapefile?', to_bob[0][1])
+        self.assertIn('class="mention"', Comment.objects.latest('id').body)
+
+    def test_preference_and_self_mentions(self):
+        self.bob.subscription_settings.notify_reply_to_comments = False
+        self.bob.subscription_settings.save()
+        self.sent_mail.clear()
+        self.answer(self.alice, 'As @alice I agree with @bob, and @John Smith knows more.')
+        self.assertEqual(self.mentioned(), {'John Smith'})
+
+    def test_edit_notifies_only_new_mentions(self):
+        answer = self.answer(self.alice, 'First version mentioning @bob only, long enough.')
+        self.sent_mail.clear()
+        response = self.client.post('/answers/%d/edit/' % answer.id, {
+            'text': 'Second version mentioning @bob and @John Smith, long enough.', 'summary': 'more', 'revision': '1'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.mentioned(), {'John Smith'})
+
+    def test_matching_users_prefix_first(self):
+        self.create_user('jumbo')
+        inactive = self.create_user('bobsleigh')
+        inactive.is_active = False
+        inactive.save()
+        lines = self.client.get('/matching_users/', {'q': 'bo'}).content.decode().splitlines()
+        self.assertEqual(lines[0].split('|')[3], 'bob')
+        self.assertNotIn('bobsleigh', '\n'.join(lines))
+        self.assertTrue(any(line.endswith('|jumbo') for line in lines))

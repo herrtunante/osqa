@@ -29,7 +29,9 @@ ALLOWED_ATTRIBUTES = {
           'noshade', 'nowrap', 'rel', 'rev', 'rows', 'rowspan', 'rules', 'scope',
           'span', 'start', 'summary', 'title', 'type', 'valign', 'vspace',
           'width'],
-    'a': ['href'],
+    # class="mention" only styles @mention links; the data-user attribute that
+    # notifications rely on is added after sanitizing and never accepted from users.
+    'a': lambda tag, name, value: name == 'href' or (name == 'class' and value == 'mention'),
     'img': ['src'],
     # Fenced code blocks name their language for the syntax highlighter.
     'code': lambda tag, name, value: name == 'class' and LANGUAGE_CLASS.fullmatch(value) is not None,
