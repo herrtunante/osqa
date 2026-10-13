@@ -22,7 +22,6 @@ from forum import settings
 from django.template import loader, Context, Template
 from forum.utils.html import sanitize_html
 from forum.context import application_settings
-from forum.utils.html2text import HTML2Text
 from threading import Thread
 
 def send_template_email(recipients, template, context, sender=None, reply_to = None):

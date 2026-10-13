@@ -1,67 +1,67 @@
 import re
-import sys, traceback
-from django.core.management.base import NoArgsCommand
+from importlib import import_module
+from importlib.metadata import PackageNotFoundError, version
 
-OK_MESSAGE = "  Found %(what)s version %(version)s - OK"
+from django.core.management.base import BaseCommand
 
-OLD_VERSION_ERROR = """  ERROR: Found %(what)s version %(version)s - you should upgrade it to at least %(minimum)s.
-                Package installers like apt-get or yum usually maintain old versions of libraries in the repositories."""
+# (import name, distribution name) of the packages in requirements.txt
+REQUIRED = [
+    ('django', 'Django'),
+    ('markdown', 'Markdown'),
+    ('nh3', 'nh3'),
+    ('html2text', 'html2text'),
+]
 
-NOT_FOUND_ERROR = "ERROR: %(what)s was not found on your system."
+OPTIONAL = [
+    ('MySQLdb', 'mysqlclient', 'the default MySQL database'),
+    ('pymemcache', 'pymemcache', "the recommended 'PyMemcacheCache' cache"),
+    ('ldap', 'python-ldap', 'the ldapauth module'),
+]
 
-HOW_TO_INSTALL = """  Try easy_install %(what)s or download it from %(where)s"""
 
-IMPORT_ERROR_MESSAGE = """Importing %(what)s is throwing an exception. Here's the full stack trace:"""
+class Command(BaseCommand):
+    help = 'Checks that the libraries, database and settings OSQA needs are in place.'
 
-class Command(NoArgsCommand):
-    def handle_noargs(self, **options):
-        print("Checking dependencies:")
-
+    def check_package(self, module, dist, why=None):
         try:
-            import html5lib
-            print("  Found html5lib - OK")
+            import_module(module)
         except ImportError:
-            print(NOT_FOUND_ERROR % dict(what='html5lib'))
-            print(HOW_TO_INSTALL % dict(what='html5lib', where='http://code.google.com/p/html5lib/'))
-        except Exception as e:
-            print(IMPORT_ERROR_MESSAGE % dict(what='html5lib'))
-            traceback.print_exc(file=sys.stdout)
-
-        try:
-            import markdown
-            version = int(re.findall('^\d+', markdown.version)[0])
-            if version < 2:
-                print(OLD_VERSION_ERROR % dict(what='markdown', version=markdown.version, minimum='2.0'))
-                print(HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/'))
+            if why:
+                self.stdout.write('  %s not installed (only needed for %s)' % (dist, why))
             else:
-                print(OK_MESSAGE % dict(what='markdown', version=markdown.version))
-        except ImportError:
-            print(NOT_FOUND_ERROR % dict(what='markdown'))
-            print(HOW_TO_INSTALL % dict(what='markdown', where='http://www.freewisdom.org/projects/python-markdown/'))
+                self.stdout.write(self.style.ERROR('  ERROR: %s was not found. Run: pip install -r requirements.txt' % dist))
+            return
         except Exception as e:
-            print(IMPORT_ERROR_MESSAGE % dict(what='markdown'))
-            traceback.print_exc(file=sys.stdout)
+            self.stdout.write(self.style.ERROR('  ERROR: importing %s failed: %s' % (dist, e)))
+            return
+        try:
+            found = version(dist)
+        except PackageNotFoundError:
+            found = 'unknown'
+        self.stdout.write('  Found %s %s - OK' % (dist, found))
 
+    def handle(self, **options):
+        self.stdout.write('Checking dependencies:')
+        for module, dist in REQUIRED:
+            self.check_package(module, dist)
+        for module, dist, why in OPTIONAL:
+            self.check_package(module, dist, why)
 
-        print("\n\nChecking database connection:")
-
+        self.stdout.write('\nChecking database connection:')
         try:
             from forum.models import User
             User.objects.all().count()
-            print("  Connection OK")
+            self.stdout.write('  Connection OK')
         except Exception as e:
-            print("There seems to be a problem with your database: %s" % str(e))
-
-
+            self.stdout.write(self.style.ERROR('  There seems to be a problem with your database: %s' % e))
 
         from django.conf import settings
 
-        print("\n\nChecking important settings:")
-
-        if not re.match('^https?:\/\/\w+', settings.APP_URL):
-            print(" Your APP_URL does not seem to be a valid url. Please fill this setting with the URL of your OSQA installation")
+        self.stdout.write('\nChecking important settings:')
+        if not re.match(r'^https?://\w+', settings.APP_URL):
+            self.stdout.write(self.style.ERROR(
+                '  Your APP_URL does not seem to be a valid url. Please fill this setting '
+                'with the URL of your OSQA installation'))
         else:
-            print(" APP_URL - %s" % settings.APP_URL)
-            print(" APP_BASE_URL - %s" % settings.APP_BASE_URL)
-
-        
+            self.stdout.write('  APP_URL - %s' % settings.APP_URL)
+            self.stdout.write('  APP_BASE_URL - %s' % settings.APP_BASE_URL)

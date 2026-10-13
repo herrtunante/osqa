@@ -1,6 +1,6 @@
 from forum.models import Question
 from forum.models.node import normalize_fences
-from forum.utils.html import sanitize_html
+from forum.utils.html import html2text, sanitize_html
 
 from .base import OSQATestCase
 
@@ -32,6 +32,28 @@ class CodeBlockTest(OSQATestCase):
         response = self.client.get('/')
         self.assertContains(response, '/media/vendor/highlight-11.10.0/highlight.min.js')
         self.assertContains(response, '/media/js/osqa.highlight.js')
+
+
+class SanitizerTest(OSQATestCase):
+    def test_unsafe_markup_is_removed(self):
+        self.assertEqual(sanitize_html('<p onclick="x()">a &amp; b<script>evil()</script></p>'),
+                         '<p>a &amp; b</p>')
+        self.assertEqual(sanitize_html('<a href="javascript:alert(1)">x</a>'), '<a>x</a>')
+        self.assertEqual(sanitize_html('<iframe src="/x"></iframe><blink>hi</blink>'), 'hi')
+
+    def test_safe_markup_is_kept(self):
+        html = '<a href="/questions/1/">q</a> <img src="/upfiles/a.png" alt="a"> <table><tr><td>1</td></tr></table>'
+        self.assertEqual(sanitize_html(html),
+                         '<a href="/questions/1/">q</a> <img src="/upfiles/a.png" alt="a"> '
+                         '<table><tbody><tr><td>1</td></tr></tbody></table>')
+        self.assertEqual(sanitize_html('<a href="/u" class="mention">@u</a>'),
+                         '<a href="/u" class="mention">@u</a>')
+        self.assertEqual(sanitize_html('<a href="/u" class="evil">@u</a>'), '<a href="/u">@u</a>')
+
+    def test_html2text_for_plain_text_email(self):
+        text = html2text('<p>Hello <strong>bold</strong> <a href="http://x.org/">link</a></p><ul><li>one</li></ul>')
+        self.assertIn('Hello **bold** [link](http://x.org/)', text)
+        self.assertIn('* one', text)
 
 
 class SearchMetadataTest(OSQATestCase):

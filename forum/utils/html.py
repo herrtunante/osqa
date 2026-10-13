@@ -1,10 +1,10 @@
 """Utilities for working with HTML."""
 import re
 
-import bleach
+import html2text as _html2text
+import nh3
 from urllib.parse import quote_plus
 from django.utils.html import strip_tags, conditional_escape
-from forum.utils.html2text import HTML2Text
 from django.utils.safestring import mark_safe
 from forum import settings
 
@@ -22,36 +22,44 @@ ALLOWED_TAGS = [
 ]
 
 ALLOWED_ATTRIBUTES = {
-    '*': ['abbr', 'align', 'alt', 'axis', 'border',
+    '*': {'abbr', 'align', 'alt', 'axis', 'border',
           'cellpadding', 'cellspacing', 'char', 'charoff', 'charset', 'cite',
           'cols', 'colspan', 'datetime', 'dir', 'frame', 'headers', 'height',
           'hreflang', 'hspace', 'lang', 'longdesc', 'name', 'nohref',
           'noshade', 'nowrap', 'rel', 'rev', 'rows', 'rowspan', 'rules', 'scope',
           'span', 'start', 'summary', 'title', 'type', 'valign', 'vspace',
-          'width'],
-    # class="mention" only styles @mention links; the data-user attribute that
-    # notifications rely on is added after sanitizing and never accepted from users.
-    'a': lambda tag, name, value: name == 'href' or (name == 'class' and value == 'mention'),
-    'img': ['src'],
-    # Fenced code blocks name their language for the syntax highlighter.
-    'code': lambda tag, name, value: name == 'class' and LANGUAGE_CLASS.fullmatch(value) is not None,
+          'width'},
+    'a': {'href', 'class'},
+    'img': {'src'},
+    'code': {'class'},
 }
 
+
+def _filter_attribute(tag, name, value):
+    if name == 'class':
+        # class="mention" only styles @mention links; the data-user attribute that
+        # notifications rely on is added after sanitizing and never accepted from users.
+        if tag == 'a':
+            return value if value == 'mention' else None
+        # Fenced code blocks name their language for the syntax highlighter.
+        if tag == 'code':
+            return value if LANGUAGE_CLASS.fullmatch(value) else None
+    return value
+
+
 def sanitize_html(html):
-    """Sanitizes an HTML fragment using bleach."""
-    return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
+    """Sanitizes an HTML fragment: disallowed tags are stripped (keeping their
+    text), disallowed attributes and unsafe URLs are dropped."""
+    return nh3.clean(html, tags=set(ALLOWED_TAGS), attributes=ALLOWED_ATTRIBUTES,
+                     attribute_filter=_filter_attribute, link_rel=None)
 
 def cleanup_urls(url):
     return quote_plus(strip_tags(url))
 
 
-def html2text(s, ignore_tags=(), indent_width=4, page_width=80):
-    ignore_tags = [t.lower() for t in ignore_tags]
-    parser = HTML2Text(ignore_tags, indent_width, page_width)
-    parser.feed(s)
-    parser.close()
-    parser.generate()
-    return mark_safe(parser.result)
+def html2text(s, page_width=80):
+    """Converts an HTML fragment into readable plain text (Markdown-style)."""
+    return mark_safe(_html2text.HTML2Text(bodywidth=page_width).handle(s))
 
 def _attrs(attrs):
     return " ".join('%s="%s"' % (k, conditional_escape(v)) for k, v in attrs.items())
