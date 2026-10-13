@@ -1,5 +1,4 @@
 
-/*@import "jquery.autocomplete.css";*/
 
 textarea {
     width: 100%;
@@ -91,4 +90,30 @@ input.longstring {
         width: 100%;
         max-width: 100%;
     }
+}
+
+/* Author / tag suggestions in the node manager (jQuery UI autocomplete) */
+.ui-widget.ui-autocomplete.osqa-autocomplete {
+    z-index: 1100;
+    max-height: 300px;
+    padding: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--hairline-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+    font-family: inherit;
+}
+
+.ui-menu.osqa-autocomplete .ui-menu-item-wrapper {
+    padding: 5px 8px;
+    border: 0;
+    color: var(--body-fg, #333);
+}
+
+.ui-menu.osqa-autocomplete .ui-menu-item-wrapper.ui-state-active {
+    margin: 0;
+    border: 0;
+    background: var(--selected-row, #ffc);
+    color: var(--body-fg, #333);
 }

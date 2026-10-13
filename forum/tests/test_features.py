@@ -30,7 +30,7 @@ class CodeBlockTest(OSQATestCase):
 
     def test_highlighter_is_loaded(self):
         response = self.client.get('/')
-        self.assertContains(response, '/media/vendor/highlight-11.10.0/highlight.min.js')
+        self.assertContains(response, '/media/vendor/highlight-11.11.1/highlight.min.js')
         self.assertContains(response, '/media/js/osqa.highlight.js')
 
 

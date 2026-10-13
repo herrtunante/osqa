@@ -28,7 +28,6 @@
 {% block forejs %}
         {% if not question.nis.closed %}
         <script type='text/javascript' src='{% media  "/media/js/osqa.question.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/jquery.caret.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/showdown.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/html_sanitizer.js" %}'></script>
@@ -48,7 +47,6 @@
                 $("#" + answer_sort_tab).attr('className',"on");
             }
 
-            $('#editor').TextAreaResizer();
 
             //toggle preview of editor
             var display = true;

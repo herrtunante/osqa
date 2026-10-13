@@ -7,29 +7,7 @@
         <script type="text/javascript">
         
         $().ready(function(){
-            $("#id_tags").autocomplete("{% url "matching_tags" %}", {
-        		matchContains: true,
-                max: 20,
-                multiple: true,
-                multipleSeparator: " ",
-                highlightItem: true,
-                scroll: true,
-                scrollHeight: 300,
-        		/*formatItem: function(row, i, max) {
-        			return row.n + " ("+ row.c +")";
-        		},
-                formatResult: function(row, i, max){
-                    return row.n;
-                }*/
-                formatItem: function(row, i, max, value) {
-                    return row[1] + " (" + row[2] + ")";
-                },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-                
-            });
+            $("#id_tags").osqaAutocomplete("{% url "matching_tags" %}", {multiple: true, max: 20});
 
         });
         </script>

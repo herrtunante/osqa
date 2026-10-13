@@ -64,24 +64,15 @@
                 }
             });
 
-            $('#author-selector').autocomplete('{% url "matching_users" %}', {
-                minChars: 1,
-                matchContains: true,
-                max: 10,
-
-                formatItem: function(row, i, max, value) {
+            $('#author-selector').osqaAutocomplete('{% url "matching_users" %}', {
+                label: function(row) {
                     return row[1] + ' (' + row[2] + ' {% trans "rep" %})';
                 },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-            });
-
-            $('#author-selector').result(function(event, data, formatted) {
-                if ($('#author-filter-container').find('input[value="' + data[0] + '"]').length == 0) {
-                    $('#author-filter-container').append($("<input name=\"authors\" type=\"hidden\" value=\"" + data[0] + "\" />"));
-                    $form.submit();
+                select: function(row) {
+                    if ($('#author-filter-container').find('input[value="' + row[0] + '"]').length == 0) {
+                        $('#author-filter-container').append($('<input name="authors" type="hidden" />').val(row[0]));
+                        $form.submit();
+                    }
                 }
             });
 
@@ -93,24 +84,15 @@
                 }
             });
 
-            $('#tag-selector').autocomplete('{% url "matching_tags" %}', {
-                minChars: 1,
-                matchContains: true,
-                max: 10,
-
-                formatItem: function(row, i, max, value) {
+            $('#tag-selector').osqaAutocomplete('{% url "matching_tags" %}', {
+                label: function(row) {
                     return row[1] + ' (' + row[2] + ' {% trans "uses" %})';
                 },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-            });
-
-            $('#tag-selector').result(function(event, data, formatted) {
-                if ($('#tag-filter-container').find('input[value="' + data[0] + '"]').length == 0) {
-                    $('#tag-filter-container').append($("<input name=\"tags\" type=\"hidden\" value=\"" + data[0] + "\" />"));
-                    $form.submit();
+                select: function(row) {
+                    if ($('#tag-filter-container').find('input[value="' + row[0] + '"]').length == 0) {
+                        $('#tag-filter-container').append($('<input name="tags" type="hidden" />').val(row[0]));
+                        $form.submit();
+                    }
                 }
             });
 

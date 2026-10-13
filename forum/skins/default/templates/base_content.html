@@ -27,7 +27,8 @@
         <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.compat.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
-        <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.13.3/jquery-ui.min.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
         <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
         <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
@@ -35,7 +36,7 @@
         {% if settings.USE_CUSTOM_CSS|or_preview:request %}
         <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
         {% endif %}
-        <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.13.3/jquery-ui.min.css" %}" />
+        <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}" />
         {% block forestyle %}{% endblock %}
 
         <script type="text/javascript">
@@ -69,7 +70,7 @@
         /*]]>*/
         </script>
         <script type="text/javascript" src="{% media  "/media/js/osqa.main.js" %}"></script>
-        <script defer src="{% media "/media/vendor/highlight-11.10.0/highlight.min.js" %}"></script>
+        <script defer src="{% media "/media/vendor/highlight-11.11.1/highlight.min.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.highlight.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>

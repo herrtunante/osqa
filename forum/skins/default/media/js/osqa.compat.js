@@ -1,6 +1,6 @@
 /*
- * Compatibility for the bundled third-party plugins (tag autocomplete, flot
- * charts, caret, image upload) written for jQuery 1.x. OSQA's own code uses
+ * Compatibility for the bundled third-party plugins (flot charts, image
+ * upload) written for jQuery 1.x. OSQA's own code uses
  * the jQuery 3 APIs directly.
  */
 (function($) {
