@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- base_content.html -->
-{% load i18n extra_tags extra_filters ui_registry %}
+{% load i18n extra_tags extra_filters ui_registry seo_tags %}
 <html lang="{{ settings.LANGUAGE_CODE }}"{% if settings.DARK_MODE %} data-color-scheme="auto"{% endif %}>
     <head>{% block after_head_js %}{% endblock %}
         <meta charset="utf-8" />
@@ -12,6 +12,15 @@
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />
         {% block meta %}{% endblock %}
+        {% block social_meta %}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="{{ settings.APP_TITLE }}" />
+        <meta property="og:description" content="{{ settings.APP_DESCRIPTION }}" />
+        {% endblock %}
+        <meta property="og:site_name" content="{{ settings.APP_SHORT_NAME }}" />
+        <meta property="og:url" content="{% absolute_url request.path %}" />
+        <meta property="og:image" content="{% site_logo_url %}" />
+        <meta name="twitter:card" content="summary" />
         {% if settings.GOOGLE_SITEMAP_CODE %}
         <meta name="google-site-verification" content="{{ settings.GOOGLE_SITEMAP_CODE }}" />
         {% endif %}

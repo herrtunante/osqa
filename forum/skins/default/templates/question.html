@@ -8,11 +8,21 @@
 {% load humanize %}
 {% load i18n %}
 {% load cache %}
+{% load seo_tags %}
 {% block metadescription %}{{ question.meta_description }}{% endblock %}
 {% block metakeywords %}{{question.tagname_meta_generator}}{% endblock %}
 {% block meta %}
         <link rel="canonical" href="{{settings.APP_BASE_URL}}{{question.get_absolute_url}}" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ question.get_absolute_url }}?type=rss">
+        {% question_structured_data question %}
+{% endblock %}
+{% block social_meta %}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content="{{ question.headline }}" />
+        <meta property="og:description" content="{{ question.meta_description }}" />
+        <meta property="article:published_time" content="{{ question.added_at|date:"c" }}" />
+        {% for tag in question.tagname_list %}<meta property="article:tag" content="{{ tag }}" />
+        {% endfor %}
 {% endblock %}
 {% block title %}{% spaceless %}{{ question.headline }}{% endspaceless %}{% endblock %}
 {% block forejs %}

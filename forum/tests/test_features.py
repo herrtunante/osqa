@@ -32,3 +32,44 @@ class CodeBlockTest(OSQATestCase):
         response = self.client.get('/')
         self.assertContains(response, '/media/vendor/highlight-11.10.0/highlight.min.js')
         self.assertContains(response, '/media/js/osqa.highlight.js')
+
+
+class SearchMetadataTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        self.alice = self.create_user('alice')
+        self.bob = self.create_user('bob')
+        self.question = Question(author=self.alice, title='Is </script><b>x</b> escaped?', tagnames='html',
+                                 body='Question body text that is long enough.')
+        self.question.save()
+
+    def structured_data(self, response):
+        import json, re
+        match = re.search(r'<script type="application/ld\+json">(.*?)</script>', response.content.decode(), re.S)
+        self.assertIsNotNone(match)
+        return json.loads(match.group(1))
+
+    def test_question_page_has_qapage_markup(self):
+        from forum.models import Answer
+        answer = Answer(author=self.bob, parent=self.question, body='An answer that is long enough to count.')
+        answer.save()
+
+        response = self.client.get(self.question.get_absolute_url())
+        content = response.content.decode()
+        # The title cannot close the script element early.
+        self.assertNotIn('</script><b>', content)
+        data = self.structured_data(response)
+        self.assertEqual(data['@type'], 'QAPage')
+        self.assertEqual(data['mainEntity']['name'], 'Is </script><b>x</b> escaped?')
+        self.assertEqual(data['mainEntity']['answerCount'], 1)
+        self.assertEqual(data['mainEntity']['suggestedAnswer'][0]['text'], 'An answer that is long enough to count.')
+        self.assertTrue(data['mainEntity']['suggestedAnswer'][0]['url'].startswith('http'))
+
+        self.assertContains(response, '<meta property="og:type" content="article" />')
+        self.assertContains(response, '<meta property="article:tag" content="html" />')
+
+    def test_other_pages_have_link_preview_tags(self):
+        response = self.client.get('/tags/')
+        self.assertContains(response, '<meta property="og:type" content="website" />')
+        self.assertContains(response, '<meta property="og:url" content="http://testserver/tags/" />')
+        self.assertContains(response, '<meta name="twitter:card" content="summary" />')
