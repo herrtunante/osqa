@@ -34,9 +34,27 @@ class Question(Node):
             return _('[deleted] ') + self.title
 
         if self.nis.closed:
+            if self.duplicate_of_id:
+                return self.title + _(' [duplicate]')
             return _('[closed] ') + self.title
 
         return self.title
+
+    @property
+    def duplicate_of_id(self):
+        """Id of the question this one was closed as a duplicate of (kept in Node.extra)."""
+        if self.nis.closed and isinstance(self.extra, dict):
+            return self.extra.get('duplicate_of')
+        return None
+
+    @property
+    def duplicate_of(self):
+        if not self.duplicate_of_id:
+            return None
+        try:
+            return Question.objects.filter_state(deleted=False).get(id=self.duplicate_of_id)
+        except Question.DoesNotExist:
+            return None
 
     @property
     def accepted_answers(self):

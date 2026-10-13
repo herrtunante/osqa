@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import datetime
 import json
 import logging
@@ -395,13 +396,40 @@ def delete_post(request, id):
 
     return ret
 
+def find_original_question(question, value):
+    """The question a duplicate points to, from its number or a link to it ('' for none)."""
+    value = value.strip()
+    if not value:
+        return None
+
+    match = re.search(r'(?:^|/)(\d+)(?:[/?#]|$)', value)
+    if not match:
+        raise CommandException(_("Enter the number of the original question or a link to it."))
+
+    try:
+        original = Question.objects.filter_state(deleted=False).get(id=int(match.group(1)))
+    except Question.DoesNotExist:
+        raise CommandException(_("The original question was not found."))
+
+    # Point at the end of a chain of duplicates rather than at another duplicate.
+    if original.duplicate_of:
+        original = original.duplicate_of
+
+    if original.id == question.id:
+        raise CommandException(_("A question cannot be a duplicate of itself."))
+    return original
+
+
 @decorate.withfn(command)
 @prompt
 def close(request, id, close):
     if request.method != 'POST':
         if not close:
             return HttpResponseNotAllowed(['POST'])
-        return render(request, 'node/report.html', {'types': settings.CLOSE_TYPES})
+        return render(request, 'node/close.html', {
+            'types': settings.CLOSE_TYPES,
+            'can_move_answers': request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff),
+        })
 
     question = get_object_or_404(Question, id=id)
     user = request.user
@@ -423,7 +451,11 @@ def close(request, id, close):
         if not len(reason):
             raise CommandException(_("Reason is empty"))
 
-        CloseAction(node=question, user=user, extra=reason, ip=request.META['REMOTE_ADDR']).save()
+        duplicate_of = find_original_question(question, request.POST.get('duplicate_of', ''))
+        move_answers = bool(duplicate_of and request.POST.get('move_answers') and (user.is_superuser or user.is_staff))
+
+        CloseAction(node=question, user=user, extra=reason, ip=request.META['REMOTE_ADDR']).save(
+            data=dict(duplicate_of=duplicate_of, move_answers=move_answers))
 
     return RefreshPageCommand()
 

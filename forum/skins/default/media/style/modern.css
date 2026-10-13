@@ -2051,6 +2051,39 @@ textarea#editor.drop-target {
     font-size: 13px;
 }
 
+/* ---- Duplicates ------------------------------------------------------ */
+
+.question-duplicate {
+    margin: 12px 0 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--info-border);
+    border-left: 4px solid var(--brand);
+    border-radius: 8px;
+    background: var(--brand-soft);
+    font-size: 15px;
+}
+
+.question-duplicate a {
+    font-weight: 600;
+}
+
+.question-duplicate-count {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+div.dialog.prompt .close-duplicate-label {
+    display: block;
+    margin: 10px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+div.dialog.prompt .close-move-answers {
+    width: 100%;
+    margin-top: 8px;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */

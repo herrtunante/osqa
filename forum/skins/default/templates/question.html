@@ -141,6 +141,13 @@
                 </tr>
             </table>
             {% if question.nis.closed %}
+            {% with original=question.duplicate_of %}{% if original %}
+            <div class="question-duplicate">
+                {% trans "This question already has an answer here:" %}
+                <a href="{{ original.get_absolute_url }}">{{ original.headline }}</a>
+                {% if original.answer_count %}<span class="question-duplicate-count">({% blocktrans count original.answer_count as counter %}{{ counter }} answer{% plural %}{{ counter }} answers{% endblocktrans %})</span>{% endif %}
+            </div>
+            {% endif %}{% endwith %}
             <div class="question-status" style="margin-bottom:15px">
             <h3>
                 {% blocktrans with question.nstate.closed.extra as close_reason %}The question has been closed for the following reason "{{ close_reason }}" by{% endblocktrans %}

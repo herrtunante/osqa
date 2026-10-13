@@ -114,3 +114,89 @@ class ImageUploadTest(OSQATestCase):
 
     def test_editor_knows_the_upload_url(self):
         self.assertContains(self.client.get('/questions/ask/'), 'upload_url: "/upload/"')
+
+
+class DuplicateTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        from forum.models import Answer, Comment
+        from forum.actions import AcceptAnswerAction
+        self.alice = self.create_user('alice')
+        self.bob = self.create_user('bob')
+        self.mod = self.create_user('mod', reputation=10000)
+        self.mod.is_staff = True
+        self.mod.save()
+
+        self.original = Question(author=self.alice, title='How do I reproject a shapefile?', tagnames='gis',
+                                 body='Original question body text.')
+        self.original.save()
+        self.duplicate = Question(author=self.bob, title='Reprojecting shapefiles to UTM?', tagnames='gis',
+                                  body='Duplicate question body text.')
+        self.duplicate.save()
+        self.answer = Answer(author=self.alice, parent=self.duplicate, body='Use ogr2ogr with -t_srs for this.')
+        self.answer.save()
+        Comment(author=self.alice, parent=self.answer, body='This is a comment on the answer, long enough.').save()
+        AcceptAnswerAction(user=self.bob, node=self.answer, ip='127.0.0.1').save()
+
+    def close(self, user, **data):
+        self.login(user)
+        data.setdefault('prompt', 'Duplicate Question')
+        return self.command('/questions/%d/close/' % self.duplicate.id, data)
+
+    def refresh(self, node):
+        return type(node).objects.get(id=node.id)
+
+    def test_close_as_duplicate_links_the_original(self):
+        reply = self.close(self.mod, duplicate_of='%s' % self.original.get_absolute_url())
+        self.assertTrue(reply['success'], reply)
+        duplicate = self.refresh(self.duplicate)
+        self.assertEqual(duplicate.duplicate_of, self.original)
+
+        page = self.client.get(duplicate.get_absolute_url())
+        self.assertContains(page, 'This question already has an answer here:')
+        self.assertContains(page, 'href="%s"' % self.original.get_absolute_url())
+        self.assertContains(page, '[duplicate]')
+        self.assertContains(self.client.get('/questions/'), '[duplicate]')
+        # The answers stay where they were unless a moderator moves them.
+        self.assertEqual(self.refresh(self.answer).parent.id, self.duplicate.id)
+
+    def test_invalid_originals_are_refused(self):
+        for value in ('not a number', '999999', str(self.duplicate.id)):
+            with self.subTest(value=value):
+                reply = self.close(self.mod, duplicate_of=value)
+                self.assertFalse(reply['success'])
+                self.assertFalse(self.refresh(self.duplicate).nis.closed)
+
+    def test_moderator_can_move_the_answers(self):
+        reply = self.close(self.mod, duplicate_of=str(self.original.id), move_answers='1')
+        self.assertTrue(reply['success'], reply)
+
+        answer = self.refresh(self.answer)
+        self.assertEqual(answer.parent.id, self.original.id)
+        self.assertEqual(answer.abs_parent.id, self.original.id)
+        self.assertFalse(answer.nis.accepted)
+        self.assertEqual(answer.comments.get().abs_parent.id, self.original.id)
+        self.assertEqual(self.refresh(self.original).answer_count, 1)
+        self.assertEqual(self.refresh(self.duplicate).answer_count, 0)
+        self.assertContains(self.client.get(self.original.get_absolute_url()), 'Use ogr2ogr')
+
+    def test_only_moderators_move_answers(self):
+        closer = self.create_user('closer', reputation=100000)
+        reply = self.close(closer, duplicate_of=str(self.original.id), move_answers='1')
+        self.assertTrue(reply['success'], reply)
+        self.assertEqual(self.refresh(self.answer).parent.id, self.duplicate.id)
+
+    def test_reopening_removes_the_link(self):
+        self.close(self.mod, duplicate_of=str(self.original.id))
+        reply = self.command('/questions/%d/reopen/' % self.duplicate.id)
+        self.assertTrue(reply['success'], reply)
+        duplicate = self.refresh(self.duplicate)
+        self.assertFalse(duplicate.nis.closed)
+        self.assertIsNone(duplicate.duplicate_of)
+        self.assertNotContains(self.client.get(duplicate.get_absolute_url()), '[duplicate]')
+
+    def test_close_dialog_offers_the_fields(self):
+        self.login(self.mod)
+        dialog = self.client.get('/questions/%d/close/' % self.duplicate.id).content.decode()
+        self.assertIn('name="duplicate_of"', dialog)
+        self.assertIn('name="move_answers"', dialog)

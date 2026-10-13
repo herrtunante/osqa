@@ -1,0 +1,25 @@
+{% load i18n %}
+
+{% trans "Please select a reason bellow or use the text box to input your own reason." %}
+<select class="prompt-examples">
+    {% for type in types %}
+        <option value="{{ type }}">{{ type }}</option>
+    {% endfor %}
+</select>
+<textarea name="prompt">{{ types|first }}</textarea>
+<label class="close-duplicate-label" for="close-duplicate-of">{% trans "If it is a duplicate: link to the original question, or its number" %}</label>
+<input type="text" id="close-duplicate-of" name="duplicate_of" placeholder="{% trans "e.g. 123 or a link to the question" %}" />
+{% if can_move_answers %}
+<select name="move_answers" class="close-move-answers">
+    <option value="">{% trans "Keep the answers on this question" %}</option>
+    <option value="1">{% trans "Move the answers to the original question" %}</option>
+</select>
+{% endif %}
+<script>
+$('.prompt-examples').change(function() {
+    $('textarea[name=prompt]').val($(this).val());
+    if (/duplicate/i.test($(this).val())) {
+        $('#close-duplicate-of').focus();
+    }
+});
+</script>

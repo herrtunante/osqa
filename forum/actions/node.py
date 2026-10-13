@@ -149,15 +149,53 @@ class RollbackAction(ActionProxy):
 class CloseAction(ActionProxy):
     verb = _("closed")
 
+    def process_data(self, duplicate_of=None, move_answers=False):
+        self._duplicate_of = duplicate_of
+        self._move_answers = move_answers
+
     def process_action(self):
+        duplicate_of = getattr(self, '_duplicate_of', None)
+
         self.node.marked = True
         self.node.nstate.closed = self
         self.node.last_edited = self
+        if duplicate_of:
+            extra = dict(self.node.extra) if isinstance(self.node.extra, dict) else {}
+            extra['duplicate_of'] = duplicate_of.id
+            self.node.extra = extra
         self.node.update_last_activity(self.user, save=True)
+
+        if duplicate_of and getattr(self, '_move_answers', False):
+            self.move_answers_to(duplicate_of)
+
+    def move_answers_to(self, target):
+        """Merge a duplicate: its answers (with their comments) move to the original question."""
+        from forum.models import Answer
+        question = self.node
+        for answer in list(question.answers.all()):
+            if answer.nis.accepted:
+                # The acceptance belonged to the duplicate's asker.
+                answer.nstate.accepted.cancel(self.user, ip=self.ip)
+                answer = Answer.objects.get(id=answer.id)
+            answer.parent = target
+            answer.abs_parent = target
+            answer.save()
+            for comment in answer.comments.all():
+                comment.abs_parent = target
+                comment.save()
+
+        for q in (question, target):
+            q.reset_answer_count_cache()
+            q.reset_accepted_count_cache()
+        target.update_last_activity(self.user, save=True)
 
     def cancel_action(self):
         self.node.marked = False
         self.node.nstate.closed = None
+        if isinstance(self.node.extra, dict) and 'duplicate_of' in self.node.extra:
+            extra = dict(self.node.extra)
+            del extra['duplicate_of']
+            self.node.extra = extra
         self.node.update_last_activity(self.user, save=True)
 
     def describe(self, viewer=None):
