@@ -1943,6 +1943,71 @@ div.comment-tools a:hover {
     color: var(--brand-dark);
 }
 
+/* ---- Code highlighting (highlight.js) -------------------------------- */
+
+:root {
+    --hl-keyword: #cf222e;
+    --hl-string: #0a3069;
+    --hl-comment: #6e7781;
+    --hl-number: #0550ae;
+    --hl-title: #8250df;
+    --hl-builtin: #953800;
+    --hl-addition: #116329;
+    --hl-addition-bg: #dafbe1;
+    --hl-deletion: #82071e;
+    --hl-deletion-bg: #ffebe9;
+}
+
+.hljs {
+    background: transparent;
+    color: inherit;
+}
+
+.hljs-keyword, .hljs-doctag, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-variable.language_,
+.hljs-meta .hljs-keyword {
+    color: var(--hl-keyword);
+}
+
+.hljs-string, .hljs-regexp, .hljs-meta .hljs-string {
+    color: var(--hl-string);
+}
+
+.hljs-comment, .hljs-code, .hljs-formula, .hljs-quote {
+    color: var(--hl-comment);
+    font-style: italic;
+}
+
+.hljs-number, .hljs-literal, .hljs-attr, .hljs-attribute, .hljs-selector-attr, .hljs-selector-class,
+.hljs-selector-id, .hljs-meta, .hljs-operator, .hljs-symbol, .hljs-link {
+    color: var(--hl-number);
+}
+
+.hljs-title, .hljs-title.class_, .hljs-title.function_, .hljs-section, .hljs-name, .hljs-selector-tag {
+    color: var(--hl-title);
+}
+
+.hljs-built_in, .hljs-variable, .hljs-params, .hljs-property, .hljs-subst {
+    color: var(--hl-builtin);
+}
+
+.hljs-addition {
+    background: var(--hl-addition-bg);
+    color: var(--hl-addition);
+}
+
+.hljs-deletion {
+    background: var(--hl-deletion-bg);
+    color: var(--hl-deletion);
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: 700;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */
@@ -2400,6 +2465,16 @@ h3.or_label::before, h3.or_label::after {
         --surface: #161b22;
         --background: #0d1117;
         --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .35);
+        --hl-keyword: #ff7b72;
+        --hl-string: #a5d6ff;
+        --hl-comment: #8b949e;
+        --hl-number: #79c0ff;
+        --hl-title: #d2a8ff;
+        --hl-builtin: #ffa657;
+        --hl-addition: #aff5b4;
+        --hl-addition-bg: #033a16;
+        --hl-deletion: #ffdcd7;
+        --hl-deletion-bg: #67060c;
         --button-bg: #2f6fd6;
         --button-bg-hover: #3b7ee8;
     }

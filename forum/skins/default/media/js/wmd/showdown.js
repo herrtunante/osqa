@@ -142,6 +142,16 @@ this.makeHtml = function(text) {
 	// Make sure text begins and ends with a couple of newlines:
 	text = "\n\n" + text + "\n\n";
 
+	// Fenced code blocks (```lang ... ```), as rendered by the server's
+	// fenced_code extension. Stored as a hashed HTML block so the rest of
+	// the conversion leaves the code alone.
+	// The closing fence may be indented (the editor auto-indents new lines).
+	text = text.replace(/^[ \t]{0,3}```[ \t]*([\w+#.-]*)[ \t]*\n([\s\S]*?)\n[ \t]*```[ \t]*$/gm, function(whole, lang, code) {
+		code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		var cls = lang ? ' class="language-' + lang + '"' : "";
+		return "\n\n~K" + (g_html_blocks.push("<pre><code" + cls + ">" + code + "</code></pre>") - 1) + "K\n\n";
+	});
+
 	// Convert all tabs to spaces.
 	text = _Detab(text);
 

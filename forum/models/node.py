@@ -19,7 +19,32 @@ MARKDOWN_EXTENSIONS = {
     'auto_linker': 'forum.markdownext.mdx_auto_linker',
     'limitedsyntax': 'forum.markdownext.mdx_limitedsyntax',
     'settingsparser': 'forum.markdownext.mdx_settingsparser',
+    'fenced_code': 'markdown.extensions.fenced_code',
 }
+
+
+FENCE_OPEN = re.compile(r'^[ \t]{0,3}(`{3,}|~{3,})[ \t]*([\w+#.-]*)[ \t]*$')
+
+
+def normalize_fences(content):
+    """Unindent code fences so the fenced_code extension recognises them.
+
+    The editor auto-indents new lines, so the closing fence after an indented
+    code line ends up indented, which Markdown would not accept.
+    """
+    lines = content.split('\n')
+    fence = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if fence is None:
+            match = FENCE_OPEN.match(line.rstrip('\r'))
+            if match:
+                fence = match.group(1)
+                lines[i] = line.lstrip()
+        elif stripped.startswith(fence) and stripped.strip(fence[0]) == '':
+            lines[i] = stripped
+            fence = None
+    return '\n'.join(lines)
 
 
 class NodeContent(models.Model):
@@ -37,7 +62,7 @@ class NodeContent(models.Model):
         return self.body
 
     def rendered(self, content):
-        return auto_user_link(self, self._as_markdown(content, *['auto_linker']))
+        return auto_user_link(self, self._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code'))
 
     @classmethod
     def _as_markdown(cls, content, *extensions):

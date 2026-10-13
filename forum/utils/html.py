@@ -1,10 +1,14 @@
 """Utilities for working with HTML."""
+import re
+
 import bleach
 from urllib.parse import quote_plus
 from django.utils.html import strip_tags, conditional_escape
 from forum.utils.html2text import HTML2Text
 from django.utils.safestring import mark_safe
 from forum import settings
+
+LANGUAGE_CLASS = re.compile(r'language-[\w+#.-]{1,30}')
 
 # Define allowed HTML tags and attributes for sanitization
 ALLOWED_TAGS = [
@@ -26,7 +30,9 @@ ALLOWED_ATTRIBUTES = {
           'span', 'start', 'summary', 'title', 'type', 'valign', 'vspace',
           'width'],
     'a': ['href'],
-    'img': ['src']
+    'img': ['src'],
+    # Fenced code blocks name their language for the syntax highlighter.
+    'code': lambda tag, name, value: name == 'class' and LANGUAGE_CLASS.fullmatch(value) is not None,
 }
 
 def sanitize_html(html):
