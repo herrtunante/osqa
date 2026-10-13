@@ -2,36 +2,40 @@ import json
 from types import SimpleNamespace
 from unittest import mock
 
-import anthropic
-import httpx2
 from django.urls import reverse
+from google.genai import errors, types
 
 from forum.models import Question, Answer, ModerationReport
 
 from .base import OSQATestCase
 
+AI_ENV = ('GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_CLOUD_PROJECT', 'GOOGLE_CLOUD_LOCATION')
 
-class FakeClaude:
-    """Stands in for anthropic.Anthropic(): records requests, replays answers."""
 
-    def __init__(self, *answers, stop_reason='end_turn', error=None):
+class FakeGemini:
+    """Stands in for google.genai.Client(): records requests, replays answers."""
+
+    def __init__(self, *answers, finish_reason=types.FinishReason.STOP, block_reason=None, error=None):
         self.answers = list(answers)
-        self.stop_reason = stop_reason
+        self.finish_reason = finish_reason
+        self.block_reason = block_reason
         self.error = error
         self.requests = []
-        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self.create))
+        self.models = SimpleNamespace(generate_content=self.generate_content)
 
-    def create(self, **params):
-        self.requests.append(params)
+    def generate_content(self, model, contents, config):
+        self.requests.append(SimpleNamespace(model=model, contents=contents, config=config))
         if self.error:
             raise self.error
-        answer = self.answers.pop(0) if len(self.answers) > 1 else self.answers[0]
-        return SimpleNamespace(stop_reason=self.stop_reason,
-                               content=[SimpleNamespace(type='text', text=json.dumps(answer))])
+        answer = self.answers.pop(0) if len(self.answers) > 1 else (self.answers[0] if self.answers else {})
+        return SimpleNamespace(
+            prompt_feedback=SimpleNamespace(block_reason=self.block_reason) if self.block_reason else None,
+            candidates=[SimpleNamespace(finish_reason=self.finish_reason)],
+            text=json.dumps(answer))
 
     @property
     def prompt(self):
-        return self.requests[-1]['messages'][0]['content']
+        return self.requests[-1].contents
 
 
 class AITestCase(OSQATestCase):
@@ -39,58 +43,84 @@ class AITestCase(OSQATestCase):
         super().setUp()
         from forum_modules.ai import settings as ai_settings
         self.ai = ai_settings
-        self.set(ai_settings.ANTHROPIC_API_KEY, 'sk-ant-test')
+        patcher = mock.patch.dict('os.environ', {name: '' for name in AI_ENV})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.set(ai_settings.GEMINI_API_KEY, 'test-gemini-key')
 
     def set(self, setting, value):
         setting.set_value(value)
         self.addCleanup(setattr, setting, '_temp', None)
 
-    def claude(self, *answers, **kwargs):
-        fake = FakeClaude(*answers, **kwargs)
+    def gemini(self, *answers, **kwargs):
+        fake = FakeGemini(*answers, **kwargs)
         patcher = mock.patch('forum_modules.ai.client.get_client', return_value=fake)
         patcher.start()
         self.addCleanup(patcher.stop)
         return fake
 
 
-class ClaudeClientTest(AITestCase):
+class GeminiClientTest(AITestCase):
     SCHEMA = {'type': 'object', 'properties': {'x': {'type': 'integer'}}, 'required': ['x'],
               'additionalProperties': False}
 
     def ask(self):
-        from forum_modules.ai.client import ask_claude
-        return ask_claude('system prompt', 'content', self.SCHEMA)
+        from forum_modules.ai.client import ask_model
+        return ask_model('system prompt', 'content', self.SCHEMA)
 
     def test_request_shape(self):
-        fake = self.claude({'x': 1})
+        fake = self.gemini({'x': 1})
         self.assertEqual(self.ask(), {'x': 1})
-        params = fake.requests[0]
-        self.assertEqual(params['model'], 'claude-opus-5-5')
-        self.assertEqual(params['system'], 'system prompt')
-        self.assertEqual(params['output_config'], {'effort': 'low', 'format': {'type': 'json_schema', 'schema': self.SCHEMA}})
-        self.assertEqual(params['fallbacks'], 'default')
-        self.assertEqual(params['betas'], ['server-side-fallback-2026-07-01'])
-        self.assertNotIn('thinking', params)
+        request = fake.requests[0]
+        self.assertEqual(request.model, 'gemini-3.8-flash')
+        self.assertEqual(request.contents, 'content')
+        config = request.config
+        self.assertEqual(config.system_instruction, 'system prompt')
+        self.assertEqual(config.response_mime_type, 'application/json')
+        self.assertEqual(config.response_json_schema, self.SCHEMA)
+        self.assertEqual(config.thinking_config.thinking_level, types.ThinkingLevel.LOW)
+        self.assertIsNone(config.temperature)
+        self.assertEqual({s.threshold for s in config.safety_settings}, {types.HarmBlockThreshold.OFF})
 
-    def test_models_without_fallbacks_do_not_send_them(self):
-        self.set(self.ai.AI_MODEL, 'claude-haiku-5-5')
-        fake = self.claude({'x': 1})
-        self.ask()
-        self.assertEqual(fake.requests[0]['model'], 'claude-haiku-5-5')
-        self.assertNotIn('fallbacks', fake.requests[0])
+    def test_api_key_or_vertex_ai(self):
+        from forum_modules.ai import client
+        client._client.clear()
+        with mock.patch('google.genai.Client') as Client:
+            client.get_client()
+            Client.assert_called_with(api_key='test-gemini-key')
+            self.set(self.ai.AI_VERTEX_PROJECT, 'openforis-earthmap')
+            self.set(self.ai.AI_VERTEX_LOCATION, 'europe-west1')
+            client.get_client()
+            Client.assert_called_with(vertexai=True, project='openforis-earthmap', location='europe-west1')
+        client._client.clear()
+
+    def test_environment_configuration(self):
+        from forum_modules.ai import client
+        self.set(self.ai.GEMINI_API_KEY, '')
+        self.set(self.ai.AI_VERTEX_LOCATION, '')
+        self.assertFalse(client.is_configured())
+        with mock.patch.dict('os.environ', {'GOOGLE_CLOUD_PROJECT': 'my-project'}):
+            self.assertEqual(client.connection(), ('vertex', 'my-project', 'global'))
+        with mock.patch.dict('os.environ', {'GEMINI_API_KEY': 'env-key'}):
+            self.assertEqual(client.connection(), ('gemini', 'env-key'))
 
     def test_failures_give_no_answer(self):
-        self.claude({'x': 1}, stop_reason='refusal')
+        from forum_modules.ai.client import BLOCKED
+        self.gemini({'x': 1}, finish_reason=types.FinishReason.MAX_TOKENS)
         self.assertIsNone(self.ask())
-        request = httpx2.Request('POST', 'https://api.anthropic.com/v1/messages')
-        self.claude(error=anthropic.APIConnectionError(request=request))
+        self.gemini(error=errors.ServerError(503, {'error': {'message': 'overloaded', 'status': 'UNAVAILABLE'}}))
         self.assertIsNone(self.ask())
+        self.gemini(error=OSError('network down'))
+        self.assertIsNone(self.ask())
+        self.gemini({'x': 1}, block_reason=types.BlockedReason.PROHIBITED_CONTENT)
+        self.assertIs(self.ask(), BLOCKED)
+        self.gemini({'x': 1}, finish_reason=types.FinishReason.SAFETY)
+        self.assertIs(self.ask(), BLOCKED)
 
     def test_not_configured(self):
-        self.set(self.ai.ANTHROPIC_API_KEY, '')
-        fake = self.claude({'x': 1})
-        with mock.patch.dict('os.environ', {'ANTHROPIC_API_KEY': ''}):
-            self.assertIsNone(self.ask())
+        self.set(self.ai.GEMINI_API_KEY, '')
+        fake = self.gemini({'x': 1})
+        self.assertIsNone(self.ask())
         self.assertEqual(fake.requests, [])
 
 
@@ -114,8 +144,8 @@ class DuplicateDetectionTest(AITestCase):
         self.assertEqual(response.status_code, 200)
         return json.loads(response.content)['duplicates']
 
-    def test_claude_picks_among_keyword_candidates(self):
-        fake = self.claude({'duplicates': [
+    def test_gemini_picks_among_keyword_candidates(self):
+        fake = self.gemini({'duplicates': [
             {'id': self.original.id, 'reason': 'Both ask how to export data to CSV.'},
             {'id': 99999, 'reason': 'Not a candidate: ignored.'},
         ]})
@@ -131,20 +161,20 @@ class DuplicateDetectionTest(AITestCase):
         self.assertIn('&lt;b&gt;CSV&lt;/b&gt;', prompt)
 
     def test_results_are_cached(self):
-        fake = self.claude({'duplicates': []})
+        fake = self.gemini({'duplicates': []})
         self.check()
         self.check()
         self.assertEqual(len(fake.requests), 1)
 
     def test_rate_limit(self):
         self.set(self.ai.AI_DUPLICATE_CHECKS_PER_HOUR, 1)
-        fake = self.claude({'duplicates': [{'id': self.original.id, 'reason': 'same'}]})
+        fake = self.gemini({'duplicates': [{'id': self.original.id, 'reason': 'same'}]})
         self.assertEqual(len(self.check()), 1)
         self.assertEqual(self.check('How do I export survey results to CSV quickly?'), [])
         self.assertEqual(len(fake.requests), 1)
 
     def test_no_request_for_short_titles_or_when_disabled(self):
-        fake = self.claude({'duplicates': []})
+        fake = self.gemini({'duplicates': []})
         self.assertEqual(self.check('CSV export'), [])
         self.set(self.ai.AI_DUPLICATE_DETECTION, False)
         self.assertEqual(self.check(), [])
@@ -180,7 +210,7 @@ class ModerationTest(AITestCase):
         return Question.objects.get(title=title)
 
     def test_spam_is_reported_not_hidden(self):
-        fake = self.claude(self.SPAM)
+        fake = self.gemini(self.SPAM)
         question = self.ask()
 
         report = ModerationReport.objects.get(node=question)
@@ -189,16 +219,24 @@ class ModerationTest(AITestCase):
         self.assertFalse(Question.objects.get(id=question.id).nis.deleted)
         self.assertIn('<title>Best online casino bonus codes this week</title>', fake.prompt)
         self.assertIn('Visit my site', fake.prompt)
-        self.assertIn('untrusted user text', fake.requests[0]['system'])
+        self.assertIn('untrusted user text', fake.requests[0].config.system_instruction)
+
+    def test_posts_gemini_refuses_to_read_are_reported(self):
+        self.gemini(block_reason=types.BlockedReason.PROHIBITED_CONTENT)
+        question = self.ask()
+        report = ModerationReport.objects.get(node=question)
+        self.assertEqual(report.verdict, 'unsafe')
+        self.login(self.mod)
+        self.assertContains(self.client.get(reverse('admin_flagged_posts')), 'blocked by the safety filters')
 
     def test_ok_or_unsure_posts_are_not_reported(self):
-        self.claude(self.OK, dict(self.SPAM, confidence=0.5))
+        self.gemini(self.OK, dict(self.SPAM, confidence=0.5))
         self.ask()
         self.ask('Another post that the model is unsure about')
         self.assertFalse(ModerationReport.objects.exists())
 
     def test_trusted_authors_are_not_reviewed(self):
-        fake = self.claude(self.SPAM)
+        fake = self.gemini(self.SPAM)
         self.newbie.reputation = 500
         self.newbie.save()
         self.ask()
@@ -210,7 +248,7 @@ class ModerationTest(AITestCase):
         question = Question(author=self.mod, title='How do I map plot locations?', tagnames='gis',
                             body='Question body text that is long enough.')
         question.save()
-        fake = self.claude(self.SPAM)
+        fake = self.gemini(self.SPAM)
         self.client.post(reverse('answer', args=[question.id]), {'text': 'Cheap pills here, long enough text.'})
 
         answer = Answer.objects.get(parent=question)
@@ -218,7 +256,7 @@ class ModerationTest(AITestCase):
         self.assertIn('<in_reply_to_question>How do I map plot locations?</in_reply_to_question>', fake.prompt)
 
     def test_edits_update_the_open_report(self):
-        self.claude(self.SPAM, dict(self.SPAM, verdict='abusive', reason='Now insulting.'))
+        self.gemini(self.SPAM, dict(self.SPAM, verdict='abusive', reason='Now insulting.'))
         question = self.ask()
         self.client.post(reverse('edit_question', args=[question.id]), {
             'title': question.title, 'text': 'An edited body that is still long enough.', 'tags': 'casino',
@@ -231,7 +269,7 @@ class ModerationTest(AITestCase):
                                 {'resolution': resolution})
 
     def test_moderators_resolve_reports(self):
-        self.claude(dict(self.SPAM, reason='<script>x()</script> spam'))
+        self.gemini(dict(self.SPAM, reason='<script>x()</script> spam'))
         question = self.ask()
         report = ModerationReport.objects.get(node=question)
 
@@ -252,7 +290,7 @@ class ModerationTest(AITestCase):
         self.assertNotContains(self.client.get(reverse('admin_flagged_posts')), 'Reported by automated checks')
 
     def test_dismissing_keeps_the_post(self):
-        self.claude(self.SPAM)
+        self.gemini(self.SPAM)
         question = self.ask()
         report = ModerationReport.objects.get(node=question)
         self.login(self.mod)

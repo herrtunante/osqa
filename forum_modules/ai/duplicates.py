@@ -1,7 +1,7 @@
 """Find existing questions that ask the same thing as a question being written.
 
 A keyword search over titles and tags picks up to MAX_CANDIDATES questions;
-Claude then decides which of them really are the same question (wording
+Gemini then decides which of them really are the same question (wording
 differs, so keyword overlap alone gives many false matches).
 """
 import hashlib
@@ -13,7 +13,7 @@ from django.utils.html import strip_tags
 from forum import settings
 from forum.utils.similar import candidate_questions
 
-from .client import ask_claude
+from .client import BLOCKED, ask_model
 
 MAX_CANDIDATES = 20
 MAX_DUPLICATES = 3
@@ -79,8 +79,8 @@ def find_duplicates(title, body='', may_call_api=lambda: True):
         if not may_call_api():
             return []
         system = SYSTEM.format(site=settings.APP_SHORT_NAME, description=settings.APP_DESCRIPTION)
-        answer = ask_claude(system, _prompt(title, body, candidates), SCHEMA)
-        if answer is None:
+        answer = ask_model(system, _prompt(title, body, candidates), SCHEMA)
+        if answer is None or answer is BLOCKED:
             return []
         cache.set(key, answer, CACHE_SECONDS)
 

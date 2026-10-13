@@ -11,7 +11,7 @@ from forum import settings
 from forum.actions import AskAction, AnswerAction, CommentAction, ReviseAction
 from forum.models import ModerationReport
 
-from .client import ask_claude, is_configured
+from .client import BLOCKED, ask_model, is_configured
 from .settings import AI_SPAM_MODERATION, AI_MODERATION_SKIP_REP, AI_MODERATION_MIN_CONFIDENCE
 
 log = logging.getLogger(__name__)
@@ -70,8 +70,12 @@ def review_post(action, new):
         return
 
     system = SYSTEM.format(site=settings.APP_SHORT_NAME, description=settings.APP_DESCRIPTION)
-    answer = ask_claude(system, describe_post(node), SCHEMA)
-    if not answer or answer.get('verdict') not in VERDICTS or answer['verdict'] == 'ok':
+    answer = ask_model(system, describe_post(node), SCHEMA)
+    if answer is BLOCKED:
+        # Gemini refused to read the post at all (e.g. prohibited content).
+        answer = {'verdict': 'unsafe', 'confidence': 1.0,
+                  'reason': "Gemini's safety filters refused to process this post."}
+    elif not answer or answer.get('verdict') not in VERDICTS or answer['verdict'] == 'ok':
         return
 
     try:

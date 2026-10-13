@@ -16,7 +16,7 @@ OPTIONAL = [
     ('MySQLdb', 'mysqlclient', 'the default MySQL database'),
     ('pymemcache', 'pymemcache', "the recommended 'PyMemcacheCache' cache"),
     ('ldap', 'python-ldap', 'the ldapauth module'),
-    ('anthropic', 'anthropic', 'the AI module'),
+    ('google.genai', 'google-genai', 'the AI module'),
 ]
 
 

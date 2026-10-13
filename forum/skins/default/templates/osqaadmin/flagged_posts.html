@@ -17,7 +17,7 @@
             <tr class="moderation-report">
                 <td>
                     <span class="moderation-verdict moderation-verdict-{{ report.verdict }}">{{ report.verdict }}</span>
-                    <span class="moderation-meta">{% if report.source == "ai" %}{% blocktrans with percent=report.confidence_percent %}AI review, {{ percent }}% sure{% endblocktrans %}{% else %}{% blocktrans with percent=report.confidence_percent source=report.source %}{{ source }}, {{ percent }}% sure{% endblocktrans %}{% endif %}
+                    <span class="moderation-meta">{% if report.verdict == "unsafe" %}{% trans "AI review: blocked by the safety filters" %}{% elif report.source == "ai" %}{% blocktrans with percent=report.confidence_percent %}AI review, {{ percent }}% sure{% endblocktrans %}{% else %}{% blocktrans with percent=report.confidence_percent source=report.source %}{{ source }}, {{ percent }}% sure{% endblocktrans %}{% endif %}
                         &middot; {{ report.created_at|date:"Y-m-d H:i" }}</span>
                     <div class="moderation-post">
                         <a href="{{ post.get_absolute_url }}">{{ post.headline }}</a>

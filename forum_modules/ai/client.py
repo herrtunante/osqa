@@ -1,83 +1,112 @@
-"""The one place that talks to the Claude API.
+"""The one place that talks to the model (Google Gemini, via the Gemini API or Vertex AI).
 
 Every AI feature asks for a JSON answer that matches a schema; when the
-module is not configured, the API fails or the model declines, the caller
-gets None and carries on without AI (posting is never blocked by it).
+module is not configured, the API fails or the answer is blocked, the
+caller gets None (or BLOCKED) and carries on without AI, so posting is
+never blocked by it.
 """
 import json
 import logging
 import os
 
 try:
-    import anthropic
+    from google import genai
+    from google.genai import errors, types
 except ImportError:  # pip install -r requirements.txt
-    anthropic = None
+    genai = None
 
-from .settings import ANTHROPIC_API_KEY, AI_MODEL
+from .settings import GEMINI_API_KEY, AI_VERTEX_PROJECT, AI_VERTEX_LOCATION, AI_MODEL
 
 log = logging.getLogger(__name__)
 
-# Models that accept server-side refusal fallbacks ("default" routing).
-FALLBACK_MODELS = {'claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5'}
+# Returned instead of an answer when Gemini's safety filters refused the
+# request: for moderation that is itself a reason for a human to look.
+BLOCKED = object()
 
 _client = {}
 
 
-def api_key():
-    return str(ANTHROPIC_API_KEY).strip() or os.environ.get('ANTHROPIC_API_KEY', '').strip()
+def connection():
+    """('vertex', project, location), ('gemini', api_key) or None."""
+    project = str(AI_VERTEX_PROJECT).strip() or os.environ.get('GOOGLE_CLOUD_PROJECT', '').strip()
+    if project:
+        location = str(AI_VERTEX_LOCATION).strip() or os.environ.get('GOOGLE_CLOUD_LOCATION', '').strip() or 'global'
+        return ('vertex', project, location)
+    key = str(GEMINI_API_KEY).strip() or os.environ.get('GEMINI_API_KEY', '').strip() \
+        or os.environ.get('GOOGLE_API_KEY', '').strip()
+    if key:
+        return ('gemini', key)
+    return None
 
 
 def is_configured():
-    return anthropic is not None and bool(api_key())
+    return genai is not None and connection() is not None
 
 
 def get_client():
-    key = api_key()
-    if _client.get('key') != key:
-        _client.update(key=key, client=anthropic.Anthropic(api_key=key, timeout=30.0, max_retries=2))
+    target = connection()
+    if _client.get('target') != target:
+        if target[0] == 'vertex':
+            # Credentials come from Application Default Credentials (the
+            # server's service account, or `gcloud auth application-default login`).
+            client = genai.Client(vertexai=True, project=target[1], location=target[2])
+        else:
+            client = genai.Client(api_key=target[1])
+        _client.update(target=target, client=client)
     return _client['client']
 
 
-def ask_claude(system, content, schema, max_tokens=8000):
-    """Returns Claude's answer to `content` as a dict matching the JSON `schema`, or None."""
+def ask_model(system, content, schema):
+    """The model's answer to `content` as a dict matching the JSON `schema`;
+    None if there is no usable answer, BLOCKED if the safety filters refused."""
     if not is_configured():
         return None
 
     model = str(AI_MODEL).strip()
-    params = dict(
-        model=model,
-        max_tokens=max_tokens,
-        system=system,
-        messages=[{'role': 'user', 'content': content}],
-        # Classification work: low effort keeps it fast and cheap.
-        output_config={'effort': 'low', 'format': {'type': 'json_schema', 'schema': schema}},
+    config = types.GenerateContentConfig(
+        system_instruction=system,
+        response_mime_type='application/json',
+        response_json_schema=schema,
+        # Classification work: little thinking keeps it fast and cheap.
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
+        # The posts being classified may well be abusive; the filters must not
+        # stop the model from reading them (PROHIBITED_CONTENT still applies).
+        safety_settings=[types.SafetySetting(category=category, threshold=types.HarmBlockThreshold.OFF)
+                         for category in (types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                                          types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                                          types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                                          types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT)],
     )
-    if model in FALLBACK_MODELS:
-        params.update(betas=['server-side-fallback-2026-07-01'], fallbacks='default')
 
     try:
-        response = get_client().beta.messages.create(**params)
-    except anthropic.BadRequestError as e:
-        log.error("AI request rejected (check the model setting '%s'): %s", model, e.message)
+        response = get_client().models.generate_content(model=model, contents=content, config=config)
+    except errors.ClientError as e:
+        log.error("AI request rejected (HTTP %s; check the key, project and model '%s'): %s", e.code, model, e.message)
         return None
-    except anthropic.AuthenticationError:
-        log.error("AI request failed: the Anthropic API key is invalid")
+    except errors.APIError as e:
+        log.warning("AI request failed with HTTP %s: %s", e.code, e.message)
         return None
-    except anthropic.APIStatusError as e:
-        log.warning("AI request failed with HTTP %s: %s", e.status_code, e.message)
-        return None
-    except anthropic.APIConnectionError as e:
-        log.warning("AI request failed, could not reach the API: %s", e)
+    except Exception as e:  # network errors, missing Google Cloud credentials, ...
+        log.warning("AI request failed: %s", e)
         return None
 
-    if response.stop_reason != 'end_turn':
-        # 'refusal' (declined even after fallbacks) or 'max_tokens': no usable answer.
-        log.info("AI request ended with stop_reason=%s", response.stop_reason)
+    feedback = response.prompt_feedback
+    if feedback is not None and feedback.block_reason:
+        log.info("AI request blocked: %s", feedback.block_reason)
+        return BLOCKED
+
+    candidate = response.candidates[0] if response.candidates else None
+    reason = candidate.finish_reason if candidate is not None else None
+    if reason in (types.FinishReason.SAFETY, types.FinishReason.PROHIBITED_CONTENT,
+                  types.FinishReason.BLOCKLIST, types.FinishReason.SPII):
+        log.info("AI answer blocked: %s", reason)
+        return BLOCKED
+    if reason != types.FinishReason.STOP:
+        log.info("AI request ended with finish_reason=%s", reason)
         return None
 
-    text = next((block.text for block in response.content if block.type == 'text'), None)
     try:
-        return json.loads(text)
+        return json.loads(response.text)
     except (TypeError, ValueError):
         log.warning("AI response was not valid JSON")
         return None
