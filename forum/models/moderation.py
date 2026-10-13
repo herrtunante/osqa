@@ -4,12 +4,13 @@ from .user import User
 
 
 class ModerationReport(models.Model):
-    """A post that an automated check (e.g. the AI moderation module) thinks
-    moderators should look at. Unlike a user flag it costs the author no
-    reputation and never hides or deletes the post by itself; moderators
-    resolve it from Admin > Flagged posts."""
+    """A post (node) or an account (user, e.g. profile spam) that an automated
+    check such as the AI module thinks moderators should look at. Unlike a
+    user flag it costs no reputation and never hides, suspends or deletes
+    anything by itself; moderators resolve it from Admin > Flagged posts."""
 
-    node = models.ForeignKey(Node, related_name='moderation_reports', on_delete=models.CASCADE)
+    node = models.ForeignKey(Node, null=True, blank=True, related_name='moderation_reports', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='moderation_reports', on_delete=models.CASCADE)
     source = models.CharField(max_length=32)
     verdict = models.CharField(max_length=32)
     confidence = models.FloatField(default=0)
@@ -28,9 +29,13 @@ class ModerationReport(models.Model):
     def confidence_percent(self):
         return int(round(self.confidence * 100))
 
+    @property
+    def account_has_posts(self):
+        return self.user_id is not None and Node.objects.filter(author_id=self.user_id).exists()
+
     @classmethod
     def open_reports(cls):
-        return cls.objects.filter(resolved_at=None).select_related('node', 'node__author')
+        return cls.objects.filter(resolved_at=None).select_related('node', 'node__author', 'user')
 
     def resolve(self, user, resolution):
         self.resolved_at = datetime.datetime.now()

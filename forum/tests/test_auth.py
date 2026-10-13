@@ -11,6 +11,7 @@ class LocalAuthTest(OSQATestCase):
         return self.client.post('/account/local/register/', {
             'username': username, 'email': '%s@example.com' % username,
             'password1': password, 'password2': password, 'next': '/',
+            'form_token': self.signup_token(),
         })
 
     def logged_in_user_id(self):
@@ -70,3 +71,12 @@ class NextUrlTest(OSQATestCase):
         for url in ['//evil.com', '/\\evil.com', '%2F%2Fevil.com', 'http://evil.com']:
             with self.subTest(url=url):
                 self.assertEqual(clean_next(url), default)
+
+
+class UserCopyTest(OSQATestCase):
+    def test_users_with_loaded_properties_can_be_copied(self):
+        # The ONLINE_USERS setting deep-copies user objects when it is saved.
+        import copy
+        user = self.create_user('carol')
+        user.prop.some_property
+        self.assertEqual(copy.deepcopy({user: 1}).popitem()[1], 1)

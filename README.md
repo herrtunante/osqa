@@ -44,6 +44,7 @@ site refuses to start without one.
 - Behind HTTPS, enable the settings listed in `settings_local.py.dist`
   (`SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`).
 - Email digests: run `cron/send_email_alerts` daily.
+- Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
 
 ### Docker
 
@@ -135,6 +136,29 @@ All modules below except the full-text search ones are covered by the test suite
 | `robotstxt` | Editable `/robots.txt` | - |
 | `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Enabled automatically on that database; not yet tested on Python 3 |
 
+### Spam sign-ups
+
+Bots that register and never post (often only to put links in their profile)
+are handled without any external service; the thresholds are under Admin >
+Users settings:
+
+- The sign-up forms have a hidden honeypot field and a signed time stamp:
+  forms filled in faster than "Minimum time to fill in the sign-up form"
+  (3 seconds) or with the honeypot filled are refused. At most "Sign-ups per
+  IP address per hour" (5) accounts are created from one address.
+- Below "Reputation for profile links" (25) a user's website and the links in
+  their "about me" are plain text and their profile page carries
+  `noindex, nofollow`; trusted users' profile links are `rel="nofollow ugc"`.
+- `cron/cleanup_inactive_users` (`manage.py cleanup_inactive_users`, run
+  daily) deletes accounts older than "Delete dormant accounts after" (15 days)
+  that never confirmed their email, have no posts, votes or other activity, and
+  haven't logged in or used the site in that time. Staff accounts are never
+  deleted; `--dry-run` lists them instead, and 0 days turns it off.
+- With the `ai` module configured, Gemini also reviews new and changed
+  profiles (website, "about me") of low-reputation users; suspect accounts are
+  listed under Admin > Flagged posts, where a moderator suspends the account or
+  deletes it (deleting is offered only for accounts without posts).
+
 ### AI assistance
 
 The `ai` module uses Google Gemini, either through the Gemini API or through
@@ -163,6 +187,9 @@ Each feature can be switched off under Admin > AI assistance:
   by automated checks", where a moderator dismisses the report or deletes the
   post. The AI never hides or deletes anything itself, and a report costs the
   author no reputation.
+- **Profile spam review**: new or changed websites and "about me" texts of
+  low-reputation users are checked for SEO links and advertising; suspect
+  accounts are listed in the same queue (see "Spam sign-ups" above).
 
 These features send the text of public posts to Google (nothing else about
 the author); say so in your privacy page if you turn them on. The model is

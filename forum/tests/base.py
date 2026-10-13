@@ -40,6 +40,13 @@ class OSQATestCase(TestCase):
         user.save()
         return user
 
+    def signup_token(self, age=60):
+        """The hidden time stamp of a sign-up form shown `age` seconds ago."""
+        import time
+        from django.core import signing
+        from forum.utils.antispam import SIGNUP_SALT
+        return signing.dumps(time.time() - age, salt=SIGNUP_SALT)
+
     def login(self, user):
         self.client.force_login(user)
 

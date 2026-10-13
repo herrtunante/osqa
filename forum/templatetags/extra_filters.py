@@ -58,9 +58,10 @@ def static_content(content, render_mode):
     if render_mode == 'markdown':
         return mark_safe(markdown.markdown(str(content), extensions=['forum.markdownext.mdx_settingsparser']))
     elif render_mode == 'markdown-safe':
-        # Markdown 3.x+: safe_mode removed, sanitize_html() or html.escape instead
-        import html
-        return mark_safe(html.escape(markdown.markdown(str(content))))
+        # Markdown 3.x+ has no safe_mode: render, then sanitize. (Escaping the
+        # rendered HTML showed visitors the raw tags.)
+        from forum.utils.html import sanitize_html
+        return mark_safe(sanitize_html(markdown.markdown(str(content))))
     elif render_mode == "html":
         return mark_safe(str(content))
     else:

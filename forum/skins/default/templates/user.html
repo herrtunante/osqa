@@ -4,6 +4,9 @@
 {% load extra_filters %}
 {% load humanize %}
 {% load smart_if %}
+{% load user_tags %}
+
+{% block meta %}{% if not view_user|profile_links_trusted %}<meta name="robots" content="noindex, nofollow" />{% endif %}{% endblock %}
 
 {% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
 {% block forestyle%}

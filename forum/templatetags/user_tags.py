@@ -5,6 +5,21 @@ import logging
 
 register = template.Library()
 
+
+@register.filter
+def profile_links_trusted(user):
+    from forum.utils.antispam import links_trusted
+    return links_trusted(user)
+
+
+@register.filter
+def profile_about(user):
+    """The user's "about me" as HTML; links only for trusted users."""
+    import markdown
+    from forum.utils.antispam import links_trusted
+    from forum.utils.html import sanitize_profile_html
+    return mark_safe(sanitize_profile_html(markdown.markdown(str(user.about)), links_trusted(user)))
+
 class UserSignatureNode(template.Node):
     template = template.loader.get_template('users/signature.html')
 

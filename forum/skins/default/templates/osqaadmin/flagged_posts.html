@@ -5,7 +5,7 @@
 
 {% block subtitle %}{% trans "Flagged Posts" %}{% endblock %}
 {% block pagename %}{% trans "Flagged Posts" %}{% endblock %}
-{% block description %}{% trans "This are the posts that have been flagged by users." %}{% endblock %}
+{% block description %}{% trans "Posts flagged by users, and posts and accounts reported by automated checks." %}{% endblock %}
 
 {% block admincontent %}
     {% if moderation_reports %}
@@ -13,12 +13,12 @@
         <table width="100%">
         <caption>{% trans "Reported by automated checks" %}</caption>
         {% for report in moderation_reports %}
-            {% with post=report.node.leaf %}
             <tr class="moderation-report">
                 <td>
                     <span class="moderation-verdict moderation-verdict-{{ report.verdict }}">{{ report.verdict }}</span>
                     <span class="moderation-meta">{% if report.verdict == "unsafe" %}{% trans "AI review: blocked by the safety filters" %}{% elif report.source == "ai" %}{% blocktrans with percent=report.confidence_percent %}AI review, {{ percent }}% sure{% endblocktrans %}{% else %}{% blocktrans with percent=report.confidence_percent source=report.source %}{{ source }}, {{ percent }}% sure{% endblocktrans %}{% endif %}
                         &middot; {{ report.created_at|date:"Y-m-d H:i" }}</span>
+                    {% if report.node_id %}{% with post=report.node.leaf %}
                     <div class="moderation-post">
                         <a href="{{ post.get_absolute_url }}">{{ post.headline }}</a>
                         {% blocktrans with author=post.author.username %}by {{ author }}{% endblocktrans %}
@@ -33,9 +33,28 @@
                         <button type="submit" name="resolution" value="delete" class="moderation-delete plain-button">{% trans "Delete post" %}</button>
                         {% endif %}
                     </form>
+                    {% endwith %}{% else %}{% with account=report.user %}
+                    <div class="moderation-post">
+                        {% trans "Account" %} <a href="{{ account.get_profile_url }}">{{ account.username }}</a>
+                        &middot; {% blocktrans with joined=account.date_joined|date:"Y-m-d" %}joined {{ joined }}{% endblocktrans %}
+                        {% if account.is_suspended %}<em>({% trans "suspended" %})</em>{% endif %}
+                        {% if account.website %}<div class="moderation-excerpt">{{ account.website }}</div>{% endif %}
+                        {% if account.about %}<div class="moderation-excerpt">{{ account.about|truncatechars:300 }}</div>{% endif %}
+                    </div>
+                    {% if report.reason %}<div class="moderation-reason">{{ report.reason }}</div>{% endif %}
+                    <form method="post" action="{% url "admin_resolve_moderation_report" report.id %}" class="moderation-actions">
+                        {% csrf_token %}
+                        <button type="submit" name="resolution" value="dismiss" class="plain-button">{% trans "Not a problem" %}</button>
+                        {% if not account.is_suspended %}
+                        <button type="submit" name="resolution" value="suspend" class="moderation-delete plain-button">{% trans "Suspend account" %}</button>
+                        {% endif %}
+                        {% if not report.account_has_posts %}
+                        <button type="submit" name="resolution" value="delete_account" class="moderation-delete plain-button">{% trans "Delete account" %}</button>
+                        {% endif %}
+                    </form>
+                    {% endwith %}{% endif %}
                 </td>
             </tr>
-            {% endwith %}
         {% endfor %}
         </table>
     </div>

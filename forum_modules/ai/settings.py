@@ -57,3 +57,10 @@ help_text = _("Posts by users with at least this reputation (and by staff) are n
 AI_MODERATION_MIN_CONFIDENCE = Setting('AI_MODERATION_MIN_CONFIDENCE', 0.7, AI_SET, dict(
 label = _("Report from confidence"),
 help_text = _("How sure (0 to 1) the review must be before a post is reported to moderators.")))
+
+AI_PROFILE_REVIEW = Setting('AI_PROFILE_REVIEW', True, AI_SET, dict(
+label = _("Profile spam review"),
+help_text = _("When a user below the skip reputation fills in or changes their website or \"about me\", check it for "
+              "profile spam (SEO links, advertising). Suspect accounts are listed for moderators under Flagged posts; "
+              "they are never suspended or deleted automatically."),
+required=False))

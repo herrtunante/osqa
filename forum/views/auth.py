@@ -24,7 +24,7 @@ from forum.actions import EmailValidationAction
 from forum.utils import html
 from forum.views.decorators import login_required
 from forum.modules import decorate
-from forum.forms import SimpleRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
+from forum.forms import PublicRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils.mail import send_template_email
 from forum.utils.redact import redact_meta
@@ -32,6 +32,7 @@ from forum.authentication.base import InvalidAuthentication
 from forum.authentication import AUTH_PROVIDERS
 from forum.models import User, AuthKeyUserAssociation, ValidationHash
 from forum.actions import UserJoinsAction, UserLoginAction
+from forum.utils.antispam import signup_limit_reached, count_signup
 from forum import settings
 
 from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
@@ -166,9 +167,11 @@ def process_provider_signin(request, provider):
 
 def external_register(request):
     if request.method == 'POST' and 'bnewaccount' in request.POST:
-        form1 = SimpleRegistrationForm(request.POST)
+        form1 = PublicRegistrationForm(request.POST)
 
-        if form1.is_valid():
+        if signup_limit_reached(request):
+            form1.add_error(None, _("Too many accounts have been created from your network recently. Please try again later."))
+        elif form1.is_valid():
             user_ = User(username=form1.cleaned_data['username'], email=form1.cleaned_data['email'], real_name=form1.cleaned_data['real_name'])
             user_.email_isvalid = request.session.get('auth_validated_email', '') == form1.cleaned_data['email']
             user_.set_unusable_password()
@@ -178,6 +181,7 @@ def external_register(request):
                 user_.is_staff = True
 
             user_.save()
+            count_signup(request)
             UserJoinsAction(user=user_, ip=request.META['REMOTE_ADDR']).save()
 
             try:
@@ -222,7 +226,7 @@ def external_register(request):
         if email and user_data.get('email_verified', True):
             request.session['auth_validated_email'] = email
 
-        form1 = SimpleRegistrationForm(initial={
+        form1 = PublicRegistrationForm(initial={
         'next': '/',
         'username': username,
         'email': email,

@@ -1,4 +1,5 @@
 from forum.forms import NextUrlField, UserNameField, UserEmailField, SetPasswordForm
+from forum.utils.antispam import BotTrapMixin
 from forum.models import Question
 from forum.modules import call_all_handlers
 from django.contrib.contenttypes.models import ContentType
@@ -7,7 +8,7 @@ from django.contrib.auth import authenticate
 from django import forms
 import logging
 
-class ClassicRegisterForm(SetPasswordForm):
+class ClassicRegisterForm(BotTrapMixin, SetPasswordForm):
     """ legacy registration form """
 
     next = NextUrlField()

@@ -4,6 +4,7 @@ from forum.models import User
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from django import forms
+from forum.utils.antispam import BotTrapMixin
 
 
 class SimpleRegistrationForm(forms.Form):
@@ -13,6 +14,10 @@ class SimpleRegistrationForm(forms.Form):
     real_name = UserRealNameField()
     username_validation = UserNameValidationField()
     username_validation_sum = UserNameValidationSumField()
+
+class PublicRegistrationForm(BotTrapMixin, SimpleRegistrationForm):
+    """The sign-up form after an external login, with the bot traps."""
+
 
 class TemporaryLoginRequestForm(forms.Form):
     def __init__(self, data=None):

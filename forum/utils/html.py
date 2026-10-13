@@ -53,6 +53,16 @@ def sanitize_html(html):
     return nh3.clean(html, tags=set(ALLOWED_TAGS), attributes=ALLOWED_ATTRIBUTES,
                      attribute_filter=_filter_attribute, link_rel=None)
 
+def sanitize_profile_html(html, links=True):
+    """Like sanitize_html, for a user's "about me": never images; links only
+    when `links`, and then marked nofollow/ugc so they pass no search ranking."""
+    attributes = {tag: set(names) - {'rel'} for tag, names in ALLOWED_ATTRIBUTES.items()}
+    tags = set(ALLOWED_TAGS) - {'img'}
+    if not links:
+        tags.discard('a')
+    return nh3.clean(html, tags=tags, attributes=attributes, attribute_filter=_filter_attribute,
+                     link_rel='nofollow ugc noopener noreferrer' if links else None)
+
 def cleanup_urls(url):
     return quote_plus(strip_tags(url))
 
