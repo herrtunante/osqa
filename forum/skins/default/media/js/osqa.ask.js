@@ -165,3 +165,47 @@ $(function() {
         $box.prop('hidden', true).empty();
     });
 });
+
+// AI assistant (forum_modules/ai): an answer from the forum and the
+// documentation before the question is posted.
+$(function() {
+    var url = window.ai_assistant_url;
+    var $button = $('#ask-assistant-button'), $out = $('#ask-assistant-answer');
+    if (!url || !$button.length) return;
+
+    function show(html) {
+        $out.html(html).prop('hidden', false);
+    }
+
+    $button.on('click', function() {
+        var title = $.trim($('#id_title').val());
+        if (title.length < 15) {
+            show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_title) + '</p>');
+            $('#id_title').focus();
+            return;
+        }
+        $button.prop('disabled', true);
+        show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_working) + '</p>');
+        $.post(url, {title: title, text: $('#editor').val() || ''}).done(function(data) {
+            var html = '';
+            if (data.insufficient) {
+                html += '<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_insufficient) + '</p>';
+            }
+            // data.html was rendered and sanitized by the server.
+            html += '<div class="ask-assistant-body">' + data.html + '</div>';
+            if (data.sources && data.sources.length) {
+                html += '<div class="ai-suggestion-sources"><strong>' + escapeHtml(messages.ai_assistant_sources) + '</strong><ol>';
+                $.each(data.sources, function(i, s) {
+                    html += '<li><a href="' + escapeHtml(s.url) + '" target="_blank" rel="nofollow noopener">' +
+                            escapeHtml(s.title) + '</a> <span class="ai-source-kind">' + escapeHtml(s.kind) + '</span></li>';
+                });
+                html += '</ol></div>';
+            }
+            show(html + '<p class="ai-suggestion-note">' + escapeHtml(messages.ai_assistant_note) + '</p>');
+        }).fail(function(xhr) {
+            show('<p class="ask-assistant-status">' + escapeHtml(xhr.status == 429 ? messages.ai_assistant_limit : messages.ai_assistant_failed) + '</p>');
+        }).always(function() {
+            $button.prop('disabled', false);
+        });
+    });
+});

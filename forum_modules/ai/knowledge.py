@@ -159,9 +159,12 @@ def _matrix():
         return _matrix_cache['ids'], _matrix_cache['matrix']
 
 
-def search(query, limit=8, source=None, min_score=0.35):
+def search(query, limit=8, source=None, min_score=0.2, spread=0.2):
     """The KnowledgeChunks most similar to `query`, best first, each with a
-    .similarity attribute. Quality (accepted, voted answers) breaks near-ties."""
+    .similarity attribute. Quality (accepted, voted answers) breaks near-ties.
+
+    Results must reach `min_score` and lie within `spread` of the best match;
+    whether they really answer the question is left to the model."""
     if not is_configured() or not query.strip():
         return []
     ids, matrix = _matrix()
@@ -174,11 +177,12 @@ def search(query, limit=8, source=None, min_score=0.35):
     q /= np.linalg.norm(q) + 1e-9
     scores = matrix @ q
     order = np.argsort(-scores)[:max(limit * 4, 20)]
+    floor = max(min_score, float(scores[order[0]]) - spread)
     chunks = KnowledgeChunk.objects.in_bulk([ids[i] for i in order])
     results = []
     for i in order:
         chunk = chunks.get(ids[i])
-        if chunk is None or (source and chunk.source != source) or scores[i] < min_score:
+        if chunk is None or (source and chunk.source != source) or scores[i] < floor:
             continue
         chunk.similarity = float(scores[i])
         results.append(chunk)

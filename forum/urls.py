@@ -38,6 +38,7 @@ core_urls = [
     re_path(r'^llms\.txt$', app.agents.llms_txt, name='llms_txt'),
     re_path(r'^export/qa\.jsonl$', app.agents.qa_export, name='qa_export'),
     re_path(r'^mcp/?$', app.agents.mcp, name='mcp'),
+    re_path(r'^ai-suggestions/(?P<id>\d+)/(?P<verdict>helpful|remove)/$', app.agents.ai_suggestion_feedback, name='ai_suggestion_feedback'),
     re_path(r'^sitemap-(?P<section>.+)-(?P<page>\d+)\.xml$', sitemap, {'sitemaps': sitemaps}, name="sitemap_section_page"),
     re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap_section_index, {'sitemaps': sitemaps}, name="sitemap_section_index"),
 

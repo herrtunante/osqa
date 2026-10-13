@@ -17,7 +17,7 @@ from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 
 from forum import settings
-from forum.models import Question, Answer, Comment
+from forum.models import Question, Answer, Comment, AISuggestion
 from forum.utils.similar import search_questions
 
 MCP_PROTOCOL_VERSIONS = ('2025-06-18', '2025-03-26', '2024-11-05')
@@ -281,3 +281,25 @@ def mcp(request):
         return JsonResponse(responses, safe=False) if responses else HttpResponse(status=202)
     response = handle_mcp_message(payload)
     return JsonResponse(response) if response is not None else HttpResponse(status=202)
+
+
+# ---- AI-suggested answers ---------------------------------------------
+
+def ai_suggestion_feedback(request, id, verdict):
+    """The asker or a moderator marks an AI suggestion helpful, or removes it."""
+    from django.shortcuts import get_object_or_404
+    from django.http import HttpResponseNotAllowed, HttpResponseRedirect
+    from forum.http_responses import HttpResponseUnauthorized
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    suggestion = get_object_or_404(AISuggestion, id=id)
+    question = suggestion.question.leaf
+    user = request.user
+    if not user.is_authenticated or not (user == question.author or user.is_staff or user.is_superuser):
+        return HttpResponseUnauthorized(request)
+    if verdict == 'helpful':
+        suggestion.resolve(user, AISuggestion.HELPFUL)
+    elif verdict == 'remove':
+        suggestion.resolve(user, AISuggestion.REMOVED)
+    return HttpResponseRedirect(question.get_absolute_url())

@@ -52,6 +52,18 @@
         window.addEventListener('beforeunload', beforeUnload, true);
 
         var related_questions_url = '{% url "related_questions" %}';
+        {% if settings.AI_ASSISTANT %}
+        var ai_assistant_url = '{% url "ai_assistant" %}';
+        $.extend(messages, {
+            ai_assistant_working: "{% filter escapejs %}{% trans "Looking through the forum and the documentation..." %}{% endfilter %}",
+            ai_assistant_title: "{% filter escapejs %}{% trans "Write a title of a few words first." %}{% endfilter %}",
+            ai_assistant_limit: "{% filter escapejs %}{% trans "You have asked the assistant often in the last hour; please post your question instead or try later." %}{% endfilter %}",
+            ai_assistant_failed: "{% filter escapejs %}{% trans "The assistant is not available right now. You can post your question." %}{% endfilter %}",
+            ai_assistant_insufficient: "{% filter escapejs %}{% trans "The assistant couldn't find an answer in the forum or the documentation:" %}{% endfilter %}",
+            ai_assistant_sources: "{% filter escapejs %}{% trans "Sources" %}{% endfilter %}",
+            ai_assistant_note: "{% filter escapejs %}{% trans "Written by AI; it may be wrong, check the sources. If it doesn't solve your problem, post your question below." %}{% endfilter %}"
+        });
+        {% endif %}
         {% if settings.AI_DUPLICATE_DETECTION %}
         var ai_duplicates_url = '{% url "ai_duplicate_check" %}';
         $.extend(messages, {
@@ -127,6 +139,13 @@
                 <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
                 <span class="form-error"></span>
             </div>
+            {% if settings.AI_ASSISTANT %}
+            <div class="ask-assistant">
+                <button type="button" id="ask-assistant-button" class="plain-button">{% trans "Ask the AI assistant first" %}</button>
+                <span class="ask-assistant-hint">{% trans "An answer from earlier forum threads and the documentation, before you post." %}</span>
+                <div id="ask-assistant-answer" class="ask-assistant-answer" aria-live="polite" hidden></div>
+            </div>
+            {% endif %}
 
             <div class="form-item{% if form.tags.errors %} error{% endif %}">
 

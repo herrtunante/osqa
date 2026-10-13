@@ -45,6 +45,8 @@ site refuses to start without one.
   (`SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`).
 - Email digests: run `cron/send_email_alerts` daily.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
+- AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
+  `cron/suggest_answers` hourly (see "AI assistance" below).
 
 ### Docker
 
@@ -191,11 +193,36 @@ Each feature can be switched off under Admin > AI assistance:
   low-reputation users are checked for SEO links and advertising; suspect
   accounts are listed in the same queue (see "Spam sign-ups" above).
 
+- **Assistant and knowledge index**: `manage.py build_knowledge_index`
+  (nightly) indexes answered forum threads and the documentation crawled from
+  "Documentation to crawl" (default: openforis.org, the Collect Earth Online
+  docs, FAO's Open Foris pages, earthmap.org; same site and path only,
+  robots.txt respected) with Gemini embeddings; only changed text is
+  re-embedded. The ask page offers "Ask the AI assistant first": Gemini
+  answers from the closest threads and pages, optionally with Google Search
+  grounding, citing its sources, or says what's missing.
+- **Suggested answers**: `manage.py suggest_answers` (hourly) adds a marked AI
+  suggestion with sources to questions unanswered after 24 hours. The asker
+  and moderators can mark it helpful or remove it; it isn't an answer, earns
+  no reputation and never goes back into the index or the exports.
+
 These features send the text of public posts to Google (nothing else about
 the author); say so in your privacy page if you turn them on. The model is
 configurable (default `gemini-3.8-flash`; `gemini-3.5-flash-lite` is
 cheaper). Without credentials, or if the API is unreachable, the site works as
 before.
+
+### Content for AI agents
+
+So other assistants (Gemini, Claude, ChatGPT, in-house agents) can use the
+forum and cite it, without the `ai` module:
+
+- `/questions/<id>.md`: a thread as Markdown with metadata (status, score,
+  tags, dates), accepted answer first; question pages link it.
+- `/llms.txt`: what the site is and how to read it.
+- `/export/qa.jsonl`: all answered questions with their answers.
+- `/mcp`: a read-only MCP server (Streamable HTTP) with `search_forum` and
+  `get_question`; with the knowledge index built, search is semantic.
 
 ### Social login
 

@@ -1,0 +1,33 @@
+{% load i18n %}
+{% if suggestion %}
+<section class="ai-suggestion{% if suggestion.status == 'helpful' %} ai-suggestion-helpful{% endif %}" aria-labelledby="ai-suggestion-title">
+    <div class="ai-suggestion-head">
+        <span class="ai-suggestion-badge">{% trans "AI" %}</span>
+        <h2 id="ai-suggestion-title">{% trans "Suggested answer" %}</h2>
+        {% if suggestion.status == 'helpful' %}<span class="ai-suggestion-marked">{% trans "the asker found this helpful" %}</span>{% endif %}
+    </div>
+    <div class="ai-suggestion-body">{{ suggestion.html|safe }}</div>
+    {% if suggestion.sources %}
+    <div class="ai-suggestion-sources">
+        <strong>{% trans "Sources" %}</strong>
+        <ol>
+        {% for source in suggestion.sources %}
+            <li><a href="{{ source.url }}" rel="nofollow noopener" target="_blank">{{ source.title }}</a>
+                <span class="ai-source-kind">{% if source.kind == 'forum' %}{% trans "forum" %}{% elif source.kind == 'documentation' %}{% trans "documentation" %}{% else %}{% trans "web" %}{% endif %}</span></li>
+        {% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+    <p class="ai-suggestion-note">{% blocktrans with date=suggestion.created_at|date:"Y-m-d" %}Written by AI on {{ date }} from forum answers and documentation, not by a person. It may be wrong: check the sources. It doesn't count as an answer, so the community can still answer.{% endblocktrans %}</p>
+    {% if can_resolve %}
+    <div class="ai-suggestion-actions">
+        {% if suggestion.status != 'helpful' %}
+        <form method="post" action="{% url "ai_suggestion_feedback" suggestion.id "helpful" %}">{% csrf_token %}
+            <button type="submit" class="plain-button">{% trans "This helped" %}</button></form>
+        {% endif %}
+        <form method="post" action="{% url "ai_suggestion_feedback" suggestion.id "remove" %}">{% csrf_token %}
+            <button type="submit" class="plain-button">{% trans "Remove suggestion" %}</button></form>
+    </div>
+    {% endif %}
+</section>
+{% endif %}

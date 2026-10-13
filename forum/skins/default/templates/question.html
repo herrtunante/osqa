@@ -9,6 +9,7 @@
 {% load i18n %}
 {% load cache %}
 {% load seo_tags %}
+{% load assistant_tags %}
 {% block metadescription %}{{ question.meta_description }}{% endblock %}
 {% block metakeywords %}{{question.tagname_meta_generator}}{% endblock %}
 {% block meta %}
@@ -198,6 +199,7 @@
                     {{ answers.paginator.page_numbers }}
                 </div>
             {% endif %}
+            {% ai_suggestion question request.user %}
         <form id="fmanswer" action="{% url "answer" question.id %}" method="post">
             {% csrf_token %}
             <div style="clear:both">

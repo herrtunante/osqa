@@ -2961,3 +2961,114 @@ h3.or_label::before, h3.or_label::after {
     border-color: var(--danger-text);
     color: var(--danger-text);
 }
+
+/* ---- AI assistant (ask page) and suggested answers ---------------- */
+
+.ask-assistant {
+    margin: 0 0 18px;
+}
+
+.ask-assistant-hint {
+    margin-left: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ask-assistant button, .ai-suggestion-actions button {
+    padding: 6px 12px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--brand);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.ask-assistant button:disabled {
+    opacity: .6;
+    cursor: progress;
+}
+
+.ask-assistant-answer, .ai-suggestion {
+    margin-top: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--info-border, var(--border));
+    border-left: 4px solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+    color: var(--text);
+}
+
+.ask-assistant-answer[hidden] {
+    display: none;
+}
+
+.ask-assistant-status {
+    margin: 0 0 6px;
+    color: var(--muted);
+}
+
+.ai-suggestion {
+    margin: 20px 0;
+}
+
+.ai-suggestion-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ai-suggestion-head h2 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.ai-suggestion-badge {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.ai-suggestion-marked {
+    color: var(--success);
+    font-size: 13px;
+}
+
+.ai-suggestion-sources {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.ai-suggestion-sources ol {
+    margin: 4px 0 0;
+    padding-left: 22px;
+}
+
+.ai-source-kind {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.ai-suggestion-note {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.ai-suggestion-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ai-suggestion-actions form {
+    margin: 0;
+}
