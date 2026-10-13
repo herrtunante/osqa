@@ -483,6 +483,7 @@ def user_import(row, current_user, is_merge, users_map, marked_tags):
 
 def pre_tag_import(user, data):
     data['tag_mappings'] = dict([ (t.name, t) for t in Tag.objects.all() ])
+    data['tag_synonyms'] = []
 
 def post_tag_import(user, data):
     tags = data['tag_mappings']
@@ -494,10 +495,16 @@ def post_tag_import(user, data):
         if tag and not MarkedTag.objects.filter(user_id=user_id, tag=tag).exists():
             MarkedTag(user_id=user_id, tag=tag, reason=reason).save()
 
+    from forum.models import TagSynonym
+    for source_name, target_name in data['tag_synonyms']:
+        target = Tag.objects.filter(name=target_name).first()
+        if target and source_name != target_name and not TagSynonym.objects.filter(source_name=source_name).exists():
+            TagSynonym(source_name=source_name, target=target).save()
+
 
 @file_handler('tags.xml', 'tags', 'tag', _('Tags'), pre_callback=pre_tag_import, post_callback=post_tag_import,
-              args_handler=lambda u, d: [u, d['is_merge'], d['tag_merge'], d['users_map'], d['tag_mappings']])
-def tag_import(row, current_user, is_merge, tag_merge, users_map, tag_mappings):
+              args_handler=lambda u, d: [u, d['is_merge'], d['tag_merge'], d['users_map'], d['tag_mappings'], d['tag_synonyms']])
+def tag_import(row, current_user, is_merge, tag_merge, users_map, tag_mappings, tag_synonyms):
     created_by = row.get('author').as_int(None)
     created_by = users_map.get(created_by, current_user.id)
 
@@ -510,6 +517,14 @@ def tag_import(row, current_user, is_merge, tag_merge, users_map, tag_mappings):
     else:
         tag = Tag(name=tag_name, used_count=row.get('used').as_int(), created_by_id=created_by)
         tag_mappings[tag.name] = tag
+
+    description = row.getc('description')
+    if description and not tag.description:
+        tag.description = description
+
+    synonyms = row.get('synonyms')
+    if synonyms:
+        tag_synonyms.extend((name, tag_name) for name in synonyms.get_listc('synonym'))
 
     raw_save(tag)
 

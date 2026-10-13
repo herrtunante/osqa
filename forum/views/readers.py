@@ -119,8 +119,13 @@ def questions(request):
 
 @decorators.render('questions.html')
 def tag(request, tag):
+    name = unquote(tag)
+    synonym = TagSynonym.objects.filter(source_name=name).select_related('target').first()
+    if synonym:
+        return HttpResponsePermanentRedirect(synonym.target.get_absolute_url())
+
     try:
-        tag = Tag.active.get(name=unquote(tag))
+        tag = Tag.active.get(name=name)
     except Tag.DoesNotExist:
         raise Http404
 

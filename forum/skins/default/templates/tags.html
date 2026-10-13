@@ -45,6 +45,7 @@
         {{ tag }}
     </a>&nbsp;
     <span class="tag-number">&#215; {{ tag.used_count|intcomma }}</span>
+    {% if tag.description %}<span class="tag-excerpt">{{ tag.description_excerpt }}</span>{% endif %}
     <br/>
 
     </li>

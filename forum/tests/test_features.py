@@ -281,3 +281,70 @@ class MentionTest(OSQATestCase):
         self.assertEqual(lines[0].split('|')[3], 'bob')
         self.assertNotIn('bobsleigh', '\n'.join(lines))
         self.assertTrue(any(line.endswith('|jumbo') for line in lines))
+
+
+class TagSynonymTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        from forum.models import Tag
+        self.mod = self.create_user('mod', reputation=10000)
+        self.mod.is_staff = True
+        self.mod.save()
+        self.alice = self.create_user('alice', reputation=500)
+        self.question = Question(author=self.alice, title='How do I reproject a shapefile?', tagnames='gis-analysis qgis',
+                                 body='Question body text that is long enough.')
+        self.question.save()
+        self.gis = Question(author=self.alice, title='Which GIS for forest maps?', tagnames='gis',
+                            body='Another question body that is long enough.')
+        self.gis.save()
+        self.tag = Tag.objects.get(name='gis')
+
+    def edit(self, **data):
+        self.login(self.mod)
+        return self.client.post('/tags/gis/edit/', data)
+
+    def test_description(self):
+        response = self.edit(action='description', description='Geographic information systems, e.g. **QGIS**.')
+        self.assertRedirects(response, '/tags/gis/', fetch_redirect_response=False)
+        page = self.client.get('/tags/gis/')
+        self.assertContains(page, '<strong>QGIS</strong>')
+        self.assertContains(self.client.get('/tags/'), 'Geographic information systems, e.g. QGIS.')
+
+    def test_merging_an_existing_tag(self):
+        from forum.models import Tag, MarkedTag
+        MarkedTag(tag=Tag.objects.get(name='gis-analysis'), user=self.alice, reason='good').save()
+        self.edit(action='add_synonym', synonym='gis-analysis')
+
+        question = Question.objects.get(id=self.question.id)
+        self.assertEqual(question.tagname_list(), ['gis', 'qgis'])
+        self.assertEqual(question.active_revision.tagnames, 'gis qgis')
+        self.assertEqual(Tag.objects.get(name='gis').used_count, 2)
+        self.assertFalse(Tag.active.filter(name='gis-analysis').exists())
+        self.assertTrue(MarkedTag.objects.filter(tag__name='gis', user=self.alice).exists())
+        self.assertRedirects(self.client.get('/tags/gis-analysis/'), '/tags/gis/', status_code=301,
+                             fetch_redirect_response=False)
+
+    def test_new_questions_use_the_target_tag(self):
+        self.edit(action='add_synonym', synonym='arcgis')
+        self.login(self.alice)
+        self.client.post('/questions/ask/', {'title': 'Is arcgis able to read GeoPackages?',
+                                             'text': 'Some body text that is long enough to pass validation',
+                                             'tags': 'arcgis GIS geopackage'})
+        question = Question.objects.get(title='Is arcgis able to read GeoPackages?')
+        self.assertEqual(question.tagname_list(), ['gis', 'geopackage'])
+
+    def test_invalid_synonyms(self):
+        from forum.models import TagSynonym
+        self.edit(action='add_synonym', synonym='arcgis')
+        for name in ('gis', 'arcgis', 'bad name!', ''):
+            with self.subTest(name=name):
+                response = self.edit(action='add_synonym', synonym=name)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'class="tag-edit-error"')
+        self.assertEqual(TagSynonym.objects.count(), 1)
+
+    def test_only_moderators(self):
+        self.login(self.alice)
+        self.assertEqual(self.client.get('/tags/gis/edit/').status_code, 404)
+        self.assertEqual(self.client.post('/tags/gis/edit/', {'action': 'description', 'description': 'x'}).status_code, 404)
+        self.assertNotContains(self.client.get('/tags/gis/'), '/tags/gis/edit/')

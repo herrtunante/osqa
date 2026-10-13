@@ -95,6 +95,7 @@ core_urls = [
     
     
     re_path(r'^%s$' % _('tags/'), app.readers.tags, name='tags'),
+    re_path(r'^%s(?P<tag>[^/]+)/%s$' % (_('tags/'), _('edit/')), app.writers.tag_edit, name='tag_edit'),
     re_path(r'^%s(?P<tag>.*)/$' % _('tags/'), app.readers.tag, name='tag_questions'),     
     re_path(r'^%s%s(?P<tag>[^/]+)/$' % (_('mark-tag/'),_('interesting/')), app.commands.mark_tag, kwargs={'reason':'good','action':'add'}, name='mark_interesting_tag'),     
     re_path(r'^%s%s(?P<tag>[^/]+)/$' % (_('mark-tag/'),_('ignored/')), app.commands.mark_tag, kwargs={'reason':'bad','action':'add'}, name='mark_ignored_tag'),     

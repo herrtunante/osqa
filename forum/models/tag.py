@@ -19,6 +19,8 @@ class Tag(BaseModel):
     created_by      = models.ForeignKey(User, related_name='created_tags', on_delete=models.CASCADE)
     created_at      = models.DateTimeField(default=datetime.datetime.now, blank=True, null=True)
     marked_by       = models.ManyToManyField(User, related_name="marked_tags", through="MarkedTag")
+    # Short Markdown text explaining what the tag is for (shown on the tag's page).
+    description = models.TextField(blank=True, default='')
     # Denormalised data
     used_count = models.PositiveIntegerField(default=0)
 
@@ -62,6 +64,45 @@ class Tag(BaseModel):
         return 'name'
     def get_absolute_url(self):
         return reverse('tag_questions', kwargs={'tag': self.name})
+
+    @property
+    def description_html(self):
+        if not self.description:
+            return ''
+        from forum.models.node import Node
+        return Node._as_markdown(self.description, 'limitedsyntax')
+
+    @property
+    def description_excerpt(self):
+        from django.utils.html import strip_tags
+        from django.utils.text import Truncator
+        return Truncator(' '.join(strip_tags(str(self.description_html)).split())).chars(140)
+
+
+class TagSynonym(models.Model):
+    """A tag name that is replaced by another tag ("gis-analysis" -> "gis")."""
+    source_name = models.CharField(max_length=255, unique=True)
+    target = models.ForeignKey(Tag, related_name='synonyms', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, related_name='created_tag_synonyms', null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        app_label = 'forum'
+        ordering = ('source_name',)
+
+    def __str__(self):
+        return '%s -> %s' % (self.source_name, self.target.name)
+
+    @classmethod
+    def resolve(cls, names):
+        """Replace synonyms in a list of tag names by their targets, keeping order and dropping repeats."""
+        mapping = dict(cls.objects.filter(source_name__in=names).values_list('source_name', 'target__name'))
+        out = []
+        for name in names:
+            name = mapping.get(name, name)
+            if name not in out:
+                out.append(name)
+        return out
 
 class MarkedTag(models.Model):
     TAG_MARK_REASONS = (('good', _('interesting')), ('bad', _('ignored')))

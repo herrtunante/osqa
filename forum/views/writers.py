@@ -1,6 +1,7 @@
 # encoding:utf-8
 import logging
 import os.path
+import re
 
 import datetime
 
@@ -322,3 +323,78 @@ def manage_pending_data(request, action, forward=None):
         return HttpResponseRedirect(pending_data['submission_url'])
 
 
+
+
+TAG_NAME_RE = re.compile(r'^[\w+#.-]+$', re.UNICODE)
+
+
+def tag_edit(request, tag):
+    """Moderators edit a tag's description and its synonyms."""
+    from forum.models import Tag, TagSynonym, MarkedTag
+    from forum.actions import RetagAction
+
+    if not (request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff)):
+        raise Http404
+    tag = get_object_or_404(Tag, name=tag)
+    error = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'description':
+            tag.description = request.POST.get('description', '').strip()[:2000]
+            tag.save()
+            messages.info(request, _("The tag description was saved."))
+            return HttpResponseRedirect(tag.get_absolute_url())
+
+        elif action == 'add_synonym':
+            name = request.POST.get('synonym', '').strip().lower()
+            if not name or not TAG_NAME_RE.match(name) or len(name) > int(settings.FORM_MAX_LENGTH_OF_TAG):
+                error = _("Enter a valid tag name.")
+            elif name == tag.name:
+                error = _("A tag cannot be a synonym of itself.")
+            elif TagSynonym.objects.filter(source_name=name).exists():
+                error = _("%s is already a synonym.") % name
+            elif TagSynonym.objects.filter(source_name=tag.name).exists():
+                error = _("%s is itself a synonym of another tag.") % tag.name
+            else:
+                merge_tag(request, Tag.objects.filter(name=name).first(), tag)
+                TagSynonym(source_name=name, target=tag, created_by=request.user).save()
+                messages.info(request, _("%(synonym)s is now a synonym of %(tag)s.") % {'synonym': name, 'tag': tag.name})
+                return HttpResponseRedirect(reverse('tag_edit', kwargs={'tag': tag.name}))
+
+        elif action == 'remove_synonym':
+            TagSynonym.objects.filter(id=request.POST.get('id'), target=tag).delete()
+            return HttpResponseRedirect(reverse('tag_edit', kwargs={'tag': tag.name}))
+
+    return render(request, 'tag_edit.html', {
+        'tag': tag,
+        'synonyms': tag.synonyms.all(),
+        'error': error,
+    })
+
+
+def merge_tag(request, source, target):
+    """Move the questions, synonyms and user selections of tag `source` to `target`."""
+    from forum.models import TagSynonym, MarkedTag
+    from forum.actions import RetagAction
+
+    if source is None or source.id == target.id:
+        return
+
+    for question in Question.objects.filter(tags__id=source.id).distinct():
+        names = []
+        for name in question.tagname_list():
+            name = target.name if name == source.name else name
+            if name not in names:
+                names.append(name)
+        RetagAction(user=request.user, node=question, ip=request.META['REMOTE_ADDR']).save(
+            data=dict(tagnames=' '.join(names)))
+
+    TagSynonym.objects.filter(target=source).update(target=target)
+    for mark in MarkedTag.objects.filter(tag=source):
+        if MarkedTag.objects.filter(tag=target, user=mark.user).exists():
+            mark.delete()
+        else:
+            mark.tag = target
+            mark.save()

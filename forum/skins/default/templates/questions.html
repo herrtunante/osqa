@@ -24,6 +24,19 @@
     <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');" href="{{ feed_url }}" title="{% trans "subscribe to question RSS feed" %}"></a>
     {{ questions.paginator.sort_tabs }}
 </div>
+{% if tag %}
+{% if tag.description or request.user.is_superuser or request.user.is_staff %}
+<div class="tag-info">
+    {% if tag.description %}<div class="tag-description">{{ tag.description_html }}</div>{% endif %}
+    {% with synonyms=tag.synonyms.all %}{% if synonyms %}
+    <p class="tag-synonyms">{% trans "Synonyms:" %} {% for s in synonyms %}<span class="tag">{{ s.source_name }}</span>{% endfor %}</p>
+    {% endif %}{% endwith %}
+    {% if request.user.is_superuser or request.user.is_staff %}
+    <a class="tag-edit-link" href="{% url "tag_edit" tag=tag.name %}">{% if tag.description %}{% trans "edit tag" %}{% else %}{% trans "Describe this tag" %}{% endif %}</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endif %}
 <div id="listA">{% for question in questions.paginator.page %}
     {% if show_summary %}
       {% question_list_item question question_summary=yes %}

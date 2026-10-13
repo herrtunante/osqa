@@ -109,6 +109,10 @@ class TagNamesField(forms.CharField):
             if tag not in list_temp and len(tag.strip()) > 0:
                 list_temp.append(tag)
 
+        # Synonyms ("gis-analysis") are stored as their target tag ("gis").
+        from forum.models import TagSynonym
+        list_temp = TagSynonym.resolve(list_temp)
+
         if settings.LIMIT_TAG_CREATION and not self.user.can_create_tags():
             existent = Tag.objects.filter(name__in=list_temp).values_list('name', flat=True)
 

@@ -2128,6 +2128,100 @@ a.mention {
     font-size: 12px;
 }
 
+/* ---- Tag descriptions and synonyms ---------------------------------- */
+
+.tag-info {
+    margin: 4px 0 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--background);
+    font-size: 14px;
+}
+
+.tag-description p {
+    margin: 0 0 6px;
+}
+
+.tag-synonyms {
+    margin: 4px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.tag-synonyms .tag, .tag-synonym-list .tag, .headNormal .tag {
+    display: inline-block;
+    margin: 0 4px 0 0;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.8;
+}
+
+.tag-edit-link {
+    font-size: 13px;
+}
+
+.tag-excerpt {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: normal;
+}
+
+.tag-edit-form textarea {
+    display: block;
+    width: 100%;
+    margin: 6px 0 10px;
+}
+
+.tag-edit-heading {
+    margin: 28px 0 6px;
+    font-size: 18px;
+}
+
+.tag-synonym-list {
+    margin: 10px 0;
+    list-style: none;
+}
+
+.tag-synonym-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tag-synonym-list form {
+    margin-left: auto;
+}
+
+.tag-synonym-list .tag-synonym-remove, .tag-synonym-list .tag-synonym-remove:hover {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--danger-text);
+    font-size: 13px;
+}
+
+.tag-synonym-add {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0 20px;
+}
+
+.tag-edit-error {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */

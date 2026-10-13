@@ -305,6 +305,13 @@ def export_tags(t, el, anon_data):
     if not anon_data:
         add(el, 'author', t.created_by_id)
     add(el, 'used', t.used_count)
+    if t.description:
+        add(el, 'description', t.description)
+    synonyms = list(t.synonyms.values_list('source_name', flat=True))
+    if synonyms:
+        syn_el = add(el, 'synonyms')
+        for name in synonyms:
+            add(syn_el, 'synonym', name)
 
 
 @exporter_step(User.objects.all(), 'users', 'user', _('Users'), 'date_joined', True)

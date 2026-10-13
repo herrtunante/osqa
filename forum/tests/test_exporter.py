@@ -147,6 +147,11 @@ class ExportImportTest(ExporterTestCase):
 
     def test_export_and_import_round_trip(self):
         self.populate()
+        from forum.models import TagSynonym
+        django_tag = Tag.objects.get(name='django')
+        django_tag.description = 'The **Django** web framework.'
+        django_tag.save()
+        TagSynonym(source_name='dj', target=django_tag).save()
         before = self.snapshot()
         old_question = Question.objects.get()
         old_url = old_question.get_absolute_url()
@@ -220,6 +225,11 @@ class ExportImportTest(ExporterTestCase):
         self.assertCleanPage(page)
         self.assertContains(page, 'café ☃')
         self.assertContains(page, 'A comment that is long enough.')
+
+        # Tag descriptions and synonyms survive.
+        self.assertEqual(Tag.objects.get(name='django').description, 'The **Django** web framework.')
+        self.assertEqual(TagSynonym.objects.get().target.name, 'django')
+        self.assertEqual(TagSynonym.objects.get().source_name, 'dj')
 
         # Links with the question's old id still work.
         self.assertNotEqual(question.id, old_question.id)
