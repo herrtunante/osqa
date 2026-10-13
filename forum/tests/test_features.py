@@ -73,3 +73,44 @@ class SearchMetadataTest(OSQATestCase):
         self.assertContains(response, '<meta property="og:type" content="website" />')
         self.assertContains(response, '<meta property="og:url" content="http://testserver/tags/" />')
         self.assertContains(response, '<meta name="twitter:card" content="summary" />')
+
+
+class ImageUploadTest(OSQATestCase):
+    PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4'
+           b'\x89\x00\x00\x00\rIDATx\xdac\xfc\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99=\x1d\x00\x00\x00\x00IEND\xaeB`\x82')
+
+    def setUp(self):
+        super().setUp()
+        import tempfile, shutil
+        from forum import settings
+        self.folder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.folder)
+        settings.UPFILES_FOLDER.set_value(self.folder)
+        self.addCleanup(setattr, settings.UPFILES_FOLDER, '_temp', None)
+
+    def upload(self, content, name):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        response = self.client.post('/upload/', {'file-upload': SimpleUploadedFile(name, content)})
+        self.assertEqual(response['Content-Type'], 'application/xml')
+        return response.content.decode()
+
+    def test_image_is_stored(self):
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG, 'screen shot.png')
+        self.assertIn('<file_url>/upfiles/screen_shot.png</file_url>', reply)
+        self.assertIn('<error><![CDATA[]]></error>', reply)
+
+    def test_content_must_be_an_image(self):
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(b'<html><script>alert(1)</script></html>', 'evil.png')
+        self.assertIn('<file_url></file_url>', reply)
+        self.assertIn('allowed file types', reply)
+
+    def test_low_reputation_is_refused(self):
+        self.login(self.create_user('newbie', reputation=1))
+        reply = self.upload(self.PNG, 'a.png')
+        self.assertIn('<file_url></file_url>', reply)
+        self.assertIn('reputation', reply)
+
+    def test_editor_knows_the_upload_url(self):
+        self.assertContains(self.client.get('/questions/ask/'), 'upload_url: "/upload/"')

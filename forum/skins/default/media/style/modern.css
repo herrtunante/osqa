@@ -2033,6 +2033,24 @@ div.comment-tools a:hover {
     font-weight: 500;
 }
 
+/* ---- Image paste / drop -------------------------------------------- */
+
+textarea#editor.drop-target {
+    border-color: var(--brand);
+    outline: 2px dashed var(--brand);
+    outline-offset: -6px;
+    background: var(--brand-soft);
+}
+
+.upload-error {
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    font-size: 13px;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */

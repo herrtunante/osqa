@@ -1,4 +1,5 @@
 # encoding:utf-8
+import logging
 import os.path
 
 import datetime
@@ -20,6 +21,24 @@ from forum.utils import html
 from forum.http_responses import HttpResponseUnauthorized
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
+
+IMAGE_SIGNATURES = (
+    b'\x89PNG\r\n\x1a\n',       # PNG
+    b'\xff\xd8\xff',              # JPEG
+    b'GIF87a', b'GIF89a',
+    b'BM',                         # BMP
+    b'II*\x00', b'MM\x00*',        # TIFF
+    b'\x00\x00\x01\x00',          # ICO
+)
+
+
+def looks_like_image(f):
+    head = f.read(16)
+    f.seek(0)
+    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
+        return True
+    return any(head.startswith(signature) for signature in IMAGE_SIGNATURES)
+
 
 def upload(request):#ajax upload file to a question or answer
     class FileTypeNotAllow(Exception):
@@ -43,7 +62,11 @@ def upload(request):#ajax upload file to a question or answer
         except KeyError:
             raise FileTypeNotAllow()
 
-        if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico'):
+        if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
+            raise FileTypeNotAllow()
+
+        # The extension is chosen by the client; check the content too.
+        if not looks_like_image(f):
             raise FileTypeNotAllow()
 
         # check file size (in bytes) before writing anything to disk
@@ -57,11 +80,12 @@ def upload(request):#ajax upload file to a question or answer
     except UploadPermissionNotAuthorized:
         result = xml_template % ('', _('uploading images is limited to users with >60 reputation points'), '')
     except FileTypeNotAllow:
-        result = xml_template % ('', _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff'"), '')
+        result = xml_template % ('', _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff', 'webp'"), '')
     except FileSizeNotAllow:
         result = xml_template % ('', _("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, '')
-    except Exception as e:
-        result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you. %s' % e), '')
+    except Exception:
+        logging.exception('File upload failed')
+        result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you.'), '')
 
     return HttpResponse(result, content_type="application/xml")
 

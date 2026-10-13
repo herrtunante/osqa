@@ -60,7 +60,10 @@
                 character: "{% trans "character" %}",
                 characters: "{% trans "characters" %}",
                 draft_restored: "{% trans "Your unsent draft was restored." %}",
-                discard: "{% trans "Discard" %}"
+                discard: "{% trans "Discard" %}",
+                upload_url: "{% url "upload" %}",
+                uploading: "{% trans "Uploading" %}",
+                upload_failed: "{% trans "The image could not be uploaded." %}"
             }
         /*]]>*/
         </script>
@@ -68,6 +71,7 @@
         <script defer src="{% media "/media/vendor/highlight-11.10.0/highlight.min.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.highlight.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>
         {% if user_messages %}
         <script type="text/javascript">
             $(document).ready(function() {
