@@ -18,7 +18,7 @@ from forum.forms import MaintenanceModeForm, PageForm, CreateUserForm
 from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
 from forum.utils.mail import send_template_email
-from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag
+from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
 from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction
 from forum import settings
@@ -362,7 +362,30 @@ def maintenance(request):
 def flagged_posts(request):
     return ('osqaadmin/flagged_posts.html', {
     'flagged_posts': get_flagged_posts(),
+    'moderation_reports': ModerationReport.open_reports()[:50],
     })
+
+
+@require_POST
+@staff_user_required
+def resolve_moderation_report(request, id):
+    """Dismiss an automated report, or delete the reported post."""
+    report = get_object_or_404(ModerationReport, id=id)
+    node = report.node.leaf
+
+    if request.POST.get('resolution') == 'delete':
+        if not node.nis.deleted:
+            DeleteAction(user=request.user, node=node, ip=request.META['REMOTE_ADDR']).save()
+        resolution = 'deleted'
+        messages.info(request, _("The post has been deleted."))
+    else:
+        resolution = 'dismissed'
+        messages.info(request, _("The report has been dismissed."))
+
+    for open_report in ModerationReport.objects.filter(node=report.node, resolved_at=None):
+        open_report.resolve(request.user, resolution)
+
+    return HttpResponseRedirect(reverse('admin_flagged_posts'))
 
 @admin_page
 def static_pages(request):

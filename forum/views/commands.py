@@ -18,6 +18,7 @@ from django.contrib import messages
 
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
+from forum.utils.similar import candidate_questions
 from forum.actions import *
 from forum.modules import decorate
 from forum import settings
@@ -636,9 +637,15 @@ def related_questions(request):
         if can_rank and isinstance(can_rank, str):
             questions = questions.order_by(can_rank)
 
+        questions = list(questions.filter_state(deleted=False)[0:10])
+        if not questions:
+            # The default search matches the whole title as one phrase; without
+            # a full-text module that rarely finds anything, so match keywords.
+            questions = candidate_questions(request.POST['title'])
+
         return HttpResponse(json.dumps(
                 [dict(title=q.title, url=q.get_absolute_url(), score=q.score, summary=q.summary)
-                 for q in questions.filter_state(deleted=False)[0:10]]), content_type="application/json")
+                 for q in questions]), content_type="application/json")
     else:
         raise Http404()
 

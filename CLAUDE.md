@@ -132,6 +132,7 @@ When querying nodes, use the manager methods to get the correct subclass:
 - Post HTML is rendered once per revision (`Node.rendered()` → `forum.models.node.render_markdown()`, stored in `body`; the editor preview POSTs to `markdown_preview`, which uses the same function): fenced code (`normalize_fences`), then `forum/utils/mentions.py` links `@username`; `forum.utils.html.sanitize_html` (nh3) holds the tag/attribute allow-list; notifications read mention ids from `data-user` attributes, which the sanitizer never accepts from user HTML
 - A question closed as a duplicate keeps `{'duplicate_of': id}` in `Node.extra` (`Question.duplicate_of`)
 - `TagSynonym` maps tag names to tags; `TagNamesField` resolves synonyms when tags are entered
+- `forum_modules/ai`: every Claude call goes through `client.ask_claude()` (JSON-schema output, returns None on any failure so callers degrade to no AI); tests patch `forum_modules.ai.client.get_client`. Moderation hooks create `ModerationReport` rows (core model, resolved under Admin > Flagged posts) and never hide or delete posts; `forum/utils/similar.py` holds the keyword question matching used by duplicate detection and `related_questions`
 
 ### Caching
 

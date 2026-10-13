@@ -153,6 +153,7 @@ core_urls = [
     re_path(r'^%s%s(?P<set_name>\w+)/(?P<var_name>\w+)/$' % (_('admin/'), _('settings/')), app.admin.get_default, name='admin_default'),
     re_path(r'^%s%s$' % (_('admin/'), _('maintenance/')), app.admin.maintenance, name='admin_maintenance'),
     re_path(r'^%s%s$' % (_('admin/'), _('flagged_posts/')), app.admin.flagged_posts, name='admin_flagged_posts'),
+    re_path(r'^%s%s(?P<id>\d+)/$' % (_('admin/'), _('moderation_reports/')), app.admin.resolve_moderation_report, name='admin_resolve_moderation_report'),
     re_path(r'^%s%s$' % (_('admin/'), _('static_pages/')), app.admin.static_pages, name='admin_static_pages'),
     
     re_path(r'^%s%s%s$' % (_('admin/'), _('static_pages/'), _('new/')), app.admin.edit_page, name='admin_new_page'),

@@ -6,6 +6,9 @@ markdown==3.11
 nh3==0.3.7
 html2text==2025.4.15
 
+# Claude API, for the optional AI module (forum_modules/ai)
+anthropic==1.13.0
+
 # Database driver for the default MySQL setup (needs the MySQL client headers,
 # e.g. apt-get install default-libmysqlclient-dev pkg-config)
 mysqlclient==2.3.0

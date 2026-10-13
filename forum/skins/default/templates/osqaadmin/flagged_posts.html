@@ -8,6 +8,38 @@
 {% block description %}{% trans "This are the posts that have been flagged by users." %}{% endblock %}
 
 {% block admincontent %}
+    {% if moderation_reports %}
+    <div class="module moderation-reports" style="width:98%; display: inline-block;">
+        <table width="100%">
+        <caption>{% trans "Reported by automated checks" %}</caption>
+        {% for report in moderation_reports %}
+            {% with post=report.node.leaf %}
+            <tr class="moderation-report">
+                <td>
+                    <span class="moderation-verdict moderation-verdict-{{ report.verdict }}">{{ report.verdict }}</span>
+                    <span class="moderation-meta">{% if report.source == "ai" %}{% blocktrans with percent=report.confidence_percent %}AI review, {{ percent }}% sure{% endblocktrans %}{% else %}{% blocktrans with percent=report.confidence_percent source=report.source %}{{ source }}, {{ percent }}% sure{% endblocktrans %}{% endif %}
+                        &middot; {{ report.created_at|date:"Y-m-d H:i" }}</span>
+                    <div class="moderation-post">
+                        <a href="{{ post.get_absolute_url }}">{{ post.headline }}</a>
+                        {% blocktrans with author=post.author.username %}by {{ author }}{% endblocktrans %}
+                        {% if post.nis.deleted %}<em>({% trans "already deleted" %})</em>{% endif %}
+                        <div class="moderation-excerpt">{{ post.summary }}</div>
+                    </div>
+                    {% if report.reason %}<div class="moderation-reason">{{ report.reason }}</div>{% endif %}
+                    <form method="post" action="{% url "admin_resolve_moderation_report" report.id %}" class="moderation-actions">
+                        {% csrf_token %}
+                        <button type="submit" name="resolution" value="dismiss" class="plain-button">{% trans "Not a problem" %}</button>
+                        {% if not post.nis.deleted %}
+                        <button type="submit" name="resolution" value="delete" class="moderation-delete plain-button">{% trans "Delete post" %}</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endwith %}
+        {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <div class="module" style="width:98%; display: inline-block;">
         <table width="100%">
         <caption>{% trans "Flagged Posts" %}</caption>

@@ -128,11 +128,34 @@ All modules below except the full-text search ones are covered by the test suite
 | `default_badges` | The standard badges | Thresholds under Admin > Badges |
 | `project_badges` | "Bug Buster" badge for questions tagged `bug` | Disabled by default |
 | `akismet` | Spam check of new posts with Akismet | Akismet API key in the admin; does nothing without it |
+| `ai` | Duplicate question detection and spam/abuse moderation with Claude | Anthropic API key in Admin > External Keys (or `ANTHROPIC_API_KEY`); does nothing without it. See below |
 | `recaptcha` | reCAPTCHA v2 on registration | Disabled by default; site and secret keys in the admin |
 | `exporter` | Full-site XML backup (Admin > Tools > XML data exporter) and restore (XML data importer) | - |
 | `sximporter` | Import of a StackExchange data dump (`/admin/sximporter/`) | Old StackExchange 1.0 dump format only |
 | `robotstxt` | Editable `/robots.txt` | - |
 | `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Enabled automatically on that database; not yet tested on Python 3 |
+
+### AI assistance
+
+With an Anthropic API key (Admin > External Keys, or the `ANTHROPIC_API_KEY`
+environment variable) the `ai` module adds, each switchable under Admin > AI
+assistance:
+
+- **Duplicate detection**: while someone types a question title, existing
+  questions with matching keywords are sent to Claude, which picks the ones
+  that ask the same thing; the ask page lists them with a one-line reason.
+  Results are cached and limited per visitor per hour.
+- **Spam and abuse moderation**: new and edited posts by users below a
+  reputation threshold (staff are never checked) are reviewed in the
+  background. Likely spam, abuse or off-topic posts are listed under Admin >
+  Flagged posts > "Reported by automated checks", where a moderator dismisses
+  the report or deletes the post. The AI never hides or deletes anything
+  itself, and a report costs the author no reputation.
+
+These features send the text of public posts to Anthropic's API (nothing else
+about the author); say so in your privacy page if you turn them on. The model
+is configurable (default `claude-opus-5-5`); `claude-haiku-5-5` is cheaper.
+Without a key, or if the API is unreachable, the site works as before.
 
 ### Social login
 
@@ -187,6 +210,8 @@ fork used before), and the site's own search when it is empty.
 - Tag descriptions and synonyms (moderators: "edit tag" on a tag's page).
 - Users can download their data (JSON) and delete their account, which
   anonymises it and keeps their posts (profile menu > "your data and account").
+- Optional AI assistance with Claude: duplicate detection while asking, and a
+  moderation queue for likely spam (see "AI assistance" above).
 
 ## Layout
 

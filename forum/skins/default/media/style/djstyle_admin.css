@@ -117,3 +117,35 @@ input.longstring {
     background: var(--selected-row, #ffc);
     color: var(--body-fg, #333);
 }
+
+/* Admin > Flagged posts: automated reports */
+.moderation-verdict {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #fde8e8;
+    color: #9b1c1c;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.moderation-meta, .moderation-excerpt {
+    color: var(--body-quiet-color, #666);
+}
+
+.moderation-post, .moderation-reason {
+    margin: 6px 0;
+}
+
+.moderation-reason {
+    padding-left: 10px;
+    border-left: 3px solid var(--hairline-color, #ccc);
+}
+
+.moderation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
