@@ -14,6 +14,7 @@
 {% block meta %}
         <link rel="canonical" href="{{settings.APP_BASE_URL}}{{question.get_absolute_url}}" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ question.get_absolute_url }}?type=rss">
+        <link rel="alternate" type="text/markdown" title="Markdown" href="{% url "question_markdown" question.id %}">
         {% question_structured_data question %}
 {% endblock %}
 {% block social_meta %}

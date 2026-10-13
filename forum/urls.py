@@ -35,6 +35,9 @@ core_urls = [
 
 
     re_path(r'^sitemap.xml$', sitemap_index, {'sitemaps': sitemaps}),
+    re_path(r'^llms\.txt$', app.agents.llms_txt, name='llms_txt'),
+    re_path(r'^export/qa\.jsonl$', app.agents.qa_export, name='qa_export'),
+    re_path(r'^mcp/?$', app.agents.mcp, name='mcp'),
     re_path(r'^sitemap-(?P<section>.+)-(?P<page>\d+)\.xml$', sitemap, {'sitemaps': sitemaps}, name="sitemap_section_page"),
     re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap_section_index, {'sitemaps': sitemaps}, name="sitemap_section_index"),
 
@@ -89,6 +92,7 @@ core_urls = [
     re_path(r'^%s(?P<id>\d+)/' % _('wikify/'), app.commands.wikify, name='wikify'),
     
     re_path(r'^%s(?P<id>\d+)/(?P<slug>[\w-]*)$' % _('question/'), redirect, {'url': '/questions/%(id)s/%(slug)s'}),
+    re_path(r'^%s(?P<id>\d+)\.md$' % _('questions/'), app.agents.question_md, name='question_markdown'),
     re_path(r'^%s(?P<id>\d+)/?$' % _('questions/'), app.readers.question, name='question'),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)/(?P<answer>\d+)$' % _('questions/'), app.readers.question),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)$' % _('questions/'), app.readers.question, name='question'),

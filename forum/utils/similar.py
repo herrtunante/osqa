@@ -47,3 +47,21 @@ def candidate_questions(title, limit=10):
 
     ranked = sorted(((score(q), q) for q in pool), key=lambda pair: -pair[0])
     return [q for s, q in ranked if s > 0][:limit]
+
+
+# Better search engines (e.g. the AI module's semantic index) register a
+# function (query, limit) -> [Question] here; keyword matching is the fallback.
+SEARCH_PROVIDERS = []
+
+
+def search_questions(query, limit=10):
+    for provider in SEARCH_PROVIDERS:
+        try:
+            results = provider(query, limit)
+        except Exception:
+            import logging
+            logging.exception("Question search provider failed, using keyword matching")
+            continue
+        if results:
+            return results
+    return candidate_questions(query, limit)
