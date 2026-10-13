@@ -187,12 +187,14 @@ $(function() {
         $button.prop('disabled', true);
         show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_working) + '</p>');
         $.post(url, {title: title, text: $('#editor').val() || ''}).done(function(data) {
-            var html = '';
             if (data.insufficient) {
-                html += '<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_insufficient) + '</p>';
+                // Nothing in the forum or the documentation covers it: no answer is shown.
+                var reason = data.html ? '<div class="ask-assistant-body">' + data.html + '</div>' : '';
+                show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_insufficient) + '</p>' + reason);
+                return;
             }
             // data.html was rendered and sanitized by the server.
-            html += '<div class="ask-assistant-body">' + data.html + '</div>';
+            var html = '<div class="ask-assistant-body">' + data.html + '</div>';
             if (data.sources && data.sources.length) {
                 html += '<div class="ai-suggestion-sources"><strong>' + escapeHtml(messages.ai_assistant_sources) + '</strong><ol>';
                 $.each(data.sources, function(i, s) {

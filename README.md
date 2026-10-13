@@ -199,10 +199,17 @@ Each feature can be switched off under Admin > AI assistance:
   docs, FAO's Open Foris pages, earthmap.org; same site and path only,
   robots.txt respected) with Gemini embeddings; only changed text is
   re-embedded. The ask page offers "Ask the AI assistant first": Gemini
-  answers from the closest threads and pages, optionally with Google Search
-  grounding, citing its sources, or says what's missing.
+  answers only from the closest threads and pages, citing them.
+- **Nothing made up**: an assistant answer or suggestion is shown only when it
+  cites at least one forum thread or documentation page and a second Gemini
+  check confirms that every statement (steps, setting names, versions...) is
+  supported by those sources and that they really address the question;
+  otherwise the assistant says it found no clear answer and no suggestion is
+  posted. The web at large is not used: add documentation sites to
+  "Documentation to crawl" instead.
 - **Suggested answers**: `manage.py suggest_answers` (hourly) adds a marked AI
-  suggestion with sources to questions unanswered after 24 hours. The asker
+  suggestion with sources to questions unanswered after 24 hours, when the
+  forum or the documentation clearly covers them (see above). The asker
   and moderators can mark it helpful or remove it; it isn't an answer, earns
   no reputation and never goes back into the index or the exports.
 

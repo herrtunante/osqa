@@ -56,7 +56,7 @@ def get_client():
     return _client['client']
 
 
-def ask_model(system, content, schema):
+def ask_model(system, content, schema, thinking='low'):
     """The model's answer to `content` as a dict matching the JSON `schema`;
     None if there is no usable answer, BLOCKED if the safety filters refused."""
     if not is_configured():
@@ -67,8 +67,9 @@ def ask_model(system, content, schema):
         system_instruction=system,
         response_mime_type='application/json',
         response_json_schema=schema,
-        # Classification work: little thinking keeps it fast and cheap.
-        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
+        # Classification work: little thinking keeps it fast and cheap; the
+        # assistant's fact check asks for more.
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel[thinking.upper()]),
         # The posts being classified may well be abusive; the filters must not
         # stop the model from reading them (PROHIBITED_CONTENT still applies).
         safety_settings=[types.SafetySetting(category=category, threshold=types.HarmBlockThreshold.OFF)
@@ -137,15 +138,12 @@ def embed_texts(texts):
     return vectors if len(vectors) == len(texts) else None
 
 
-def write_text(system, content, web_search=False):
-    """A free-text (Markdown) answer: (text, web_sources) where web_sources are
-    the [{'url', 'title'}] Google Search grounding used; None if there is no
-    usable answer, BLOCKED if the safety filters refused."""
+def write_text(system, content):
+    """A free-text (Markdown) answer; None if there is no usable answer,
+    BLOCKED if the safety filters refused."""
     if not is_configured():
         return None
     config = types.GenerateContentConfig(system_instruction=system)
-    if web_search:
-        config.tools = [types.Tool(google_search=types.GoogleSearch())]
     try:
         response = get_client().models.generate_content(model=str(AI_MODEL).strip(), contents=content, config=config)
     except errors.APIError as e:
@@ -166,12 +164,4 @@ def write_text(system, content, web_search=False):
     if reason != types.FinishReason.STOP or not response.text:
         log.info("AI answer request ended with finish_reason=%s", reason)
         return None
-
-    web_sources, seen = [], set()
-    grounding = getattr(candidate, 'grounding_metadata', None)
-    for chunk in (grounding.grounding_chunks or []) if grounding else []:
-        web = getattr(chunk, 'web', None)
-        if web is not None and web.uri and web.uri not in seen:
-            seen.add(web.uri)
-            web_sources.append({'url': web.uri, 'title': web.title or web.domain or web.uri})
-    return response.text.strip(), web_sources
+    return response.text.strip()

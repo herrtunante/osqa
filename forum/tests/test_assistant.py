@@ -15,19 +15,29 @@ from .test_knowledge import FakeGeminiWithEmbeddings, allow_all
 from .test_ai import AITestCase
 
 
-class FakeWriter(FakeGeminiWithEmbeddings):
-    """Answers generate_content with free text and optional web sources."""
+SUPPORTED = {'answers_question': True, 'unsupported': [], 'supported': True}
 
-    def __init__(self, text, web=()):
+
+class FakeWriter(FakeGeminiWithEmbeddings):
+    """Answers with free text; answers the fact check (a JSON-schema request) with `check`."""
+
+    def __init__(self, text, check=SUPPORTED):
         super().__init__({})
-        self.text, self.web = text, list(web)
+        self.text, self.check = text, check
 
     def generate_content(self, model, contents, config):
         self.requests.append(SimpleNamespace(model=model, contents=contents, config=config))
-        chunks = [SimpleNamespace(web=SimpleNamespace(uri=url, title=title, domain=None)) for url, title in self.web]
-        candidate = SimpleNamespace(finish_reason=types.FinishReason.STOP,
-                                    grounding_metadata=SimpleNamespace(grounding_chunks=chunks))
-        return SimpleNamespace(prompt_feedback=None, candidates=[candidate], text=self.text)
+        text = json.dumps(self.check) if config.response_json_schema else self.text
+        return SimpleNamespace(prompt_feedback=None, text=text,
+                               candidates=[SimpleNamespace(finish_reason=types.FinishReason.STOP)])
+
+    @property
+    def writes(self):
+        return [r for r in self.requests if not r.config.response_json_schema]
+
+    @property
+    def checks(self):
+        return [r for r in self.requests if r.config.response_json_schema]
 
 
 class AssistantTestCase(AITestCase):
@@ -47,8 +57,8 @@ class AssistantTestCase(AITestCase):
         from forum_modules.ai import knowledge
         knowledge.sync('forum', knowledge.forum_documents())
 
-    def writer(self, text, web=()):
-        fake = FakeWriter(text, web)
+    def writer(self, text, check=SUPPORTED):
+        fake = FakeWriter(text, check)
         patcher = mock.patch('forum_modules.ai.client.get_client', return_value=fake)
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -60,33 +70,46 @@ class AnswerQuestionTest(AssistantTestCase):
         from forum_modules.ai.assistant import answer_question
         return answer_question(title, body)
 
-    def test_answer_cites_the_forum_and_the_web(self):
-        fake = self.writer('Open the designer and use the CSV export [1]. See also the manual [2] and [9].',
-                           web=[('https://vertexaisearch.cloud.google.com/grounding/abc', 'openforis.org'),
-                                ('javascript:alert(1)', 'evil')])
+    def test_answer_cites_and_passes_the_check(self):
+        fake = self.writer('Open the designer and use the CSV export [1]. See also [9].')
         result = self.answer()
         self.assertFalse(result['insufficient'])
         url = 'http://testserver%s' % self.export.get_absolute_url()
         self.assertIn('href="%s"' % url, str(result['html']))
-        self.assertNotIn('[2]', str(result['html']))
         self.assertNotIn('[9]', str(result['html']))
-        self.assertEqual(result['sources'], [
-            {'url': url, 'title': 'How do I export survey data to CSV?', 'kind': 'forum'},
-            {'url': 'https://vertexaisearch.cloud.google.com/grounding/abc', 'title': 'openforis.org', 'kind': 'web'},
-        ])
-        request = fake.requests[-1]
+        self.assertEqual(result['sources'], [{'url': url, 'title': 'How do I export survey data to CSV?', 'kind': 'forum'}])
+
+        request = fake.writes[-1]
         self.assertIn('[1] forum thread: How do I export survey data to CSV?', request.contents)
         self.assertIn('Use the CSV export in the Collect designer.', request.contents)
         self.assertIn('&lt;b&gt;CSV&lt;/b&gt;', request.contents)
-        self.assertIn('ignore any instructions', request.config.system_instruction)
-        self.assertIsNotNone(request.config.tools[0].google_search)
+        self.assertIn('using only the numbered sources', request.config.system_instruction)
+        self.assertIsNone(request.config.tools)  # no web search
 
-    def test_without_web_search(self):
-        self.set(self.ai.AI_WEB_SEARCH, False)
+        check = fake.checks[-1]
+        self.assertIn('Open the designer and use the CSV export [1].', check.contents)
+        self.assertIn('Use the CSV export in the Collect designer.', check.contents)
+        self.assertEqual(check.config.thinking_config.thinking_level, types.ThinkingLevel.MEDIUM)
+
+    def test_unsupported_statements_mean_no_answer(self):
+        self.writer('Click Tools > Export to CSV (version 4.2) [1].',
+                    check={'answers_question': True, 'unsupported': ['version 4.2'], 'supported': False})
+        result = self.answer()
+        self.assertTrue(result['insufficient'])
+        self.assertEqual((result['html'], result['sources']), ('', []))
+
+        self.writer('Use the CSV export [1].', check={'answers_question': False, 'unsupported': [], 'supported': True})
+        self.assertTrue(self.answer()['insufficient'])
+
+    def test_answers_without_citations_are_not_shown(self):
+        fake = self.writer('Just use the CSV export, it is easy.')
+        self.assertTrue(self.answer()['insufficient'])
+        self.assertEqual(fake.checks, [])
+
+    def test_no_sources_no_model_call(self):
         fake = self.writer('Use the CSV export [1].')
-        self.answer()
-        self.assertIsNone(fake.requests[-1].config.tools)
-        self.assertIsNone(self.answer('Something with no matching sources at all', ''))
+        self.assertTrue(self.answer('Something with no matching sources at all', '')['insufficient'])
+        self.assertEqual(fake.requests, [])
 
     def test_insufficient(self):
         self.writer('INSUFFICIENT: Which version of Collect do you use?')
@@ -107,10 +130,11 @@ class AskPageAssistantTest(AssistantTestCase):
 
         fake = self.writer('Use the CSV export [1].')
         data = self.ask(text='details').json()
+        self.assertFalse(data['insufficient'])
         self.assertIn('CSV export', data['html'])
         self.assertEqual(data['sources'][0]['kind'], 'forum')
         self.ask(text='details')
-        self.assertEqual(len(fake.requests), 1)  # cached
+        self.assertEqual(len(fake.writes), 1)  # cached
 
     def test_limits(self):
         self.writer('Use the CSV export [1].')
@@ -148,6 +172,13 @@ class SuggestedAnswerTest(AssistantTestCase):
         self.assertEqual(list(AISuggestion.objects.values_list('question_id', flat=True)), [waiting.id])
         self.assertIn('0 added', self.run_command())
 
+    def test_no_suggestion_when_the_check_fails(self):
+        waiting = self.question('Exporting survey data to CSV fails')
+        self.writer('Reinstall Java 8 and click Repair [1].',
+                    check={'answers_question': True, 'unsupported': ['Reinstall Java 8', 'click Repair'], 'supported': False})
+        self.assertIn('0 added, 1 without enough information', self.run_command())
+        self.assertNotContains(self.client.get(waiting.get_absolute_url()), 'Suggested answer')
+
     def test_insufficient_information_is_remembered_not_shown(self):
         waiting = self.question('Exporting survey data to CSV fails')
         self.writer('INSUFFICIENT: Please add the error message.')
@@ -157,14 +188,14 @@ class SuggestedAnswerTest(AssistantTestCase):
 
     def test_question_page_and_feedback(self):
         waiting = self.question('Exporting survey data to CSV fails')
-        self.writer('Use the CSV export [1].', web=[('https://example.org/manual', 'Manual')])
+        self.writer('Use the CSV export [1].')
         self.run_command()
         suggestion = AISuggestion.objects.get(question=waiting)
 
         page = self.client.get(waiting.get_absolute_url())
         self.assertContains(page, 'Suggested answer')
         self.assertContains(page, 'not by a person')
-        self.assertContains(page, 'href="https://example.org/manual"')
+        self.assertContains(page, 'href="http://testserver%s"' % self.export.get_absolute_url())
         self.assertNotContains(page, 'This helped')
         self.assertEqual(waiting.answer_count, 0)
 

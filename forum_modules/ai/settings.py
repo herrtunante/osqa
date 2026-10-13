@@ -85,15 +85,10 @@ AI_KNOWLEDGE_MAX_PAGES = Setting('AI_KNOWLEDGE_MAX_PAGES', 300, AI_SET, dict(
 label = _("Pages to crawl per URL"),
 help_text = _("Upper limit of documentation pages fetched from each URL above per run.")))
 
-AI_WEB_SEARCH = Setting('AI_WEB_SEARCH', True, AI_SET, dict(
-label = _("Search the web when answering"),
-help_text = _("Let Gemini use Google Search (grounding) in addition to the forum and the crawled documentation. "
-              "Google bills grounded requests separately."),
-required=False))
-
 AI_ASSISTANT = Setting('AI_ASSISTANT', True, AI_SET, dict(
 label = _("Assistant on the ask page"),
-help_text = _("Offer an AI answer, with its sources, before a question is posted."),
+help_text = _("Offer an AI answer before a question is posted. It is only shown when forum answers or the crawled "
+              "documentation clearly cover the question and a second check finds every statement supported by them."),
 required=False))
 
 AI_ASSISTANT_PER_HOUR = Setting('AI_ASSISTANT_PER_HOUR', 10, AI_SET, dict(
@@ -102,8 +97,9 @@ label = _("Assistant answers per visitor per hour")))
 AI_SUGGEST_ANSWERS = Setting('AI_SUGGEST_ANSWERS', True, AI_SET, dict(
 label = _("Suggested answers on unanswered questions"),
 help_text = _("manage.py suggest_answers (run hourly) adds a clearly marked AI suggestion, with sources, to questions "
-              "still unanswered after the time below. The asker and moderators can mark it helpful or remove it. It "
-              "doesn't count as an answer and earns no reputation."),
+              "still unanswered after the time below, but only when forum answers or the crawled documentation clearly "
+              "cover the question and a second check finds every statement supported by them. The asker and "
+              "moderators can mark it helpful or remove it. It doesn't count as an answer and earns no reputation."),
 required=False))
 
 AI_SUGGEST_AFTER_HOURS = Setting('AI_SUGGEST_AFTER_HOURS', 24, AI_SET, dict(
