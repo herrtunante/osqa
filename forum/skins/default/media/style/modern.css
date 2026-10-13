@@ -994,6 +994,10 @@ div.question-body p, div.answer-body p {
     min-width: 0;
 }
 
+.flot-svg text {
+    fill: var(--muted);
+}
+
 .reputation-list {
     float: none;
     flex: 1 1 300px;
@@ -1798,6 +1802,7 @@ div.comment-tools a:hover {
     }
 
     .tabsA {
+        max-width: 100%;
         flex-wrap: nowrap;
         overflow-x: auto;
         scrollbar-width: none;

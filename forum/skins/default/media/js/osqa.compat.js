@@ -1,19 +1,8 @@
 /*
- * Compatibility for the bundled third-party plugins (flot charts, image
- * upload) written for jQuery 1.x. OSQA's own code uses
- * the jQuery 3 APIs directly.
+ * Compatibility for the image upload code bundled in wmd.js, written for
+ * jQuery 1.x. OSQA's own code uses the jQuery 3 APIs directly.
  */
 (function($) {
-    // $.browser was removed in jQuery 1.9; the plugins only use it for IE/Opera workarounds.
-    if (!$.browser) {
-        $.browser = {msie: false, opera: false, mozilla: false, webkit: true, safari: false, version: '0'};
-    }
-
-    // .size() was removed in jQuery 3.0.
-    if (!$.fn.size) {
-        $.fn.size = function() { return this.length; };
-    }
-
     // jQuery.handleError was removed in jQuery 1.5; the upload plugin still calls it.
     if (!$.handleError) {
         $.handleError = function(s, xhr, status, e) {

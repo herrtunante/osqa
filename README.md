@@ -157,9 +157,11 @@ last and can override them, e.g. `:root { --brand: #00704a; }`.
 
 Visitors whose device is set to dark mode get a dark colour scheme; turn it off
 under Admin > View settings > "Dark mode" if your custom CSS assumes a light
-background. jQuery 3.7 and jQuery UI 1.13 are served from the skin
-(`media/vendor/`), so pages load no third-party scripts unless Google search,
-Analytics or a provider login is configured.
+background. jQuery 3.7, jQuery UI 1.14 (tag and user suggestions), Flot 4.2
+(charts) and highlight.js 11.11 are served from the skin (`media/vendor/`), so
+pages load no third-party scripts unless Google search, Analytics or a provider
+login is configured. Post HTML is sanitized with nh3 and turned into plain text
+for emails with html2text.
 
 Admin > "Switch to django style interface" uses Django's own admin stylesheets;
 OSQA serves them itself from `/m/django_admin/`, like the skin media under
