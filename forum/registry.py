@@ -69,6 +69,11 @@ class ModerationMenuGroup(ui.AjaxMenuGroup):
     def can_render(self, context):
         return context['user'] != context['viewer'] and super(ModerationMenuGroup, self).can_render(context)
 
+class OwnAccountMenuItem(ui.UserMenuItem):
+    """Shown only to the account's owner (administrators see the menu on other profiles too)."""
+    def can_render(self, context):
+        return context['viewer'].is_authenticated and context['viewer'].id == context['user'].id
+
 class SuperUserSwitchMenuItem(ui.UserMenuItem):
     def can_render(self, context):
         return context['viewer'].is_siteowner or not context['user'].is_superuser
@@ -103,6 +108,12 @@ ui.register(ui.USER_MENU,
                 url=lambda u, c: reverse('user_preferences', kwargs={'id': c['user'].id, 'slug': slugify(c['user'].username)}),
                 weight=200,
                 name='OTHER_PREFS'
+            ),
+            OwnAccountMenuItem(
+                label=_("your data and account"),
+                url=lambda u, c: reverse('user_account_data', kwargs={'id': c['user'].id}),
+                weight=300,
+                name='ACCOUNT_DATA'
             ),
             ModerationMenuGroup(_("Moderation tools"), items=(
                 ui.UserMenuItem(

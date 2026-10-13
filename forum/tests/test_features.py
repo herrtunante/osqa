@@ -348,3 +348,84 @@ class TagSynonymTest(OSQATestCase):
         self.assertEqual(self.client.get('/tags/gis/edit/').status_code, 404)
         self.assertEqual(self.client.post('/tags/gis/edit/', {'action': 'description', 'description': 'x'}).status_code, 404)
         self.assertNotContains(self.client.get('/tags/gis/'), '/tags/gis/edit/')
+
+
+class AccountDataTest(OSQATestCase):
+    def setUp(self):
+        super().setUp()
+        from forum.models import Answer, AuthKeyUserAssociation
+        self.alice = self.create_user('alice', real_name='Alice Liddell', location='Rome', email_isvalid=True)
+        self.bob = self.create_user('bob')
+        self.question = Question(author=self.alice, title='How do I reproject a shapefile?', tagnames='gis',
+                                 body='Question body text that is long enough.')
+        self.question.save()
+        Answer(author=self.bob, parent=self.question, body='An answer by bob that is long enough.').save()
+        AuthKeyUserAssociation(user=self.alice, key='github:42', provider='github').save()
+
+    def test_only_the_owner(self):
+        url = '/account/%d/data/' % self.alice.id
+        self.assertEqual(self.client.get(url).status_code, 404)
+        admin = self.create_user('admin', is_superuser=True)
+        self.login(admin)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.get(url + 'export/').status_code, 404)
+        self.assertNotContains(self.client.get(self.alice.get_profile_url()), 'your data and account')
+
+        self.login(self.alice)
+        self.assertContains(self.client.get(self.alice.get_profile_url()), 'your data and account')
+        self.assertContains(self.client.get(url), 'Download my data')
+
+    def test_export(self):
+        import json
+        self.login(self.alice)
+        response = self.client.get('/account/%d/data/export/' % self.alice.id)
+        self.assertEqual(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertIn('attachment;', response['Content-Disposition'])
+        data = json.loads(response.content)
+        self.assertEqual(data['profile']['email'], 'alice@example.com')
+        self.assertEqual(data['profile']['real_name'], 'Alice Liddell')
+        self.assertEqual(data['questions'][0]['title'], 'How do I reproject a shapefile?')
+        self.assertEqual(data['questions'][0]['text'], 'Question body text that is long enough.')
+        self.assertEqual(data['answers'], [])
+        self.assertEqual(data['login_methods'], ['github'])
+
+    def delete(self, **data):
+        self.login(self.alice)
+        return self.client.post('/account/%d/data/delete/' % self.alice.id, data)
+
+    def test_delete_needs_confirmation(self):
+        from forum.models import User
+        for data in ({}, {'confirm_username': 'Alice', 'password': 'secret-pass'},
+                     {'confirm_username': 'alice', 'password': 'wrong'}):
+            with self.subTest(data=data):
+                self.delete(**data)
+                self.assertTrue(User.objects.get(id=self.alice.id).is_active)
+        self.assertEqual(self.client.get('/account/%d/data/delete/' % self.alice.id).status_code, 302)
+        self.assertTrue(User.objects.get(id=self.alice.id).is_active)
+
+    def test_delete_anonymises_and_keeps_posts(self):
+        from forum.models import User, AuthKeyUserAssociation
+        response = self.delete(confirm_username='alice', password='secret-pass')
+        self.assertRedirects(response, '/', fetch_redirect_response=False)
+
+        user = User.objects.get(id=self.alice.id)
+        self.assertEqual(user.username, 'deleted-user-%d' % user.id)
+        self.assertEqual((user.email, user.real_name, user.location), ('', '', ''))
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.has_usable_password())
+        self.assertFalse(AuthKeyUserAssociation.objects.filter(user=user).exists())
+
+        # Signed out, the question is still there under the new name.
+        self.assertNotIn('_auth_user_id', self.client.session)
+        page = self.client.get(self.question.get_absolute_url())
+        self.assertContains(page, 'Question body text that is long enough.')
+        self.assertContains(page, 'deleted-user-%d' % user.id)
+        self.assertNotContains(page, 'Alice Liddell')
+        self.assertFalse(self.client.login(username='alice', password='secret-pass'))
+
+    def test_last_administrator_cannot_delete(self):
+        from forum.models import User
+        self.alice.is_superuser = True
+        self.alice.save()
+        self.delete(confirm_username='alice', password='secret-pass')
+        self.assertTrue(User.objects.get(id=self.alice.id).is_active)

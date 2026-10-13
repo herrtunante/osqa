@@ -169,6 +169,21 @@ The header search box uses Google Programmable Search when Admin > External
 Keys > "Google custom search engine ID" is set (it defaults to the engine this
 fork used before), and the site's own search when it is empty.
 
+## Features added in this fork
+
+- Fenced code blocks (```` ```python ````) and syntax highlighting (highlight.js,
+  self-hosted) in posts and the editor preview.
+- `@username` mentions in posts and comments, with autocomplete and an email to
+  the mentioned user (controlled by the "mentions me" notification setting).
+- Close as duplicate with a link to the original question; moderators can move
+  the answers to the original.
+- Paste or drop images into the editor; drafts of questions and answers are
+  saved in the browser until posted.
+- schema.org QAPage structured data and OpenGraph/Twitter link previews.
+- Tag descriptions and synonyms (moderators: "edit tag" on a tag's page).
+- Users can download their data (JSON) and delete their account, which
+  anonymises it and keeps their posts (profile menu > "your data and account").
+
 ## Layout
 
 - `forum/` - the application: models, views, actions, templates (`skins/`),

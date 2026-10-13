@@ -5,6 +5,7 @@ from . import users
 from . import meta
 from . import auth
 from . import admin
+from . import account
 
 #from forum.modules.decorators import decorate_all
 

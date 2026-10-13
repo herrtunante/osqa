@@ -127,6 +127,12 @@ When querying nodes, use the manager methods to get the correct subclass:
 - The default skin is responsive: `media/style/modern.css` (CSS variables, flex layout, phone breakpoint at 640px) overrides the fixed-width legacy `style.css`; check new UI at 390px width as well as desktop, and in dark mode (colours come from the variables, redefined under `prefers-color-scheme: dark`)
 - JavaScript runs on jQuery 3.7 (self-hosted in `media/vendor/`): use `.on()` delegation, `.prop()` for checked/disabled and `.val()` for values; `media/js/osqa.compat.js` only shims the bundled minified plugins
 
+### Content features
+
+- Post HTML is rendered once per revision (`Node.rendered()`, stored in `body`): fenced code (`normalize_fences`), then `forum/utils/mentions.py` links `@username`; notifications read mention ids from `data-user` attributes, which the sanitizer never accepts from user HTML
+- A question closed as a duplicate keeps `{'duplicate_of': id}` in `Node.extra` (`Question.duplicate_of`)
+- `TagSynonym` maps tag names to tags; `TagNamesField` resolves synonyms when tags are entered
+
 ### Caching
 
 - `CACHES` must be shared by all worker processes (file cache by default, memcached recommended); `settings.py` translates an old `CACHE_BACKEND` string

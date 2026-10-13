@@ -2222,6 +2222,48 @@ a.mention {
     color: var(--danger-text);
 }
 
+/* ---- Your data and account ------------------------------------------ */
+
+.account-section {
+    margin: 0 0 24px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.account-section h2 {
+    margin-bottom: 6px;
+    font-size: 17px;
+}
+
+.account-danger {
+    border-color: var(--danger-text);
+}
+
+.account-delete-form {
+    display: grid;
+    gap: 6px;
+    max-width: 380px;
+}
+
+.account-delete-form label {
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+input[type="submit"].account-delete-button, input[type="submit"].account-delete-button:hover {
+    justify-self: start;
+    margin-top: 10px;
+    border-color: #b42318;
+    background: #b42318;
+    color: #fff;
+}
+
+.account-warning {
+    color: var(--danger-text);
+    font-weight: 600;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */
@@ -2695,14 +2737,14 @@ h3.or_label::before, h3.or_label::after {
 
     /* White text needs a deeper blue/green than the link colours. */
     :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes,
-            .paginator .curr):not(.dialog-no):not(.search-type),
+            .paginator .curr):not(.dialog-no):not(.search-type):not(.account-delete-button),
     :root[data-color-scheme="auto"] #searchBar .searchBtn {
         border-color: var(--button-bg);
         background-color: var(--button-bg);
         color: #fff;
     }
 
-    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):hover,
+    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):not(.account-delete-button):hover,
     :root[data-color-scheme="auto"] #searchBar .searchBtn:hover {
         border-color: var(--button-bg-hover);
         background-color: var(--button-bg-hover);
