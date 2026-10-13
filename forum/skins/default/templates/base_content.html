@@ -49,13 +49,16 @@
                 word: "{% trans "word" %}",
                 words: "{% trans "words" %}",
                 character: "{% trans "character" %}",
-                characters: "{% trans "characters" %}"
+                characters: "{% trans "characters" %}",
+                draft_restored: "{% trans "Your unsent draft was restored." %}",
+                discard: "{% trans "Discard" %}"
             }
         /*]]>*/
         </script>
         <script type="text/javascript" src="{% media  "/media/js/osqa.main.js" %}"></script>
         <script defer src="{% media "/media/vendor/highlight-11.10.0/highlight.min.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.highlight.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
         {% if user_messages %}
         <script type="text/javascript">
             $(document).ready(function() {

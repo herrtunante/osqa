@@ -2008,6 +2008,31 @@ div.comment-tools a:hover {
     font-weight: 700;
 }
 
+/* ---- Draft notice ---------------------------------------------------- */
+
+.draft-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--info-border);
+    border-radius: 8px;
+    background: var(--brand-soft);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.draft-notice .draft-discard, .draft-notice .draft-discard:hover {
+    margin-left: auto;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
 /* ---- Avatars --------------------------------------------------------- */
 
 /* A grey circle (not alt text) when Gravatar is blocked or unreachable. */
