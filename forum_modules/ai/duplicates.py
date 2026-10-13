@@ -1,8 +1,9 @@
 """Find existing questions that ask the same thing as a question being written.
 
-A keyword search over titles and tags picks up to MAX_CANDIDATES questions;
-Gemini then decides which of them really are the same question (wording
-differs, so keyword overlap alone gives many false matches).
+A keyword search over titles and tags (and, once the knowledge index is
+built, semantic search) picks candidate questions; Gemini then decides
+which of them really are the same question (wording differs, so keyword
+overlap alone gives many false matches).
 """
 import hashlib
 from html import escape
@@ -64,31 +65,41 @@ def _prompt(title, body, candidates):
 def find_duplicates(title, body='', may_call_api=lambda: True):
     """[(question, reason)] for existing questions that ask the same as `title`.
 
-    Results are cached per title and candidate set; `may_call_api()` is asked
-    before an uncached request (rate limiting) and can veto it.
+    Candidates are keyword matches plus, when the knowledge index is built,
+    semantically similar threads. Results are cached per title, body and
+    keyword candidates; `may_call_api()` is asked before an uncached request
+    (rate limiting) and can veto it.
     """
-    title = ' '.join(title.split())
-    candidates = candidate_questions(title, MAX_CANDIDATES)
-    if not candidates:
-        return []
+    from forum.models import Question
+    from .knowledge import similar_questions
 
+    title = ' '.join(title.split())
+    keyword = candidate_questions(title, MAX_CANDIDATES)
     key = 'ai-dup:' + hashlib.sha1(('%s|%s|%s' % (title.lower(), body.strip()[:2000],
-                                    ','.join(str(q.id) for q in candidates))).encode('utf-8')).hexdigest()
-    answer = cache.get(key)
-    if answer is None:
+                                    ','.join(str(q.id) for q in keyword))).encode('utf-8')).hexdigest()
+    cached = cache.get(key)
+    if cached is None:
         if not may_call_api():
+            return []
+        candidates = list(keyword)
+        for question in similar_questions('%s\n%s' % (title, body[:1000]), limit=10):
+            if question.id not in [q.id for q in candidates]:
+                candidates.append(question)
+        candidates = candidates[:MAX_CANDIDATES + 10]
+        if not candidates:
             return []
         system = SYSTEM.format(site=settings.APP_SHORT_NAME, description=settings.APP_DESCRIPTION)
         answer = ask_model(system, _prompt(title, body, candidates), SCHEMA)
         if answer is None or answer is BLOCKED:
             return []
-        cache.set(key, answer, CACHE_SECONDS)
+        cached = {'duplicates': answer.get('duplicates', []), 'ids': [q.id for q in candidates]}
+        cache.set(key, cached, CACHE_SECONDS)
 
-    by_id = {q.id: q for q in candidates}
+    by_id = Question.objects.in_bulk(cached['ids'])
     results, seen = [], set()
-    for item in answer.get('duplicates', []):
+    for item in cached['duplicates']:
         question = by_id.get(item.get('id'))
-        if question and question.id not in seen:
+        if question and question.id not in seen and not question.nis.deleted:
             seen.add(question.id)
             results.append((question, str(item.get('reason', ''))[:300]))
     return results[:MAX_DUPLICATES]

@@ -1,4 +1,4 @@
-from django.forms.widgets import PasswordInput
+from django.forms.widgets import PasswordInput, Textarea
 from django.utils.translation import gettext_lazy as _
 
 from forum.settings.base import Setting, SettingSet
@@ -64,3 +64,47 @@ help_text = _("When a user below the skip reputation fills in or changes their w
               "profile spam (SEO links, advertising). Suspect accounts are listed for moderators under Flagged posts; "
               "they are never suspended or deleted automatically."),
 required=False))
+
+# ---- Knowledge index and assistant ----------------------------------------
+
+AI_EMBEDDING_MODEL = Setting('AI_EMBEDDING_MODEL', 'gemini-embedding-2', AI_SET, dict(
+label = _("Embedding model"),
+help_text = _("Gemini model used to index forum threads and documentation for semantic search.")))
+
+AI_KNOWLEDGE_SEEDS = Setting('AI_KNOWLEDGE_SEEDS', "https://openforis.org/\n"
+                             "https://collect-earth-online-doc.readthedocs.io/en/latest/\n"
+                             "https://www.fao.org/in-action/openforis/\n"
+                             "https://earthmap.org/", AI_SET, dict(
+label = _("Documentation to crawl"),
+help_text = _("One URL per line. The nightly index (manage.py build_knowledge_index) crawls each one and the pages "
+              "linked from it within the same site and path, respecting robots.txt, and lets the assistant use them."),
+widget=Textarea(attrs={'rows': 6}),
+required=False))
+
+AI_KNOWLEDGE_MAX_PAGES = Setting('AI_KNOWLEDGE_MAX_PAGES', 300, AI_SET, dict(
+label = _("Pages to crawl per URL"),
+help_text = _("Upper limit of documentation pages fetched from each URL above per run.")))
+
+AI_WEB_SEARCH = Setting('AI_WEB_SEARCH', True, AI_SET, dict(
+label = _("Search the web when answering"),
+help_text = _("Let Gemini use Google Search (grounding) in addition to the forum and the crawled documentation. "
+              "Google bills grounded requests separately."),
+required=False))
+
+AI_ASSISTANT = Setting('AI_ASSISTANT', True, AI_SET, dict(
+label = _("Assistant on the ask page"),
+help_text = _("Offer an AI answer, with its sources, before a question is posted."),
+required=False))
+
+AI_ASSISTANT_PER_HOUR = Setting('AI_ASSISTANT_PER_HOUR', 10, AI_SET, dict(
+label = _("Assistant answers per visitor per hour")))
+
+AI_SUGGEST_ANSWERS = Setting('AI_SUGGEST_ANSWERS', True, AI_SET, dict(
+label = _("Suggested answers on unanswered questions"),
+help_text = _("manage.py suggest_answers (run hourly) adds a clearly marked AI suggestion, with sources, to questions "
+              "still unanswered after the time below. The asker and moderators can mark it helpful or remove it. It "
+              "doesn't count as an answer and earns no reputation."),
+required=False))
+
+AI_SUGGEST_AFTER_HOURS = Setting('AI_SUGGEST_AFTER_HOURS', 24, AI_SET, dict(
+label = _("Suggest an answer after (hours)")))

@@ -15,7 +15,7 @@ try:
 except ImportError:  # pip install -r requirements.txt
     genai = None
 
-from .settings import GEMINI_API_KEY, AI_VERTEX_PROJECT, AI_VERTEX_LOCATION, AI_MODEL
+from .settings import GEMINI_API_KEY, AI_VERTEX_PROJECT, AI_VERTEX_LOCATION, AI_MODEL, AI_EMBEDDING_MODEL
 
 log = logging.getLogger(__name__)
 
@@ -110,3 +110,68 @@ def ask_model(system, content, schema):
     except (TypeError, ValueError):
         log.warning("AI response was not valid JSON")
         return None
+
+
+EMBEDDING_DIMENSIONS = 768
+EMBEDDING_BATCH = 50
+
+
+def embed_texts(texts):
+    """Embedding vectors (lists of floats) for `texts`, or None on failure.
+    gemini-embedding-2 takes the task as part of the text, see knowledge.py."""
+    if not is_configured():
+        return None
+    vectors = []
+    try:
+        for start in range(0, len(texts), EMBEDDING_BATCH):
+            response = get_client().models.embed_content(
+                model=str(AI_EMBEDDING_MODEL).strip(), contents=texts[start:start + EMBEDDING_BATCH],
+                config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSIONS))
+            vectors += [list(embedding.values) for embedding in response.embeddings]
+    except errors.APIError as e:
+        log.warning("Embedding request failed with HTTP %s: %s", e.code, e.message)
+        return None
+    except Exception as e:
+        log.warning("Embedding request failed: %s", e)
+        return None
+    return vectors if len(vectors) == len(texts) else None
+
+
+def write_text(system, content, web_search=False):
+    """A free-text (Markdown) answer: (text, web_sources) where web_sources are
+    the [{'url', 'title'}] Google Search grounding used; None if there is no
+    usable answer, BLOCKED if the safety filters refused."""
+    if not is_configured():
+        return None
+    config = types.GenerateContentConfig(system_instruction=system)
+    if web_search:
+        config.tools = [types.Tool(google_search=types.GoogleSearch())]
+    try:
+        response = get_client().models.generate_content(model=str(AI_MODEL).strip(), contents=content, config=config)
+    except errors.APIError as e:
+        log.warning("AI answer request failed with HTTP %s: %s", e.code, e.message)
+        return None
+    except Exception as e:
+        log.warning("AI answer request failed: %s", e)
+        return None
+
+    feedback = response.prompt_feedback
+    if feedback is not None and feedback.block_reason:
+        return BLOCKED
+    candidate = response.candidates[0] if response.candidates else None
+    reason = candidate.finish_reason if candidate is not None else None
+    if reason in (types.FinishReason.SAFETY, types.FinishReason.PROHIBITED_CONTENT,
+                  types.FinishReason.BLOCKLIST, types.FinishReason.SPII):
+        return BLOCKED
+    if reason != types.FinishReason.STOP or not response.text:
+        log.info("AI answer request ended with finish_reason=%s", reason)
+        return None
+
+    web_sources, seen = [], set()
+    grounding = getattr(candidate, 'grounding_metadata', None)
+    for chunk in (grounding.grounding_chunks or []) if grounding else []:
+        web = getattr(chunk, 'web', None)
+        if web is not None and web.uri and web.uri not in seen:
+            seen.add(web.uri)
+            web_sources.append({'url': web.uri, 'title': web.title or web.domain or web.uri})
+    return response.text.strip(), web_sources
