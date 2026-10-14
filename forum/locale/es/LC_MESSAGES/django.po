@@ -199,13 +199,6 @@ msgid "gave bonus"
 msgstr "otorgó una bonificación"
 
 #, python-format
-msgid "Congratulations, you have been awarded an extra %s reputation points."
-msgstr "Enhorabuena, se le han otorgado %s puntos de reputación adicionales."
-
-msgid "Thank you"
-msgstr "Gracias"
-
-#, python-format
 msgid "You have penalized %s in %s reputation points."
 msgstr "Ha penalizado a %s con %s puntos de reputación."
 
@@ -222,16 +215,6 @@ msgstr "%(user)s penalizó a %(users)s con %(value)s puntos de reputación: %(me
 
 msgid "gave reputation points"
 msgstr "otorgó puntos de reputación"
-
-#, python-format
-msgid "Congratulations, you have been awarded an extra %(points)s reputation %(points_label)s on <a href=\"%(answer_url)s\">this</a> answer."
-msgstr "Enhorabuena, se le han otorgado %(points)s %(points_label)s de reputación adicionales por <a href=\"%(answer_url)s\">esta</a> respuesta."
-
-msgid "point"
-msgid_plural "points"
-msgstr[0] "punto"
-msgstr[1] "puntos"
-msgstr[2] "puntos"
 
 #, python-format
 msgid "%(user)s awarded an extra %(value)s reputation points to %(users)s"
@@ -267,9 +250,6 @@ msgstr "%(user)s denunció a %(reported)s : %(msg)s"
 
 msgid "N/A"
 msgstr "N/D"
-
-msgid "Your suspension has been removed."
-msgstr "Se ha levantado su suspensión."
 
 #, python-format
 msgid "for %s days"
@@ -3256,6 +3236,12 @@ msgstr "Publicaciones marcadas"
 msgid "Support dashboard"
 msgstr "Panel de soporte"
 
+msgid "Statistics"
+msgstr "Estadísticas"
+
+msgid "Custom Pages"
+msgstr "Páginas personalizadas"
+
 msgid "Create User"
 msgstr "Crear usuario"
 
@@ -3307,6 +3293,15 @@ msgstr "¿Está seguro de que desea ejecutar el modo de arranque?"
 msgid "go bootstrap"
 msgstr "pasar al modo de arranque"
 
+msgid "Recalculate the scores of posts and the reputation of users from their votes and reputation history."
+msgstr "Recalcula la puntuación de las publicaciones y la reputación de los usuarios a partir de sus votos y su historial de reputación."
+
+msgid "This is a heavy operation, are you sure?"
+msgstr "Esta es una operación pesada, ¿está seguro?"
+
+msgid "Recalculate"
+msgstr "Recalcular"
+
 msgid "Recent activity"
 msgstr "Actividad reciente"
 
@@ -3342,9 +3337,6 @@ msgstr "Configuración del foro"
 
 msgid "Static content"
 msgstr "Contenido estático"
-
-msgid "Custom Pages"
-msgstr "Páginas personalizadas"
 
 msgid "Unsaved changes"
 msgstr "Cambios sin guardar"
@@ -3430,12 +3422,6 @@ msgstr "Estadísticas del sitio"
 
 msgid "Recalculate scores and reputation"
 msgstr "Recalcular puntuaciones y reputación"
-
-msgid "This is a heavy operation, are you sure?"
-msgstr "Esta es una operación pesada, ¿está seguro?"
-
-msgid "Recalculate"
-msgstr "Recalcular"
 
 #, python-format
 msgid "%(prefix)s Your email settings are correct: %(app_name)s"
@@ -5348,6 +5334,12 @@ msgstr "Solo los superusuarios pueden suspender a otros usuarios"
 msgid "Invalid numeric argument for the number of days."
 msgstr "Argumento numérico no válido para el número de días."
 
+msgid "Please sign in to report a user."
+msgstr "Inicia sesión para denunciar a un usuario."
+
+msgid "You can't report yourself."
+msgstr "No puedes denunciarte a ti mismo."
+
 msgid "overview"
 msgstr "resumen"
 
@@ -6393,3 +6385,6 @@ msgstr "El volcado no es un archivo zip."
 #, python-format
 msgid "The import failed: %s"
 msgstr "La importación falló: %s"
+
+msgid "Stack Exchange import"
+msgstr "Importación de Stack Exchange"

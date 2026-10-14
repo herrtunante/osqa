@@ -99,8 +99,9 @@ class CrawlTest(E2ETestCase):
                 continue
             current = page.url[len(self.live_server_url):]
             # AJAX command links (vote, delete, flag…) are run by JavaScript as POST
-            # requests; the workflow tests click them.
-            for href in page.eval_on_selector_all('a[href]:not(.ajax-command)', 'els => els.map(e => e.getAttribute("href"))'):
+            # requests; the workflow tests click them. The custom page form previews
+            # the address of the page being written, which doesn't exist yet.
+            for href in page.eval_on_selector_all('a[href]:not(.ajax-command):not(.url_field_anchor)', 'els => els.map(e => e.getAttribute("href"))'):
                 href = (href or '').strip()
                 if href.startswith(self.live_server_url):
                     href = href[len(self.live_server_url):]

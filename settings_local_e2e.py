@@ -12,3 +12,7 @@ from settings_local_test import DATABASES, SITE_SRC_ROOT
 
 # E2E_DB_NAME lets several runs work side by side.
 DATABASES['default']['TEST'] = {'NAME': os.path.join(SITE_SRC_ROOT, 'tmp', os.environ.get('E2E_DB_NAME', 'test_e2e.db'))}
+# The browser's parallel requests write at the same time (sessions, settings,
+# last seen); SQLite allows one writer, so wait for it rather than failing, and
+# take the write lock at the start of a transaction so two writers can't deadlock.
+DATABASES['default'].setdefault('OPTIONS', {}).update({'timeout': 30, 'transaction_mode': 'IMMEDIATE'})

@@ -272,6 +272,11 @@ def suspend(request, id):
 def report_user(request, id):
     user = get_object_or_404(User, id=id)
 
+    if not request.user.is_authenticated:
+        raise decorators.CommandException(_("Please sign in to report a user."))
+    if request.user == user:
+        raise decorators.CommandException(_("You can't report yourself."))
+
     if request.method != 'POST' or not request.POST.get('publicmsg', None):
         return render(request, 'users/report_user.html')
 

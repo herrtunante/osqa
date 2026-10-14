@@ -14,6 +14,14 @@ Every page a test opens is watched. A test fails when a page:
 - scrolls sideways on the phone viewport. The failure names the elements that
   stick out.
 
+Two kinds of test:
+- **Workflow tests** do what people do (ask, answer, moderate, configure)
+  and check the result in the database and on the page.
+- **The crawler** (`test_crawl.py`) follows every link each kind of user can
+  see, from the home page, their profile and the admin pages. It checks every
+  page it reaches, once per kind of page, and reports all failures together,
+  each with the page that linked to it.
+
 ## Running them
 
 ```bash
@@ -22,7 +30,7 @@ python -m playwright install chromium        # once; add --with-deps on a fresh 
 OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e
 ```
 
-The suite takes about two minutes. Run part of it by naming the module, class
+The suite takes about five minutes. Run part of it by naming the module, class
 or test:
 
 ```bash
@@ -43,6 +51,8 @@ Options (environment variables):
 | `E2E_TIMEOUT=20000` | Per-action timeout in ms (default 10000) |
 | `E2E_CHROMIUM_PATH=/path/to/chrome` | Use this Chromium instead of Playwright's download |
 | `E2E_ARTIFACTS=dir` | Where screenshots of failed tests go (default `tmp/e2e/`) |
+| `E2E_DB_NAME=name.db` | Test database file in `tmp/`, so several runs can work side by side |
+| `E2E_RECORD=file` | Append every forum URL the browser requests to this file (used by `coverage.py`) |
 
 When a test fails, a full-page screenshot of every page it had open is saved
 in `tmp/e2e/`, named after the test.
@@ -55,7 +65,25 @@ in `tmp/e2e/`, named after the test.
 | `test_accounts.py` | new and regular users | Sign-up (with the password rules), sign-out, sign-in; sign-in lockout after wrong passwords; forgotten password by email link; following a tag; email settings (master switch, checkboxes); unsubscribe link from an email, with undo; editing the profile; account pages on a phone; data download and account deletion |
 | `test_posting.py` | askers, answerers, commenters | Asking with live preview; answering; commenting with an @mention (and the mention suggestions); voting; notifications bell and list; accepting an answer; favourites; following/unfollowing a question; editing a question; reporting a post; answering on a phone |
 | `test_editing.py` | members | Ask form validation; image upload in the editor; editing an answer; deleting a comment |
+| `test_content.py` | members, moderators | Revisions and rollback; permanent answer links; awarding points; liking and editing comments; community wiki (phone); converting comments, answers and questions; question and tag suggestions on the ask page; interesting/ignored tags; tag descriptions; posts written before signing in, published or discarded |
+| `test_people.py` | members, administrators, agents | Profile tabs (votes, favourites, reputation, activity, preferences); reporting a user; awarding points (phone); badges; contact form; Markdown help; OpenSearch; llms.txt and the links in it; the MCP server; the notification bell's count and "mark all read"; email validation link (phone); the AI assistant and AI suggestions with a fake Gemini |
+| `test_admin_tools.py` | administrators | Custom pages; statistics (phone); recalculating counts; bootstrap mode and defaults; resetting a setting; testing email settings; acting on moderation reports (phone); XML backup and download; the StackExchange importer; sign-up with GitHub, then linking and unlinking Google (provider calls mocked) |
+| `test_crawl.py` | every role | Every link reachable by anonymous visitors (desktop and phone), newcomers, members (phone), experts, moderators and administrators (desktop and phone) |
 | `test_admin.py` | moderators, administrators, and ordinary users | Closing as a duplicate, reopening, deleting; flagged posts and the support dashboard; ordinary users and moderators kept out of what isn't theirs; **every settings page loads and saves**; changing a setting; admin pages in both admin layouts and on a phone; creating users; granting moderator rights; suspending; maintenance mode (closed to visitors, open to the allowed address); Django's model admin |
+
+## Which URLs are covered
+
+```bash
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/coverage.py            # runs the suite, then reports
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/coverage.py --report   # report on the last run
+```
+
+The report resolves every page, form and AJAX request the browser made to
+the forum's URL patterns and lists those no test reached. Static files and
+Django's model admin are left out. Requests made with `page.request` aren't
+browser requests and don't count: reach an endpoint by clicking, by
+`page.goto`, or with `fetch` inside the page. When you add a page or a
+command, add a test that reaches it, and check the report.
 
 The unit tests (`forum/tests/`, run with `settings_local_test`) cover the
 server side in more depth. These browser tests check that the pieces work

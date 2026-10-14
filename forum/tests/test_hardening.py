@@ -269,3 +269,28 @@ class DataTransferTest(OSQATestCase):
             obj.save()
         self.assertEqual(KeyValue.objects.get(key='TEST_SETTING').value, {'allow_ips': ['10.0.0.1'], 'message': 'Back soon'})
         self.assertEqual(KeyValue.objects.get(key='TEST_TEXT').value, 'plain text')
+
+
+class SettingDefaultRaceTest(OSQATestCase):
+    def test_default_stored_by_a_concurrent_request(self):
+        """Two requests read a setting that isn't stored yet; the one that
+        stores the default second must not fail."""
+        from forum.models import KeyValue
+        setting = settings.APP_TITLE
+        setting._temp = None
+        KeyValue.objects.filter(key=setting.name).delete()
+        real_get = KeyValue.objects.get
+
+        calls = []
+
+        def get_while_another_request_stores(*args, **kwargs):
+            # Every lookup misses; after the first, the other request has stored it.
+            if not calls:
+                KeyValue.objects.create(key=setting.name, value=setting.default)
+            calls.append(1)
+            raise KeyValue.DoesNotExist()
+
+        with mock.patch.object(KeyValue.objects, 'get', get_while_another_request_stores):
+            self.assertEqual(setting.value, setting.default)
+        setting._temp = None
+        self.assertEqual(real_get(key=setting.name).value, setting.default)

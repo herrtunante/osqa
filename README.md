@@ -261,13 +261,16 @@ OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 Always pass the `forum.tests` label.
 
 Browser tests (Playwright) go through every workflow, from anonymous visitor
-to administrator, on desktop and phone; see [e2e/README.md](e2e/README.md):
+to administrator, on desktop and phone, and a crawler follows every link each
+kind of user can see. `e2e/coverage.py` lists any URL no browser test reaches;
+see [e2e/README.md](e2e/README.md):
 
 ```bash
 python -m playwright install chromium
 OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e
 ```
- CI (`.github/workflows/tests.yml`) runs the
+
+CI (`.github/workflows/tests.yml`) runs the
 suite and `makemigrations --check` on Python 3.12 and 3.13.
 
 ## Modules

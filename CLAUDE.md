@@ -172,7 +172,7 @@ OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
   and captures outgoing email in `self.sent_mail`.
 - CI (`.github/workflows/tests.yml`) runs the suite and `makemigrations --check`.
 - UI test command available: `python manage.py test_ui`
-- Browser tests: `OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e` (Playwright on Django's live server, file SQLite DB; `e2e/base.py` fails a test on 5xx, JS/console errors, CSP blocks and sideways scrolling at 390px; see `e2e/README.md`). Add one when changing a user-facing workflow
+- Browser tests: `OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e` (Playwright on Django's live server, file SQLite DB; `e2e/base.py` fails a test on 5xx, JS/console errors, CSP blocks and sideways scrolling at 390px; `test_crawl.py` follows every link per role; `python e2e/coverage.py` lists URL patterns no browser test reaches; `E2E_DB_NAME` gives parallel runs their own DB; see `e2e/README.md`). Add one when changing a user-facing workflow or adding a URL
 
 ## Common Pitfalls
 
