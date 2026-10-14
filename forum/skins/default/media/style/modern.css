@@ -3268,3 +3268,22 @@ h3.or_label::before, h3.or_label::after {
 @media (max-width: 640px) {
     .inbox-item a { flex-direction: column; gap: 4px; }
 }
+
+/* Support dashboard in the default admin layout (djstyle_admin.css styles the Django-style one) */
+.support-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 16px; }
+.support-filters label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.support-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.support-kpi { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.support-kpi-value { display: block; font-size: 1.6em; font-weight: 700; color: var(--text); }
+.support-kpi-label { display: block; margin-top: 2px; color: var(--muted); }
+.support-kpi-alert { border-color: var(--warn-border); background: var(--warn-bg); }
+.support-module { width: 100%; margin-bottom: 24px; overflow-x: auto; }
+.support-module table { width: 100%; border-collapse: collapse; }
+.support-module caption { text-align: left; font-weight: 700; font-size: 1.1em; padding: 6px 0; }
+.support-module th, .support-module td { padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; vertical-align: top; }
+.support-module thead th { color: var(--muted); font-size: 0.9em; }
+.support-caption-note { font-weight: normal; font-size: 0.85em; color: var(--muted); margin-left: 6px; }
+.support-module .num { text-align: right; white-space: nowrap; }
+.support-warn { font-weight: 700; color: var(--danger-text); }
+.support-overdue td { background: var(--warn-bg); }
+.support-tags span { display: inline-block; margin: 3px 2px 0 0; padding: 0 6px; border-radius: 3px; background: var(--brand-soft); color: var(--brand-dark); font-size: 0.85em; }

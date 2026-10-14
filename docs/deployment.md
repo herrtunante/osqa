@@ -173,6 +173,7 @@ PY=/srv/osqa/venv/bin/python
 # Daily digests and dormant (bot) account clean-up
 15 6 * * *  cd $OSQA && $PY manage.py send_email_alerts
 45 6 * * *  cd $OSQA && $PY manage.py cleanup_inactive_users
+0 7 * * *   cd $OSQA && $PY manage.py remind_unaccepted
 # Only with the AI module configured:
 30 2 * * *  cd $OSQA && $PY manage.py build_knowledge_index
 5 * * * *   cd $OSQA && $PY manage.py suggest_answers
@@ -276,6 +277,7 @@ From the host's crontab:
 ```cron
 15 6 * * *  cd /srv/osqa && docker compose exec -T osqa python manage.py send_email_alerts
 45 6 * * *  cd /srv/osqa && docker compose exec -T osqa python manage.py cleanup_inactive_users
+0 7 * * *   cd /srv/osqa && docker compose exec -T osqa python manage.py remind_unaccepted
 ```
 
 ### Updating
@@ -324,7 +326,7 @@ Use the same image. What changes is where state lives:
   Job, Helm hook or Cloud Run job) before each new version starts serving.
 - **Scheduled jobs:** create CronJobs (Kubernetes) or Cloud Scheduler +
   Cloud Run jobs that run the same image with
-  `python manage.py send_email_alerts` and `cleanup_inactive_users` (plus the
+  `python manage.py send_email_alerts`, `cleanup_inactive_users` and `remind_unaccepted` (plus the
   AI commands if used).
 - **Proxy count:** the ingress or load balancer is the proxy. Usually
   `OSQA_TRUSTED_PROXIES=1`; count every hop that appends to

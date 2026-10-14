@@ -45,6 +45,7 @@ from .view import *
 from .moderation import *
 from .users import *
 from .security import *
+from .support import *
 from .static import *
 from .urls import *
 from .accept import *

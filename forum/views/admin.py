@@ -654,3 +654,48 @@ def test_email_settings(request):
         'osqaadmin/test_email_settings.html',
         { 'user': user, }
     )
+
+
+SUPPORT_PERIODS = (30, 90, 365, 0)
+
+
+@moderation_page
+def support_dashboard(request):
+    """Unanswered questions and response times, overall and per product tag."""
+    from forum.utils import support
+    try:
+        days = int(request.GET.get('days', 30))
+    except ValueError:
+        days = 30
+    if days not in SUPPORT_PERIODS:
+        days = 30
+    tag = request.GET.get('tag', '').strip() or None
+
+    now = datetime.now()
+    target = int(settings.SUPPORT_RESPONSE_TARGET_HOURS)
+    unanswered = list(support.unanswered_queue(days, tag))
+    for question in unanswered:
+        question.waiting_hours = (now - question.added_at).total_seconds() / 3600.0
+        question.overdue = question.waiting_hours > target
+    unaccepted = support.unaccepted_queue(days, tag)
+    for question in unaccepted:
+        question.waiting_hours = (now - question.first_answer_at).total_seconds() / 3600.0
+
+    rows = []
+    for name in support.support_tags():
+        row = support.summary(support.period_questions(days, name))
+        row['tag'] = name
+        rows.append(row)
+
+    return ('osqaadmin/support.html', {
+        'days': days,
+        'periods': SUPPORT_PERIODS,
+        'tag': tag,
+        'overall': support.summary(support.period_questions(days, tag)),
+        'tag_rows': rows,
+        'tag_names': [row['tag'] for row in rows],
+        'unanswered': unanswered,
+        'unaccepted': unaccepted,
+        'target_hours': target,
+        'reminder_days': int(settings.ACCEPT_REMINDER_DAYS),
+    })

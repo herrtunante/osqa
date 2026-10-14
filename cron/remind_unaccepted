@@ -1,0 +1,6 @@
+#!/bin/sh
+# Daily: remind askers once to accept an answer (Admin > Support dashboard settings).
+# Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py remind_unaccepted

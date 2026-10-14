@@ -149,3 +149,20 @@ input.longstring {
     gap: 8px;
     margin-top: 8px;
 }
+
+/* Support dashboard (uses the Django admin colour variables, so dark mode follows) */
+.support-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 16px; }
+.support-filters label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.support-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.support-kpi { padding: 12px 14px; border: 1px solid var(--hairline-color, #e8e8e8); border-radius: 6px; background: var(--body-bg, #fff); }
+.support-kpi-value { display: block; font-size: 1.6em; font-weight: 700; color: var(--body-fg, #333); }
+.support-kpi-label { display: block; margin-top: 2px; color: var(--body-quiet-color, #666); }
+.support-kpi-alert { border-color: var(--message-warning-bg, #ffc); background: var(--message-warning-bg, #ffc); }
+.support-module { width: 100%; margin-bottom: 20px; overflow-x: auto; }
+.support-module table { width: 100%; }
+.support-module caption { text-align: left; }
+.support-caption-note { font-weight: normal; text-transform: none; opacity: 0.85; margin-left: 6px; }
+.support-module .num { text-align: right; white-space: nowrap; }
+.support-warn { font-weight: 700; }
+.support-overdue td { background: var(--message-warning-bg, #ffc); }
+.support-tags span { display: inline-block; margin: 3px 4px 0 0; padding: 0 6px; border-radius: 3px; background: var(--darkened-bg, #f8f8f8); color: var(--body-quiet-color, #666); font-size: 0.85em; }

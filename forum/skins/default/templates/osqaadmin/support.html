@@ -1,0 +1,99 @@
+{% extends basetemplate %}
+{% load i18n support_tags %}
+
+{% block subtitle %}{% trans "Support dashboard" %}{% endblock %}
+{% block pagename %}{% trans "Support dashboard" %}{% endblock %}
+{% block description %}{% trans "Questions waiting for an answer, response times and answers waiting to be accepted. A question counts as answered once someone other than the asker answers it." %}{% endblock %}
+
+{% block admincontent %}
+<div class="support-dashboard">
+    <form method="get" class="support-filters">
+        <label>{% trans "Period" %}
+            <select name="days" onchange="this.form.submit()">
+                {% for p in periods %}<option value="{{ p }}"{% if p == days %} selected{% endif %}>{% if p %}{% blocktrans with n=p %}Last {{ n }} days{% endblocktrans %}{% else %}{% trans "All time" %}{% endif %}</option>{% endfor %}
+            </select>
+        </label>
+        <label>{% trans "Tag" %}
+            <select name="tag" onchange="this.form.submit()">
+                <option value="">{% trans "All questions" %}</option>
+                {% for row in tag_rows %}<option value="{{ row.tag }}"{% if row.tag == tag %} selected{% endif %}>{{ row.tag }}</option>{% endfor %}
+                {% if tag and tag not in tag_names %}<option value="{{ tag }}" selected>{{ tag }}</option>{% endif %}
+            </select>
+        </label>
+        <noscript><button type="submit">{% trans "Show" %}</button></noscript>
+    </form>
+
+    <div class="support-kpis">
+        <div class="support-kpi"><span class="support-kpi-value">{{ overall.asked }}</span><span class="support-kpi-label">{% trans "questions asked" %}</span></div>
+        <div class="support-kpi"><span class="support-kpi-value">{% if overall.answered_percent != None %}{{ overall.answered_percent }}%{% else %}–{% endif %}</span><span class="support-kpi-label">{% trans "answered" %}</span></div>
+        <div class="support-kpi"><span class="support-kpi-value">{{ overall.median_hours|hours|default:"–" }}</span><span class="support-kpi-label">{% trans "median time to first answer" %}</span></div>
+        <div class="support-kpi"><span class="support-kpi-value">{% if overall.accepted_percent != None %}{{ overall.accepted_percent }}%{% else %}–{% endif %}</span><span class="support-kpi-label">{% trans "with an accepted answer" %}</span></div>
+        <div class="support-kpi{% if unanswered %} support-kpi-alert{% endif %}"><span class="support-kpi-value">{{ unanswered|length }}{% if unanswered|length == 100 %}+{% endif %}</span><span class="support-kpi-label">{% trans "waiting for an answer" %}</span></div>
+    </div>
+
+    <div class="module support-module">
+        <table>
+            <caption>{% trans "By product tag" %}</caption>
+            <thead><tr>
+                <th scope="col">{% trans "Tag" %}</th>
+                <th scope="col" class="num">{% trans "Asked" %}</th>
+                <th scope="col" class="num">{% trans "Unanswered" %}</th>
+                <th scope="col" class="num">{% trans "Answered" %}</th>
+                <th scope="col" class="num">{% trans "Median first answer" %}</th>
+                <th scope="col" class="num">{% trans "Accepted" %}</th>
+            </tr></thead>
+            <tbody>
+            {% for row in tag_rows %}
+            <tr>
+                <th scope="row"><a href="?days={{ days }}&amp;tag={{ row.tag|urlencode }}">{{ row.tag }}</a></th>
+                <td class="num">{{ row.asked }}</td>
+                <td class="num{% if row.unanswered %} support-warn{% endif %}">{{ row.unanswered }}</td>
+                <td class="num">{% if row.answered_percent != None %}{{ row.answered_percent }}%{% else %}–{% endif %}</td>
+                <td class="num">{{ row.median_hours|hours|default:"–" }}</td>
+                <td class="num">{% if row.accepted_percent != None %}{{ row.accepted_percent }}%{% else %}–{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">{% trans "No tags yet. Choose the product tags under Settings > Support and reminders." %}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module support-module">
+        <table>
+            <caption>{% trans "Waiting for an answer" %} <span class="support-caption-note">{% blocktrans with target=target_hours %}oldest first; highlighted after {{ target }} hours{% endblocktrans %}</span></caption>
+            <thead><tr><th scope="col">{% trans "Question" %}</th><th scope="col">{% trans "Asked by" %}</th><th scope="col" class="num">{% trans "Waiting" %}</th></tr></thead>
+            <tbody>
+            {% for q in unanswered %}
+            <tr{% if q.overdue %} class="support-overdue"{% endif %}>
+                <td><a href="{{ q.get_absolute_url }}">{{ q.title }}</a>
+                    <div class="support-tags">{% for name in q.tagname_list %}<span>{{ name }}</span> {% endfor %}</div></td>
+                <td>{{ q.author.username }}</td>
+                <td class="num">{{ q.waiting_hours|hours }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">{% trans "Nothing is waiting. Every question in this period has an answer." %}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module support-module">
+        <table>
+            <caption>{% trans "Answered, nothing accepted yet" %} <span class="support-caption-note">{% if reminder_days %}{% blocktrans with n=reminder_days %}askers get one reminder after {{ n }} days{% endblocktrans %}{% else %}{% trans "reminders are off" %}{% endif %}</span></caption>
+            <thead><tr><th scope="col">{% trans "Question" %}</th><th scope="col">{% trans "Asked by" %}</th><th scope="col" class="num">{% trans "Since first answer" %}</th></tr></thead>
+            <tbody>
+            {% for q in unaccepted %}
+            <tr>
+                <td><a href="{{ q.get_absolute_url }}">{{ q.title }}</a></td>
+                <td>{{ q.author.username }}</td>
+                <td class="num">{{ q.waiting_hours|hours }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">{% trans "None." %}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

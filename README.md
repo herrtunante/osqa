@@ -60,6 +60,7 @@ Step-by-step guides:
   HTTP is redirected to HTTPS. See "Security and logging" below.
 - Email digests: run `cron/send_email_alerts` daily.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
+- Accept reminders: run `cron/remind_unaccepted` daily (see "Notifications and support dashboard" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
   `cron/suggest_answers` hourly (see "AI assistance" below).
 
@@ -74,6 +75,38 @@ docker compose up --build
 The container runs gunicorn as an unprivileged user on `127.0.0.1:8000`; put a
 TLS reverse proxy in front of it. `settings_local.py`, uploads, cache and logs
 are mounted from the host, not baked into the image.
+
+## Notifications and support dashboard
+
+- **Bell:** signed-in users see a bell in the header with their unread
+  notifications:
+  - answers to questions they ask or follow;
+  - comments on their posts;
+  - mentions;
+  - accepted answers;
+  - badges.
+
+  The list is at `/notifications/`. These notifications don't depend on the
+  email settings, and opening a question marks its notifications read.
+- **Support dashboard:** at Admin > Support dashboard, linked as "support
+  queue" in the header for staff and moderators. It shows, for a period and
+  optionally one tag:
+  - questions asked;
+  - the share answered by someone other than the asker;
+  - median time to the first answer;
+  - the share with an accepted answer;
+  - a per-product-tag table;
+  - the queue of unanswered questions, oldest first, with those past the
+    response target highlighted;
+  - answered questions with no accepted answer.
+
+  Product tags, the response target and reminders are under Admin > Support
+  and reminders.
+- **Accept reminders:** `manage.py remind_unaccepted` (daily) reminds an asker
+  once, by notification and by email, when their question has had an answer
+  for 7 days (configurable) and none is accepted. It only looks at questions
+  from the last 60 days, so an imported history isn't flooded. There is no
+  email if the asker stopped following the question or turned emails off.
 
 ## Security and logging
 

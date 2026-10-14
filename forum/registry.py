@@ -43,6 +43,11 @@ ui.register(ui.HEADER_LINKS,
             ui.Include('inbox/bell.html', visibility=ui.Visibility.AUTHENTICATED, weight=150, name='NOTIFICATIONS'),
 
             ui.Link(
+                    visibility=ui.Visibility.STAFF,
+                    text=_('support queue'),
+                    url=lambda u, c: reverse('admin_support'),
+                    weight=50, name='SUPPORT'),
+            ui.Link(
                     visibility=ui.Visibility.SUPERUSER,
                     text=_('administration'),
                     url=lambda u, c: reverse('admin_index'),
