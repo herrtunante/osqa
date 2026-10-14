@@ -97,8 +97,8 @@ class PickledObjectField(models.Field):
         return value
 
     def value_to_string(self, obj):
-        value = self._get_val_from_obj(obj)
-        return self.get_db_prep_value(value)
+        # Serialized (dumpdata) as the stored text; to_python() reads it back.
+        return self.get_db_prep_value(self.value_from_object(obj), connection=None)
 
     def get_internal_type(self):
         return 'TextField'

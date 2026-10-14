@@ -150,6 +150,17 @@ globals().setdefault('AUTH_PASSWORD_VALIDATORS', [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ])
+# New passwords use PBKDF2; the last two only read hashes from the original
+# OSQA (salted SHA1 and MD5) and are replaced by PBKDF2 at the next sign-in.
+globals().setdefault('PASSWORD_HASHERS', [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+    'forum.utils.hashers.LegacySHA1PasswordHasher',
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+])
 # Number of reverse proxies in front of OSQA (nginx, a load balancer): the
 # visitor's IP is then read from X-Forwarded-For and HTTPS from X-Forwarded-Proto.
 # Leave it 0 when OSQA is reached directly, or visitors could fake their IP.

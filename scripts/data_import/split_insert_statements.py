@@ -4,10 +4,14 @@ Split multi-row INSERT statements into single-row INSERTs
 This makes the MySQL dump easier to import into SQLite
 """
 import re
+import sys
+
+# Usage: python scripts/data_import/split_insert_statements.py importData/<dump>.sql
+DUMP = sys.argv[1] if len(sys.argv) > 1 else 'importData/osqa-20-10-2025_23-30-01.sql'
 
 print("Splitting multi-row INSERT statements...")
 
-with open('importData/osqa-20-10-2025_23-30-01.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open(DUMP, 'r', encoding='utf-8', errors='ignore') as f:
     content = f.read()
 
 # Find all INSERT statements

@@ -236,3 +236,36 @@ class SecurityLogTest(OSQATestCase):
             response = self.client.get(reverse('user_authsettings', kwargs={'id': self.alice.id}))
         self.assertEqual(response.status_code, 403)
         self.assertIn('event=permission_denied', logs.output[0])
+
+
+class LegacyPasswordTest(OSQATestCase):
+    @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.PBKDF2PasswordHasher',
+                                         'forum.utils.hashers.LegacySHA1PasswordHasher'])
+    def test_original_osqa_sha1_hashes_sign_in_and_are_upgraded(self):
+        import hashlib
+        from django.core.cache import cache
+        user = self.create_user('veteran')
+        User.objects.filter(id=user.id).update(password='sha1$a1b2c$' + hashlib.sha1(b'a1b2cold-pass-2009').hexdigest())
+        cache.clear()
+
+        self.client.post('/account/local/signin/', {'username': 'veteran', 'password': 'wrong'})
+        self.assertIsNone(self.client.session.get('_auth_user_id'))
+        self.client.post('/account/local/signin/', {'username': 'veteran', 'password': 'old-pass-2009'})
+        self.assertEqual(self.client.session.get('_auth_user_id'), str(user.id))
+        self.assertTrue(User.objects.get(id=user.id).password.startswith('pbkdf2_sha256$'))
+
+
+class DataTransferTest(OSQATestCase):
+    """dumpdata/loaddata, used to move a forum to another database (docs/upgrading-from-original-osqa.md)."""
+
+    def test_pickled_fields_survive_a_round_trip(self):
+        from django.core import serializers
+        from forum.models import KeyValue
+        KeyValue(key='TEST_SETTING', value={'allow_ips': ['10.0.0.1'], 'message': 'Back soon'}).save()
+        KeyValue(key='TEST_TEXT', value='plain text').save()
+        data = serializers.serialize('json', KeyValue.objects.filter(key__startswith='TEST_'))
+        KeyValue.objects.filter(key__startswith='TEST_').delete()
+        for obj in serializers.deserialize('json', data):
+            obj.save()
+        self.assertEqual(KeyValue.objects.get(key='TEST_SETTING').value, {'allow_ips': ['10.0.0.1'], 'message': 'Back soon'})
+        self.assertEqual(KeyValue.objects.get(key='TEST_TEXT').value, 'plain text')

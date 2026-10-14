@@ -1,3 +1,6 @@
+> **For moving a live forum, follow [upgrading-from-original-osqa.md](upgrading-from-original-osqa.md).**
+> This older document describes the database tables and alternative approaches in more detail.
+
 # OSQA Database Migration Guide
 ## From Django 1.6 (Old Database) to Django 4.2 (New Version)
 

@@ -42,6 +42,13 @@ site refuses to start without one.
 
 ## Production
 
+Step-by-step guides:
+- [docs/deployment.md](docs/deployment.md): a new forum on a server (systemd +
+  nginx), with Docker Compose, or on Kubernetes / Cloud Run.
+- [docs/upgrading-from-original-osqa.md](docs/upgrading-from-original-osqa.md):
+  moving a live forum from the original OSQA (Python 2 / Django 1.6).
+
+
 - WSGI entry point: `wsgi.py` (`gunicorn wsgi:application`); for mod_wsgi copy
   `osqa.wsgi.dist`.
 - Cache: the model layer caches objects and query results, so the cache must be
@@ -155,22 +162,26 @@ for a new one.
 
 ## Importing a database from the old OSQA (Django 1.6)
 
+The whole procedure (freeze, dump, import, checks, transfer to MySQL, files,
+go-live) is in [docs/upgrading-from-original-osqa.md](docs/upgrading-from-original-osqa.md).
+In short:
+
 The scripts in `scripts/data_import/` load a MySQL dump of the old site into a
 fresh SQLite database (`osqa.db`). Run them from the repository root:
 
 ```bash
 mkdir importData        # place the dump here (git-ignored, never commit it)
-python scripts/data_import/split_insert_statements.py   # -> importData/osqa-split.sql
+python scripts/data_import/split_insert_statements.py importData/<dump>.sql   # -> importData/osqa-split.sql
 python manage.py migrate                                 # with DATABASES pointing at osqa.db
 python scripts/data_import/import_original_data.py
 ```
 
-The dump file name is set at the top of `split_insert_statements.py`. The
-import clears the cache when it finishes; clear it yourself (`rm -rf cache/*`
+The import clears the cache when it finishes; clear it yourself (`rm -rf cache/*`
 for the default file cache) whenever you replace or edit the database outside
 the site, since posts and users are served from the cache. After importing,
-run Admin > Recalculate scores and reputation.
-`docs/data-migration-guide.md` describes other approaches (MySQL to
+run Admin > Recalculate scores and reputation. To move the result into
+MySQL/MariaDB or PostgreSQL, use `dumpdata --all` / `loaddata` as described
+in the guide. `docs/data-migration-guide.md` describes other approaches (MySQL to
 MySQL/PostgreSQL) and how to verify the result; `docs/database-tables.md` lists
 the tables.
 
@@ -189,7 +200,7 @@ suite and `makemigrations --check` on Python 3.11 and 3.13.
 Optional features live in `forum_modules/` and are switched off with
 `DISABLED_MODULES` in `settings_local.py`.
 
-All modules below except the full-text search ones are covered by the test suite.
+All modules below except the (switched-off) full-text search ones are covered by the test suite.
 
 | Module | What it does | Setup |
 |---|---|---|
@@ -204,7 +215,7 @@ All modules below except the full-text search ones are covered by the test suite
 | `exporter` | Full-site XML backup (Admin > Tools > XML data exporter) and restore (XML data importer) | - |
 | `sximporter` | Import of a StackExchange data dump (`/admin/sximporter/`) | Old StackExchange 1.0 dump format only |
 | `robotstxt` | Editable `/robots.txt` | - |
-| `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Enabled automatically on that database; not yet tested on Python 3 |
+| `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Switched off: not ported to Python 3 / Django 5 yet. Search uses the built-in keyword matching (plus semantic search with the `ai` module) |
 
 ### Spam sign-ups
 
