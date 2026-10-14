@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OSQA is an open source Q&A system. It provides Stack Overflow-like functionality including questions, answers, comments, voting, badges, reputation points, and user moderation.
 
-It runs on Django 5.2 LTS and Python 3.11+; it was ported from Django 1.6 / Python 2 (notes in `docs/upgrade-history/`). See `README.md` for setup and deployment.
+It runs on Django 5.2 LTS and Python 3.12+; it was ported from Django 1.6 / Python 2 (notes in `docs/upgrade-history/`). See `README.md` for setup and deployment.
 
 ## Core Architecture
 
