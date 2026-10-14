@@ -18,6 +18,7 @@ RECORD = os.path.join(ROOT, 'tmp', 'e2e', 'requested.txt')
 IGNORED = {
     'osqa_media', 'django_admin_media', 'django_admin_static', 'uploaded_file', 'custom_css', 'favicon',
     'csp_report',  # posted by the browser only when something is blocked
+    'subscribe_simple',  # same view as 'subscribe', whose pattern also matches its URLs
 }
 
 
