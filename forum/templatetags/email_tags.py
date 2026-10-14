@@ -11,14 +11,25 @@ class MultiUserMailMessage(template.Node):
         self.nodelist = nodelist
 
     def render(self, context):
+        from forum.utils import unsubscribe
+
         recipients = context['recipients']
+        kind = context.get('email_kind')  # set for notifications; account emails have none
         messages = list()
 
         for recipient in recipients:
             context['embeddedmedia'] = {}
             context['recipient'] = recipient
+            links = unsubscribe.links(recipient, kind, context.get('email_question')) if kind else None
+            context['unsubscribe'] = links
             self.nodelist.render(context)
-            messages.append((recipient, context['subject'], context['htmlcontent'], context['textcontent'], context['embeddedmedia']))
+            headers = {}
+            if links:
+                # RFC 2369 / 8058: mail programs show their own one-click unsubscribe.
+                headers = {'List-Unsubscribe': '<%s>' % links['all_url'],
+                           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'}
+            messages.append((recipient, context['subject'], context['htmlcontent'], context['textcontent'],
+                             context['embeddedmedia'], headers))
         
         create_and_send_mail_messages(messages, sender_data=context['sender'], reply_to=context['reply_to'])
         return ''

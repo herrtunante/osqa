@@ -1698,6 +1698,13 @@ div.comment-tools a:hover {
     margin: 0 6px;
 }
 
+#ground .footer-osqa {
+    max-width: 640px;
+    margin: 6px auto 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
 /* ---- Tablets ------------------------------------------------------- */
 
 @media (max-width: 960px) {
@@ -3071,4 +3078,169 @@ h3.or_label::before, h3.or_label::after {
 
 .ai-suggestion-actions form {
     margin: 0;
+}
+
+/* ---- Email settings, unsubscribe and help pages, tag following ----- */
+
+.email-settings h2, .email-settings h3 {
+    margin: 18px 0 8px;
+}
+
+.email-master {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--success);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.email-master.is-off {
+    border-left-color: var(--warn-border-strong);
+    background: var(--warn-bg);
+}
+
+.email-master p {
+    margin: 0 0 10px;
+}
+
+.email-master .email-help-link {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.email-settings-hint, .email-settings-empty {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.followed-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.email-settings-form fieldset {
+    margin: 18px 0 0;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.email-settings-form legend {
+    padding: 0 6px;
+    font-weight: 600;
+}
+
+.email-settings-form label {
+    display: block;
+    margin: 6px 0;
+}
+
+.email-choice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.email-choice:last-child {
+    border-bottom: 0;
+}
+
+.email-choice ul, .email-choice div {
+    display: flex;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.email-choice label {
+    margin: 0;
+}
+
+.email-master button, .email-prefs button, .tag-follow button {
+    padding: 7px 14px;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.email-master .plain-button, .email-prefs .plain-button, .tag-follow .plain-button {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.email-prefs {
+    max-width: 640px;
+    padding: 8px 0 24px;
+}
+
+.email-prefs h2 {
+    margin: 20px 0 6px;
+    font-size: 17px;
+}
+
+.email-prefs-result {
+    font-size: 16px;
+}
+
+.email-prefs-actions {
+    margin: 14px 0;
+}
+
+.email-prefs-more {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.tag-follow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.tag-follow form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.tag-follow-state {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.tag-follow-help {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.tag-followers {
+    margin-left: 6px;
+    white-space: nowrap;
+}
+
+.tag-followers::before {
+    content: "\00b7";
+    margin-right: 6px;
 }

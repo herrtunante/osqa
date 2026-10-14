@@ -9,7 +9,14 @@
 {% trans "Thanks" %},
 {{settings.APP_SHORT_NAME}}
 
-{% if not exclude_finetune %}
+{% if unsubscribe %}
+--
+{% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}
+{% if unsubscribe.specific_url %}{{ unsubscribe.specific_label }}: {{ unsubscribe.specific_url }}
+{% endif %}{% trans "Choose which emails you get" %}: {{ unsubscribe.manage_url }}
+{% trans "Unsubscribe from all emails" %}: {{ unsubscribe.all_url }}
+{% trans "How email notifications work" %}: {{ unsubscribe.help_url }}
+{% elif not exclude_finetune %}
 {% trans "P.S. You can always fine-tune which notifications you receive here:" %}
 {{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}
 {% endif %}

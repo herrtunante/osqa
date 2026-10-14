@@ -69,7 +69,9 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
         if sender is None:
             sender = str(settings.DEFAULT_FROM_EMAIL)
 
-        for recipient, subject, html, text, media in messages:
+        for message in messages:
+            recipient, subject, html, text, media = message[:5]
+            headers = message[5] if len(message) > 5 else {}
             if connection is None:
                 connection = create_connection()
 
@@ -83,6 +85,9 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
 
             if reply_to:
                 msgRoot['Reply-To'] = reply_to
+
+            for name, value in headers.items():
+                msgRoot[name] = value
 
             msgRoot.preamble = 'This is a multi-part message from %s.' % str(settings.APP_SHORT_NAME)
 

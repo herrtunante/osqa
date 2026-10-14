@@ -1,8 +1,14 @@
-# OSQA
+# OSQA, Open Foris edition
 
 OSQA is an open source Q&A site (questions, answers, comments, voting, tags,
-reputation, badges and moderation), originally from osqa.net. This fork runs on
-**Django 5.2 LTS and Python 3.11+**.
+reputation, badges and moderation), originally from osqa.net. This is the
+edition maintained by [Open Foris](https://openforis.org/) for its support
+forum; it runs on **Django 5.2 LTS and Python 3.11+**.
+
+Any organisation can use it for its own Q&A community: the code is free and
+open source (GPL v3) at <https://github.com/openforis/osqa>. Follow the setup
+below, change the name, logo, colours and texts in the admin, and turn the
+optional modules (social login, AI assistance, spam checks) on or off.
 
 ## Requirements
 

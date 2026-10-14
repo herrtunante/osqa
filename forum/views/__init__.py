@@ -7,6 +7,7 @@ from . import auth
 from . import admin
 from . import account
 from . import agents
+from . import email_prefs
 
 #from forum.modules.decorators import decorate_all
 

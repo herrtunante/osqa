@@ -49,7 +49,7 @@ def notify_mentioned(node, author, user_ids):
         subscription_settings__notify_reply_to_comments=True,
     ))
     send_template_email(users, "notifications/mention.html",
-                        {'node': node.leaf, 'question': question, 'author': author})
+                        {'node': node.leaf, 'question': question, 'author': author, 'email_kind': 'mention'})
     return user_ids
 
 
@@ -61,16 +61,18 @@ def question_posted(action, new):
 
     mentioned = notify_mentioned(question, question.author, mentioned_user_ids(question.body))
 
-    subscribers = User.objects.filter(
-            Q(subscription_settings__enable_notifications=True, subscription_settings__new_question='i') |
-            (Q(subscription_settings__new_question_watched_tags='i') &
-              Q(marked_tags__name__in=question.tagnames.split(' ')) &
-              Q(tag_selections__reason='good'))
+    # Everyone who wants all new questions, or new questions in a tag they follow;
+    # the master switch (enable_notifications) applies to both.
+    subscribers = User.objects.filter(subscription_settings__enable_notifications=True).filter(
+            Q(subscription_settings__new_question='i') |
+            Q(subscription_settings__new_question_watched_tags='i',
+              tag_selections__tag__name__in=question.tagnames.split(' '),
+              tag_selections__reason='good')
     ).exclude(id=question.author.id).exclude(id__in=mentioned).distinct()
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newquestion.html", {'question': question})
+    send_template_email(subscribers, "notifications/newquestion.html", {'question': question, 'email_kind': 'new_question'})
 
     subscription = QuestionSubscription(question=question, user=question.author)
     subscription.save()
@@ -104,7 +106,8 @@ def answer_posted(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newanswer.html", {'answer': answer})
+    send_template_email(subscribers, "notifications/newanswer.html",
+                        {'answer': answer, 'email_kind': 'question', 'email_question': answer.question})
 
     create_subscription_if_not_exists(question, answer.author)
 
@@ -135,7 +138,8 @@ def comment_posted(action, new):
     subscribers = filter_subscribers(subscribers)
 
 
-    send_template_email(subscribers, "notifications/newcomment.html", {'comment': comment})
+    send_template_email(subscribers, "notifications/newcomment.html",
+                        {'comment': comment, 'email_kind': 'question', 'email_question': comment.absolute_parent})
 
     create_subscription_if_not_exists(question, comment.user)
 
@@ -168,7 +172,8 @@ def answer_accepted(action, new):
     
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/answeraccepted.html", {'answer': action.node})
+    send_template_email(subscribers, "notifications/answeraccepted.html",
+                        {'answer': action.node, 'email_kind': 'question', 'email_question': action.node.question})
 
 AcceptAnswerAction.hook(answer_accepted)
 
@@ -181,7 +186,7 @@ def member_joined(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newmember.html", {'newmember': action.user})
+    send_template_email(subscribers, "notifications/newmember.html", {'newmember': action.user, 'email_kind': 'member'})
 
 UserJoinsAction.hook(member_joined)
 

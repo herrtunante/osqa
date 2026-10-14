@@ -1,0 +1,23 @@
+{% extends "base_content.html" %}
+{% load i18n %}
+{% block title %}{% trans "Email notifications" %}{% endblock %}
+{% block content %}
+<div class="email-prefs email-help">
+    <h1 class="headNormal">{% trans "Email notifications" %}</h1>
+    <p>{% blocktrans with site=settings.APP_SHORT_NAME %}{{ site }} can email you when something happens that interests you. You decide what, and you can stop at any time.{% endblocktrans %}</p>
+
+    <h2>{% trans "Follow the topics you care about" %}</h2>
+    <ul>
+        <li>{% blocktrans %}<strong>Follow a tag</strong>: open the tag (click it under any question, or find it on the <a href="/tags/">tags page</a>) and press <em>Follow tag</em>. You'll get an email for each new question with that tag.{% endblocktrans %}</li>
+        <li>{% blocktrans %}<strong>Follow a question</strong>: press <em>subscribe me</em> next to the question. Questions you ask or answer are followed automatically. You'll get an email for new answers and comments.{% endblocktrans %}</li>
+        <li>{% blocktrans %}<strong>Mentions</strong>: when someone writes <code>@yourname</code>, you get an email.{% endblocktrans %}</li>
+    </ul>
+
+    <h2>{% trans "Choose which emails you get" %}</h2>
+    <p>{% if user.is_authenticated %}{% blocktrans with url=user.get_user_subscriptions_url %}Go to <a href="{{ url }}">your email settings</a> (your profile, <em>subscriptions</em> tab). There you can turn each kind of email on or off, see the tags and questions you follow, and switch off everything at once.{% endblocktrans %}{% else %}{% blocktrans %}Sign in and open your profile, <em>subscriptions</em> tab. There you can turn each kind of email on or off, see the tags and questions you follow, and switch off everything at once.{% endblocktrans %}{% endif %}</p>
+
+    <h2>{% trans "Stop emails" %}</h2>
+    <p>{% blocktrans %}Every email ends with links to stop that kind of email (for example, emails about that question) or <strong>all</strong> emails from this site. They work without signing in, and you can undo them. Your mail program's own <em>Unsubscribe</em> button works too.{% endblocktrans %}</p>
+    <p>{% blocktrans %}Emails about your account itself (confirming your address, signing-in links) are always sent, because you asked for them.{% endblocktrans %}</p>
+</div>
+{% endblock %}
