@@ -33,14 +33,14 @@
             <div id="user-tools">
                 {% trans "Welcome," %}
                 <strong>{{ request.user.username }}</strong>.
-                <a href="{% url "admin_switch_interface" %}?to=default">{% trans "To standard interface" %}</a>
-                / <a href="{% url "index" %}">{% trans "Back to home page" %}</a>
+                {% if user.is_superuser %}<a href="{% url "admin_switch_interface" %}?to=default">{% trans "To standard interface" %}</a>
+                / {% endif %}<a href="{% url "index" %}">{% trans "Back to home page" %}</a>
                 / <a href="{% url "logout" %}">{% trans "Log out" %}</a>
             </div>
         </div>
         <div class="breadcrumbs">
             <a href="{% url "index" %}">{% trans "Home" %}</a> &gt;
-            <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a> &gt;
+            {% if user.is_superuser %}<a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a> &gt;{% endif %}
             {% block pagename %}{% endblock %} - 
             {% block description %}{% endblock %}
         </div>

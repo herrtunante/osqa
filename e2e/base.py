@@ -111,6 +111,7 @@ class E2ETestCase(LiveServerTestCase):
         self.set_setting(settings.SIGNUP_MIN_SECONDS, 0)
         self._contexts = []
         self._pages = []
+        self._requested = set()
 
     def tearDown(self):
         failed = self._failed()
@@ -125,6 +126,9 @@ class E2ETestCase(LiveServerTestCase):
         leftovers = [] if failed else [p for page in self._pages for p in page.problems]
         for context in self._contexts:
             context.close()
+        if os.environ.get('E2E_RECORD') and self._requested:
+            with open(os.environ['E2E_RECORD'], 'a') as record:
+                record.write(''.join(line + '\n' for line in sorted(self._requested)))
         cache.clear()
         super().tearDown()
         self.assertEqual(leftovers, [], 'page problems not checked by the test')
@@ -212,12 +216,19 @@ class E2ETestCase(LiveServerTestCase):
         page.on('pageerror', lambda error: page.problems.append('JavaScript error: %s\n%s' % (
             error, '\n'.join((error.stack or '').splitlines()[1:4]))))
         page.on('console', lambda message: self._console(page, message))
+        page.on('request', lambda request: self._record(request))
         page.on('response', lambda response: page.problems.append('HTTP %d for %s' % (response.status, response.url))
                 if response.status >= 500 and response.url.startswith(self.live_server_url) else None)
         # confirm() dialogs ("You will lose your changes…") are accepted.
         page.on('dialog', lambda dialog: dialog.accept())
         self._pages.append(page)
         return page
+
+    def _record(self, request):
+        """Remembers the forum URLs the browser asked for (for e2e/coverage.py)."""
+        if request.url.startswith(self.live_server_url) and request.resource_type in ('document', 'xhr', 'fetch'):
+            path = request.url[len(self.live_server_url):].split('?')[0].split('#')[0]
+            self._requested.add('%s %s' % (request.method, path))
 
     def _console(self, page, message):
         if message.type != 'error':

@@ -321,7 +321,8 @@ def temp_signin(request, user, code):
 
 def send_validation_email(request):
     if not request.user.is_authenticated:
-        return HttpResponseUnauthorized(request)
+        # Linked from the FAQ: sign in first, then come back here.
+        return HttpResponseRedirect('%s?next=%s' % (reverse('auth_signin'), urllib.parse.quote(request.path)))
     else:
         # We check if there are some old validation hashes. If there are -- we delete them.
         try:

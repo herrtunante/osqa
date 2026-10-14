@@ -166,3 +166,10 @@ input.longstring {
 .support-warn { font-weight: 700; }
 .support-overdue td { background: var(--message-warning-bg, #ffc); }
 .support-tags span { display: inline-block; margin: 3px 4px 0 0; padding: 0 6px; border-radius: 3px; background: var(--darkened-bg, #f8f8f8); color: var(--body-quiet-color, #666); font-size: 0.85em; }
+
+/* Phones: form tables (export/import tools) fit the screen. */
+@media (max-width: 640px) {
+    #content table { max-width: 100%; }
+    #content table input, #content table select, #content table textarea { max-width: 100%; box-sizing: border-box; }
+    #content table th, #content table td { word-break: break-word; }
+}
