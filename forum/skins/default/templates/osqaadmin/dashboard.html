@@ -59,6 +59,12 @@
                     This is useful to help new communities get started.</em>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    {% trans "Recalculate the scores of posts and the reputation of users from their votes and reputation history." %}
+                    <form method="post" action="{% url "admin_denormalize" %}" style="display: inline;" onsubmit="return window.confirm('{% trans "This is a heavy operation, are you sure?" %}');">{% csrf_token %}<button type="submit">{% trans "Recalculate" %}</button></form>
+                </td>
+            </tr>
         </table>
     </div>
     <div class="module" style="width:98%; display: inline-block;">

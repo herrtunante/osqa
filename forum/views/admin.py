@@ -26,6 +26,8 @@ from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAc
 from forum import settings
 
 TOOLS = {}
+# Admin pages with a URL of their own (url name, label), listed with the tools.
+TOOL_LINKS = []
 
 def super_user_required(fn):
     def wrapper(request, *args, **kwargs):
@@ -59,7 +61,8 @@ def admin_page_wrapper(fn, request, *args, **kwargs):
             'form', 'moderation', 'css', 'headandfoot', 'head', 'view', 'urls')]
             , key=lambda s: s.weight)
 
-    context['tools'] = [(name, fn.label) for name, fn in TOOLS.items()]
+    context['tools'] = [(reverse('admin_tools', args=[name]), fn.label) for name, fn in TOOLS.items()] + \
+                       [(reverse(url_name), label) for url_name, label in TOOL_LINKS]
 
     # Show the navigation only to moderators and super users
     if "hide_navigation" not in context:
