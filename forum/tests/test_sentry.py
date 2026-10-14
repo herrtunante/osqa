@@ -39,7 +39,8 @@ class BrowserReportingTest(OSQATestCase):
         self.assertContains(response, '<script id="sentry-config" type="application/json">')
         config = json.loads(response.content.decode().split('<script id="sentry-config" type="application/json">')[1]
                             .split('</script>')[0])
-        self.assertEqual(config, {'dsn': DSN, 'environment': 'staging', 'release': 'osqa@abc', 'user': str(alice.id)})
+        self.assertEqual(config, {'dsn': DSN, 'environment': 'staging', 'release': 'osqa@abc', 'user': str(alice.id),
+                                  'maxEvents': 10})
         self.assertContains(response, '/m/default/media/vendor/sentry-10.75.3/sentry.bundle.min.js')
         self.assertContains(response, '/m/default/media/js/osqa.sentry.js')
         csp = response['Content-Security-Policy']
@@ -87,6 +88,33 @@ class ServerReportingTest(OSQATestCase):
         serialized = json.dumps(event)
         for secret in ('hunter2', client.cookies['sessionid'].value, 'alice@example.com', '127.0.0.1'):
             self.assertNotIn(secret, serialized)
+
+    def fail_pages(self, client, times):
+        middleware = djsettings.MIDDLEWARE + ['forum.middleware.sentry.SentryUserMiddleware']
+        def explode(*args, **kwargs):
+            raise RuntimeError('template exploded')  # a new exception each time, like real failures
+        with override_settings(MIDDLEWARE=middleware), mock.patch('forum.views.meta.render', side_effect=explode):
+            for _ in range(times):
+                self.assertEqual(client.get('/about/').status_code, 500)
+
+    @override_settings(SENTRY_MAX_EVENTS_PER_VISITOR=3)
+    def test_one_visitor_cannot_flood_sentry(self):
+        transport = self.init_sentry()
+        alice_client = Client(raise_request_exception=False)
+        alice_client.force_login(self.create_user('alice'))
+        self.fail_pages(alice_client, 10)
+        self.assertEqual(len(transport.events), 3)
+
+        # Other visitors are still reported: another user, and anonymous
+        # visitors (counted by IP address).
+        bob_client = Client(raise_request_exception=False)
+        bob = self.create_user('bob')
+        bob_client.force_login(bob)
+        self.fail_pages(bob_client, 1)
+        self.assertEqual(transport.events[-1]['user'], {'id': str(bob.id)})
+        self.fail_pages(Client(raise_request_exception=False, REMOTE_ADDR='198.51.100.7'), 5)
+        self.assertEqual(len(transport.events), 7)
+        self.assertNotIn('198.51.100.7', json.dumps(transport.events))
 
     def test_user_id_only(self):
         request = RequestFactory().get('/')

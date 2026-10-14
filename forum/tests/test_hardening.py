@@ -1,6 +1,4 @@
-import email
 import json
-import logging
 import re
 from unittest import mock
 
@@ -238,30 +236,3 @@ class SecurityLogTest(OSQATestCase):
             response = self.client.get(reverse('user_authsettings', kwargs={'id': self.alice.id}))
         self.assertEqual(response.status_code, 403)
         self.assertIn('event=permission_denied', logs.output[0])
-
-
-class AdminErrorEmailTest(OSQATestCase):
-    def test_errors_are_emailed_once(self):
-        from forum.utils.log import AdminEmailHandler
-        self.create_user('owner', is_superuser=True)
-        settings.EMAIL_HOST.set_value('smtp.example.org')
-        self.addCleanup(setattr, settings.EMAIL_HOST, '_temp', None)
-        logger = logging.getLogger('test.admin_email')
-        logger.propagate = False
-        handler = AdminEmailHandler()
-        logger.addHandler(handler)
-        self.addCleanup(logger.removeHandler, handler)
-
-        with mock.patch('forum.utils.mail.create_connection') as create_connection:
-            for _ in range(3):
-                try:
-                    1 / 0
-                except ZeroDivisionError:
-                    logger.exception('Internal Server Error: /questions/')
-        sendmail = create_connection.return_value.sendmail
-        self.assertEqual(sendmail.call_count, 1)
-        sender, recipients, message = sendmail.call_args[0]
-        self.assertEqual(recipients, ['owner@example.com'])
-        message = email.message_from_string(message)
-        self.assertEqual(message['Subject'], '[OSQA] ERROR: Internal Server Error: /questions/')
-        self.assertIn('ZeroDivisionError', message.get_payload(decode=True).decode())

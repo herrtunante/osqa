@@ -182,6 +182,9 @@ SENTRY_ENVIRONMENT = _setting('SENTRY_ENVIRONMENT', 'production')
 # Share of requests traced for performance (0 to 1); 0 sends errors only.
 SENTRY_TRACES_SAMPLE_RATE = float(_setting('SENTRY_TRACES_SAMPLE_RATE', 0) or 0)
 SENTRY_RELEASE = _setting('SENTRY_RELEASE')
+# Events one visitor (signed-in user or IP address) may send per hour, from the
+# server and from their browser each; more are dropped. 0 means no limit.
+SENTRY_MAX_EVENTS_PER_VISITOR = int(_setting('SENTRY_MAX_EVENTS_PER_VISITOR', 10) or 0)
 if not SENTRY_RELEASE and (SENTRY_DSN or SENTRY_FRONTEND_DSN):
     try:
         import subprocess

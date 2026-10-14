@@ -99,9 +99,6 @@ are mounted from the host, not baked into the image.
 - **Moderator actions** (votes, deletions, suspensions, closes, …) stay in the
   actions table with user and IP.
 - **Log files:** `settings_local.py.dist` rotates them at 10 MB.
-- **Error alerts:** server errors are emailed through the forum's email settings
-  to `ADMINS` (or the superusers), at most once per error every 10 minutes.
-  With Sentry (below) you can drop the `admin_email` handler from `LOGGING`.
 - **Sentry:** set `SENTRY_DSN` (settings or environment) to report server
   errors. Browser JavaScript errors and session health go to
   `SENTRY_FRONTEND_DSN`, which defaults to the same DSN (use a separate
@@ -111,6 +108,13 @@ are mounted from the host, not baked into the image.
     `--build-arg SENTRY_RELEASE=...`) and `SENTRY_TRACES_SAMPLE_RATE`
     (performance tracing, default 0).
   - Blocked content (CSP reports) arrives as warnings.
+  - Flood protection: each visitor (signed-in user, or IP address) sends at
+    most `SENTRY_MAX_EVENTS_PER_VISITOR` events per hour (default 10) from
+    the server, and the same number from their browser. The browser count is
+    kept in localStorage, so reloading doesn't reset it. Identical repeated
+    errors are merged by Sentry's SDK as well. Because the browser DSN is
+    public, also set a rate limit on the client key in Sentry
+    (Project Settings > Client Keys) to cap deliberate abuse.
   - No request bodies, cookies, IP addresses, emails or log lines with them are
     sent. Signed-in users appear by numeric id only.
   - The browser SDK is self-hosted (`media/vendor/sentry-10.75.3`, see its
@@ -120,7 +124,7 @@ are mounted from the host, not baked into the image.
 - **Dependencies:** CI runs `pip-audit`, and Dependabot proposes updates weekly.
 
 Existing installations: copy the `LOGGING` block from `settings_local.py.dist`
-into `settings_local.py` to get rotation, the security log and error emails.
+into `settings_local.py` to get rotation and the security log.
 Email validation and sign-in links sent before the upgrade stop working, so ask
 for a new one.
 

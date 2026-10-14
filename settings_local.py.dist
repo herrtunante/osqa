@@ -34,16 +34,8 @@ LOGGING = {
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 10,
         },
-        # Emails server errors to ADMINS (or the superusers) through the
-        # forum's email settings, at most once per error every 10 minutes.
-        'admin_email': {
-            'level': 'ERROR',
-            'class': 'forum.utils.log.AdminEmailHandler',
-            'formatter': 'default',
-        },
     },
     'loggers': {
-        'django.request': {'handlers': ['admin_email'], 'propagate': True},
         'forum.security': {'handlers': ['security_file'], 'level': 'INFO', 'propagate': True},
     },
     'root': {
@@ -52,8 +44,7 @@ LOGGING = {
     },
 }
 
-#ADMINS and MANAGERS: who gets server error emails, e.g. (('Ops', 'ops@example.org'),).
-# Empty: the site's superusers get them.
+#ADMINS and MANAGERS (server errors are reported to Sentry, see SENTRY_DSN below)
 ADMINS = ()
 MANAGERS = ADMINS
 
@@ -79,6 +70,7 @@ SECRET_KEY = ''
 #SENTRY_FRONTEND_DSN = 'https://<key>@o<org>.ingest.sentry.io/<project>'
 #SENTRY_ENVIRONMENT = 'production'
 #SENTRY_TRACES_SAMPLE_RATE = 0.0   # e.g. 0.1 to trace 10% of requests
+#SENTRY_MAX_EVENTS_PER_VISITOR = 10   # per user or IP per hour, server and browser each
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }

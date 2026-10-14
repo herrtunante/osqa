@@ -3,7 +3,12 @@
 init_server() is called from settings.py when SENTRY_DSN is set. For the
 browser: the configuration the page passes to media/js/osqa.sentry.js, and the
 origin the Content-Security-Policy must let it send reports to.
+
+One visitor (a signed-in user, or an IP address) sends at most
+SENTRY_MAX_EVENTS_PER_VISITOR events an hour, from the server and from their
+browser each, so a page failing in a loop can't flood Sentry.
 """
+import contextvars
 from urllib.parse import urlsplit
 
 from django.conf import settings as djsettings
@@ -22,7 +27,7 @@ def init_server(dsn, environment='', release='', traces_sample_rate=0.0, **optio
         # No cookies, request bodies, IP addresses or user details;
         # SentryUserMiddleware adds the user's numeric id.
         send_default_pii=False, max_request_body_size='never',
-        **options)
+        before_send=before_send, **options)
     # Requests for other host names (scanners) are not errors of the forum.
     ignore_logger('django.security.DisallowedHost')
     # The 500 handler's own log entry (with the user and request headers, for
@@ -31,6 +36,45 @@ def init_server(dsn, environment='', release='', traces_sample_rate=0.0, **optio
     # Security log lines carry IP addresses and usernames; they stay in the log file.
     ignore_logger('forum.security')
     return True
+
+
+# Who the current request is for: 'user:<id>' or 'ip:<address>' (set by
+# SentryUserMiddleware; never sent to Sentry, only used for the limit).
+_visitor = contextvars.ContextVar('osqa_sentry_visitor', default=None)
+
+
+def max_events_per_visitor():
+    return int(getattr(djsettings, 'SENTRY_MAX_EVENTS_PER_VISITOR', 10))
+
+
+def visitor_key(request):
+    user = getattr(request, 'user', None)
+    if user is not None and user.is_authenticated:
+        return 'user:%s' % user.id
+    return 'ip:%s' % request.META.get('REMOTE_ADDR', '')
+
+
+def set_visitor(request):
+    return _visitor.set(visitor_key(request))
+
+
+def reset_visitor(token):
+    _visitor.reset(token)
+
+
+def before_send(event, hint):
+    """Drops the event when this request's visitor already sent the hourly
+    maximum. Events from outside a request (commands, cron) are not limited."""
+    visitor, limit = _visitor.get(), max_events_per_visitor()
+    if visitor is None or limit <= 0:
+        return event
+    try:
+        from forum.utils import throttle
+        if throttle.hit('sentry-events', visitor, 3600) > limit:
+            return None
+    except Exception:  # the cache being down must not lose the report
+        pass
+    return event
 
 
 def frontend_dsn():
@@ -56,6 +100,7 @@ def browser_config(request):
         'environment': getattr(djsettings, 'SENTRY_ENVIRONMENT', ''),
         'release': getattr(djsettings, 'SENTRY_RELEASE', '') or None,
         'user': str(user.id) if user is not None and user.is_authenticated else None,
+        'maxEvents': max_events_per_visitor(),
     }
 
 
