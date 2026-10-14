@@ -25,6 +25,10 @@ USER osqa
 
 EXPOSE 8000
 
+# /healthz answers "ok" when the app and its database are up.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"
+
 # settings_local.py (database, APP_URL, SECRET_KEY or OSQA_SECRET_KEY) is
 # mounted at runtime; see docker-compose.yml.
 CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-"]

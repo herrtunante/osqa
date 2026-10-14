@@ -3244,3 +3244,6 @@ h3.or_label::before, h3.or_label::after {
     content: "\00b7";
     margin-right: 6px;
 }
+
+/* Help text under a form field (e.g. the password rules on sign-up) */
+.form-help { margin: 4px 0 0; font-size: 0.85em; color: var(--muted); }

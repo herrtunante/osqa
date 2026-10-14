@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import password_validation
 import re
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
@@ -204,6 +205,8 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
 class SetPasswordForm(forms.Form):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
                                 label=_('choose password'),
+                                help_text=_('At least 8 characters; not a common password and not similar to your '
+                                            'username or email.'),
                                 error_messages={'required':_('password is required')},
                                 )
     password2 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
@@ -214,6 +217,18 @@ class SetPasswordForm(forms.Form):
 
     def __init__(self, data=None, user=None, *args, **kwargs):
         super(SetPasswordForm, self).__init__(data, *args, **kwargs)
+        self.password_user = user
+
+    def clean_password1(self):
+        """Checks the password against AUTH_PASSWORD_VALIDATORS (length, common
+        passwords, similarity to the username or email)."""
+        password = self.cleaned_data['password1']
+        user = self.password_user
+        if user is None:  # signing up: compare with what was typed in the form
+            from django.contrib.auth.models import User as DjangoUser
+            user = DjangoUser(username=self.data.get('username', ''), email=self.data.get('email', ''))
+        password_validation.validate_password(password, user)
+        return password
 
     def clean_password2(self):
         """

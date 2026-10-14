@@ -1,3 +1,4 @@
+import json
 import os
 from itertools import groupby
 
@@ -6,6 +7,8 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.static import serve
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 
@@ -217,3 +220,22 @@ def error_handler(request):
 
     logging.error(log_msg)
     return HttpResponseIntServerError(request)
+
+
+@csrf_exempt
+@require_POST
+def csp_report(request):
+    """Browsers post here what the Content-Security-Policy blocked; it goes to
+    the security log so admins can see what to add to CSP_EXTRA_SOURCES."""
+    from forum.utils import security_log, throttle
+    if throttle.hit('csp-report', throttle.client_ip(request), 3600) <= 20:
+        try:
+            report = json.loads(request.body[:8192]).get('csp-report', {})
+        except (ValueError, AttributeError):
+            report = {}
+        if isinstance(report, dict):
+            security_log.event('csp_blocked', request, logging.WARNING,
+                               directive=str(report.get('violated-directive', ''))[:100],
+                               blocked=str(report.get('blocked-uri', ''))[:200],
+                               page=str(report.get('document-uri', ''))[:200])
+    return HttpResponse(status=204)

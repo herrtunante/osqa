@@ -44,6 +44,7 @@ from .form import *
 from .view import *
 from .moderation import *
 from .users import *
+from .security import *
 from .static import *
 from .urls import *
 from .accept import *

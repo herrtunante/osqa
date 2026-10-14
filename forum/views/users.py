@@ -14,6 +14,7 @@ from django.utils.encoding import smart_str
 from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
+from forum.utils import security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
@@ -197,6 +198,7 @@ def user_powers(request, id, action, status):
         raise Http404()
 
     user.save()
+    security_log.event('permissions_changed', request, account=user, change='%s %s' % (action, status))
     return decorators.RefreshPageCommand()
 
 
@@ -218,7 +220,8 @@ def award_points(request, id):
 
     extra = dict(message=request.POST.get('message', ''), awarding_user=request.user.id, value=points)
 
-    BonusRepAction(user=request.user, extra=extra).save(data=dict(value=points, affected=user))
+    BonusRepAction(user=request.user, extra=extra, ip=request.META['REMOTE_ADDR']).save(data=dict(value=points, affected=user))
+    security_log.event('reputation_awarded', request, account=user, points=points)
 
     return {'commands': {
             'update_profile_karma': [user.reputation]

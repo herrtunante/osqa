@@ -12,7 +12,9 @@ CACHE_MAX_KEY_LENGTH = 235
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
 # Note: SessionMiddleware must come before CsrfViewMiddleware when using CSRF_USE_SESSIONS
 MIDDLEWARE = [
+    'forum.middleware.security.ClientIPMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'forum.middleware.security.SecurityHeadersMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -140,6 +142,38 @@ app_url_split = APP_URL.split("://")
 APP_PROTOCOL = app_url_split[0]
 APP_DOMAIN = app_url_split[1].split('/')[0]
 APP_BASE_URL = '%s://%s' % (APP_PROTOCOL, APP_DOMAIN)
+
+# Security defaults; any of them can be set differently in settings_local.py.
+globals().setdefault('AUTH_PASSWORD_VALIDATORS', [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+])
+# Number of reverse proxies in front of OSQA (nginx, a load balancer): the
+# visitor's IP is then read from X-Forwarded-For and HTTPS from X-Forwarded-Proto.
+# Leave it 0 when OSQA is reached directly, or visitors could fake their IP.
+TRUSTED_PROXY_COUNT = int(globals().get('TRUSTED_PROXY_COUNT', os.environ.get('OSQA_TRUSTED_PROXIES', 0)))
+if TRUSTED_PROXY_COUNT:
+    globals().setdefault('SECURE_PROXY_SSL_HEADER', ('HTTP_X_FORWARDED_PROTO', 'https'))
+if APP_PROTOCOL == 'https':
+    globals().setdefault('SESSION_COOKIE_SECURE', True)
+    globals().setdefault('CSRF_COOKIE_SECURE', True)
+    globals().setdefault('CSRF_TRUSTED_ORIGINS', [APP_BASE_URL])
+    # Sent only on HTTPS responses; tells browsers to use HTTPS for a year.
+    globals().setdefault('SECURE_HSTS_SECONDS', 31536000)
+    # Redirecting needs to know which requests are HTTPS: directly, or from the proxy header.
+    globals().setdefault('SECURE_SSL_REDIRECT', bool(globals().get('SECURE_PROXY_SSL_HEADER')))
+
+# Error reports to Sentry (or a compatible service) when SENTRY_DSN is set and
+# sentry-sdk is installed. Request bodies, cookies and user details are not sent.
+SENTRY_DSN = globals().get('SENTRY_DSN') or os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(dsn=SENTRY_DSN, send_default_pii=False, max_request_body_size='never')
+    except ImportError:
+        print('SENTRY_DSN is set but sentry-sdk is not installed: pip install sentry-sdk', file=sys.stderr)
 
 FORCE_SCRIPT_NAME = ''
 

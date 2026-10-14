@@ -47,8 +47,10 @@ site refuses to start without one.
 - Cache: the model layer caches objects and query results, so the cache must be
   shared by all worker processes. `settings_local.py.dist` uses a file cache;
   memcached is recommended. The per-process local-memory cache is not suitable.
-- Behind HTTPS, enable the settings listed in `settings_local.py.dist`
-  (`SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`).
+- HTTPS: with an `https://` `APP_URL`, secure cookies and HSTS are on by default.
+  Behind a reverse proxy set `TRUSTED_PROXY_COUNT = 1` (or `OSQA_TRUSTED_PROXIES=1`,
+  the docker-compose default): visitor IPs then come from `X-Forwarded-For` and
+  HTTP is redirected to HTTPS. See "Security and logging" below.
 - Email digests: run `cron/send_email_alerts` daily.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
@@ -65,6 +67,49 @@ docker compose up --build
 The container runs gunicorn as an unprivileged user on `127.0.0.1:8000`; put a
 TLS reverse proxy in front of it. `settings_local.py`, uploads, cache and logs
 are mounted from the host, not baked into the image.
+
+## Security and logging
+
+- **Sign-in:** after 5 wrong passwords an account's password sign-in pauses for
+  15 minutes, and one IP address may fail 20 times. "Forgot password" links are
+  limited to 3 per address per hour, work once for 24 hours, and the page never
+  says whether an address has an account.
+- **Passwords:** Django's validators (at least 8 characters, not common, not
+  numeric only, not similar to the username or email). Change them with
+  `AUTH_PASSWORD_VALIDATORS`. Changing a password signs out the account's other sessions.
+- **Posting limits:** questions, answers and comments per user per hour
+  (moderators exempt).
+- **Headers:** Content-Security-Policy (scripts, styles and frames only from the
+  site and the Google services OSQA uses; no plugins; only this site may frame
+  it), Permissions-Policy, plus Django's nosniff, Referrer-Policy and X-Frame-Options.
+  Browsers report blocked content to `/csp-report/`, which goes to the security
+  log. Add origins for your own analytics or widgets in the admin's extra script
+  sources setting; `CONTENT_SECURITY_POLICY_REPORT_ONLY = True` only reports, and
+  `CONTENT_SECURITY_POLICY = None` turns the header off.
+- All the limits above are under Admin > Security.
+- **Security log** (`log/security.log`, logger `forum.security`), one line per event:
+  - failed and paused sign-ins;
+  - sign-in link requests and uses;
+  - password changes;
+  - pages refused to signed-in users;
+  - permission, reputation and settings changes;
+  - maintenance mode;
+  - account deletions;
+  - blocked content.
+- **Moderator actions** (votes, deletions, suspensions, closes, …) stay in the
+  actions table with user and IP.
+- **Log files:** `settings_local.py.dist` rotates them at 10 MB.
+- **Error alerts:** server errors are emailed through the forum's email settings
+  to `ADMINS` (or the superusers), at most once per error every 10 minutes. For
+  Sentry, `pip install sentry-sdk` and set `SENTRY_DSN`.
+- **Health check:** `/healthz` returns `ok` when the app and database respond. It
+  works on any host name and during maintenance; the Docker image uses it.
+- **Dependencies:** CI runs `pip-audit`, and Dependabot proposes updates weekly.
+
+Existing installations: copy the `LOGGING` block from `settings_local.py.dist`
+into `settings_local.py` to get rotation, the security log and error emails.
+Email validation and sign-in links sent before the upgrade stop working, so ask
+for a new one.
 
 ## Upgrading an existing installation
 

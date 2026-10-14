@@ -81,6 +81,7 @@
                         <p class="error">{{ form1.password1.errors|join:", " }}</p>
                     {% endif %}
                     {{ form1.password1 }}
+                    <p class="form-help">{{ form1.password1.help_text }}</p>
                 </div>
                 <div class="form-row-vertical margin-bottom">
                     <label for="password2_id">{{ form1.password2.label }}</label>

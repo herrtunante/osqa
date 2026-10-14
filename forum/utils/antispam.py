@@ -1,4 +1,5 @@
 """Defences against bot sign-ups and profile spam (no external services)."""
+import datetime
 import time
 
 from django import forms
@@ -62,6 +63,31 @@ def count_signup(request):
             cache.incr(key)
         except ValueError:
             cache.set(key, 1, 3600)
+
+
+POSTING_LIMITS = {'ask': 'QUESTIONS_PER_HOUR', 'answer': 'ANSWERS_PER_HOUR', 'comment': 'COMMENTS_PER_HOUR'}
+
+
+def posting_limit_reached(user, kind):
+    """Whether `user` already posted the hourly maximum of `kind` ('ask',
+    'answer' or 'comment'). Counted from the actions table, so it holds across
+    workers and restarts; moderators and administrators have no limit."""
+    from forum.models import Action
+    limit = int(getattr(settings, POSTING_LIMITS[kind]))
+    if limit <= 0 or user.is_staff or user.is_superuser:
+        return False
+    since = datetime.datetime.now() - datetime.timedelta(hours=1)
+    return Action.objects.filter(user=user, action_type=kind, action_date__gte=since).count() >= limit
+
+
+def posting_limit_message(kind):
+    return {
+        'ask': _("You have asked the maximum number of questions for one hour. Please wait a while before asking "
+                 "again; your text is kept below."),
+        'answer': _("You have posted the maximum number of answers for one hour. Please wait a while before posting "
+                    "again."),
+        'comment': _("You have posted the maximum number of comments for one hour. Please wait a while."),
+    }[kind]
 
 
 def links_trusted(user):

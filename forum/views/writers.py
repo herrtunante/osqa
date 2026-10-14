@@ -14,6 +14,7 @@ from django.utils.html import *
 from django.utils.translation import gettext as _
 
 from django.contrib import messages
+from forum.utils.antispam import posting_limit_reached, posting_limit_message
 
 from forum.actions import AskAction, AnswerAction, ReviseAction, RollbackAction, RetagAction, AnswerToQuestionAction, CommentToQuestionAction
 from forum.forms import *
@@ -114,7 +115,9 @@ def ask(request):
         elif "text" in request.POST:
             form = AskForm(request.POST, user=request.user)
             if form.is_valid():
-                if request.user.is_authenticated and request.user.email_valid_and_can_ask():
+                if request.user.is_authenticated and posting_limit_reached(request.user, 'ask'):
+                    messages.error(request, posting_limit_message('ask'))
+                elif request.user.is_authenticated and request.user.email_valid_and_can_ask():
                     ask_action = AskAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
                     question = ask_action.node
 
@@ -291,6 +294,11 @@ def answer(request, id):
         form = AnswerForm(request.POST, request.user)
 
         if request.session.pop('reviewing_pending_data', False) or not form.is_valid():
+            request.session['redirect_POST_data'] = request.POST.urlencode()
+            return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
+
+        if request.user.is_authenticated and posting_limit_reached(request.user, 'answer'):
+            messages.error(request, posting_limit_message('answer'))
             request.session['redirect_POST_data'] = request.POST.urlencode()
             return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
 

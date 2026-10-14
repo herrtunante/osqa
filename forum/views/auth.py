@@ -13,7 +13,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.utils.encoding import smart_str
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.views.decorators.http import require_POST
 
 from django.contrib import messages
@@ -33,6 +33,7 @@ from forum.authentication import AUTH_PROVIDERS
 from forum.models import User, AuthKeyUserAssociation, ValidationHash
 from forum.actions import UserJoinsAction, UserLoginAction
 from forum.utils.antispam import signup_limit_reached, count_signup
+from forum.utils import security_log, throttle
 from forum import settings
 
 from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
@@ -91,6 +92,18 @@ def signin_page(request):
             'smallicon_providers': smallicon_providers,
             })
 
+def login_paused(request, username):
+    limit = int(settings.LOGIN_FAILURES_LIMIT)
+    return limit > 0 and (throttle.count('login-user', username) >= limit or
+                          throttle.count('login-ip', throttle.client_ip(request)) >= limit * 4)
+
+
+def count_login_failure(request, username):
+    seconds = int(settings.LOGIN_LOCKOUT_MINUTES) * 60
+    throttle.hit('login-user', username, seconds)
+    throttle.hit('login-ip', throttle.client_ip(request), seconds)
+
+
 def prepare_provider_signin(request, provider):
     # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
     force_email_request = request.GET.get('validate_email', 'yes') == 'yes'
@@ -119,11 +132,27 @@ def process_provider_signin(request, provider):
     if provider in AUTH_PROVIDERS:
         provider_class = AUTH_PROVIDERS[provider].consumer
 
+        # Password sign-ins (local, LDAP) are paused after too many failures.
+        username = request.POST.get('username', '').strip() if request.method == 'POST' and \
+            'password' in request.POST else None
+        if username and login_paused(request, username):
+            security_log.event('login_paused', request, logging.WARNING, provider=provider, username=username)
+            request.session['auth_error'] = _(
+                "Too many failed sign-in attempts. Please wait %(minutes)s minutes, or get a sign-in link by email "
+                "with \"forgot password\".") % {'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)}
+            return HttpResponseRedirect(reverse('auth_signin'))
+
         try:
             assoc_key = provider_class.process_authentication_request(request)
         except InvalidAuthentication as e:
+            if username:
+                count_login_failure(request, username)
+                security_log.event('login_failed', request, logging.WARNING, provider=provider, username=username)
             request.session['auth_error'] = e.message
             return HttpResponseRedirect(reverse('auth_signin'))
+
+        if username:
+            throttle.reset('login-user', username)
 
         if request.user.is_authenticated:
             if isinstance(assoc_key, (type, User)):
@@ -247,25 +276,26 @@ def request_temp_login(request):
         form = TemporaryLoginRequestForm(request.POST)
 
         if form.is_valid():
-            users = form.user_cache
+            email = form.cleaned_data['email']
+            limit = int(settings.PASSWORD_RESETS_PER_HOUR)
+            ip = throttle.client_ip(request)
+            if limit > 0 and (throttle.hit('templogin-email', email, 3600) > limit or
+                              throttle.hit('templogin-ip', ip, 3600) > limit * 4):
+                security_log.event('temp_login_limited', request, logging.WARNING, email=email)
+                messages.error(request, _("Too many sign-in links were requested. Please try again in an hour."))
+                return render(request, 'auth/temp_login_request.html', {'form': form})
 
-            for u in users:
+            for u in form.user_cache:
                 if u.is_suspended():
-                    return forward_suspended_user(request, u, False)
-
-            for u in users:
-                try:
-                    hash = get_object_or_404(ValidationHash, user=u, type='templogin')
-                    if hash.expiration < datetime.datetime.now():
-                        hash.delete()
-                        return request_temp_login(request)
-                except:
-                    hash = ValidationHash.objects.create_new(u, 'templogin', [u.id])
-
+                    continue
+                # A fresh link each time; the previous one stops working.
+                ValidationHash.objects.filter(user=u, type='templogin').delete()
+                hash = ValidationHash.objects.create_new(u, 'templogin', [u.id])
                 send_template_email([u], "auth/temp_login_email.html", {'temp_login_code': hash})
+                security_log.event('temp_login_requested', request, account=u)
 
-                messages.info(request, _("An email has been sent with your temporary login key"))
-
+            messages.info(request, _("If this address belongs to an account, we have sent it an email with a sign-in "
+                                     "link. The link works once, for 24 hours."))
             return HttpResponseRedirect(reverse('index'))
     else:
         form = TemporaryLoginRequestForm()
@@ -280,6 +310,7 @@ def temp_signin(request, user, code):
         # If the user requests temp_signin he must have forgotten his password. So we mark it as unusable.
         user.set_unusable_password()
         user.save()
+        security_log.event('temp_login_used', request, account=user)
         
         return login_and_forward(request, user, reverse('user_authsettings', kwargs={'id': user.id}),
                                  _(
@@ -341,6 +372,10 @@ def auth_settings(request, id):
             is_new_pass = not user_.has_usable_password()
             user_.set_password(form.cleaned_data['password1'])
             user_.save()
+            security_log.event('password_set' if is_new_pass else 'password_changed', request, account=user_)
+            if request.user == user_:
+                # Other sessions of this account are signed out; this one stays.
+                update_session_auth_hash(request, user_)
 
             if is_new_pass:
                 messages.info(request, _("New password set"))

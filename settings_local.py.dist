@@ -2,36 +2,58 @@
 import os.path
 
 SITE_SRC_ROOT = os.path.dirname(__file__)
-LOG_FILENAME = 'django.osqa.log'
+LOG_DIR = os.path.join(SITE_SRC_ROOT, 'log')
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            'format': '%(pathname)s TIME: %(asctime)s MSG: %(filename)s:%(funcName)s:%(lineno)d %(message)s',
-        }
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'formatter': 'default',
-            'filename': os.path.join(SITE_SRC_ROOT, 'log', LOG_FILENAME),
+            'format': '%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s',
+        },
+        'security': {
+            'format': '%(asctime)s %(levelname)s %(message)s',
         },
     },
-    'loggers' : {
-        # ensure that all log entries are propagated to root
-        'django': { 'propagate': True },
-        'django.request': { 'propagate': True },
-        'django.security': { 'propagate': True },
-        'py.warnings': { 'propagate': True },
+    'handlers': {
+        # Rotated at 10 MB; the last 5 files are kept.
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'default',
+            'filename': os.path.join(LOG_DIR, 'django.osqa.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+        },
+        # Failed and paused sign-ins, password changes, refused pages,
+        # permission and settings changes, blocked content (CSP).
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'security',
+            'filename': os.path.join(LOG_DIR, 'security.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+        },
+        # Emails server errors to ADMINS (or the superusers) through the
+        # forum's email settings, at most once per error every 10 minutes.
+        'admin_email': {
+            'level': 'ERROR',
+            'class': 'forum.utils.log.AdminEmailHandler',
+            'formatter': 'default',
+        },
+    },
+    'loggers': {
+        'django.request': {'handlers': ['admin_email'], 'propagate': True},
+        'forum.security': {'handlers': ['security_file'], 'level': 'INFO', 'propagate': True},
     },
     'root': {
         'handlers': ['file'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     },
 }
 
-#ADMINS and MANAGERS
+#ADMINS and MANAGERS: who gets server error emails, e.g. (('Ops', 'ops@example.org'),).
+# Empty: the site's superusers get them.
 ADMINS = ()
 MANAGERS = ADMINS
 
@@ -42,10 +64,15 @@ DEBUG = False
 #   python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'
 SECRET_KEY = ''
 
-# When the site is served over HTTPS:
-#SESSION_COOKIE_SECURE = True
-#CSRF_COOKIE_SECURE = True
-#SECURE_HSTS_SECONDS = 31536000
+# HTTPS: when APP_URL starts with https://, secure cookies and HSTS are on by
+# default (see settings.py). Behind a reverse proxy (nginx, a load balancer) set
+# the number of proxies so the visitor's IP and HTTPS are read from the
+# X-Forwarded-For / X-Forwarded-Proto headers the proxy sets; HTTP is then
+# redirected to HTTPS. Leave it 0 if visitors reach OSQA directly.
+#TRUSTED_PROXY_COUNT = 1
+
+# Error reports to Sentry (pip install sentry-sdk), or set SENTRY_DSN in the environment:
+#SENTRY_DSN = 'https://...@sentry.io/...'
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }

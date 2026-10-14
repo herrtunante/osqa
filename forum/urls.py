@@ -57,6 +57,7 @@ core_urls = [
     re_path(r'^%s$' % _('markdown_help/'), app.meta.markdown_help, name='markdown_help'), re_path(r'^opensearch\.xml$', app.meta.opensearch, name='opensearch'),
     re_path(r'^opensearch\.xml$', app.meta.opensearch, name='opensearch'),
     re_path(r'^%s$' % _('privacy/'), app.meta.privacy, name='privacy'),
+    re_path(r'^csp-report/$', app.meta.csp_report, name='csp_report'),
     re_path(r'^%s$' % _('logout/'), app.meta.logout, name='logout'),
     re_path(r'^%s(?P<id>\d+)/%s$' % (_('answers/'), _('edit/')), app.writers.edit_answer, name='edit_answer'),
     re_path(r'^%s(?P<id>\d+)/$' % _('revisions/'), app.readers.revisions, name='revisions'),
