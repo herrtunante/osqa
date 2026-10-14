@@ -8,6 +8,7 @@ from . import admin
 from . import account
 from . import agents
 from . import email_prefs
+from . import inbox
 
 #from forum.modules.decorators import decorate_all
 

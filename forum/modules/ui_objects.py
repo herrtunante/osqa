@@ -116,7 +116,7 @@ class Include(ObjectBase):
     def render(self, context):
         # Django 4.2: Template.render() expects a dict, not a Context object
         if isinstance(context, template.Context):
-            context = dict(context)
+            context = context.flatten()
         return self.template.render(context)
         
 

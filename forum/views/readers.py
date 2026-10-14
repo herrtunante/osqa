@@ -21,6 +21,7 @@ from forum.utils import pagination
 from forum.forms import *
 from forum.models import *
 from forum.actions import QuestionViewAction
+from forum import notifications
 from forum.http_responses import HttpResponseUnauthorized
 from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
@@ -404,6 +405,7 @@ def question(request, id, slug='', answer=None):
     update_question_view_times(request, question)
 
     if request.user.is_authenticated:
+        notifications.mark_question_read(request.user, question)
         try:
             subscription = QuestionSubscription.objects.get(question=question, user=request.user)
         except:

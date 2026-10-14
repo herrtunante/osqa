@@ -40,6 +40,7 @@ ui.register(ui.HEADER_LINKS,
                     url=lambda u, c: u.get_profile_url(),
                     post_code=lambda u, c: get_score_badge(u),
                     weight=100, name='ACCOUNT'),
+            ui.Include('inbox/bell.html', visibility=ui.Visibility.AUTHENTICATED, weight=150, name='NOTIFICATIONS'),
 
             ui.Link(
                     visibility=ui.Visibility.SUPERUSER,

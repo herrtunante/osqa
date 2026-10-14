@@ -1,0 +1,44 @@
+{% extends "base_content.html" %}
+{% load i18n humanize %}
+{% block title %}{% trans "Notifications" %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div class="inbox">
+    <div class="inbox-head">
+        <h1 class="headNormal">{% trans "Notifications" %}</h1>
+        {% if unread %}
+        <form method="post" action="{% url "notifications_read" %}">{% csrf_token %}
+            <button type="submit" class="plain-button">{% trans "Mark all as read" %}</button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if items %}
+    <ul class="inbox-list">
+        {% for item in items %}
+        <li class="inbox-item inbox-{{ item.kind }}{% if item.is_unread %} unread{% endif %}">
+            <a href="{% url "notification_open" id=item.id %}">
+                {% if item.is_unread %}<span class="visually-hidden">{% trans "Unread:" %} </span>{% endif %}
+                {% with question=item.node.absolute_parent actor=item.actor.username|default:_("Someone") %}
+                <span class="inbox-text">
+                {% if item.kind == "answer" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> answered <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "comment" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> commented on <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "mention" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> mentioned you in <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "accepted" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> accepted your answer to <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "badge" %}{% blocktrans with badge=item.text %}You earned the <strong>{{ badge }}</strong> badge{% endblocktrans %}
+                {% elif item.kind == "reminder" %}{% blocktrans with title=question.title %}Your question <em>{{ title }}</em> has answers. If one solved it, accept it so others know.{% endblocktrans %}
+                {% endif %}
+                </span>
+                {% endwith %}
+                <time class="inbox-time" datetime="{{ item.created_at|date:"c" }}">{{ item.created_at|naturaltime }}</time>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="inbox-empty">{% trans "No notifications yet. Answers to your questions, comments on your posts, mentions of your name and badges you earn will appear here." %}</p>
+    {% endif %}
+
+    <p class="inbox-note">{% blocktrans with url=user.get_user_subscriptions_url %}Notifications here don't depend on your emails. To choose which emails you get, open your <a href="{{ url }}">email settings</a>.{% endblocktrans %}</p>
+</div>
+{% endblock %}

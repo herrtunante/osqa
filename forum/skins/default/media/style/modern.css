@@ -3247,3 +3247,24 @@ h3.or_label::before, h3.or_label::after {
 
 /* Help text under a form field (e.g. the password rules on sign-up) */
 .form-help { margin: 4px 0 0; font-size: 0.85em; color: var(--muted); }
+
+/* Notification bell (header) and list */
+.notification-bell { position: relative; display: inline-flex; align-items: center; vertical-align: middle; }
+.notification-bell .notification-count {
+    position: absolute; top: -7px; right: -9px; min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 8px; background: #c62828; color: #fff; font-size: 10px; font-weight: 700;
+    line-height: 16px; text-align: center; box-sizing: border-box;
+}
+.notification-bell .notification-count[hidden] { display: none; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.inbox-list { list-style: none; margin: 12px 0; padding: 0; border-top: 1px solid var(--border); }
+.inbox-item a { display: flex; justify-content: space-between; gap: 12px; padding: 12px 10px; border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.inbox-item a:hover, .inbox-item a:focus { background: var(--hover-overlay); }
+.inbox-item.unread a { background: var(--brand-soft); border-left: 3px solid var(--brand); }
+.inbox-item.unread a:hover, .inbox-item.unread a:focus { background: var(--info-border); }
+.inbox-time { flex: none; color: var(--muted); font-size: 0.85em; white-space: nowrap; }
+.inbox-empty, .inbox-note { color: var(--muted); }
+@media (max-width: 640px) {
+    .inbox-item a { flex-direction: column; gap: 4px; }
+}
