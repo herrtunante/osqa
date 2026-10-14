@@ -2,7 +2,7 @@
 
 This is the procedure for moving a live forum that runs the **original OSQA**
 (Python 2, Django 1.6, South migrations, usually MySQL) to this version
-(Python 3.11+, Django 5.2). It is the plan for the Open Foris forum, and it
+(Python 3.12+, Django 5.2). It is the plan for the Open Foris forum, and it
 works for any other OSQA site.
 
 ## Why it is a move, not an in-place upgrade

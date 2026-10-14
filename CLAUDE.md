@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OSQA is an open source Q&A system. It provides Stack Overflow-like functionality including questions, answers, comments, voting, badges, reputation points, and user moderation.
 
-It runs on Django 5.2 LTS and Python 3.11+; it was ported from Django 1.6 / Python 2 (notes in `docs/upgrade-history/`). See `README.md`, `docs/deployment.md` (new forums: server, Docker, Kubernetes) and `docs/upgrading-from-original-osqa.md` (moving a live old forum: import into SQLite with `scripts/data_import/`, then `dumpdata --all`/`loaddata` into MySQL). Old password hashes are read by `forum.utils.hashers.LegacySHA1PasswordHasher` and upgraded on sign-in; the `mysqlfulltext`/`pgfulltext` modules are switched off (not ported).
+It runs on Django 5.2 LTS and Python 3.12+; it was ported from Django 1.6 / Python 2 (notes in `docs/upgrade-history/`). See `README.md`, `docs/deployment.md` (new forums: server, Docker, Kubernetes) and `docs/upgrading-from-original-osqa.md` (moving a live old forum: import into SQLite with `scripts/data_import/`, then `dumpdata --all`/`loaddata` into MySQL). Old password hashes are read by `forum.utils.hashers.LegacySHA1PasswordHasher` and upgraded on sign-in; the `mysqlfulltext`/`pgfulltext` modules are switched off (not ported).
 
 ## Core Architecture
 

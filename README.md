@@ -3,7 +3,7 @@
 OSQA is an open source Q&A site (questions, answers, comments, voting, tags,
 reputation, badges and moderation), originally from osqa.net. This is the
 edition maintained by [Open Foris](https://openforis.org/) for its support
-forum; it runs on **Django 5.2 LTS and Python 3.11+**.
+forum; it runs on **Django 5.2 LTS and Python 3.12+**.
 
 Any organisation can use it for its own Q&A community: the code is free and
 open source (GPL v3) at <https://github.com/openforis/osqa>. Follow the setup
@@ -12,7 +12,7 @@ optional modules (social login, AI assistance, spam checks) on or off.
 
 ## Requirements
 
-- Python 3.11 or newer
+- Python 3.12 or newer
 - MySQL/MariaDB (default), PostgreSQL or SQLite
 - For `mysqlclient`: the MySQL client headers, e.g.
   `apt-get install default-libmysqlclient-dev pkg-config`
@@ -193,7 +193,7 @@ OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 ```
 
 Always pass the `forum.tests` label. CI (`.github/workflows/tests.yml`) runs the
-suite and `makemigrations --check` on Python 3.11 and 3.13.
+suite and `makemigrations --check` on Python 3.12 and 3.13.
 
 ## Modules
 

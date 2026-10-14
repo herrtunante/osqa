@@ -9,7 +9,7 @@ then follow [upgrading-from-original-osqa.md](upgrading-from-original-osqa.md).
 
 | Part | What to use | Notes |
 |---|---|---|
-| Python | 3.11 or newer | The Docker image uses 3.11 |
+| Python | 3.12 or newer | The Docker image uses 3.13 |
 | Database | MySQL 8 / MariaDB 10.6+ (recommended), PostgreSQL, or SQLite for small or test sites | Create it with `utf8mb4` so every language and emoji can be stored |
 | Cache | memcached (recommended), or the file cache | Must be **shared by all worker processes**: posts and users are served from it. Never use the per-process local-memory cache |
 | Web server | gunicorn behind nginx, Apache, Caddy or a load balancer that terminates HTTPS | The app speaks plain HTTP on a local port |
@@ -70,7 +70,9 @@ GRANT ALL PRIVILEGES ON osqa.* TO 'osqa'@'%';
 
 ## Option A: a Linux server (systemd + nginx)
 
-Tested on Debian/Ubuntu; other distributions need the equivalent packages.
+Commands for Ubuntu 24.04 or Debian 13, whose `python3` is 3.12 or newer.
+Debian 12 ships 3.11: install a newer Python (e.g. with `uv` or `pyenv`) or use
+Docker. Other distributions need the equivalent packages.
 
 ### 1. Packages and user
 
