@@ -1,0 +1,6761 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 09:00-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, python-format
+msgid "%(user)s %(vote_desc)s %(post_desc)s"
+msgstr ""
+
+msgid "voted up"
+msgstr ""
+
+msgid "voted down"
+msgstr ""
+
+msgid "liked"
+msgstr ""
+
+msgid "No reason given"
+msgstr ""
+
+#, python-format
+msgid "%(user)s flagged %(post_desc)s: %(reason)s"
+msgstr ""
+
+msgid "your"
+msgstr ""
+
+msgid "his"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(user)s accepted %(answerer)s answer on %(asker)s question %(question)s"
+msgstr ""
+
+#, python-format
+msgid "%(user)s marked %(post_desc)s as favorite"
+msgstr ""
+
+#, python-format
+msgid "%(user)s deleted %(post_desc)s"
+msgstr ""
+
+msgid "flagged by multiple users: "
+msgstr ""
+
+msgid "Initial revision"
+msgstr ""
+
+msgid "asked"
+msgstr ""
+
+#, python-format
+msgid "%(user)s asked %(question)s"
+msgstr ""
+
+msgid "answered"
+msgstr ""
+
+#, python-format
+msgid "%(user)s answered %(asker)s on %(question)s"
+msgstr ""
+
+msgid "commented"
+msgstr ""
+
+#, python-format
+msgid "%(user)s commented on %(post_desc)s"
+msgstr ""
+
+msgid "edited"
+msgstr ""
+
+#, python-format
+msgid "%(user)s edited %(post_desc)s"
+msgstr ""
+
+msgid "retagged"
+msgstr ""
+
+msgid "Retag"
+msgstr ""
+
+#, python-format
+msgid "%(user)s retagged %(post_desc)s"
+msgstr ""
+
+msgid "reverted"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(user)s reverted %(post_desc)s from revision %(initial)d (%(initial_sum)s) "
+"to revision %(final)d (%(final_sum)s)"
+msgstr ""
+
+msgid "closed"
+msgstr ""
+
+#, python-format
+msgid "%(user)s closed %(post_desc)s: %(reason)s"
+msgstr ""
+
+msgid "converted"
+msgstr ""
+
+#, python-format
+msgid "%(user)s converted an answer to %(question)s into a comment"
+msgstr ""
+
+#, python-format
+msgid "%(user)s converted comment on %(question)s into an answer"
+msgstr ""
+
+#, python-format
+msgid "%(user)s converted comment on %(question)s to a new question"
+msgstr ""
+
+msgid "converted to question"
+msgstr ""
+
+#, python-format
+msgid "%(user)s converted an answer to %(question)s into a separate question"
+msgstr ""
+
+msgid "wikified"
+msgstr ""
+
+#, python-format
+msgid "%(user)s marked %(node)s as community wiki."
+msgstr ""
+
+msgid "created"
+msgstr ""
+
+#, python-format
+msgid "%(user)s created a new page titled %(page)s"
+msgstr ""
+
+#, python-format
+msgid "%(user)s edited the page titled %(page)s"
+msgstr ""
+
+msgid "published"
+msgstr ""
+
+#, python-format
+msgid "%(user)s published a new page titled %(page)s"
+msgstr ""
+
+msgid "joined"
+msgstr ""
+
+#, python-format
+msgid "%(user)s %(have_has)s joined the %(app_name)s Q&A community"
+msgstr ""
+
+msgid "have"
+msgstr ""
+
+msgid "has"
+msgstr ""
+
+msgid "logged in"
+msgstr ""
+
+#, python-format
+msgid "%(user)s %(have_has)s logged in"
+msgstr ""
+
+msgid "validated e-mail"
+msgstr ""
+
+#, python-format
+msgid "%(user)s %(have_has)s validated the e-mail %(email)s"
+msgstr ""
+
+msgid "edited profile"
+msgstr ""
+
+#, python-format
+msgid "%(user)s edited %(hes_or_your)s %(profile_link)s"
+msgstr ""
+
+msgid "profile"
+msgstr ""
+
+msgid "gave bonus"
+msgstr ""
+
+#, python-format
+msgid "Congratulations, you have been awarded an extra %s reputation points."
+msgstr ""
+
+msgid "Thank you"
+msgstr ""
+
+#, python-format
+msgid "You have penalized %s in %s reputation points."
+msgstr ""
+
+msgid "unknown"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(user)s awarded an extra %(value)s reputation points to %(users)s: "
+"%(message)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(user)s penalised %(users)s in %(value)s reputation points: %(message)s"
+msgstr ""
+
+msgid "gave reputation points"
+msgstr ""
+
+#, python-format
+msgid ""
+"Congratulations, you have been awarded an extra %(points)s reputation "
+"%(points_label)s on <a href=\"%(answer_url)s\">this</a> answer."
+msgstr ""
+
+msgid "point"
+msgid_plural "points"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%(user)s awarded an extra %(value)s reputation points to %(users)s"
+msgstr ""
+
+#, python-format
+msgid "%(user)s penalised %(users)s in %(value)s reputation points"
+msgstr ""
+
+msgid "was awarded"
+msgstr ""
+
+#, python-format
+msgid ""
+"Congratulations, you have received a badge '%(badge_name)s'. <a "
+"href=\"%(badge_url)s\">Find out who has it, too</a>."
+msgstr ""
+
+#, python-format
+msgid "%(user)s %(were_was)s awarded the %(badge_name)s badge"
+msgstr ""
+
+msgid "were"
+msgstr ""
+
+msgid "was"
+msgstr ""
+
+msgid "suspended"
+msgstr ""
+
+#, python-format
+msgid "%(user)s reported %(reported)s : %(msg)s"
+msgstr ""
+
+msgid "N/A"
+msgstr ""
+
+msgid "Your suspension has been removed."
+msgstr ""
+
+#, python-format
+msgid "for %s days"
+msgstr ""
+
+msgid "indefinetely"
+msgstr ""
+
+#, python-format
+msgid "%(user)s suspended %(users)s %(suspension)s: %(msg)s"
+msgstr ""
+
+msgid "Bad behaviour"
+msgstr ""
+
+msgid "page"
+msgstr ""
+
+msgid "pagesize"
+msgstr ""
+
+msgid "sort"
+msgstr ""
+
+#, python-format
+msgid "Answers to: %s"
+msgstr ""
+
+#, python-format
+msgid "Answer by %s"
+msgstr ""
+
+#, python-format
+msgid "Comment by %(cauthor)s on %(pauthor)s's %(qora)s"
+msgstr ""
+
+msgid "answer"
+msgstr ""
+
+msgid "question"
+msgstr ""
+
+msgid "Please input at least one ip address"
+msgstr ""
+
+#, python-format
+msgid "Invalid ip address: %s"
+msgstr ""
+
+msgid "Please use the dotted quad notation for the ip addresses"
+msgstr ""
+
+msgid "Allow ips"
+msgstr ""
+
+msgid ""
+"Comma separated list of ips allowed to access the site while in maintenance"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "A message to display to your site visitors while in maintainance mode"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Default with sidebar"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Markdown"
+msgstr ""
+
+msgid "HTML"
+msgstr ""
+
+msgid "Escaped"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Page URL"
+msgstr ""
+
+msgid "Page Content"
+msgstr ""
+
+msgid "Mime Type"
+msgstr ""
+
+msgid "Render Mode"
+msgstr ""
+
+msgid "Template"
+msgstr ""
+
+msgid "Sidebar Content"
+msgstr ""
+
+msgid "Wrap sidebar block"
+msgstr ""
+
+msgid "Sidebar Render Mode"
+msgstr ""
+
+msgid "Allow comments"
+msgstr ""
+
+msgid "send validation email"
+msgstr ""
+
+msgid "email address"
+msgstr ""
+
+msgid "Your account email"
+msgstr ""
+
+msgid "You cannot leave this field blank"
+msgstr ""
+
+msgid "please enter a valid email address"
+msgstr ""
+
+msgid "Current password"
+msgstr ""
+
+msgid ""
+"Old password is incorrect.                     Please enter the correct "
+"password."
+msgstr ""
+
+msgid "this field is required"
+msgstr ""
+
+msgid "choose a username"
+msgstr ""
+
+msgid "user name is required"
+msgstr ""
+
+msgid "sorry, this name is taken, please choose another"
+msgstr ""
+
+msgid "sorry, this name is not allowed, please choose another"
+msgstr ""
+
+msgid "sorry, there is no user with this name"
+msgstr ""
+
+msgid "sorry, we have a serious error - user name is taken by several users"
+msgstr ""
+
+msgid ""
+"user name can only consist of letters, empty space, hyphens and underscore"
+msgstr ""
+
+#, python-format
+msgid "user name is to short, please use at least %d characters"
+msgstr ""
+
+msgid "your email address"
+msgstr ""
+
+msgid "email address is required"
+msgstr ""
+
+msgid "this email is already used by someone else, please choose another"
+msgstr ""
+
+msgid "Your real name"
+msgstr ""
+
+msgid "Real name is required"
+msgstr ""
+
+msgid "please probe you are not a robot by not filling this"
+msgstr ""
+
+msgid "please probe you are not a robot by filling this simple sum correctly"
+msgstr ""
+
+msgid "choose password"
+msgstr ""
+
+msgid ""
+"At least 8 characters; not a common password and not similar to your "
+"username or email."
+msgstr ""
+
+msgid "password is required"
+msgstr ""
+
+msgid "retype password"
+msgstr ""
+
+msgid "please, retype your password"
+msgstr ""
+
+msgid "sorry, entered passwords did not match, please try again"
+msgstr ""
+
+msgid "title"
+msgstr ""
+
+msgid "please enter a descriptive title for your question"
+msgstr ""
+
+#, python-format
+msgid "title must be at least %s characters"
+msgstr ""
+
+msgid "content"
+msgstr ""
+
+#, python-format
+msgid "question content must be at least %s characters"
+msgstr ""
+
+#, python-format
+msgid "answer content must be at least %s characters"
+msgstr ""
+
+msgid "tags"
+msgstr ""
+
+#, python-format
+msgid ""
+"Tags are short keywords, with no spaces within. At least %(min)s and up to "
+"%(max)s tags can be used."
+msgstr ""
+
+#, python-format
+msgid "please use between %(min)s and %(max)s tags"
+msgstr ""
+
+#, python-format
+msgid "please use between %(min)s and %(max)s characters in you tags"
+msgstr ""
+
+msgid ""
+"please use following characters in tags: letters , numbers, and characters '."
+"#-_'"
+msgstr ""
+
+#, python-format
+msgid ""
+"You don't have enough reputation to create new tags. The following tags do "
+"not exist yet: %s"
+msgstr ""
+
+msgid "community wiki"
+msgstr ""
+
+msgid ""
+"if you choose community wiki option, the question and answer do not generate "
+"points and name of author will not be shown"
+msgstr ""
+
+msgid "update summary:"
+msgstr ""
+
+msgid ""
+"enter a brief summary of your revision (e.g. fixed spelling, grammar, "
+"improved style, this field is optional)"
+msgstr ""
+
+msgid "Your message:"
+msgstr ""
+
+msgid "Your name:"
+msgstr ""
+
+msgid "Email (not shared with anyone):"
+msgstr ""
+
+msgid "this email does not have to be linked to gravatar"
+msgstr ""
+
+msgid "Real name"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Date of birth"
+msgstr ""
+
+msgid "will not be shown, used to calculate age, format: YYYY-MM-DD"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Screen name"
+msgstr ""
+
+msgid "this email has already been registered, please use another one"
+msgstr ""
+
+msgid "Instantly"
+msgstr ""
+
+msgid "No notifications"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                    The e-mail settings of this community are not configured "
+"yet. We strongly recommend you to\n"
+"                    do that from the <a href=\"%(email_settings_url)s\">e-"
+"mail settings page</a> as soon as possible.\n"
+"                    "
+msgstr ""
+
+msgid ""
+"\n"
+"                       Please, configure your APP_URL setting from the local "
+"settings file.\n"
+"                    "
+msgstr ""
+
+#, python-format
+msgid "First time here? Check out the <a href=\"%s\">FAQ</a>!"
+msgstr ""
+
+msgid "You"
+msgstr ""
+
+#, python-format
+msgid "on %(link)s"
+msgstr ""
+
+#, python-format
+msgid "%(user)s %(node_name)s %(node_desc)s"
+msgstr ""
+
+msgid "comment"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "post"
+msgstr ""
+
+msgid "New answer"
+msgstr ""
+
+msgid "New comment"
+msgstr ""
+
+msgid "Mention"
+msgstr ""
+
+msgid "Answer accepted"
+msgstr ""
+
+msgid "Badge"
+msgstr ""
+
+msgid "Accept an answer"
+msgstr ""
+
+#, python-format
+msgid "[Unpublished] %s"
+msgstr ""
+
+msgid "[deleted] "
+msgstr ""
+
+msgid " [duplicate]"
+msgstr ""
+
+msgid "[closed] "
+msgstr ""
+
+msgid "interesting"
+msgstr ""
+
+msgid "ignored"
+msgstr ""
+
+msgid "asked-by"
+msgstr ""
+
+msgid "answered-by"
+msgstr ""
+
+msgid "subscribed-by"
+msgstr ""
+
+msgid "faq"
+msgstr ""
+
+msgid "about"
+msgstr ""
+
+msgid "login"
+msgstr ""
+
+msgid "logout"
+msgstr ""
+
+msgid "support queue"
+msgstr ""
+
+msgid "administration"
+msgstr ""
+
+msgid "contact"
+msgstr ""
+
+msgid "support"
+msgstr ""
+
+msgid "privacy"
+msgstr ""
+
+msgid "edit profile"
+msgstr ""
+
+msgid "authentication settings"
+msgstr ""
+
+msgid "email notification settings"
+msgstr ""
+
+msgid "other preferences"
+msgstr ""
+
+msgid "your data and account"
+msgstr ""
+
+msgid "Moderation tools"
+msgstr ""
+
+msgid "withdraw suspension"
+msgstr ""
+
+msgid "suspend this user"
+msgstr ""
+
+msgid "give/take karma"
+msgstr ""
+
+msgid "remove moderator status"
+msgstr ""
+
+msgid "grant moderator status"
+msgstr ""
+
+msgid "remove super user status"
+msgstr ""
+
+msgid "grant super user status"
+msgstr ""
+
+msgid "Badges config"
+msgstr ""
+
+msgid "Configure badges on your OSQA site."
+msgstr ""
+
+msgid "Accepting answers"
+msgstr ""
+
+msgid "Settings to tweak the behaviour of accepting answers."
+msgstr ""
+
+msgid "Disallow answers to be accepted"
+msgstr ""
+
+msgid ""
+"Disable accepting answers feature. If you re-enable it in the future, "
+"currently accepted answers will still be marked as accepted."
+msgstr ""
+
+msgid "Maximum accepted answers per question"
+msgstr ""
+
+msgid "How many accepted answers are allowed per question. Use 0 for no limit."
+msgstr ""
+
+msgid "Maximum accepted answers per user/question"
+msgstr ""
+
+msgid ""
+"If more than one accpeted answer is allowed, how many can be accepted per "
+"single user per question."
+msgstr ""
+
+msgid "Users an accept own answer"
+msgstr ""
+
+msgid "Are normal users allowed to accept their own answers.."
+msgstr ""
+
+msgid "Basic settings"
+msgstr ""
+
+msgid "The basic settings for your application"
+msgstr ""
+
+msgid "Application logo"
+msgstr ""
+
+msgid "Your site main logo."
+msgstr ""
+
+msgid "Favicon"
+msgstr ""
+
+msgid "Your site favicon."
+msgstr ""
+
+msgid "Application title"
+msgstr ""
+
+msgid "The title of your application that will show in the browsers title bar"
+msgstr ""
+
+msgid "Application short name"
+msgstr ""
+
+msgid "Application keywords"
+msgstr ""
+
+msgid "The meta keywords that will be available through the HTML meta tags."
+msgstr ""
+
+msgid "Application description"
+msgstr ""
+
+msgid "The description of your application"
+msgstr ""
+
+msgid "Copyright notice"
+msgstr ""
+
+msgid "The copyright notice visible at the footer of your page."
+msgstr ""
+
+msgid "Support URL"
+msgstr ""
+
+msgid ""
+"The URL provided for users to get support. It can be http: or mailto: or "
+"whatever your preferred support scheme is."
+msgstr ""
+
+msgid "Contact URL"
+msgstr ""
+
+msgid ""
+"The URL provided for users to contact you. It can be http: or mailto: or "
+"whatever your preferred contact scheme is."
+msgstr ""
+
+msgid "Email settings"
+msgstr ""
+
+msgid "Email server and other email related settings."
+msgstr ""
+
+msgid "E-Mail settings test"
+msgstr ""
+
+msgid "Test the current E-Mail configuration."
+msgstr ""
+
+msgid "Email Server"
+msgstr ""
+
+msgid "The SMTP server through which your application will be sending emails."
+msgstr ""
+
+msgid "Email Port"
+msgstr ""
+
+msgid ""
+"The port on which your SMTP server is listening to. Usually this is 25, but "
+"can be something else."
+msgstr ""
+
+msgid "Email User"
+msgstr ""
+
+msgid "The username for your SMTP connection."
+msgstr ""
+
+msgid "Email Password"
+msgstr ""
+
+msgid "The password for your SMTP connection."
+msgstr ""
+
+msgid "Use TLS"
+msgstr ""
+
+msgid "Whether to use TLS for authentication with your SMTP server."
+msgstr ""
+
+msgid "Site 'from' Email Address"
+msgstr ""
+
+msgid ""
+"The address that will show up on the 'from' field on emails sent by your "
+"website."
+msgstr ""
+
+msgid "Site 'reply-to' Email Address"
+msgstr ""
+
+msgid ""
+"The address that will show up on the 'reply-to' field on emails sent by your "
+"website."
+msgstr ""
+
+msgid "Email Subject Prefix"
+msgstr ""
+
+msgid ""
+"Every email sent through your website will have the subject prefixed by this "
+"string. It's usually a good idea to have such a prefix so your users can "
+"easily set up a filter on their email clients."
+msgstr ""
+
+msgid "Email Footer Text"
+msgstr ""
+
+msgid ""
+"Email footer text, usually \"CAN SPAM\" compliance, or the physical address "
+"of the organization running the website. See <a href=\"http://en.wikipedia."
+"org/wiki/CAN-SPAM_Act_of_2003\">this Wikipedia article</a> for more info."
+msgstr ""
+
+msgid "Email Border Color"
+msgstr ""
+
+msgid "The outter border color of the email base template"
+msgstr ""
+
+msgid "Email Paragraph Style"
+msgstr ""
+
+msgid "A valid css string to be used to style email paragraphs (the P tag)."
+msgstr ""
+
+msgid "Email Link Style"
+msgstr ""
+
+msgid "A valid css string to be used to style email links (the A tag)."
+msgstr ""
+
+msgid "Send digest only to active users"
+msgstr ""
+
+msgid ""
+"If checked the daily digest won't be sent to users that have been suspended."
+msgstr ""
+
+msgid "Send digest only to validated users"
+msgstr ""
+
+msgid ""
+"If checked the daily digest won't be sent to users that haven't validated "
+"their emails."
+msgstr ""
+
+msgid "External Keys"
+msgstr ""
+
+msgid ""
+"Keys for various external providers that your application may optionally use."
+msgstr ""
+
+msgid "Google sitemap code"
+msgstr ""
+
+msgid ""
+"This is the code you get when you register your site at <a href='https://www."
+"google.com/webmasters/tools/'>Google webmaster central</a>."
+msgstr ""
+
+msgid "Google analytics key"
+msgstr ""
+
+msgid ""
+"Your Google analytics key. You can get one at the <a href='http://www.google."
+"com/analytics/'>Google analytics official website</a>"
+msgstr ""
+
+msgid "Google custom search engine ID"
+msgstr ""
+
+msgid ""
+"The search engine ID (cx) of a <a href='https://programmablesearchengine."
+"google.com/'>Google Programmable Search Engine</a> to use for the search box "
+"in the header. Leave it empty to use the site's own search."
+msgstr ""
+
+msgid "FAQ page"
+msgstr ""
+
+msgid ""
+"Define the text in the about page. You can use markdown and some basic html "
+"tags."
+msgstr ""
+
+msgid "FAQ page text"
+msgstr ""
+
+msgid "The faq page."
+msgstr ""
+
+msgid "Form settings"
+msgstr ""
+
+msgid "General settings for the OSQA forms."
+msgstr ""
+
+msgid "Enable community wiki"
+msgstr ""
+
+msgid "Can questions or answers be marked as community wiki."
+msgstr ""
+
+msgid "Limit tag creation"
+msgstr ""
+
+msgid ""
+"Limit tag creation to super users, staff or users with a minimum reputation."
+msgstr ""
+
+msgid "Minimum number of characters for a question's title"
+msgstr ""
+
+msgid ""
+"The minimum number of characters a user must enter into the title field of a "
+"question."
+msgstr ""
+
+msgid "Minimum number of characters for a question's content"
+msgstr ""
+
+msgid ""
+"The minimum number of characters a user must enter into the content field of "
+"a question."
+msgstr ""
+
+msgid "Empty question content"
+msgstr ""
+
+msgid "If a question's content can be empty."
+msgstr ""
+
+msgid "Required number of tags per question"
+msgstr ""
+
+msgid "How many tags are required in questions."
+msgstr ""
+
+msgid "Maximum number of tags per question"
+msgstr ""
+
+msgid "How many tags are allowed in questions."
+msgstr ""
+
+msgid "Minimum length of a tag"
+msgstr ""
+
+msgid "How short a tag can be."
+msgstr ""
+
+msgid "Maximum length of a tag"
+msgstr ""
+
+msgid "How long a tag can be."
+msgstr ""
+
+msgid "Minimum number of characters for a comment"
+msgstr ""
+
+msgid ""
+"The minimum number of characters a user must enter into the body of a "
+"comment."
+msgstr ""
+
+msgid "Maximum length of comment"
+msgstr ""
+
+msgid ""
+"The maximum number of characters a user can enter into the body of a comment."
+msgstr ""
+
+msgid "Allow markdown in comments"
+msgstr ""
+
+msgid "Allow users to use markdown in comments."
+msgstr ""
+
+msgid "Show author gravatar in comments"
+msgstr ""
+
+msgid "Show the gravatar image of a comment author."
+msgstr ""
+
+msgid "context"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "Change this:"
+msgstr ""
+
+msgid "Minimum reputation config"
+msgstr ""
+
+msgid ""
+"Configure the minimum reputation required to perform certain actions on your "
+"site."
+msgstr ""
+
+msgid "Show captcha if user with less reputation than"
+msgstr ""
+
+msgid ""
+"If the user has less reputation, captcha is used to when adding new content."
+msgstr ""
+
+msgid "Minimum reputation to vote up"
+msgstr ""
+
+msgid "The minimum reputation an user must have to be allowed to vote up."
+msgstr ""
+
+msgid "Minimum reputation to vote down"
+msgstr ""
+
+msgid "The minimum reputation an user must have to be allowed to vote down."
+msgstr ""
+
+msgid "Minimum reputation to flag a post"
+msgstr ""
+
+msgid "The minimum reputation an user must have to be allowed to flag a post."
+msgstr ""
+
+msgid "Minimum reputation to comment"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to comment a post."
+msgstr ""
+
+msgid "Minimum reputation to like a comment"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to \"like\" a comment."
+msgstr ""
+
+msgid "Minimum reputation to upload"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to upload a file."
+msgstr ""
+
+msgid "Minimum reputation to create tags"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to create new tags."
+msgstr ""
+
+msgid "Minimum reputation to close own question"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to close his own "
+"question."
+msgstr ""
+
+msgid "Unify close and reopen permissions"
+msgstr ""
+
+msgid ""
+"If checked the same permissions as the ones to close question will be "
+"required to reopen it."
+msgstr ""
+
+msgid "Minimum reputation to reopen own question"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to reopen his own "
+"question."
+msgstr ""
+
+msgid "Minimum reputation to retag others questions"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to retag others "
+"questions."
+msgstr ""
+
+msgid "Minimum reputation to edit wiki posts"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to edit community "
+"wiki posts."
+msgstr ""
+
+msgid "Minimum reputation to mark post as community wiki"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to mark a post as "
+"community wiki."
+msgstr ""
+
+msgid "Minimum reputation to edit others posts"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to edit others posts."
+msgstr ""
+
+msgid "Minimum reputation to close others posts"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to close others posts."
+msgstr ""
+
+msgid "Minimum reputation to delete comments"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to delete comments."
+msgstr ""
+
+msgid "Minimum reputation to convert answers to comment"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to convert an answer "
+"into a comment."
+msgstr ""
+
+msgid "Minimum reputation to convert comments to answers"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to convert comments "
+"into an answer."
+msgstr ""
+
+msgid "Minimum reputation to convert answers to questions"
+msgstr ""
+
+msgid ""
+"The minimum reputation an user must have to be allowed to convert an answer "
+"into a question."
+msgstr ""
+
+msgid "Minimum reputation to view offensive flags"
+msgstr ""
+
+msgid "The minimum reputation an user must have to view offensive flags."
+msgstr ""
+
+msgid "Moderation settings"
+msgstr ""
+
+msgid "Define the moderation workflow of your site"
+msgstr ""
+
+msgid "Use canned comments"
+msgstr ""
+
+msgid ""
+"If you check, the canned comments feature will be activated, allowing "
+"moderators to use canned patterns for their comments."
+msgstr ""
+
+msgid "Canned comments"
+msgstr ""
+
+msgid ""
+"\n"
+"<p>Create some canned comments to be used for easier moderation. You can "
+"access the {{ post }} and {{ settings }} variables.</p>\n"
+"<p>If you want to access the current post author username you can use "
+"{{ post.author }}, for the question title use {{ post.title }}.</p>\n"
+"<p>To get the application title use {{ settings.APP_TITLE }}. All settings "
+"are accessible through the settings object.</p>\n"
+msgstr ""
+
+msgid "Flag Reasons"
+msgstr ""
+
+msgid "Create some flag reasons to use in the flag post popup."
+msgstr ""
+
+msgid "Close Reasons"
+msgstr ""
+
+msgid "Create some close reasons to use in the close question popup."
+msgstr ""
+
+msgid "Position it in the \"More\" menu"
+msgstr ""
+
+msgid "Position it in main controls"
+msgstr ""
+
+msgid "Position of report control"
+msgstr ""
+
+msgid "Choose the position of the \"report (0)\" control of nodes."
+msgstr ""
+
+msgid "Reputation gains and losses config"
+msgstr ""
+
+msgid ""
+"Configure the reputation points a user may gain or lose upon certain actions."
+msgstr ""
+
+msgid "Initial reputation"
+msgstr ""
+
+msgid "The initial reputation an user gets when he first signs in."
+msgstr ""
+
+msgid "Maximum reputation a user can gain in one day for being upvoted."
+msgstr ""
+
+msgid "Rep gain by e-mail validation"
+msgstr ""
+
+msgid "Reputation a user gains for validating his e-mail."
+msgstr ""
+
+msgid "Rep gain by upvoted"
+msgstr ""
+
+msgid "Reputation a user gains for having one of his posts up voted."
+msgstr ""
+
+msgid "Rep lost by downvoted"
+msgstr ""
+
+msgid "Reputation a user loses for having one of his posts down voted."
+msgstr ""
+
+msgid "Rep lost by downvoting"
+msgstr ""
+
+msgid "Reputation a user loses for down voting a post."
+msgstr ""
+
+msgid "Rep gain by accepted answer"
+msgstr ""
+
+msgid "Reputation a user gains for having one of his answers accepted."
+msgstr ""
+
+msgid "Rep gain by accepting answer"
+msgstr ""
+
+msgid ""
+"Reputation a user gains for accepting an answer to one of his questions."
+msgstr ""
+
+msgid "Rep lost by post flagged"
+msgstr ""
+
+msgid "Reputation a user loses by having one of his posts flagged."
+msgstr ""
+
+msgid "Rep lost by post flagged and hidden"
+msgstr ""
+
+msgid ""
+"Reputation a user loses by having the last revision of one of his posts "
+"flagged the enough number of times to hide the post."
+msgstr ""
+
+msgid "Rep lost by post flagged and deleted"
+msgstr ""
+
+msgid ""
+"Reputation a user loses by having the last revision of one of his posts "
+"flagged the enough number of times to delete the post."
+msgstr ""
+
+msgid "Security"
+msgstr ""
+
+msgid ""
+"Sign-in protection, posting limits and the Content-Security-Policy header."
+msgstr ""
+
+msgid "Failed sign-ins before a pause"
+msgstr ""
+
+msgid ""
+"After this many wrong passwords for one account, signing in to it is paused "
+"(the person can still get a sign-in link by email). An IP address may fail "
+"four times as often across all accounts. 0 turns this off."
+msgstr ""
+
+msgid "Sign-in pause (minutes)"
+msgstr ""
+
+msgid "How long signing in is paused after too many wrong passwords."
+msgstr ""
+
+msgid "Sign-in link emails per hour"
+msgstr ""
+
+msgid ""
+"How many \"forgot password\" sign-in links one email address, or one IP "
+"address (four times as many), may request per hour. 0 means no limit."
+msgstr ""
+
+msgid "Questions per user per hour"
+msgstr ""
+
+msgid "Moderators and administrators have no limit. 0 means no limit."
+msgstr ""
+
+msgid "Answers per user per hour"
+msgstr ""
+
+msgid "Comments per user per hour"
+msgstr ""
+
+msgid "Extra script sources"
+msgstr ""
+
+msgid ""
+"The Content-Security-Policy header only lets the browser load scripts, "
+"styles and frames from this site and the Google services OSQA uses. If you "
+"add analytics or widgets in the custom <head> or footer, list their origins "
+"here, separated by spaces (e.g. https://plausible.io). Blocked items are "
+"written to the security log."
+msgstr ""
+
+msgid "Show the Welcome box"
+msgstr ""
+
+msgid "Do you want to show the welcome box when a user first visits your site."
+msgstr ""
+
+msgid "Show interesting tags in the sidebar"
+msgstr ""
+
+msgid ""
+"Check this if you want to see the interesting tags container in the sidebar."
+msgstr ""
+
+msgid "Application intro"
+msgstr ""
+
+msgid ""
+"The introductory page that is visible in the sidebar for anonymous users."
+msgstr ""
+
+msgid "Upper block rendering mode"
+msgstr ""
+
+msgid "How to render your upper block code."
+msgstr ""
+
+msgid "Lower block rendering mode"
+msgstr ""
+
+msgid "How to render your lower block code."
+msgstr ""
+
+msgid "Sitemap settings"
+msgstr ""
+
+msgid "Some settings connected with the Sitemaps."
+msgstr ""
+
+msgid "Questions Sitemap Limit"
+msgstr ""
+
+msgid "The questions limit per page for the Questions Sitemap."
+msgstr ""
+
+msgid "Questions Sitemap Change Fraquence"
+msgstr ""
+
+msgid ""
+"Used in the Questions Sitemap <changefreq> tag and specifies the content "
+"change frequency."
+msgstr ""
+
+msgid "Use custom CSS"
+msgstr ""
+
+msgid "Do you want to use custom CSS."
+msgstr ""
+
+msgid "Custom CSS"
+msgstr ""
+
+msgid "Your custom CSS."
+msgstr ""
+
+msgid "Use custom header"
+msgstr ""
+
+msgid "Do you want to use a custom header."
+msgstr ""
+
+msgid "Custom Header"
+msgstr ""
+
+msgid "Your custom header."
+msgstr ""
+
+msgid "Custom Header rendering mode"
+msgstr ""
+
+msgid "How to render your custom header code."
+msgstr ""
+
+msgid "Show announcement bar"
+msgstr ""
+
+msgid ""
+"Some piece of content that goes under the search bar and can be used for "
+"announcements, etc."
+msgstr ""
+
+msgid "Announcement bar"
+msgstr ""
+
+msgid "The announcement bar content."
+msgstr ""
+
+msgid "Announcement bar rendering mode"
+msgstr ""
+
+msgid "How to render your announcement bar code."
+msgstr ""
+
+msgid "Use custom footer"
+msgstr ""
+
+msgid "Do you want to use a custom footer."
+msgstr ""
+
+msgid "Custom Footer"
+msgstr ""
+
+msgid "Your custom footer."
+msgstr ""
+
+msgid "Custom footer rendering mode"
+msgstr ""
+
+msgid "How to render your custom footer code."
+msgstr ""
+
+msgid "Replace default footer"
+msgstr ""
+
+msgid "Above default footer"
+msgstr ""
+
+msgid "Below default footer"
+msgstr ""
+
+msgid "Custom Footer Mode"
+msgstr ""
+
+msgid "How your custom footer will appear."
+msgstr ""
+
+msgid "Use custom Head elements"
+msgstr ""
+
+msgid "Do you want to use custom head elements."
+msgstr ""
+
+msgid "Custom Head"
+msgstr ""
+
+msgid "Your custom Head elements."
+msgstr ""
+
+msgid "Support and reminders"
+msgstr ""
+
+msgid ""
+"The staff support dashboard (Admin > Support dashboard) and the reminders to "
+"accept answers."
+msgstr ""
+
+msgid "Product tags"
+msgstr ""
+
+msgid ""
+"Tags shown one per row in the dashboard (e.g. collect collect-earth sepal "
+"arena calc), separated by spaces or commas. Empty: the 8 most used tags."
+msgstr ""
+
+msgid "Response target (hours)"
+msgstr ""
+
+msgid "Unanswered questions older than this are highlighted in the dashboard."
+msgstr ""
+
+msgid "Remind askers to accept an answer after (days)"
+msgstr ""
+
+msgid ""
+"manage.py remind_unaccepted (run daily) reminds the asker once, by "
+"notification and email, when their question has had an answer for this many "
+"days but none is accepted. Only questions asked in the last 60 days are "
+"considered. 0 turns reminders off."
+msgstr ""
+
+msgid "File upload settings"
+msgstr ""
+
+msgid "File uploads related settings."
+msgstr ""
+
+msgid "Uploaded files folder"
+msgstr ""
+
+msgid ""
+"The filesystem path where uploaded files will be stored. Please note that "
+"this folder must exist."
+msgstr ""
+
+msgid "Uploaded files alias"
+msgstr ""
+
+msgid ""
+"The url alias for uploaded files. Notice that if you change this setting, "
+"you'll need to restart your site."
+msgstr ""
+
+msgid "Max file size"
+msgstr ""
+
+msgid "The maximum allowed file size for uploads in mb."
+msgstr ""
+
+msgid "URL settings"
+msgstr ""
+
+msgid "Some settings to tweak behaviour of site urls (experimental)."
+msgstr ""
+
+msgid "Include IDs in user URLs"
+msgstr ""
+
+msgid "Choose this if you want to have IDs included in the user-related URLs."
+msgstr ""
+
+msgid "Allow unicode in slugs"
+msgstr ""
+
+msgid "Allow unicode/non-latin characters in urls."
+msgstr ""
+
+msgid "Force single url"
+msgstr ""
+
+msgid ""
+"Redirect the request in case there is a mismatch between the slug in the url "
+"and the actual slug"
+msgstr ""
+
+msgid "Users settings"
+msgstr ""
+
+msgid "General settings for the OSQA users."
+msgstr ""
+
+msgid "Allow negative reputation"
+msgstr ""
+
+msgid "Check if you want to allow negative user reputations in the community."
+msgstr ""
+
+msgid "Store greeting in cookie"
+msgstr ""
+
+msgid ""
+"If you check this the greeting will be stored in a cookie and the users "
+"won't be notified on logout."
+msgstr ""
+
+msgid "Editable screen name"
+msgstr ""
+
+msgid "Allow users to alter their screen name."
+msgstr ""
+
+msgid "Minimum username length"
+msgstr ""
+
+msgid "The minimum length (in character) of a username."
+msgstr ""
+
+msgid "fuck"
+msgstr ""
+
+msgid "shit"
+msgstr ""
+
+msgid "ass"
+msgstr ""
+
+msgid "sex"
+msgstr ""
+
+msgid "add"
+msgstr ""
+
+msgid "edit"
+msgstr ""
+
+msgid "save"
+msgstr ""
+
+msgid "delete"
+msgstr ""
+
+msgid "manage"
+msgstr ""
+
+msgid "update"
+msgstr ""
+
+msgid "remove"
+msgstr ""
+
+msgid "new"
+msgstr ""
+
+msgid "Disabled usernames"
+msgstr ""
+
+msgid ""
+"A comma separated list of disabled usernames (usernames not allowed during a "
+"new user registration)."
+msgstr ""
+
+msgid "Truncate long usernames"
+msgstr ""
+
+msgid "The long usernames will be truncated.."
+msgstr ""
+
+msgid "Show user accept rate"
+msgstr ""
+
+msgid ""
+"If you check this the user accept rate will be displayed on the user posts."
+msgstr ""
+
+msgid "Freeze accept rate"
+msgstr ""
+
+msgid "Freeze answers accept rate for the selected users."
+msgstr ""
+
+msgid "Truncate usernames longer than"
+msgstr ""
+
+msgid ""
+"The usernames that are longer than this will be truncated and ... will be "
+"appended."
+msgstr ""
+
+msgid "Show status diamonds"
+msgstr ""
+
+msgid "Show status \"diamonds\" next to moderators or superusers usernames."
+msgstr ""
+
+msgid "Force unique email"
+msgstr ""
+
+msgid "Should each user have an unique email."
+msgstr ""
+
+msgid "Require email validation to..."
+msgstr ""
+
+msgid ""
+"Which actions in this site, users without a valid email will be prevented "
+"from doing."
+msgstr ""
+
+msgid "ask questions"
+msgstr ""
+
+msgid "provide answers"
+msgstr ""
+
+msgid "make comments"
+msgstr ""
+
+msgid "report posts"
+msgstr ""
+
+msgid "Don't notify to invalid emails"
+msgstr ""
+
+msgid "Do not notify users with unvalidated emails."
+msgstr ""
+
+msgid "Hold pending posts for X minutes"
+msgstr ""
+
+msgid ""
+"How much time in minutes a post should be kept in session until the user "
+"logs in or validates the email."
+msgstr ""
+
+msgid "Warn about pending posts afer X minutes"
+msgstr ""
+
+msgid ""
+"How much time in minutes a user that just logged in or validated his email "
+"should be warned about a pending post instead of publishing it automatically."
+msgstr ""
+
+msgid "suitable for display on all websites with any audience type."
+msgstr ""
+
+msgid ""
+"may contain rude gestures, provocatively dressed individuals, the lesser "
+"swear words, or mild violence."
+msgstr ""
+
+msgid ""
+"may contain such things as harsh profanity, intense violence, nudity, or "
+"hard drug use."
+msgstr ""
+
+msgid "may contain hardcore sexual imagery or extremely disturbing violence."
+msgstr ""
+
+msgid "Gravatar rating"
+msgstr ""
+
+msgid ""
+"Gravatar allows users to self-rate their images so that they can indicate if "
+"an image is appropriate for a certain audience."
+msgstr ""
+
+msgid ""
+"(mystery-man) a simple, cartoon-style silhouetted outline of a person (does "
+"not vary by email hash)"
+msgstr ""
+
+msgid "a geometric pattern based on an email hash"
+msgstr ""
+
+msgid "a generated \"monster\" with different colors, faces, etc"
+msgstr ""
+
+msgid "generated faces with differing features and backgrounds"
+msgstr ""
+
+msgid "Gravatar default"
+msgstr ""
+
+msgid ""
+"Gravatar has a number of built in options which you can also use as defaults."
+msgstr ""
+
+msgid "Minimum time to fill in the sign-up form"
+msgstr ""
+
+msgid ""
+"Seconds. Sign-up forms sent faster than this, or with the hidden trap field "
+"filled in, are refused: bots do that, people don't. 0 turns the time check "
+"off."
+msgstr ""
+
+msgid "Sign-ups per IP address per hour"
+msgstr ""
+
+msgid ""
+"New accounts allowed from one IP address within an hour. 0 means no limit."
+msgstr ""
+
+msgid "Reputation for profile links"
+msgstr ""
+
+msgid ""
+"Below this reputation a user's website and the links in their \"about me\" "
+"are shown as plain text, and their profile page asks search engines not to "
+"index it, so spam accounts gain nothing from it."
+msgstr ""
+
+msgid "Delete dormant accounts after (days)"
+msgstr ""
+
+msgid ""
+"The cleanup_inactive_users command (run daily from cron) deletes accounts "
+"older than this that never confirmed their email, never posted, voted or did "
+"anything else, and haven't logged in during that time. Staff accounts are "
+"never deleted. 0 turns it off."
+msgstr ""
+
+msgid "View settings"
+msgstr ""
+
+msgid "Set up how certain parts of the site are displayed."
+msgstr ""
+
+msgid "Embed YouTube Videos"
+msgstr ""
+
+msgid "If you check this YouTube videos will be embedded"
+msgstr ""
+
+msgid "Dark mode"
+msgstr ""
+
+msgid ""
+"Use a dark colour scheme for visitors whose device is set to dark mode. Turn "
+"it off if your custom CSS assumes a light background."
+msgstr ""
+
+msgid "Show latest comments first"
+msgstr ""
+
+msgid "Choose this if you want the latest comments to appear first."
+msgstr ""
+
+msgid "Summary Length"
+msgstr ""
+
+msgid ""
+"The number of characters that are going to be displayed in order to get the "
+"content summary."
+msgstr ""
+
+msgid "Question summary on questions list?"
+msgstr ""
+
+msgid "Choose whether to show the question summary on questions list"
+msgstr ""
+
+msgid "Recent tags block size"
+msgstr ""
+
+msgid ""
+"The number of tags to display in the recent tags block in the front page."
+msgstr ""
+
+msgid "Show tags in a cloud"
+msgstr ""
+
+msgid ""
+"If selected the tags in the recent tags widget will be displayed in a cloud."
+msgstr ""
+
+msgid "Tags cloud min occurs"
+msgstr ""
+
+msgid "Used to calculate the font size of the tags in the cloud widget."
+msgstr ""
+
+msgid "Tags cloud max occurs"
+msgstr ""
+
+msgid "Tags cloud min font size"
+msgstr ""
+
+msgid "Tags cloud max font size"
+msgstr ""
+
+msgid "Recent awards block size"
+msgstr ""
+
+msgid ""
+"The number of awards to display in the recent awards block in the front page."
+msgstr ""
+
+msgid "Update latest activity on tag edit"
+msgstr ""
+
+msgid ""
+"If you check this the latest activity will be updated when editing only the "
+"tags of a question."
+msgstr ""
+
+msgid "Limit related tags block"
+msgstr ""
+
+msgid ""
+"Limit related tags block size in questions list pages. Set to 0 to display "
+"all all tags."
+msgstr ""
+
+msgid "Voting rules"
+msgstr ""
+
+msgid "Configure the voting rules on your site."
+msgstr ""
+
+msgid "Add reputation to max votes per day"
+msgstr ""
+
+msgid ""
+"The user reputation is added to the static MAX_VOTES_PER_DAY option. Users "
+"with higher reputation can vote more."
+msgstr ""
+
+msgid "Maximum votes per day"
+msgstr ""
+
+msgid "The maximum number of votes an user can cast per day."
+msgstr ""
+
+msgid "Start warning about votes left"
+msgstr ""
+
+msgid "From how many votes left should an user start to be warned about it."
+msgstr ""
+
+msgid "Maximum flags per day"
+msgstr ""
+
+msgid "The maximum number of times an can flag a post per day."
+msgstr ""
+
+msgid "Flag count to hide post"
+msgstr ""
+
+msgid ""
+"How many times a post needs to be flagged to be hidden from the main page."
+msgstr ""
+
+msgid "Flag count to delete post"
+msgstr ""
+
+msgid "How many times a post needs to be flagged to be deleted."
+msgstr ""
+
+msgid "Days to cancel a vote"
+msgstr ""
+
+msgid "How many days an user can cancel a vote after he originaly casted it."
+msgstr ""
+
+msgid "Not logged in"
+msgstr ""
+
+msgid "You are not logged in..."
+msgstr ""
+
+msgid "...and the resource you're trying to access is protected."
+msgstr ""
+
+msgid "Redirecting to the login page."
+msgstr ""
+
+msgid "If you're not automatically redirected in 5 seconds, please click"
+msgstr ""
+
+msgid "here"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+msgid "Sorry, you don't have permissions to access this page."
+msgstr ""
+
+msgid "This might have happened for the following reasons:"
+msgstr ""
+
+msgid ""
+"you followed a link on an email, but you're currently logged in as another "
+"user;"
+msgstr ""
+
+msgid "there are errors in the url, please confirm it;"
+msgstr ""
+
+msgid "if you believe you shouldn't bee seeing this error, please"
+msgstr ""
+
+msgid "report this problem"
+msgstr ""
+
+msgid "to home page"
+msgstr ""
+
+msgid "see all questions"
+msgstr ""
+
+msgid "see all tags"
+msgstr ""
+
+msgid "404 Error"
+msgstr ""
+
+msgid "404 Not Found"
+msgstr ""
+
+msgid "Sorry, could not find the page you requested."
+msgstr ""
+
+msgid "this question or answer has been deleted;"
+msgstr ""
+
+msgid "url has error - please check it;"
+msgstr ""
+
+msgid "if you believe this error 404 should not have occurred, please"
+msgstr ""
+
+msgid "back to previous page"
+msgstr ""
+
+msgid "sorry, system error"
+msgstr ""
+
+msgid "system error log is recorded, error will be fixed as soon as possible"
+msgstr ""
+
+msgid "please report the error to the site administrators if you wish"
+msgstr ""
+
+msgid "see latest questions"
+msgstr ""
+
+msgid "see tags"
+msgstr ""
+
+msgid "System down for maintenance"
+msgstr ""
+
+msgid "Account functions"
+msgstr ""
+
+msgid "Change password"
+msgstr ""
+
+msgid "Give your  account a new password."
+msgstr ""
+
+msgid "Edit answer"
+msgstr ""
+
+msgid "hide preview"
+msgstr ""
+
+msgid "show preview"
+msgstr ""
+
+msgid "back"
+msgstr ""
+
+msgid "revision"
+msgstr ""
+
+msgid "select revision"
+msgstr ""
+
+msgid "Toggle the real time Markdown editor preview"
+msgstr ""
+
+msgid "toggle preview"
+msgstr ""
+
+msgid "Save edit"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "answer tips"
+msgstr ""
+
+msgid "please make your answer relevant to this community"
+msgstr ""
+
+msgid "try to give an answer, rather than engage into a discussion"
+msgstr ""
+
+msgid "please try to provide details"
+msgstr ""
+
+msgid "be clear and concise"
+msgstr ""
+
+msgid "see frequently asked questions"
+msgstr ""
+
+msgid "Ask a question"
+msgstr ""
+
+msgid "Looking through the forum and the documentation..."
+msgstr ""
+
+msgid "Write a title of a few words first."
+msgstr ""
+
+msgid ""
+"You have asked the assistant often in the last hour; please post your "
+"question instead or try later."
+msgstr ""
+
+msgid "The assistant is not available right now. You can post your question."
+msgstr ""
+
+msgid ""
+"No clear answer to this in the forum answers or the documentation, so the "
+"assistant won't guess. Please post your question."
+msgstr ""
+
+msgid "Sources"
+msgstr ""
+
+msgid ""
+"Written by AI; it may be wrong, check the sources. If it doesn't solve your "
+"problem, post your question below."
+msgstr ""
+
+msgid "This may have been asked already"
+msgstr ""
+
+msgid "None of these"
+msgstr ""
+
+msgid ""
+"Suggested automatically. If one of these answers your question, there's no "
+"need to ask it again."
+msgstr ""
+
+msgid "accepted answer"
+msgstr ""
+
+msgid "1 answer"
+msgstr ""
+
+#, python-format
+msgid "%%s answers"
+msgstr ""
+
+msgid "You are welcome to start submitting your question anonymously."
+msgstr ""
+
+msgid ""
+"\n"
+"                    After submiting your question, you will be redirected to "
+"the login/signup page.\n"
+"                    Your question will be saved in the current session and "
+"will be published after you login with your existing account,\n"
+"                    or signup for a new account"
+msgstr ""
+
+msgid "and validate your email."
+msgstr ""
+
+msgid ""
+"Remember, your question will not be published until you validate your email."
+msgstr ""
+
+msgid "Send me a validation link."
+msgstr ""
+
+msgid "Ask the AI assistant first"
+msgstr ""
+
+msgid ""
+"An answer from earlier forum threads and the documentation, before you post."
+msgstr ""
+
+msgid "(required)"
+msgstr ""
+
+msgid "Login/signup to post your question"
+msgstr ""
+
+msgid "Ask your question"
+msgstr ""
+
+msgid "Authentication settings"
+msgstr ""
+
+msgid ""
+"These are the external authentication providers currently associated with "
+"your account."
+msgstr ""
+
+msgid ""
+"You currently have no external authentication provider associated with your "
+"account."
+msgstr ""
+
+msgid "Add new provider"
+msgstr ""
+
+msgid "This is where you can change your password. Make sure you remember it!"
+msgstr ""
+
+msgid ""
+"You can set up a password for your account, so you can login using standard "
+"username and password!"
+msgstr ""
+
+msgid "Create password"
+msgstr ""
+
+msgid "Connect your OpenID with this site"
+msgstr ""
+
+msgid "Connect your OpenID with your account on this site"
+msgstr ""
+
+msgid "You are here for the first time with "
+msgstr ""
+
+msgid ""
+"Please choose your screen name and confirm your email address. A valid email "
+"address is necessary to receive notifications about activity in the areas of "
+"this community you're most interested in, and will help you become an "
+"involved participant in this community."
+msgstr ""
+
+msgid "This account already exists, please use another."
+msgstr ""
+
+msgid "create account"
+msgstr ""
+
+msgid "This e-mail has already been validated"
+msgstr ""
+
+msgid "Already validated"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Your email validation link %(app_name)s"
+msgstr ""
+
+msgid "Please use the following link to help us verify your email address:"
+msgstr ""
+
+msgid "Validate my email address"
+msgstr ""
+
+msgid ""
+"If the above link is not clickable, copy and paste this url into your web "
+"browser's address bar:"
+msgstr ""
+
+msgid ""
+"Copy and paste this url into your web browser's address bar to help us "
+"verify your email address:"
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "User login"
+msgstr ""
+
+msgid "Or..."
+msgstr ""
+
+msgid ""
+"\n"
+"        Sign in with an account you already have on one of these services; "
+"your password stays with that service.\n"
+"    "
+msgstr ""
+
+msgid "Validate my email after I login."
+msgstr ""
+
+msgid "Click"
+msgstr ""
+
+msgid "if you're having trouble signing in."
+msgstr ""
+
+msgid "Enter your "
+msgstr ""
+
+msgid "Why sign in?"
+msgstr ""
+
+msgid "Ask questions and post answers"
+msgstr ""
+
+msgid "Vote, comment and mark favourite questions"
+msgstr ""
+
+msgid "Get notified by email when someone answers"
+msgstr ""
+
+msgid "Earn reputation and badges"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Temporary login link"
+msgstr ""
+
+#, python-format
+msgid ""
+"The following link grants you a one time access to your account at "
+"%(app_name)s."
+msgstr ""
+
+msgid "Go to your account"
+msgstr ""
+
+#, python-format
+msgid ""
+"The following url grants you a one time access to your account at "
+"%(app_name)s."
+msgstr ""
+
+msgid "Request temporary login key"
+msgstr ""
+
+msgid "Account: request temporary login key"
+msgstr ""
+
+msgid ""
+"\n"
+"    If you're experiencing problems accessing your account, or if you forgot "
+"your password,\n"
+"    here you can request a temporary login key. Fill out your account email "
+"and we'll send you a temporary access link that\n"
+"    will enable you to access your account. This token is valid only once "
+"and for a limited period of time.\n"
+" "
+msgstr ""
+
+msgid "Send link"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Welcome to %(app_name)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"Howdy and welcome to %(app_name)s. We know you're busy, so we'll keep this "
+"real simple."
+msgstr ""
+
+msgid "Here's your login info (store it in a cool dry place):"
+msgstr ""
+
+msgid "Username: "
+msgstr ""
+
+msgid "Password: As IF we would send your password in cleartext!"
+msgstr ""
+
+msgid "The following link will help us verify your email address:"
+msgstr ""
+
+msgid "The users have been awarded with badges:"
+msgstr ""
+
+msgid "Badges summary"
+msgstr ""
+
+msgid "Badges"
+msgstr ""
+
+msgid "Community gives you awards for your questions, answers and votes."
+msgstr ""
+
+msgid ""
+"Below is the list of available badges and number of times each type of badge "
+"has been awarded.\n"
+"    "
+msgstr ""
+
+msgid "Community badges"
+msgstr ""
+
+msgid "gold badge: the highest honor and is very rare"
+msgstr ""
+
+msgid "gold"
+msgstr ""
+
+msgid "gold badge description"
+msgstr ""
+
+msgid ""
+"silver badge: occasionally awarded for the very high quality contributions"
+msgstr ""
+
+msgid "silver"
+msgstr ""
+
+msgid "silver badge description"
+msgstr ""
+
+msgid "bronze badge: often given as a special honor"
+msgstr ""
+
+msgid "bronze"
+msgstr ""
+
+msgid "bronze badge description"
+msgstr ""
+
+msgid "Are you sure?"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Message:"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "word"
+msgid_plural "words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "words"
+msgstr ""
+
+msgid "character"
+msgid_plural "characters"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "characters"
+msgstr ""
+
+msgid "Your unsent draft was restored."
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "The image could not be uploaded."
+msgstr ""
+
+msgid "Close question"
+msgstr ""
+
+msgid "Close the question"
+msgstr ""
+
+msgid "Reasons"
+msgstr ""
+
+msgid "OK to close"
+msgstr ""
+
+msgid "Email notifications"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(site)s can email you when something happens that interests you. You decide "
+"what, and you can stop at any time."
+msgstr ""
+
+msgid "Follow the topics you care about"
+msgstr ""
+
+msgid ""
+"<strong>Follow a tag</strong>: open the tag (click it under any question, or "
+"find it on the <a href=\"/tags/\">tags page</a>) and press <em>Follow tag</"
+"em>. You'll get an email for each new question with that tag."
+msgstr ""
+
+msgid ""
+"<strong>Follow a question</strong>: press <em>subscribe me</em> next to the "
+"question. Questions you ask or answer are followed automatically. You'll get "
+"an email for new answers and comments."
+msgstr ""
+
+msgid ""
+"<strong>Mentions</strong>: when someone writes <code>@yourname</code>, you "
+"get an email."
+msgstr ""
+
+msgid "Choose which emails you get"
+msgstr ""
+
+#, python-format
+msgid ""
+"Go to <a href=\"%(url)s\">your email settings</a> (your profile, "
+"<em>subscriptions</em> tab). There you can turn each kind of email on or "
+"off, see the tags and questions you follow, and switch off everything at "
+"once."
+msgstr ""
+
+msgid ""
+"Sign in and open your profile, <em>subscriptions</em> tab. There you can "
+"turn each kind of email on or off, see the tags and questions you follow, "
+"and switch off everything at once."
+msgstr ""
+
+msgid "Stop emails"
+msgstr ""
+
+msgid ""
+"Every email ends with links to stop that kind of email (for example, emails "
+"about that question) or <strong>all</strong> emails from this site. They "
+"work without signing in, and you can undo them. Your mail program's own "
+"<em>Unsubscribe</em> button works too."
+msgstr ""
+
+msgid ""
+"Emails about your account itself (confirming your address, signing-in links) "
+"are always sent, because you asked for them."
+msgstr ""
+
+msgid "This link doesn't work"
+msgstr ""
+
+msgid ""
+"The unsubscribe link is incomplete or was changed. Copy the whole link from "
+"the email, or sign in and change your email settings on your profile."
+msgstr ""
+
+msgid "You're unsubscribed"
+msgstr ""
+
+#, python-format
+msgid "You won't receive %(what)s any more."
+msgstr ""
+
+msgid "Undo: keep sending them"
+msgstr ""
+
+msgid "You're subscribed again"
+msgstr ""
+
+#, python-format
+msgid "You'll receive %(what)s again."
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+#, python-format
+msgid "Stop sending %(what)s to <strong>%(name)s</strong>?"
+msgstr ""
+
+msgid "Yes, unsubscribe"
+msgstr ""
+
+msgid "Unsubscribe from all emails instead"
+msgstr ""
+
+msgid "Choose exactly which emails you get"
+msgstr ""
+
+msgid "Sign in to choose exactly which emails you get"
+msgstr ""
+
+msgid "How email notifications work"
+msgstr ""
+
+msgid "home"
+msgstr ""
+
+msgid "Feedback"
+msgstr ""
+
+msgid "Give us your feedback!"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            <span class='big strong'>Dear %(user_name)s</span>, we look "
+"forward to hearing your feedback. \n"
+"            Please type and send us your message below.\n"
+"            "
+msgstr ""
+
+msgid ""
+"\n"
+"            <span class='big strong'>Dear visitor</span>, we look forward to "
+"hearing your feedback.\n"
+"            Please type and send us your message below.\n"
+"            "
+msgstr ""
+
+msgid "(this field is required)"
+msgstr ""
+
+msgid "(wrong captcha)"
+msgstr ""
+
+msgid "Send Feedback"
+msgstr ""
+
+#, python-format
+msgid "Answer by %(author)s"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid ""
+"Powered by the <a href=\"https://github.com/openforis/osqa\">Open Foris "
+"edition of OSQA</a>"
+msgstr ""
+
+msgid "Content licensed under"
+msgstr ""
+
+msgid ""
+"This Q&amp;A software is free and open source (GPL). Any organisation can "
+"run it for its own community: get the code and instructions at <a "
+"href=\"https://github.com/openforis/osqa\">github.com/openforis/osqa</a>."
+msgstr ""
+
+msgid "back to home page"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Search..."
+msgstr ""
+
+msgid "Search in"
+msgstr ""
+
+msgid "questions"
+msgstr ""
+
+msgid "users"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "ask a question"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+#, python-format
+msgid "Notifications: %%(count)s unread"
+msgstr ""
+
+#, python-format
+msgid "Notifications: %(counter)s unread"
+msgid_plural "Notifications: %(counter)s unread"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Mark all as read"
+msgstr ""
+
+msgid "Unread:"
+msgstr ""
+
+msgid "Someone"
+msgstr ""
+
+#, python-format
+msgid "<strong>%(actor)s</strong> answered <em>%(title)s</em>"
+msgstr ""
+
+#, python-format
+msgid "<strong>%(actor)s</strong> commented on <em>%(title)s</em>"
+msgstr ""
+
+#, python-format
+msgid "<strong>%(actor)s</strong> mentioned you in <em>%(title)s</em>"
+msgstr ""
+
+#, python-format
+msgid "<strong>%(actor)s</strong> accepted your answer to <em>%(title)s</em>"
+msgstr ""
+
+#, python-format
+msgid "You earned the <strong>%(badge)s</strong> badge"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your question <em>%(title)s</em> has answers. If one solved it, accept it so "
+"others know."
+msgstr ""
+
+msgid ""
+"No notifications yet. Answers to your questions, comments on your posts, "
+"mentions of your name and badges you earn will appear here."
+msgstr ""
+
+#, python-format
+msgid ""
+"Notifications here don't depend on your emails. To choose which emails you "
+"get, open your <a href=\"%(url)s\">email settings</a>."
+msgstr ""
+
+msgid "welcome to "
+msgstr ""
+
+msgid "Logout"
+msgstr ""
+
+msgid ""
+"As a registered user you can login with your OpenID, log out of the site or "
+"permanently remove your account."
+msgstr ""
+
+msgid "Logout now"
+msgstr ""
+
+msgid "Markdown Help"
+msgstr ""
+
+msgid "Markdown Syntax"
+msgstr ""
+
+msgid ""
+"This document describes some of the more important parts of Markdown (for "
+"writers, that is).  There's a lot more to the syntax than is mentioned here, "
+"though.  To get the full syntax documentation, go to John Gruber's <a "
+"href=\"http://daringfireball.net/projects/markdown/syntax\" "
+"rel=\"nofollow\">Markdown Syntax</a> page"
+msgstr ""
+
+msgid "Headers"
+msgstr ""
+
+msgid ""
+"For top-level headers underline the text with equal signs.  For second-level "
+"headers use dashes to underline."
+msgstr ""
+
+msgid "This is an H1"
+msgstr ""
+
+msgid "This is an H2"
+msgstr ""
+
+msgid ""
+"If you would rather, you can prefix headers with a hash (#) symbol instead.  "
+"The number of hash symbols indicates the header level.  For example, a "
+"single hash indicates a header level of one while two indicates the second "
+"header level:"
+msgstr ""
+
+msgid "This is an H3"
+msgstr ""
+
+msgid ""
+"Which you choose is a matter of style.  Whichever you thinks looks better in "
+"the text document.  In both cases, the final, fully formatted, document "
+"looks the same."
+msgstr ""
+
+msgid "Paragraphs"
+msgstr ""
+
+msgid "Paragraphs are surrounded by blank lines."
+msgstr ""
+
+msgid "This is paragraph one."
+msgstr ""
+
+msgid "This is paragraph two."
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid ""
+"\n"
+"                There are two parts to every link.\n"
+"                The first is the actual text that the user will see and it "
+"is surrounded by brackets.\n"
+"                The second is address of the page you wish to link to and it "
+"is surrounded in parenthesis.\n"
+"                "
+msgstr ""
+
+msgid "link text"
+msgstr ""
+
+msgid "http://example.com/"
+msgstr ""
+
+msgid "Formatting"
+msgstr ""
+
+msgid ""
+"To indicate bold text surround the text with two star (*) symbols or two "
+"underscore (_) symbols:"
+msgstr ""
+
+msgid "This is bold"
+msgstr ""
+
+msgid "This is also bold"
+msgstr ""
+
+msgid ""
+"To indicate italicized text surround the text with a single star (*) symbol "
+"or underscore (_) symbol:"
+msgstr ""
+
+msgid "This is italics"
+msgstr ""
+
+msgid "This is also italics"
+msgstr ""
+
+msgid ""
+"To indicate italicized and bold text surround the text with three star (*) "
+"symbol or underscore (_) symbol:"
+msgstr ""
+
+msgid "This is bold and italics"
+msgstr ""
+
+msgid "This is also bold and italics"
+msgstr ""
+
+msgid "Blockquotes"
+msgstr ""
+
+msgid ""
+"To create an indented area use the right angle bracket (&gt;) character "
+"before each line to be included in the blockquote."
+msgstr ""
+
+msgid "This is part of a blockquote."
+msgstr ""
+
+msgid "This is part of the same blockquote."
+msgstr ""
+
+msgid ""
+"Rather than putting it in front of each line to include in the block quote "
+"you can put it at the beginning and end the quote with a newline."
+msgstr ""
+
+msgid "This continues the blockquote even though there's no bracket."
+msgstr ""
+
+msgid "The blank line ends the blockquote."
+msgstr ""
+
+msgid "Lists"
+msgstr ""
+
+msgid ""
+"To create a numbered list in Markdown, prefix each item in the list with a "
+"number followed by a period and space.  The number you use actually doesn't "
+"matter."
+msgstr ""
+
+msgid "Item"
+msgstr ""
+
+msgid ""
+"To create a bulleted list, prefix each item in the list with a star (*) "
+"character."
+msgstr ""
+
+msgid "A list item"
+msgstr ""
+
+msgid "Another list item"
+msgstr ""
+
+msgid "A third list item"
+msgstr ""
+
+msgid "A Lot More"
+msgstr ""
+
+msgid ""
+"There's a lot more to the Markdown syntax than is mentioned here.  But for "
+"creative writers, this covers a lot of the necessities.  To find out more "
+"about Markdown than you'd ever want to really know, <a href=\"http://"
+"daringfireball.net/projects/markdown/syntax\" target=\"_blank\" "
+"rel=\"nofollow\">go to the Markdown page where it all started</a>."
+msgstr ""
+
+#, python-format
+msgid "%(who)s has selected this answer as the correct answer"
+msgstr ""
+
+msgid "mark this answer as the accepted answer"
+msgstr ""
+
+msgid "AI"
+msgstr ""
+
+msgid "Suggested answer"
+msgstr ""
+
+msgid "the asker found this helpful"
+msgstr ""
+
+msgid "forum"
+msgstr ""
+
+msgid "documentation"
+msgstr ""
+
+msgid "web"
+msgstr ""
+
+#, python-format
+msgid ""
+"Written by AI on %(date)s from forum answers and documentation, not by a "
+"person. It may be wrong: check the sources. It doesn't count as an answer, "
+"so the community can still answer."
+msgstr ""
+
+msgid "This helped"
+msgstr ""
+
+msgid "Remove suggestion"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"    If you like this answer you can award %(awarded_user)s with reputation "
+"points.\n"
+"    "
+msgstr ""
+
+msgid ""
+"\n"
+"    Use the slider below or the input field to choose the amount of points "
+"you would like to give.\n"
+"    "
+msgstr ""
+
+msgid "Points:"
+msgstr ""
+
+msgid ""
+"Your karma points will be below the minimum reputation to comment. Are you "
+"sure you want to award points?"
+msgstr ""
+
+msgid ""
+"Please select a reason bellow or use the text box to input your own reason."
+msgstr ""
+
+msgid "If it is a duplicate: link to the original question, or its number"
+msgstr ""
+
+msgid "e.g. 123 or a link to the question"
+msgstr ""
+
+msgid "Keep the answers on this question"
+msgstr ""
+
+msgid "Move the answers to the original question"
+msgstr ""
+
+msgid "characters needed"
+msgstr ""
+
+msgid "characters left"
+msgstr ""
+
+msgid " comment"
+msgstr ""
+
+msgid " cancel"
+msgstr ""
+
+msgid "Use canned comment"
+msgstr ""
+
+msgid "Edit comment"
+msgstr ""
+
+msgid "Delete comment"
+msgstr ""
+
+msgid "Convert comment to answer"
+msgstr ""
+
+msgid "just now"
+msgstr ""
+
+msgid "I like this comment (click again to cancel)"
+msgstr ""
+
+msgid "Convert comment to question"
+msgstr ""
+
+#, python-format
+msgid "showing %(showing)s of %(total)s"
+msgstr ""
+
+#, python-format
+msgid "show %(more_comments_count)s more comments"
+msgstr ""
+
+msgid "add new comment"
+msgstr ""
+
+msgid "Place the comment under:"
+msgstr ""
+
+msgid "Convert to question"
+msgstr ""
+
+msgid "mark/unmark this question as favorite (click again to cancel)"
+msgstr ""
+
+msgid ""
+"\n"
+"Would you like to copy the permanent link to your clipboard?\n"
+msgstr ""
+
+msgid "Permanent link"
+msgstr ""
+
+msgid "more"
+msgstr ""
+
+msgid "I like this post (click again to cancel)"
+msgstr ""
+
+msgid "current number of votes"
+msgstr ""
+
+msgid "I dont like this post (click again to cancel)"
+msgstr ""
+
+#, python-format
+msgid "This %(post_type)s is marked \"community wiki\"."
+msgstr ""
+
+#, python-format
+msgid "Feel free to <a href=\"%(edit_url)s\">edit it</a>."
+msgstr ""
+
+msgid "Please prove that you are a Human Being"
+msgstr ""
+
+msgid "I am a Human Being"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Did an answer solve \"%(question_title)s\"?"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your question %(question_link)s has received answers. If one of them solved "
+"your problem, please mark it as accepted (the check mark next to the answer)."
+msgstr ""
+
+msgid ""
+"It shows others with the same problem which answer works, and thanks the "
+"person who helped. If none of the answers solved it, add a comment saying "
+"what is still missing."
+msgstr ""
+
+#, python-format
+msgid ""
+"Your question \"%(question_title)s\" has received answers. If one of them "
+"solved your problem, please mark it as accepted (the check mark next to the "
+"answer):"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s An answer to: %(question_title)s has been accepted"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(accepted_by_link)s has just accepted %(answer_author_link)s's "
+"answer on his question\n"
+"            %(question_link)s.\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"%(accepted_by)s has just accepted %(answer_author)s's answer on his "
+"question\n"
+"\"%(question_title)s\".\n"
+msgstr ""
+
+msgid "Hello"
+msgstr ""
+
+msgid "Thanks"
+msgstr ""
+
+#, python-format
+msgid "You receive this email because %(reason)s."
+msgstr ""
+
+msgid "Unsubscribe from all emails"
+msgstr ""
+
+msgid "P.S. You can always fine-tune which notifications you receive"
+msgstr ""
+
+msgid "P.S. You can always fine-tune which notifications you receive here:"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Weekly digest"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            This is a brief of what's going on the %(app_name)s community "
+"since our last update.\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            There are %(new_member_count)s new members in the community. "
+"%(new_member_links)s were the most active so far.\n"
+"        "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(new_member_links)s have joined the %(app_name)s community.\n"
+"        "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(new_question_count)s %(new_questions_link)s were posted since "
+"our last update.\n"
+"            "
+msgstr ""
+
+msgid "We think you might like the following questions:"
+msgstr ""
+
+msgid ""
+"These new questions didn't get many attention from the community, but we "
+"think you may be able to help:"
+msgstr ""
+
+#, python-format
+msgid ""
+"Meanwhile, some of your %(subscriptions_link)s have new updates since you "
+"last visited them:"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(flagged_url)s have been marked as flagged.\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"This is a brief of what's going on the %(app_name)s community since our last "
+"update."
+msgstr ""
+
+#, python-format
+msgid ""
+"There are %(new_member_count)s new members in the community. "
+"%(new_member_links)s were the most active so far."
+msgstr ""
+
+#, python-format
+msgid "%(new_member_links)s have joined the %(app_name)s community."
+msgstr ""
+
+#, python-format
+msgid "%(new_question_count)s new questions were posted since our last update."
+msgstr ""
+
+msgid ""
+"Meanwhile, some of your subscriptions have new updates since you last "
+"visited them:"
+msgstr ""
+
+#, python-format
+msgid "%(flagged_count)s posts have been marked as flagged."
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Feedback message from %(app_name)s"
+msgstr ""
+
+msgid "Sender"
+msgstr ""
+
+msgid "anonymous"
+msgstr ""
+
+msgid "email"
+msgstr ""
+
+msgid "Message body:"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s %(author_name)s mentioned you in: %(question_title)s"
+msgstr ""
+
+#, python-format
+msgid "%(author_link)s mentioned you in %(question_link)s:"
+msgstr ""
+
+msgid "View it on the site"
+msgstr ""
+
+#, python-format
+msgid "%(author_name)s mentioned you in \"%(question_title)s\":"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s New answer to: %(question_title)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(author_link)s has just posted a new answer on %(app_name)s to "
+"the question\n"
+"            %(question_link)s:\n"
+"            "
+msgstr ""
+
+msgid "Don't forget to come over and cast your vote."
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"%(answer_author)s has just posted a new answer on %(safe_app_name)s to the "
+"question\n"
+"\"%(question_title)s\":\n"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s New comment on: %(question_title)s"
+msgstr ""
+
+#, python-format
+msgid "%(author_link)s has just posted a comment on "
+msgstr ""
+
+#, python-format
+msgid "the answer posted by %(post_author)s to "
+msgstr ""
+
+#, python-format
+msgid "the question %(question_link)s"
+msgstr ""
+
+#, python-format
+msgid "%(comment_author)s has just posted a comment on "
+msgstr ""
+
+#, python-format
+msgid "the answer posted by %(safe_post_author)s to "
+msgstr ""
+
+#, python-format
+msgid "the question \"%(question_title)s\""
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s %(safe_newmember_name)s is a new member on %(safe_app_name)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(newmember_link)s has just joined %(app_name)s.\n"
+"            View <a style=\"%(a_style)s\" "
+"href=\"%(app_url)s%(newmember_url)s\">%(newmember_name)s's profile</a>.\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"%(safe_newmember_name)s has just joined %(safe_app_name)s. You can visit "
+"%(safe_newmember_name)s's profile using the following url:\n"
+"%(app_url)s%(newmember_url)s\n"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s New question: %(question_title)s on %(safe_app_name)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(author_link)s has just posted a new question on %(app_name)s, "
+"entitled\n"
+"            %(question_link)s\n"
+"             and tagged \"<em>%(tag_links)s</em>\". Here's what it says:\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            %(author_link)s has just posted a new question on %(app_name)s, "
+"entitled\n"
+"            %(question_link)s. Here's what it says:\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"%(question_author)s has just posted a new question on %(safe_app_name)s, "
+"entitled\n"
+"\"%(question_title)s\" and tagged %(question_tags)s:\n"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s User reported: %(reported)s by %(reporter_author)s"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"\t\t\tUser reported: %(reported)s by %(reporter_author)s.<br/>\n"
+"\t\t\tReporter Message: %(message)s\n"
+"            "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"\t\t\tUser reported: %(reported)s by %(reporter_author)s.\n"
+"\t\t\tReporter Message: %(message)s\n"
+msgstr ""
+
+msgid "using your browser."
+msgstr ""
+
+msgid "Site Administration"
+msgstr ""
+
+msgid "OSQA administration area"
+msgstr ""
+
+msgid "Switch to django style interface"
+msgstr ""
+
+msgid "Administration menu"
+msgstr ""
+
+msgid "Maintenance mode"
+msgstr ""
+
+msgid "Flagged Posts"
+msgstr ""
+
+msgid "Support dashboard"
+msgstr ""
+
+msgid "Create User"
+msgstr ""
+
+msgid "Quick creation of a new user"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Welcome to the OSQA administration area."
+msgstr ""
+
+msgid "Quick statistics"
+msgstr ""
+
+msgid "in the last 24 hours"
+msgstr ""
+
+msgid "user"
+msgstr ""
+
+msgid "joined in the last 24 hours"
+msgstr ""
+
+msgid "Site status"
+msgstr ""
+
+msgid ""
+"Your site is running in bootstrap mode, click the button below to revert to "
+"defaults."
+msgstr ""
+
+msgid ""
+"Your site is running in standard mode, click the button below to run in "
+"bootstrap mode."
+msgstr ""
+
+msgid ""
+"Your site is running with some customized settings, click the buttons below "
+"to run with defaults or in bootstrap mode"
+msgstr ""
+
+msgid "Are you sure you want to revert to the defaults?"
+msgstr ""
+
+msgid "revert to defaults"
+msgstr ""
+
+msgid "Are you sure you want to run bootstrap mode?"
+msgstr ""
+
+msgid "go bootstrap"
+msgstr ""
+
+msgid "Recent activity"
+msgstr ""
+
+msgid "Administration Area"
+msgstr ""
+
+msgid "Welcome,"
+msgstr ""
+
+msgid "To standard interface"
+msgstr ""
+
+msgid "Back to home page"
+msgstr ""
+
+msgid "Log out"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Unpublished changes"
+msgstr ""
+
+msgid "Items marked with this icon have unpublished changes."
+msgstr ""
+
+msgid "Workflow settings"
+msgstr ""
+
+msgid "Forum settings"
+msgstr ""
+
+msgid "Static content"
+msgstr ""
+
+msgid "Custom Pages"
+msgstr ""
+
+msgid "Unsaved changes"
+msgstr ""
+
+msgid "Other settings"
+msgstr ""
+
+msgid "Tools"
+msgstr ""
+
+msgid "Editing page"
+msgstr ""
+
+msgid "Static Pages"
+msgstr ""
+
+msgid "Creating page"
+msgstr ""
+
+msgid "New page"
+msgstr ""
+
+msgid "Published"
+msgstr ""
+
+msgid "Unpublished"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Unpublish"
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid ""
+"Posts flagged by users, and posts and accounts reported by automated checks."
+msgstr ""
+
+msgid "Reported by automated checks"
+msgstr ""
+
+msgid "AI review: blocked by the safety filters"
+msgstr ""
+
+#, python-format
+msgid "AI review, %(percent)s%% sure"
+msgstr ""
+
+#, python-format
+msgid "%(source)s, %(percent)s%% sure"
+msgstr ""
+
+#, python-format
+msgid "by %(author)s"
+msgstr ""
+
+msgid "already deleted"
+msgstr ""
+
+msgid "Not a problem"
+msgstr ""
+
+msgid "Delete post"
+msgstr ""
+
+msgid "Account"
+msgstr ""
+
+#, python-format
+msgid "joined %(joined)s"
+msgstr ""
+
+msgid "Suspend account"
+msgstr ""
+
+msgid "Delete account"
+msgstr ""
+
+msgid "Site statistics"
+msgstr ""
+
+msgid "Recalculate scores and reputation"
+msgstr ""
+
+msgid "This is a heavy operation, are you sure?"
+msgstr ""
+
+msgid "Recalculate"
+msgstr ""
+
+#, python-format
+msgid "%(prefix)s Your email settings are correct: %(app_name)s"
+msgstr ""
+
+msgid "If you see this content your E-Mail settings are correct."
+msgstr ""
+
+msgid ""
+"Maintainance mode allows you to close your site for maintainance, allowing "
+"only a predetermined set of ip addresses to access it normally."
+msgstr ""
+
+msgid "Your site is currently running on maintenance mode."
+msgstr ""
+
+msgid "You can adjust the settings bellow"
+msgstr ""
+
+msgid "Adjust settings"
+msgstr ""
+
+msgid "Open site"
+msgstr ""
+
+msgid "Close for maintenance"
+msgstr ""
+
+msgid "Moderation"
+msgstr ""
+
+msgid ""
+"These tools allow you to search for undesired behaviours and cheating "
+"patterns."
+msgstr ""
+
+msgid "Verify:"
+msgstr ""
+
+msgid "highest ranking users"
+msgstr ""
+
+msgid "newer users"
+msgstr ""
+
+msgid "older users"
+msgstr ""
+
+msgid "users with these ids"
+msgstr ""
+
+msgid "(Comma separated list of user ids)"
+msgstr ""
+
+msgid "Go"
+msgstr ""
+
+msgid "Possible cheaters"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Validated"
+msgstr ""
+
+msgid "Not validated"
+msgstr ""
+
+msgid "Reputation:"
+msgstr ""
+
+msgid "Reputation"
+msgstr ""
+
+msgid "Affecting actions"
+msgstr ""
+
+msgid "Cross ips"
+msgstr ""
+
+msgid "Cheating score"
+msgstr ""
+
+msgid "Possible fake accounts"
+msgstr ""
+
+msgid "out of"
+msgstr ""
+
+msgid "rep"
+msgstr ""
+
+msgid "uses"
+msgstr ""
+
+msgid "Node manager"
+msgstr ""
+
+msgid "Nodes bulk management"
+msgstr ""
+
+msgid "reset text filter"
+msgstr ""
+
+msgid "Body"
+msgstr ""
+
+msgid "Title and Body"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Mark deleted"
+msgstr ""
+
+msgid "Undelete"
+msgstr ""
+
+msgid "Delete completely"
+msgstr ""
+
+msgid "Close (questions only)"
+msgstr ""
+
+msgid "Run the selected action"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Summary"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Author"
+msgstr ""
+
+msgid "Added at"
+msgstr ""
+
+msgid "Last activity by"
+msgstr ""
+
+msgid "Last activity at"
+msgstr ""
+
+msgid "Tags"
+msgstr ""
+
+msgid "by"
+msgstr ""
+
+msgid "Filter"
+msgstr ""
+
+msgid "Click to show/hide"
+msgstr ""
+
+msgid "By type"
+msgstr ""
+
+msgid "click to clear the type filter"
+msgstr ""
+
+msgid "all"
+msgstr ""
+
+msgid "click to remove from the filter"
+msgstr ""
+
+msgid "click to add to the filter"
+msgstr ""
+
+msgid "By state"
+msgstr ""
+
+msgid "click to clear the state filter"
+msgstr ""
+
+msgid "any"
+msgstr ""
+
+msgid "Match any selected"
+msgstr ""
+
+msgid "Match all selected"
+msgstr ""
+
+msgid "By author(s)"
+msgstr ""
+
+msgid "No users selected, use the box bellow to add users to the filter."
+msgstr ""
+
+msgid "Click on the cross next to a user name to remove it from the filter."
+msgstr ""
+
+msgid "By tag(s)"
+msgstr ""
+
+msgid "No tags selected, use the box bellow to add tags to the filter."
+msgstr ""
+
+msgid "Click on the cross next to a tag name to remove it from the filter."
+msgstr ""
+
+msgid "Pre defined"
+msgstr ""
+
+msgid "There are no saved filters. Click bellow to add."
+msgstr ""
+
+msgid "Filter name..."
+msgstr ""
+
+msgid "Click to save the current filter"
+msgstr ""
+
+msgid "Preview"
+msgstr ""
+
+msgid "Reset Changes"
+msgstr ""
+
+msgid "Static pages"
+msgstr ""
+
+msgid "Allows you to create a set of static pages"
+msgstr ""
+
+msgid "Select page to edit"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Are you sure you want to delete this page?"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid ""
+"Some simple graphics to help you get a notion of whats going on in your site."
+msgstr ""
+
+msgid ""
+"Questions waiting for an answer, response times and answers waiting to be "
+"accepted. A question counts as answered once someone other than the asker "
+"answers it."
+msgstr ""
+
+msgid "Period"
+msgstr ""
+
+#, python-format
+msgid "Last %(n)s days"
+msgstr ""
+
+msgid "All time"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "All questions"
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "questions asked"
+msgstr ""
+
+msgid "median time to first answer"
+msgstr ""
+
+msgid "with an accepted answer"
+msgstr ""
+
+msgid "waiting for an answer"
+msgstr ""
+
+msgid "By product tag"
+msgstr ""
+
+msgid "Asked"
+msgstr ""
+
+msgid "Unanswered"
+msgstr ""
+
+msgid "Answered"
+msgstr ""
+
+msgid "Median first answer"
+msgstr ""
+
+msgid "Accepted"
+msgstr ""
+
+msgid ""
+"No tags yet. Choose the product tags under Settings > Support and reminders."
+msgstr ""
+
+msgid "Waiting for an answer"
+msgstr ""
+
+#, python-format
+msgid "oldest first; highlighted after %(target)s hours"
+msgstr ""
+
+msgid "Question"
+msgstr ""
+
+msgid "Asked by"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Nothing is waiting. Every question in this period has an answer."
+msgstr ""
+
+msgid "Answered, nothing accepted yet"
+msgstr ""
+
+#, python-format
+msgid "askers get one reminder after %(n)s days"
+msgstr ""
+
+msgid "reminders are off"
+msgstr ""
+
+msgid "Since first answer"
+msgstr ""
+
+msgid "None."
+msgstr ""
+
+msgid ""
+"\n"
+"        An attempt has been made to send email to\n"
+"    "
+msgstr ""
+
+msgid ""
+"\n"
+"        Please, check your inbox and if you see the new test message your "
+"email STMP settings are correct.\n"
+"    "
+msgstr ""
+
+msgid ""
+"\n"
+"        If you do not see the new test message check your spam folder, and "
+"if you don't find it check your SMTP settings\n"
+"        again. It might be useful to take a look at the log file.\n"
+"    "
+msgstr ""
+
+msgid "posts per page"
+msgstr ""
+
+msgid "previous"
+msgstr ""
+
+msgid "current page"
+msgstr ""
+
+msgid "page number "
+msgstr ""
+
+msgid "number - make blank in english"
+msgstr ""
+
+msgid "next page"
+msgstr ""
+
+msgid "next"
+msgstr ""
+
+msgid "Privacy policy"
+msgstr ""
+
+msgid "general message about privacy"
+msgstr ""
+
+msgid "Site Visitors"
+msgstr ""
+
+msgid "what technical information is collected about visitors"
+msgstr ""
+
+msgid "Personal Information"
+msgstr ""
+
+msgid "details on personal information policies"
+msgstr ""
+
+msgid "Other Services"
+msgstr ""
+
+msgid "details on sharing data with third parties"
+msgstr ""
+
+msgid "cookie policy details"
+msgstr ""
+
+msgid "Policy Changes"
+msgstr ""
+
+msgid "how privacy policies can be changed"
+msgstr ""
+
+#, python-format
+msgid "see questions tagged '%(tagname)s'"
+msgstr ""
+
+msgid "This question already has an answer here:"
+msgstr ""
+
+#, python-format
+msgid "%(counter)s answer"
+msgid_plural "%(counter)s answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid ""
+"The question has been closed for the following reason \"%(close_reason)s\" by"
+msgstr ""
+
+#, python-format
+msgid "One Answer:"
+msgid_plural "%(counter)s Answers:"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Your answer"
+msgstr ""
+
+msgid "Be the first one to answer this question!"
+msgstr ""
+
+msgid "Login/Signup to Post Your Answer"
+msgstr ""
+
+msgid "Answer Your Own Question"
+msgstr ""
+
+msgid "Answer the question"
+msgstr ""
+
+msgid "Question tags"
+msgstr ""
+
+msgid "see questions tagged"
+msgstr ""
+
+msgid "using tags"
+msgstr ""
+
+msgid "question asked"
+msgstr ""
+
+msgid "question was seen"
+msgstr ""
+
+msgid "times"
+msgstr ""
+
+msgid "last updated"
+msgstr ""
+
+msgid "Related questions"
+msgstr ""
+
+msgid "Edit question"
+msgstr ""
+
+msgid "Title Tips"
+msgstr ""
+
+msgid "What Are Tags"
+msgstr ""
+
+msgid "answers"
+msgstr ""
+
+msgid "vote"
+msgid_plural "votes"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "votes"
+msgstr ""
+
+msgid "this question has an accepted answer"
+msgstr ""
+
+msgid "view"
+msgstr ""
+
+msgid "views"
+msgstr ""
+
+msgid "Related tags"
+msgstr ""
+
+#, python-format
+msgid "see questions tagged '%(tag_name)s'"
+msgstr ""
+
+msgid "most recently updated questions"
+msgstr ""
+
+msgid "active"
+msgstr ""
+
+msgid "most recently asked questions"
+msgstr ""
+
+msgid "newest"
+msgstr ""
+
+msgid "hottest questions"
+msgstr ""
+
+msgid "hottest"
+msgstr ""
+
+msgid "most voted questions"
+msgstr ""
+
+msgid "most voted"
+msgstr ""
+
+msgid "Last checked"
+msgstr ""
+
+msgid "Interesting tags"
+msgstr ""
+
+#, python-format
+msgid "remove '%(tag_name)s' from the list of interesting tags"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Ignored tags"
+msgstr ""
+
+#, python-format
+msgid "remove '%(tag_name)s' from the list of ignored tags"
+msgstr ""
+
+msgid "Found by tags"
+msgstr ""
+
+msgid "Search results"
+msgstr ""
+
+msgid "Found by title"
+msgstr ""
+
+msgid "Unanswered questions"
+msgstr ""
+
+msgid "All Questions"
+msgstr ""
+
+msgid "Change tags"
+msgstr ""
+
+msgid "Why use and modify tags?"
+msgstr ""
+
+msgid "tags help us keep Questions organized"
+msgstr ""
+
+msgid "tag editors receive special awards from the community"
+msgstr ""
+
+#, python-format
+msgid "Questions and answers about %(tag)s on %(app_title)s"
+msgstr ""
+
+msgid "subscribe to question RSS feed"
+msgstr ""
+
+msgid "You follow this tag"
+msgstr ""
+
+msgid "Unfollow"
+msgstr ""
+
+msgid "Follow tag"
+msgstr ""
+
+#, python-format
+msgid ""
+"<a href=\"/account/signin/?next=%(url)s\">Sign in</a> to follow this tag and "
+"get an email for each new question in it."
+msgstr ""
+
+#, python-format
+msgid ""
+"Your email notifications are off, so you won't get emails: <a "
+"href=\"%(url)s\">email settings</a>."
+msgstr ""
+
+#, python-format
+msgid ""
+"You get an email for each new question here. <a href=\"%(url)s\">Email "
+"settings</a>"
+msgstr ""
+
+msgid "Get an email for each new question in this tag."
+msgstr ""
+
+#, python-format
+msgid "%(counter)s follower"
+msgid_plural "%(counter)s followers"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Synonyms:"
+msgstr ""
+
+msgid "edit tag"
+msgstr ""
+
+msgid "Describe this tag"
+msgstr ""
+
+msgid "Reopen question"
+msgstr ""
+
+msgid "Open the previously closed question"
+msgstr ""
+
+msgid "The question was closed for the following reason "
+msgstr ""
+
+msgid "reason - leave blank in english"
+msgstr ""
+
+msgid "on "
+msgstr ""
+
+msgid "date closed"
+msgstr ""
+
+msgid "Reopen this question"
+msgstr ""
+
+msgid "Revision history"
+msgstr ""
+
+msgid "click to hide/show revision"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"\t    Search in %(app_name)s\n"
+"\t"
+msgstr ""
+
+msgid "Markdown Basics"
+msgstr ""
+
+msgid "*italic* or _italic_"
+msgstr ""
+
+msgid "**bold** or __bold__"
+msgstr ""
+
+msgid "link"
+msgstr ""
+
+msgid "text"
+msgstr ""
+
+msgid "image"
+msgstr ""
+
+msgid "numbered list:"
+msgstr ""
+
+msgid ""
+"to add a line break simply add two spaces to where you would like the new "
+"line to be."
+msgstr ""
+
+msgid "basic HTML tags are also supported"
+msgstr ""
+
+msgid "learn more about Markdown"
+msgstr ""
+
+msgid "Recent awards"
+msgstr ""
+
+msgid "all awards"
+msgstr ""
+
+msgid "Recent tags"
+msgstr ""
+
+msgid "popular tags"
+msgstr ""
+
+msgid "Follow this question"
+msgstr ""
+
+msgid "By Email"
+msgstr ""
+
+msgid "You were automatically subscribed to this question."
+msgstr ""
+
+msgid "You are subscribed to this question."
+msgstr ""
+
+msgid "You are not subscribed to this question."
+msgstr ""
+
+msgid "unsubscribe me"
+msgstr ""
+
+msgid "subscribe me"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            (you can adjust your notification settings on your <a "
+"href=\"%(subscriptions_url)s\">profile</a>)\n"
+"        "
+msgstr ""
+
+msgid "Once you sign in you will be able to subscribe for any updates here"
+msgstr ""
+
+msgid "By RSS"
+msgstr ""
+
+msgid "subscribe to answers"
+msgstr ""
+
+msgid "Answers"
+msgstr ""
+
+msgid "subscribe to comments and answers"
+msgstr ""
+
+msgid "Answers and Comments"
+msgstr ""
+
+#, python-format
+msgid "Edit tag %(name)s"
+msgstr ""
+
+#, python-format
+msgid "Edit tag <span class=\"tag\">%(name)s</span>"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid ""
+"What is this tag for? One or two sentences, Markdown allowed. Shown at the "
+"top of the tag's questions and in the tag list."
+msgstr ""
+
+msgid "Save description"
+msgstr ""
+
+msgid "Synonyms"
+msgstr ""
+
+#, python-format
+msgid ""
+"Questions tagged with a synonym are tagged <strong>%(name)s</strong> "
+"instead, and the synonym's page redirects here. If the synonym is an "
+"existing tag, its questions are retagged now."
+msgstr ""
+
+msgid "e.g. gis-analysis"
+msgstr ""
+
+msgid "Synonym"
+msgstr ""
+
+msgid "Add synonym"
+msgstr ""
+
+#, python-format
+msgid "Back to questions tagged %(name)s"
+msgstr ""
+
+msgid "Tag list"
+msgstr ""
+
+msgid "All tags matching query"
+msgstr ""
+
+msgid "Nothing found"
+msgstr ""
+
+msgid "Your data and account"
+msgstr ""
+
+msgid "Download your data"
+msgstr ""
+
+msgid ""
+"A JSON file with your profile, the questions, answers and comments you "
+"posted, your votes, favourites, tag selections and notification settings."
+msgstr ""
+
+msgid "Download my data"
+msgstr ""
+
+msgid "Delete your account"
+msgstr ""
+
+msgid ""
+"Your profile, email address, login methods, subscriptions and settings are "
+"removed and you are signed out for good. Your questions, answers and "
+"comments stay on the site, because other people's answers and discussions "
+"depend on them, but they will show \"deleted-user\" instead of your name."
+msgstr ""
+
+msgid ""
+"You are the only administrator. Make someone else an administrator before "
+"deleting your account."
+msgstr ""
+
+#, python-format
+msgid "Type your username (<strong>%(name)s</strong>) to confirm"
+msgstr ""
+
+msgid "Your password"
+msgstr ""
+
+msgid "Delete my account"
+msgstr ""
+
+msgid "Edit user profile"
+msgstr ""
+
+msgid "image associated with your email address"
+msgstr ""
+
+msgid "gravatar"
+msgstr ""
+
+msgid "Registered user"
+msgstr ""
+
+msgid "Screen Name"
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "reputation"
+msgstr ""
+
+msgid "Suspended"
+msgstr ""
+
+msgid "Administrator"
+msgstr ""
+
+msgid "Moderator"
+msgstr ""
+
+msgid "real name"
+msgstr ""
+
+msgid "member for"
+msgstr ""
+
+msgid "last seen"
+msgstr ""
+
+msgid "user's website"
+msgstr ""
+
+msgid "location"
+msgstr ""
+
+msgid "age"
+msgstr ""
+
+msgid "age unit"
+msgstr ""
+
+msgid "not validated"
+msgstr ""
+
+msgid "todays unused votes"
+msgstr ""
+
+msgid "votes left"
+msgstr ""
+
+msgid "Points"
+msgstr ""
+
+msgid "User tools"
+msgstr ""
+
+msgid "Users Online"
+msgstr ""
+
+#, python-format
+msgid "users matching query %(suser)s:"
+msgstr ""
+
+msgid "Nothing found."
+msgstr ""
+
+msgid "Preferences"
+msgstr ""
+
+msgid "Here you can set some personal preferences."
+msgstr ""
+
+msgid "Navigation:"
+msgstr ""
+
+msgid "Always remember the sort order I apply to the lists I view"
+msgstr ""
+
+msgid "No favorite questions to display."
+msgstr ""
+
+msgid "Report user"
+msgstr ""
+
+msgid "Public message"
+msgstr ""
+
+msgid "This message will be visible through the user activity log."
+msgstr ""
+
+msgid "badges"
+msgstr ""
+
+msgid "(suspended)"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                <span class=\"count\">%(counter)s</span> Question\n"
+"                "
+msgid_plural ""
+"\n"
+"                <span class=\"count\">%(counter)s</span> Questions\n"
+"                "
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid ""
+"\n"
+"                <span class=\"count\">%(counter)s</span> Answer\n"
+"                "
+msgid_plural ""
+"\n"
+"                <span class=\"count\">%(counter)s</span> Answers\n"
+"                "
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "the answer has been voted for %(vote_count)s times"
+msgstr ""
+
+msgid "this answer has been selected as correct"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                    <span class=\"count\">%(cnt)s</span> Vote\n"
+"                "
+msgid_plural ""
+"\n"
+"                    <span class=\"count\">%(cnt)s</span> Votes\n"
+"                "
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "thumb up"
+msgstr ""
+
+msgid "user has voted up this many times"
+msgstr ""
+
+msgid "thumb down"
+msgstr ""
+
+msgid "user voted down this many times"
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"                    <span class=\"count\">%(counter)s</span> Tag\n"
+"                "
+msgid_plural ""
+"\n"
+"                    <span class=\"count\">%(counter)s</span> Tags\n"
+"                "
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid ""
+"see other questions with %(view_user)s's contributions tagged '%(tag_name)s' "
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"            <span class=\"count\">%(counter)s</span> Badge\n"
+"            "
+msgid_plural ""
+"\n"
+"            <span class=\"count\">%(counter)s</span> Badges\n"
+"            "
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Questions you follow"
+msgstr ""
+
+msgid "Manage your current subscriptions"
+msgstr ""
+
+msgid "don't show auto-subscribe"
+msgstr ""
+
+msgid "show auto-subscribe"
+msgstr ""
+
+msgid "Email notifications are on."
+msgstr ""
+
+msgid "You get the emails chosen below."
+msgstr ""
+
+msgid "Stop all notification emails"
+msgstr ""
+
+msgid "Email notifications are off."
+msgstr ""
+
+msgid "You only get emails about your account, such as sign-in links."
+msgstr ""
+
+msgid "Turn email notifications on"
+msgstr ""
+
+msgid "Every email also has a link to stop it, no sign-in needed."
+msgstr ""
+
+msgid "Tags you follow"
+msgstr ""
+
+msgid ""
+"You're told about new questions in these tags (see \"New questions in tags I "
+"follow\" below). To follow a tag, open it and press <em>Follow tag</em>."
+msgstr ""
+
+msgid ""
+"You don't follow any tags yet. Browse the <a href=\"/tags/\">tags</a> to "
+"find your topics."
+msgstr ""
+
+msgid "Email me when"
+msgstr ""
+
+msgid "A new question is posted in a tag I follow"
+msgstr ""
+
+msgid "There's news on a question I follow (answers, comments)"
+msgstr ""
+
+msgid "Any new question is posted on the site"
+msgstr ""
+
+msgid "A new member joins"
+msgstr ""
+
+msgid "On questions I follow, email me about"
+msgstr ""
+
+msgid "New answers"
+msgstr ""
+
+msgid "Comments on my posts"
+msgstr ""
+
+msgid "All comments"
+msgstr ""
+
+msgid "An answer being accepted"
+msgstr ""
+
+msgid "Follow questions automatically"
+msgstr ""
+
+msgid ""
+"Questions you ask or answer are always followed. You can stop following any "
+"of them on the \\"
+msgstr ""
+
+msgid "Questions I view"
+msgstr ""
+
+msgid "All new questions in tags I follow"
+msgstr ""
+
+msgid "All new questions"
+msgstr ""
+
+msgid "Other emails"
+msgstr ""
+
+msgid "Someone mentions me with <code>@username</code>"
+msgstr ""
+
+msgid "A daily digest of site activity"
+msgstr ""
+
+msgid "Save email settings"
+msgstr ""
+
+msgid "Suspend user"
+msgstr ""
+
+msgid "Indefinitely"
+msgstr ""
+
+msgid "For X days"
+msgstr ""
+
+msgid "Suspend for"
+msgstr ""
+
+msgid "days"
+msgstr ""
+
+msgid "Private message"
+msgstr ""
+
+msgid "If set, only the suspended user will see this message."
+msgstr ""
+
+msgid "Users"
+msgstr ""
+
+msgid "upvote"
+msgstr ""
+
+msgid "downvote"
+msgstr ""
+
+msgid "reputation points"
+msgstr ""
+
+#, python-format
+msgid "%(user)s has %(count)d accepted answers"
+msgstr ""
+
+#, python-format
+msgid "%s has one accepted answer"
+msgstr ""
+
+#, python-format
+msgid "%s has no accepted answers"
+msgstr ""
+
+msgid "accept rate"
+msgstr ""
+
+msgid "Rate of the user's accepted answers"
+msgstr ""
+
+msgid "2 days ago"
+msgstr ""
+
+msgid "yesterday"
+msgstr ""
+
+msgid "hour ago"
+msgstr ""
+
+msgid "hours ago"
+msgstr ""
+
+#, python-format
+msgid "%(hr)d "
+msgid_plural "%(hr)d "
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "min ago"
+msgstr ""
+
+msgid "mins ago"
+msgstr ""
+
+#, python-format
+msgid "%(min)d "
+msgid_plural "%(min)d "
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "sec ago"
+msgstr ""
+
+msgid "secs ago"
+msgstr ""
+
+#, python-format
+msgid "%(sec)d "
+msgid_plural "%(sec)d "
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "permanent link"
+msgstr ""
+
+msgid "answer permanent link"
+msgstr ""
+
+msgid "award points"
+msgstr ""
+
+#, python-format
+msgid "award points to %s"
+msgstr ""
+
+msgid "retag"
+msgstr ""
+
+msgid "reopen"
+msgstr ""
+
+msgid "close"
+msgstr ""
+
+msgid "report"
+msgstr ""
+
+msgid ""
+"report as offensive (i.e containing spam, advertising, malicious text, etc.)"
+msgstr ""
+
+msgid "undelete"
+msgstr ""
+
+msgid "see revisions"
+msgstr ""
+
+msgid "mark as community wiki"
+msgstr ""
+
+msgid "cancel community wiki"
+msgstr ""
+
+msgid "convert to comment"
+msgstr ""
+
+msgid "convert to question"
+msgstr ""
+
+msgid "posted"
+msgstr ""
+
+msgid "FAQ"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Leave this field empty"
+msgstr ""
+
+msgid "Sorry, your registration could not be completed. Please try again."
+msgstr ""
+
+msgid "This form has expired. Please fill it in again."
+msgstr ""
+
+msgid "That was quick! Please check the form and send it again."
+msgstr ""
+
+msgid ""
+"You have asked the maximum number of questions for one hour. Please wait a "
+"while before asking again; your text is kept below."
+msgstr ""
+
+msgid ""
+"You have posted the maximum number of answers for one hour. Please wait a "
+"while before posting again."
+msgstr ""
+
+msgid ""
+"You have posted the maximum number of comments for one hour. Please wait a "
+"while."
+msgstr ""
+
+msgid "algorithm"
+msgstr ""
+
+msgid "salt"
+msgstr ""
+
+msgid "hash"
+msgstr ""
+
+msgid "all emails from this site"
+msgstr ""
+
+msgid "emails about this question"
+msgstr ""
+
+msgid "Stop emails about this question"
+msgstr ""
+
+msgid "emails about new questions, including those in the tags you follow"
+msgstr ""
+
+msgid "Stop emails about new questions"
+msgstr ""
+
+msgid "emails when someone mentions you"
+msgstr ""
+
+msgid "Stop emails when someone mentions you"
+msgstr ""
+
+msgid "emails about new members"
+msgstr ""
+
+msgid "Stop emails about new members"
+msgstr ""
+
+msgid "the daily digest"
+msgstr ""
+
+msgid "Stop the daily digest"
+msgstr ""
+
+msgid "you follow this question"
+msgstr ""
+
+msgid ""
+"you asked to be told about new questions on the site or in the tags you "
+"follow"
+msgstr ""
+
+msgid "someone mentioned you"
+msgstr ""
+
+msgid "you asked to be told when new members join"
+msgstr ""
+
+msgid "you are subscribed to the daily digest"
+msgstr ""
+
+msgid ""
+"You are the only administrator. Make someone else an administrator first."
+msgstr ""
+
+msgid "Type your username exactly to confirm."
+msgstr ""
+
+msgid "The password is not correct."
+msgstr ""
+
+msgid "Your account has been deleted. Your posts remain, without your name."
+msgstr ""
+
+msgid "Questions Graph"
+msgstr ""
+
+msgid "Users Graph"
+msgstr ""
+
+#, python-format
+msgid "'%s' settings saved succesfully"
+msgstr ""
+
+msgid "Bootstrap mode enabled"
+msgstr ""
+
+msgid "All values recalculated"
+msgstr ""
+
+msgid "Maintenance mode enabled"
+msgstr ""
+
+msgid "Settings adjusted"
+msgstr ""
+
+msgid "Your site is now running normally"
+msgstr ""
+
+msgid "Currently down for maintenance. We'll be back soon"
+msgstr ""
+
+msgid "The post has been deleted."
+msgstr ""
+
+msgid "This account has posts; suspend it instead."
+msgstr ""
+
+#, python-format
+msgid "The account %s has been deleted."
+msgstr ""
+
+msgid "Spam account"
+msgstr ""
+
+#, python-format
+msgid "The account %s has been suspended."
+msgstr ""
+
+msgid "The report has been dismissed."
+msgstr ""
+
+msgid "createuser"
+msgstr ""
+
+msgid "Create new user"
+msgstr ""
+
+#, python-format
+msgid "New user created sucessfully. %s."
+msgstr ""
+
+#, python-format
+msgid "See %s profile"
+msgstr ""
+
+msgid "added_at"
+msgstr ""
+
+msgid "added_at_asc"
+msgstr ""
+
+msgid "author"
+msgstr ""
+
+msgid "author_asc"
+msgstr ""
+
+msgid "score"
+msgstr ""
+
+msgid "score_asc"
+msgstr ""
+
+msgid "act_at"
+msgstr ""
+
+msgid "act_at_asc"
+msgstr ""
+
+msgid "act_by"
+msgstr ""
+
+msgid "act_by_asc"
+msgstr ""
+
+msgid "nodeman"
+msgstr ""
+
+msgid "Bulk management"
+msgstr ""
+
+msgid "filter"
+msgstr ""
+
+msgid "No action performed"
+msgstr ""
+
+msgid "All selected nodes marked as deleted"
+msgstr ""
+
+msgid "All selected nodes undeleted"
+msgstr ""
+
+msgid "bulk close"
+msgstr ""
+
+msgid "Selected questions were closed"
+msgstr ""
+
+msgid "All selected nodes deleted"
+msgstr ""
+
+#, python-format
+msgid ""
+"Too many failed sign-in attempts. Please wait %(minutes)s minutes, or get a "
+"sign-in link by email with \"forgot password\"."
+msgstr ""
+
+msgid ""
+"Sorry, these login credentials belong to anoother user. Plese terminate your "
+"current session and try again."
+msgstr ""
+
+msgid "You are already logged in with that user."
+msgstr ""
+
+msgid "These login credentials are already associated with your account."
+msgstr ""
+
+msgid "The new credentials are now associated with your account"
+msgstr ""
+
+msgid ""
+"Too many accounts have been created from your network recently. Please try "
+"again later."
+msgstr ""
+
+msgid ""
+"Oops, something went wrong in the middle of this process. Please try again. "
+"Note that you need to have cookies enabled for the authentication to work."
+msgstr ""
+
+msgid "A welcome email has been sent to your email address. "
+msgstr ""
+
+msgid ""
+"Oops, something went wrong in the middle of this process. Please try again."
+msgstr ""
+
+msgid "Too many sign-in links were requested. Please try again in an hour."
+msgstr ""
+
+msgid ""
+"If this address belongs to an account, we have sent it an email with a sign-"
+"in link. The link works once, for 24 hours."
+msgstr ""
+
+msgid ""
+"You are logged in with a temporary access key, please take the time to fix "
+"your issue with authentication."
+msgstr ""
+
+msgid "A message with an email validation link was just sent to your address."
+msgstr ""
+
+msgid "Thank you, your email is now validated."
+msgstr ""
+
+msgid "New password set"
+msgstr ""
+
+msgid "Your password was changed"
+msgstr ""
+
+#, python-format
+msgid "You removed the association with %s"
+msgstr ""
+
+#, python-format
+msgid "Welcome back %s, you are now logged in"
+msgstr ""
+
+#, python-format
+msgid "You have a %s pending submission."
+msgstr ""
+
+msgid "save it"
+msgstr ""
+
+msgid "review"
+msgstr ""
+
+msgid "cancel"
+msgstr ""
+
+msgid "Sorry, but this account is suspended"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry, but you don't have enough reputation points to %(action)s.<br />\n"
+"                The minimum reputation required is %(reputation_required)d "
+"(yours is %(user_reputation)d).\n"
+"                Please check the <a href='%(faq_url)s'>FAQ</a>"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry, but you don't have enough reputation points to %(action)s.<br /"
+">Please check the <a href='%(faq_url)s'>faq</a>"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry but you cannot %(action)s your own post.<br />Please check the <a "
+"href='%(faq_url)s'>faq</a>"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry but anonymous users cannot %(action)s.<br />Please login or create an "
+"account <a href='%(signin_url)s'>here</a>."
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry, but you don't have enough %(action)s left for today..<br />The limit "
+"is %(limit)s per day..<br />Please check the <a href='%(faq_url)s'>faq</a>"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry, but you cannot %(action)s twice the same post.<br />Please check the "
+"<a href='%(faq_url)s'>faq</a>"
+msgstr ""
+
+msgid "Invalid request"
+msgstr ""
+
+#, python-format
+msgid ""
+"Sorry but you cannot cancel a vote after %(ndays)d %(tdays)s from the "
+"original vote"
+msgstr ""
+
+msgid "day"
+msgid_plural "days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "You have %(nvotes)s %(tvotes)s left today."
+msgstr ""
+
+msgid "flag posts"
+msgstr ""
+
+msgid "flag"
+msgstr ""
+
+msgid "flags"
+msgstr ""
+
+#, python-format
+msgid "You already flagged this post with the following reason: %(reason)s"
+msgstr ""
+
+msgid "Reason is empty"
+msgstr ""
+
+msgid ""
+"Thank you for your report. A moderator will review your submission shortly."
+msgstr ""
+
+msgid "like comments"
+msgstr ""
+
+msgid "like"
+msgstr ""
+
+msgid "delete comments"
+msgstr ""
+
+msgid "mark a question as favorite"
+msgstr ""
+
+msgid "Comment is empty"
+msgstr ""
+
+#, python-format
+msgid "At least %d characters required on comment body."
+msgstr ""
+
+#, python-format
+msgid "No more than %d characters on comment body."
+msgstr ""
+
+msgid "edit comments"
+msgstr ""
+
+msgid "accept answers"
+msgstr ""
+
+msgid "Sorry but you cannot accept the answer"
+msgstr ""
+
+msgid "This question already has an accepted answer."
+msgid_plural ""
+"Sorry but this question has reached the limit of accepted answers."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"The author of this answer already has an accepted answer in this question."
+msgid_plural ""
+"Sorry but the author of this answer has reached the limit of accepted "
+"answers per question."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"\n"
+"              Congratulations! You've accepted an answer.\n"
+"            "
+msgstr ""
+
+msgid "delete posts"
+msgstr ""
+
+msgid "Enter the number of the original question or a link to it."
+msgstr ""
+
+msgid "The original question was not found."
+msgstr ""
+
+msgid "A question cannot be a duplicate of itself."
+msgstr ""
+
+msgid "close questions"
+msgstr ""
+
+msgid "reopen questions"
+msgstr ""
+
+msgid "mark posts as community wiki"
+msgstr ""
+
+msgid "cancel a community wiki post"
+msgstr ""
+
+msgid "convert answers to comments"
+msgstr ""
+
+#, python-format
+msgid "Answer by %(uname)s: %(snippet)s..."
+msgstr ""
+
+msgid "That is an invalid post to put the comment under"
+msgstr ""
+
+msgid "convert comments to answers"
+msgstr ""
+
+msgid "You do not have the correct credentials to preform this action."
+msgstr ""
+
+msgid "subscribe to questions"
+msgstr ""
+
+msgid "The permanent URL to the answer has been copied to your clipboard."
+msgstr ""
+
+msgid "award"
+msgstr ""
+
+msgid "The number of points to award needs to be a positive value."
+msgstr ""
+
+#, python-format
+msgid "You have awarded %(awarded_user)s with %(points)d points"
+msgstr ""
+
+msgid ""
+"We're sorry, but an unknown error ocurred.<br />Please try again in a while."
+msgstr ""
+
+#, python-format
+msgid "You no longer follow %s."
+msgstr ""
+
+#, python-format
+msgid "You follow %s: you'll get an email for each new question in it."
+msgstr ""
+
+#, python-format
+msgid ""
+"You follow %s, but your email notifications are switched off. Turn them on "
+"in your email settings to get emails."
+msgstr ""
+
+msgid "Thanks for the feedback!"
+msgstr ""
+
+msgid "We look forward to hearing your feedback! Please, give it next time :)"
+msgstr ""
+
+msgid "Most <strong>recently updated</strong> questions"
+msgstr ""
+
+msgid "most <strong>recently asked</strong> questions"
+msgstr ""
+
+msgid "most <strong>active</strong> questions in the last 24 hours</strong>"
+msgstr ""
+
+msgid "mostvoted"
+msgstr ""
+
+msgid "most <strong>voted</strong> questions"
+msgstr ""
+
+msgid "unanswered"
+msgstr ""
+
+msgid "active answers"
+msgstr ""
+
+msgid "most recently updated answers/comments will be shown first"
+msgstr ""
+
+msgid "oldest"
+msgstr ""
+
+msgid "oldest answers"
+msgstr ""
+
+msgid "oldest answers will be shown first"
+msgstr ""
+
+msgid "newest answers"
+msgstr ""
+
+msgid "newest answers will be shown first"
+msgstr ""
+
+msgid "popular answers"
+msgstr ""
+
+msgid "most voted answers will be shown first"
+msgstr ""
+
+msgid "name"
+msgstr ""
+
+msgid "by name"
+msgstr ""
+
+msgid "sorted alphabetically"
+msgstr ""
+
+msgid "used"
+msgstr ""
+
+msgid "by popularity"
+msgstr ""
+
+msgid "sorted by frequency of tag use"
+msgstr ""
+
+msgid " - "
+msgstr ""
+
+msgid "latest questions"
+msgstr ""
+
+msgid "open questions without an accepted answer"
+msgstr ""
+
+msgid "Unanswered Questions"
+msgstr ""
+
+#, python-format
+msgid "questions tagged <span class=\"tag\">%(tag)s</span>"
+msgstr ""
+
+#, python-format
+msgid "Questions Tagged With %(tag)s"
+msgstr ""
+
+#, python-format
+msgid "Questions asked by %s"
+msgstr ""
+
+#, python-format
+msgid "Questions answered by %s"
+msgstr ""
+
+#, python-format
+msgid "Questions you subscribed %s"
+msgstr ""
+
+#, python-format
+msgid "Questions subscribed by %s"
+msgstr ""
+
+msgid "Questions"
+msgstr ""
+
+msgid "ranking"
+msgstr ""
+
+msgid "relevance"
+msgstr ""
+
+msgid "most relevant questions"
+msgstr ""
+
+#, python-format
+msgid "questions matching '%(keywords)s'"
+msgstr ""
+
+#, python-format
+msgid "Revision n. %(rev_number)d"
+msgstr ""
+
+msgid "sorted by reputation"
+msgstr ""
+
+msgid "recent"
+msgstr ""
+
+msgid "newest members"
+msgstr ""
+
+msgid "last"
+msgstr ""
+
+msgid "oldest members"
+msgstr ""
+
+msgid "by username"
+msgstr ""
+
+msgid "sorted by username"
+msgstr ""
+
+msgid "Online Users"
+msgstr ""
+
+msgid "Profile updated."
+msgstr ""
+
+msgid "Only superusers are allowed to alter other users permissions."
+msgstr ""
+
+msgid "Only the site owner can remove the super user status from other user."
+msgstr ""
+
+msgid "Only superusers are allowed to award reputation points"
+msgstr ""
+
+msgid "Invalid number of points to award."
+msgstr ""
+
+msgid "Only superusers can suspend other users"
+msgstr ""
+
+msgid "Invalid numeric argument for the number of days."
+msgstr ""
+
+msgid "overview"
+msgstr ""
+
+msgid "user overview"
+msgstr ""
+
+msgid "recent activity"
+msgstr ""
+
+msgid "recent user activity"
+msgstr ""
+
+msgid "reputation history"
+msgstr ""
+
+msgid "graph of user karma"
+msgstr ""
+
+msgid "user vote record"
+msgstr ""
+
+msgid "favorites"
+msgstr ""
+
+msgid "questions that user selected as his/her favorite"
+msgstr ""
+
+msgid "email settings"
+msgstr ""
+
+msgid "Email notifications are now switched on."
+msgstr ""
+
+msgid ""
+"Email notifications are now switched off. You will only get emails about "
+"your account."
+msgstr ""
+
+msgid "Your email settings are saved."
+msgstr ""
+
+msgid "preferences"
+msgstr ""
+
+msgid "New preferences saved"
+msgstr ""
+
+msgid "uploading images is limited to users with >60 reputation points"
+msgstr ""
+
+msgid ""
+"allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff', 'webp'"
+msgstr ""
+
+#, python-format
+msgid "maximum upload file size is %sM"
+msgstr ""
+
+msgid "Error uploading file. Please contact the site administrator. Thank you."
+msgstr ""
+
+#, python-format
+msgid "Your question is pending until you %s."
+msgstr ""
+
+msgid "validate your email"
+msgstr ""
+
+msgid "Converted to question"
+msgstr ""
+
+#, python-format
+msgid "Your answer is pending until you %s."
+msgstr ""
+
+msgid "The tag description was saved."
+msgstr ""
+
+msgid "Enter a valid tag name."
+msgstr ""
+
+msgid "A tag cannot be a synonym of itself."
+msgstr ""
+
+#, python-format
+msgid "%s is already a synonym."
+msgstr ""
+
+#, python-format
+msgid "%s is itself a synonym of another tag."
+msgstr ""
+
+#, python-format
+msgid "%(synonym)s is now a synonym of %(tag)s."
+msgstr ""
+
+msgid "AI assistance"
+msgstr ""
+
+msgid ""
+"Duplicate detection and spam moderation with Google Gemini. Enabled features "
+"send the text of new public posts (titles, bodies, comments) to Google (the "
+"Gemini API, or Vertex AI in your Google Cloud project); nothing else about "
+"the author is sent."
+msgstr ""
+
+msgid "Gemini API key"
+msgstr ""
+
+msgid ""
+"Turns on the AI features (Admin > AI assistance) through the Gemini API. Get "
+"a key at <a href='https://aistudio.google.com/apikey'>Google AI Studio</a>. "
+"Not needed when a Vertex AI project is set under Admin > AI assistance. If "
+"empty, the server's GEMINI_API_KEY or GOOGLE_API_KEY environment variable is "
+"used."
+msgstr ""
+
+msgid "Vertex AI project"
+msgstr ""
+
+msgid ""
+"Google Cloud project ID to use Gemini through Vertex AI instead of an API "
+"key. The server authenticates with Application Default Credentials (its "
+"service account, or <code>gcloud auth application-default login</code>), "
+"which need the Vertex AI User role. If empty, the GOOGLE_CLOUD_PROJECT "
+"environment variable is used."
+msgstr ""
+
+msgid "Vertex AI location"
+msgstr ""
+
+msgid ""
+"Region of the Vertex AI endpoint, e.g. global, europe-west1 or us-central1."
+msgstr ""
+
+msgid "Gemini model"
+msgstr ""
+
+msgid ""
+"The model ID used for all AI features, e.g. gemini-3.8-flash, or gemini-3.5-"
+"flash-lite for lower cost."
+msgstr ""
+
+msgid "Duplicate detection"
+msgstr ""
+
+msgid ""
+"While someone writes a question title, point out existing questions that ask "
+"the same thing."
+msgstr ""
+
+msgid "Duplicate checks per visitor per hour"
+msgstr ""
+
+msgid "Limits API use; beyond it the ask page shows the plain keyword matches."
+msgstr ""
+
+msgid "Spam and abuse moderation"
+msgstr ""
+
+msgid ""
+"Review new and edited posts in the background. Suspected spam, abuse or off-"
+"topic posts are listed for moderators under Flagged posts; they are never "
+"hidden or deleted automatically."
+msgstr ""
+
+msgid "Skip moderation from reputation"
+msgstr ""
+
+msgid ""
+"Posts by users with at least this reputation (and by staff) are not reviewed."
+msgstr ""
+
+msgid "Report from confidence"
+msgstr ""
+
+msgid ""
+"How sure (0 to 1) the review must be before a post is reported to moderators."
+msgstr ""
+
+msgid "Profile spam review"
+msgstr ""
+
+msgid ""
+"When a user below the skip reputation fills in or changes their website or "
+"\"about me\", check it for profile spam (SEO links, advertising). Suspect "
+"accounts are listed for moderators under Flagged posts; they are never "
+"suspended or deleted automatically."
+msgstr ""
+
+msgid "Embedding model"
+msgstr ""
+
+msgid ""
+"Gemini model used to index forum threads and documentation for semantic "
+"search."
+msgstr ""
+
+msgid "Documentation to crawl"
+msgstr ""
+
+msgid ""
+"One URL per line. The nightly index (manage.py build_knowledge_index) crawls "
+"each one and the pages linked from it within the same site and path, "
+"respecting robots.txt, and lets the assistant use them."
+msgstr ""
+
+msgid "Pages to crawl per URL"
+msgstr ""
+
+msgid "Upper limit of documentation pages fetched from each URL above per run."
+msgstr ""
+
+msgid "Assistant on the ask page"
+msgstr ""
+
+msgid ""
+"Offer an AI answer before a question is posted. It is only shown when forum "
+"answers or the crawled documentation clearly cover the question and a second "
+"check finds every statement supported by them."
+msgstr ""
+
+msgid "Assistant answers per visitor per hour"
+msgstr ""
+
+msgid "Suggested answers on unanswered questions"
+msgstr ""
+
+msgid ""
+"manage.py suggest_answers (run hourly) adds a clearly marked AI suggestion, "
+"with sources, to questions still unanswered after the time below, but only "
+"when forum answers or the crawled documentation clearly cover the question "
+"and a second check finds every statement supported by them. The asker and "
+"moderators can mark it helpful or remove it. It doesn't count as an answer "
+"and earns no reputation."
+msgstr ""
+
+msgid "Suggest an answer after (hours)"
+msgstr ""
+
+msgid "WordPress API key"
+msgstr ""
+
+msgid ""
+"Your WordPress API key. You can get one at <a href='http://wordpress."
+"com/'>http://wordpress.com/</a>"
+msgstr ""
+
+msgid "Minimum reputation to not have your posts checked"
+msgstr ""
+
+msgid ""
+"The minimum reputation a user must have so that when they post a question, "
+"answer or comment it is not checked for spam."
+msgstr ""
+
+#, python-format
+msgid "Sorry, but akismet thinks your %s is spam."
+msgstr ""
+
+msgid "Akismet message"
+msgstr ""
+
+#, python-format
+msgid "Akismet believes your %(action_name)s is spam."
+msgstr ""
+
+#, python-format
+msgid ""
+"\n"
+"We're sorry, but Akismet believes your %(action_name)s is spam.<br />\n"
+"If you believe this is an error, please contact the forum administrator.\n"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+#, python-format
+msgid "Asked a question with %s views"
+msgstr ""
+
+msgid "Popular Question"
+msgstr ""
+
+msgid "Notable Question"
+msgstr ""
+
+msgid "Famous Question"
+msgstr ""
+
+#, python-format
+msgid "Question voted up %s times"
+msgstr ""
+
+msgid "Nice Question"
+msgstr ""
+
+msgid "Good Question"
+msgstr ""
+
+msgid "Great Question"
+msgstr ""
+
+#, python-format
+msgid "Answer voted up %s times"
+msgstr ""
+
+msgid "Nice Answer"
+msgstr ""
+
+msgid "Good Answer"
+msgstr ""
+
+msgid "Great Answer"
+msgstr ""
+
+#, python-format
+msgid "Question favorited by %s users"
+msgstr ""
+
+msgid "Favorite Question"
+msgstr ""
+
+msgid "Stellar Question"
+msgstr ""
+
+msgid "Disciplined"
+msgstr ""
+
+#, python-format
+msgid "Deleted own post with score of %s or higher"
+msgstr ""
+
+msgid "Peer Pressure"
+msgstr ""
+
+#, python-format
+msgid "Deleted own post with score of %s or lower"
+msgstr ""
+
+msgid "Critic"
+msgstr ""
+
+msgid "First down vote"
+msgstr ""
+
+msgid "Supporter"
+msgstr ""
+
+msgid "First up vote"
+msgstr ""
+
+msgid "Citizen Patrol"
+msgstr ""
+
+msgid "First flagged post"
+msgstr ""
+
+msgid "Organizer"
+msgstr ""
+
+msgid "First retag"
+msgstr ""
+
+msgid "Editor"
+msgstr ""
+
+msgid "First edit"
+msgstr ""
+
+msgid "Scholar"
+msgstr ""
+
+msgid "First accepted answer on your own question"
+msgstr ""
+
+msgid "Cleanup"
+msgstr ""
+
+msgid "First rollback"
+msgstr ""
+
+msgid "Autobiographer"
+msgstr ""
+
+msgid "Completed all user profile fields"
+msgstr ""
+
+msgid "Civic Duty"
+msgstr ""
+
+#, python-format
+msgid "Voted %s times"
+msgstr ""
+
+msgid "Pundit"
+msgstr ""
+
+#, python-format
+msgid "Left %s comments"
+msgstr ""
+
+msgid "Self Learner"
+msgstr ""
+
+#, python-format
+msgid "Answered your own question with at least %s up votes"
+msgstr ""
+
+msgid "Strunk & White"
+msgstr ""
+
+#, python-format
+msgid "Edited %s entries"
+msgstr ""
+
+msgid "Student"
+msgstr ""
+
+msgid "Asked first question with at least one up vote"
+msgstr ""
+
+msgid "Teacher"
+msgstr ""
+
+msgid "Answered first question with at least one up vote"
+msgstr ""
+
+msgid "Enlightened"
+msgstr ""
+
+#, python-format
+msgid "First answer was accepted with at least %s up votes"
+msgstr ""
+
+msgid "Guru"
+msgstr ""
+
+#, python-format
+msgid "Accepted answer and voted up %s times"
+msgstr ""
+
+msgid "Necromancer"
+msgstr ""
+
+#, python-format
+msgid ""
+"Answered a question more than %(dif_days)s days later with at least "
+"%(up_votes)s votes"
+msgstr ""
+
+msgid "Taxonomist"
+msgstr ""
+
+#, python-format
+msgid "Created a tag used by %s questions"
+msgstr ""
+
+msgid "Validated Email"
+msgstr ""
+
+msgid "User who has validated email associated to the account"
+msgstr ""
+
+msgid "Popular Question views"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of question views required to award a Popular Question badge to the "
+"question author\n"
+msgstr ""
+
+msgid "Notable Question views"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of question views required to award a Notable Question badge to the "
+"question author\n"
+msgstr ""
+
+msgid "Famous Question views"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of question views required to award a Famous Question badge to the "
+"question author\n"
+msgstr ""
+
+msgid "Nice Answer up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Nice Answer badge to the answer "
+"author\n"
+msgstr ""
+
+msgid "Nice Question up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Nice Question badge to the question "
+"author\n"
+msgstr ""
+
+msgid "Good Answer up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Good Answer badge to the answer "
+"author\n"
+msgstr ""
+
+msgid "Good Question up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Good Question badge to the question "
+"author\n"
+msgstr ""
+
+msgid "Great Answer up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Great Answer badge to the answer "
+"author\n"
+msgstr ""
+
+msgid "Great Question up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes required to award a Great Question badge to the question "
+"author\n"
+msgstr ""
+
+msgid "Favorite Question favorite count"
+msgstr ""
+
+msgid ""
+"\n"
+"How many times a question needs to be favorited by other users to award a "
+"Favorite Question badge to the question author\n"
+msgstr ""
+
+msgid "Stellar Question favorite count"
+msgstr ""
+
+msgid ""
+"\n"
+"How many times a question needs to be favorited by other users to award a "
+"Stellar Question badge to the question author\n"
+msgstr ""
+
+msgid "Disciplined minimum score"
+msgstr ""
+
+msgid ""
+"\n"
+"Minimum score a question needs to have to award the Disciplined badge to an "
+"author of a question who deletes it.\n"
+msgstr ""
+
+msgid "Peer Pressure maximum score"
+msgstr ""
+
+msgid ""
+"\n"
+"Maximum score a question needs to have to award the Peer Pressure badge to "
+"an author of a question who deletes it.\n"
+msgstr ""
+
+msgid "Civic Duty votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of votes an user needs to cast to be awarded the Civic Duty badge.\n"
+msgstr ""
+
+msgid "Pundit number of comments"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of comments an user needs to post to be awarded the Pundit badge.\n"
+msgstr ""
+
+msgid "Self Learner up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes an answer from the question author needs to have for the "
+"author to be awarded the Self Learner badge.\n"
+msgstr ""
+
+msgid "Strunk and White updates"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of question or answer updates an user needs to make to be awarded the "
+"Strunk & White badge.\n"
+msgstr ""
+
+msgid "Enlightened up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes an accepted answer needs to have for the author to be "
+"awarded the Enlightened badge.\n"
+msgstr ""
+
+msgid "Guru up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes an accepted answer needs to have for the author to be "
+"awarded the Guru badge.\n"
+msgstr ""
+
+msgid "Necromancer up votes"
+msgstr ""
+
+msgid ""
+"\n"
+"Number of up votes an answer needs to have for the author to be awarded the "
+"Necromancer badge.\n"
+msgstr ""
+
+msgid "Necromancer difference in days"
+msgstr ""
+
+msgid ""
+"\n"
+"Difference in days betwen the posted date of a question and an answer for "
+"the answer author to be awarded the Necromancer badge.\n"
+msgstr ""
+
+msgid "Taxonomist usage count"
+msgstr ""
+
+msgid ""
+"\n"
+"How many usages a tag needs to have for the tag creator to be awarded the "
+"Taxonomist badge. \n"
+msgstr ""
+
+msgid "Compressing xml files"
+msgstr ""
+
+msgid "Importing uploaded files"
+msgstr ""
+
+msgid "Importing skins folder"
+msgstr ""
+
+msgid "Writing inf file."
+msgstr ""
+
+msgid "Saving backup file"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Starting"
+msgstr ""
+
+#, python-format
+msgid "Exporting %s"
+msgstr ""
+
+msgid "Exporting"
+msgstr ""
+
+msgid "Writing temp file"
+msgstr ""
+
+#, python-format
+msgid "Writing %s temp file"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Compressing files"
+msgstr ""
+
+msgid "Nodes"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Node states"
+msgstr ""
+
+msgid "Awards"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "tar.gz"
+msgstr ""
+
+msgid "zip"
+msgstr ""
+
+msgid "File format"
+msgstr ""
+
+msgid "File format of the compressed backup"
+msgstr ""
+
+msgid "Anonymized data"
+msgstr ""
+
+msgid "Don't export user data and make all content anonymous"
+msgstr ""
+
+msgid "Uploaded files"
+msgstr ""
+
+msgid "Include uploaded files in the backup"
+msgstr ""
+
+msgid "Skins folder"
+msgstr ""
+
+msgid "Include skins folder in the backup"
+msgstr ""
+
+msgid "Backup file"
+msgstr ""
+
+msgid "A backup made with the XML data exporter (zip or tar.gz)"
+msgstr ""
+
+msgid "The file is not a zip or tar.gz backup."
+msgstr ""
+
+msgid "The file is not an OSQA backup (backup.inf is missing)."
+msgstr ""
+
+msgid "Backups with anonymized data cannot be imported."
+msgstr ""
+
+#, python-format
+msgid "Importing %s"
+msgstr ""
+
+msgid "Importing"
+msgstr ""
+
+msgid "Exporter settings"
+msgstr ""
+
+msgid "Data export settings"
+msgstr ""
+
+msgid "Backups storage"
+msgstr ""
+
+msgid "A folder to keep your backups organized."
+msgstr ""
+
+msgid "XML data exporter"
+msgstr ""
+
+msgid "Export database to XML format"
+msgstr ""
+
+msgid "Available backups"
+msgstr ""
+
+msgid "Start new backup"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "XML data importer"
+msgstr ""
+
+msgid "Import data from dump file"
+msgstr ""
+
+msgid ""
+"Restore the users, questions, answers, comments, votes, tags and awards of a "
+"backup made with the XML data exporter. The data is added to this site; "
+"users with the same email address are merged."
+msgstr ""
+
+msgid "Restore data from a previous export"
+msgstr ""
+
+msgid "Skipped"
+msgstr ""
+
+msgid "Your backup is ready to be downloaded."
+msgstr ""
+
+msgid "All data sucessfully imported."
+msgstr ""
+
+msgid "An error has occurred during the export proccess"
+msgstr ""
+
+msgid "An error has occurred during the import proccess"
+msgstr ""
+
+msgid "Please check the log file for a full stack trace."
+msgstr ""
+
+msgid "Please wait while we prepare your backup file to download."
+msgstr ""
+
+msgid "Please wait while we import your data."
+msgstr ""
+
+msgid ""
+"\n"
+"            Started <span id=\"time_started\"></span>\n"
+"        "
+msgstr ""
+
+msgid "Download file"
+msgstr ""
+
+msgid "Total progress"
+msgstr ""
+
+msgid " of "
+msgstr ""
+
+msgid "exporter"
+msgstr ""
+
+msgid "XML data export"
+msgstr ""
+
+msgid "importer"
+msgstr ""
+
+msgid "XML data import"
+msgstr ""
+
+msgid "The file is not a valid backup."
+msgstr ""
+
+msgid ""
+"Login failed. Please enter valid username and password (both are case-"
+"sensitive)"
+msgstr ""
+
+msgid ""
+"Login failed - LDAP bind error. Please contact your system administrator"
+msgstr ""
+
+msgid "LDAP settings"
+msgstr ""
+
+msgid "LDAP configuration for OSQA"
+msgstr ""
+
+msgid "LDAP Server"
+msgstr ""
+
+msgid "The hostname of your organization's LDAP server"
+msgstr ""
+
+msgid "Check to use TLS"
+msgstr ""
+
+msgid "DN for binding"
+msgstr ""
+
+msgid ""
+"Enter the DN to use to bind to the LDAP server (leave blank for anonymous "
+"bind)"
+msgstr ""
+
+msgid "Password for binding"
+msgstr ""
+
+msgid "Password for binding DN above"
+msgstr ""
+
+msgid "Base DN"
+msgstr ""
+
+msgid "The Base DN used to search for users"
+msgstr ""
+
+msgid "User Mask"
+msgstr ""
+
+msgid "The mask to query for a User"
+msgstr ""
+
+msgid "uid field"
+msgstr ""
+
+msgid "ldap field that holds the uid (sAMAccountName in AD)"
+msgstr ""
+
+msgid "Name field"
+msgstr ""
+
+msgid "ldap field that holds the full name (displayName in AD)"
+msgstr ""
+
+msgid "DN field"
+msgstr ""
+
+msgid "ldap field that holds the distinguished name (distinguishedName in AD)"
+msgstr ""
+
+msgid "email field"
+msgstr ""
+
+msgid "ldap field that holds the email"
+msgstr ""
+
+msgid "Enter your LDAP user name and password"
+msgstr ""
+
+msgid "Login name"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Please enter valid username and password (both are case-sensitive)."
+msgstr ""
+
+msgid "Login failed."
+msgstr ""
+
+msgid "This user is not a valid user"
+msgstr ""
+
+msgid "Please enter username and password"
+msgstr ""
+
+msgid "Please enter your password"
+msgstr ""
+
+msgid "Please enter user name"
+msgstr ""
+
+msgid "Enter your local user name and password"
+msgstr ""
+
+msgid "or select your external provider above"
+msgstr ""
+
+msgid "Create account"
+msgstr ""
+
+msgid "Forgot your password?"
+msgstr ""
+
+msgid "Could not contact the login provider. Please try again later."
+msgstr ""
+
+msgid "This login method is not configured."
+msgstr ""
+
+msgid "The login was cancelled or refused by the provider."
+msgstr ""
+
+msgid "The login request expired or is invalid. Please try again."
+msgstr ""
+
+msgid "The login provider did not return an authorization code."
+msgstr ""
+
+msgid "The login provider did not return an access token."
+msgstr ""
+
+msgid "The login provider did not return a user id."
+msgstr ""
+
+msgid "Google client ID"
+msgstr ""
+
+msgid ""
+"OAuth client ID from the Google Cloud console (APIs & Services > "
+"Credentials). Authorized redirect URI: <APP_URL>/account/google/done/"
+msgstr ""
+
+msgid "Google client secret"
+msgstr ""
+
+msgid "GitHub client ID"
+msgstr ""
+
+msgid ""
+"From a GitHub OAuth app (Settings > Developer settings > OAuth Apps). "
+"Authorization callback URL: <APP_URL>/account/github/done/"
+msgstr ""
+
+msgid "GitHub client secret"
+msgstr ""
+
+msgid "Facebook app ID"
+msgstr ""
+
+msgid ""
+"From developers.facebook.com (Facebook Login product). Valid OAuth redirect "
+"URI: <APP_URL>/account/facebook/done/"
+msgstr ""
+
+msgid "Facebook app secret"
+msgstr ""
+
+#, python-format
+msgid "Sign in with %(name)s"
+msgstr ""
+
+msgid "Bug Buster"
+msgstr ""
+
+#, python-format
+msgid "Got %s upvotes in a question tagged with \"bug\""
+msgstr ""
+
+msgid "Invalid captcha, please try again."
+msgstr ""
+
+#, python-format
+msgid "The dump has no %s.xml file."
+msgstr ""
+
+#, python-format
+msgid "user-%(id)s"
+msgstr ""
+
+#, python-format
+msgid "user-%(id)s (google)"
+msgstr ""
+
+#, python-format
+msgid "user-%(id)s (yahoo)"
+msgstr ""
+
+msgid "SX Importer"
+msgstr ""
+
+msgid "Welcome to Stack Exchange dump importer."
+msgstr ""
+
+msgid "Your user id in stack exchange"
+msgstr ""
+
+msgid "Merge users with same user name and email"
+msgstr ""
+
+#, python-format
+msgid "The dump contains an invalid file name: %s"
+msgstr ""
+
+msgid "The dump was imported."
+msgstr ""
+
+msgid "The dump is not a zip file."
+msgstr ""
+
+#, python-format
+msgid "The import failed: %s"
+msgstr ""
