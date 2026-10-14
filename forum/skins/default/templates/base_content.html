@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- base_content.html -->
-{% load i18n extra_tags extra_filters ui_registry seo_tags %}
+{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags %}
 <html lang="{{ settings.LANGUAGE_CODE }}"{% if settings.DARK_MODE %} data-color-scheme="auto"{% endif %}>
     <head>{% block after_head_js %}{% endblock %}
         <meta charset="utf-8" />
@@ -8,6 +8,7 @@
         <meta name="theme-color" content="#2c5aa0" />{% if settings.DARK_MODE %}
         <meta name="color-scheme" content="light dark" />{% endif %}
         <meta name="csrf-token" content="{{ csrf_token }}" />
+        {% sentry_browser %}
         <title>{% block fulltitle %}{% block title %}{% endblock %} - {{ settings.APP_SHORT_NAME }}{% endblock %}</title>
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />

@@ -218,7 +218,7 @@ def error_handler(request):
         log_msg = "error executing request:\n%s" % stacktrace
 
 
-    logging.error(log_msg)
+    logging.getLogger('forum.errors').error(log_msg)
     return HttpResponseIntServerError(request)
 
 
@@ -234,8 +234,10 @@ def csp_report(request):
         except (ValueError, AttributeError):
             report = {}
         if isinstance(report, dict):
-            security_log.event('csp_blocked', request, logging.WARNING,
-                               directive=str(report.get('violated-directive', ''))[:100],
-                               blocked=str(report.get('blocked-uri', ''))[:200],
-                               page=str(report.get('document-uri', ''))[:200])
+            directive = str(report.get('violated-directive', ''))[:100]
+            blocked = str(report.get('blocked-uri', ''))[:200]
+            page = str(report.get('document-uri', ''))[:200]
+            security_log.event('csp_blocked', request, logging.WARNING, directive=directive, blocked=blocked, page=page)
+            from forum.utils.sentry import capture_csp_violation
+            capture_csp_violation(directive, blocked, page)
     return HttpResponse(status=204)

@@ -17,6 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+# Version reported to Sentry, e.g. docker build --build-arg SENTRY_RELEASE=osqa@$(git rev-parse --short=12 HEAD)
+ARG SENTRY_RELEASE=""
+ENV SENTRY_RELEASE=${SENTRY_RELEASE}
+
 # Run as an unprivileged user; only the runtime data directories are writable.
 RUN useradd --system --home-dir /app osqa \
     && mkdir -p /app/log /app/cache /app/tmp /app/forum/upfiles \

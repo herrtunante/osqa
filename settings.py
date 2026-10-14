@@ -165,15 +165,38 @@ if APP_PROTOCOL == 'https':
     # Redirecting needs to know which requests are HTTPS: directly, or from the proxy header.
     globals().setdefault('SECURE_SSL_REDIRECT', bool(globals().get('SECURE_PROXY_SSL_HEADER')))
 
-# Error reports to Sentry (or a compatible service) when SENTRY_DSN is set and
-# sentry-sdk is installed. Request bodies, cookies and user details are not sent.
-SENTRY_DSN = globals().get('SENTRY_DSN') or os.environ.get('SENTRY_DSN', '')
-if SENTRY_DSN:
+# Sentry error reporting (https://docs.sentry.io). SENTRY_DSN reports server
+# errors; SENTRY_FRONTEND_DSN reports JavaScript errors in visitors' browsers
+# (defaults to SENTRY_DSN; set it to 'off' to turn browser reporting off). Each
+# can also come from the environment variable of the same name. Request bodies,
+# cookies, IP addresses and emails are never sent; signed-in users are
+# identified by their numeric id only.
+def _setting(name, default=''):
+    return globals()[name] if name in globals() else (os.environ.get(name) or default)
+
+SENTRY_DSN = _setting('SENTRY_DSN')
+SENTRY_FRONTEND_DSN = _setting('SENTRY_FRONTEND_DSN', SENTRY_DSN)
+if SENTRY_FRONTEND_DSN == 'off':
+    SENTRY_FRONTEND_DSN = ''
+SENTRY_ENVIRONMENT = _setting('SENTRY_ENVIRONMENT', 'production')
+# Share of requests traced for performance (0 to 1); 0 sends errors only.
+SENTRY_TRACES_SAMPLE_RATE = float(_setting('SENTRY_TRACES_SAMPLE_RATE', 0) or 0)
+SENTRY_RELEASE = _setting('SENTRY_RELEASE')
+if not SENTRY_RELEASE and (SENTRY_DSN or SENTRY_FRONTEND_DSN):
     try:
-        import sentry_sdk
-        sentry_sdk.init(dsn=SENTRY_DSN, send_default_pii=False, max_request_body_size='never')
-    except ImportError:
-        print('SENTRY_DSN is set but sentry-sdk is not installed: pip install sentry-sdk', file=sys.stderr)
+        import subprocess
+        SENTRY_RELEASE = 'osqa@' + subprocess.run(
+            ['git', 'rev-parse', '--short=12', 'HEAD'], cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+    except Exception:
+        SENTRY_RELEASE = ''
+if SENTRY_DSN:
+    from forum.utils.sentry import init_server
+    if not init_server(SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE, SENTRY_TRACES_SAMPLE_RATE):
+        print('SENTRY_DSN is set but sentry-sdk is not installed: pip install -r requirements.txt', file=sys.stderr)
+    else:
+        MIDDLEWARE.insert(MIDDLEWARE.index('forum.middleware.extended_user.ExtendedUser') + 1,
+                          'forum.middleware.sentry.SentryUserMiddleware')
 
 FORCE_SCRIPT_NAME = ''
 

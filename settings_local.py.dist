@@ -71,8 +71,14 @@ SECRET_KEY = ''
 # redirected to HTTPS. Leave it 0 if visitors reach OSQA directly.
 #TRUSTED_PROXY_COUNT = 1
 
-# Error reports to Sentry (pip install sentry-sdk), or set SENTRY_DSN in the environment:
-#SENTRY_DSN = 'https://...@sentry.io/...'
+# Sentry error reports (or the environment variables of the same names).
+# SENTRY_DSN: server errors. SENTRY_FRONTEND_DSN: JavaScript errors in the
+# browser; defaults to SENTRY_DSN (use a separate JavaScript project if you
+# like), 'off' turns it off.
+#SENTRY_DSN = 'https://<key>@o<org>.ingest.sentry.io/<project>'
+#SENTRY_FRONTEND_DSN = 'https://<key>@o<org>.ingest.sentry.io/<project>'
+#SENTRY_ENVIRONMENT = 'production'
+#SENTRY_TRACES_SAMPLE_RATE = 0.0   # e.g. 0.1 to trace 10% of requests
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }

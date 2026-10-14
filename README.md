@@ -100,8 +100,21 @@ are mounted from the host, not baked into the image.
   actions table with user and IP.
 - **Log files:** `settings_local.py.dist` rotates them at 10 MB.
 - **Error alerts:** server errors are emailed through the forum's email settings
-  to `ADMINS` (or the superusers), at most once per error every 10 minutes. For
-  Sentry, `pip install sentry-sdk` and set `SENTRY_DSN`.
+  to `ADMINS` (or the superusers), at most once per error every 10 minutes.
+  With Sentry (below) you can drop the `admin_email` handler from `LOGGING`.
+- **Sentry:** set `SENTRY_DSN` (settings or environment) to report server
+  errors. Browser JavaScript errors and session health go to
+  `SENTRY_FRONTEND_DSN`, which defaults to the same DSN (use a separate
+  JavaScript project if you prefer; `off` turns it off).
+  - Other settings: `SENTRY_ENVIRONMENT` (default `production`),
+    `SENTRY_RELEASE` (default `osqa@<git commit>`; for Docker pass
+    `--build-arg SENTRY_RELEASE=...`) and `SENTRY_TRACES_SAMPLE_RATE`
+    (performance tracing, default 0).
+  - Blocked content (CSP reports) arrives as warnings.
+  - No request bodies, cookies, IP addresses, emails or log lines with them are
+    sent. Signed-in users appear by numeric id only.
+  - The browser SDK is self-hosted (`media/vendor/sentry-10.75.3`, see its
+    README) and loads before the other scripts.
 - **Health check:** `/healthz` returns `ok` when the app and database respond. It
   works on any host name and during maintenance; the Docker image uses it.
 - **Dependencies:** CI runs `pip-audit`, and Dependabot proposes updates weekly.

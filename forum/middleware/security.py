@@ -55,14 +55,16 @@ def content_security_policy(request):
         return None
     if configured:
         return configured
+    from forum.utils.sentry import frontend_dsn, dsn_origin
     extra = ' '.join(str(settings.CSP_EXTRA_SOURCES).split())
     with_extra = lambda sources: ('%s %s' % (sources, extra)).strip()
+    sentry = dsn_origin(frontend_dsn())  # where browser errors are reported
     policy = [
         "default-src 'self'",
         "script-src " + with_extra("'self' 'unsafe-inline' %s %s" % (GOOGLE, ANALYTICS)),
         "style-src " + with_extra("'self' 'unsafe-inline' %s https://fonts.googleapis.com" % GOOGLE),
         "font-src " + with_extra("'self' data: https://fonts.gstatic.com"),
-        "connect-src " + with_extra("'self' %s %s" % (GOOGLE, ANALYTICS)),
+        "connect-src " + with_extra(("'self' %s %s %s" % (GOOGLE, ANALYTICS, sentry)).strip()),
         "frame-src " + with_extra("'self' %s" % GOOGLE),
         # Posts may show images from anywhere.
         "img-src * data: blob:",
