@@ -28,6 +28,7 @@ class ExtendedUser(AuthenticationMiddleware):
                     logout(request)
                     return forward_suspended_user(request, user)
 
+                request.user.touch_last_seen()
                 return None
             except Exception as e:
                 import traceback

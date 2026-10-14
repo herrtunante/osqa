@@ -1,0 +1,6 @@
+#!/bin/sh
+# Daily: delete dormant (bot) accounts, see Admin > Users settings >
+# "Delete dormant accounts after". Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py cleanup_inactive_users

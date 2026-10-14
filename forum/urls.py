@@ -35,6 +35,10 @@ core_urls = [
 
 
     re_path(r'^sitemap.xml$', sitemap_index, {'sitemaps': sitemaps}),
+    re_path(r'^llms\.txt$', app.agents.llms_txt, name='llms_txt'),
+    re_path(r'^export/qa\.jsonl$', app.agents.qa_export, name='qa_export'),
+    re_path(r'^mcp/?$', app.agents.mcp, name='mcp'),
+    re_path(r'^ai-suggestions/(?P<id>\d+)/(?P<verdict>helpful|remove)/$', app.agents.ai_suggestion_feedback, name='ai_suggestion_feedback'),
     re_path(r'^sitemap-(?P<section>.+)-(?P<page>\d+)\.xml$', sitemap, {'sitemaps': sitemaps}, name="sitemap_section_page"),
     re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap_section_index, {'sitemaps': sitemaps}, name="sitemap_section_index"),
 
@@ -89,6 +93,7 @@ core_urls = [
     re_path(r'^%s(?P<id>\d+)/' % _('wikify/'), app.commands.wikify, name='wikify'),
     
     re_path(r'^%s(?P<id>\d+)/(?P<slug>[\w-]*)$' % _('question/'), redirect, {'url': '/questions/%(id)s/%(slug)s'}),
+    re_path(r'^%s(?P<id>\d+)\.md$' % _('questions/'), app.agents.question_md, name='question_markdown'),
     re_path(r'^%s(?P<id>\d+)/?$' % _('questions/'), app.readers.question, name='question'),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)/(?P<answer>\d+)$' % _('questions/'), app.readers.question),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)$' % _('questions/'), app.readers.question, name='question'),
@@ -153,6 +158,7 @@ core_urls = [
     re_path(r'^%s%s(?P<set_name>\w+)/(?P<var_name>\w+)/$' % (_('admin/'), _('settings/')), app.admin.get_default, name='admin_default'),
     re_path(r'^%s%s$' % (_('admin/'), _('maintenance/')), app.admin.maintenance, name='admin_maintenance'),
     re_path(r'^%s%s$' % (_('admin/'), _('flagged_posts/')), app.admin.flagged_posts, name='admin_flagged_posts'),
+    re_path(r'^%s%s(?P<id>\d+)/$' % (_('admin/'), _('moderation_reports/')), app.admin.resolve_moderation_report, name='admin_resolve_moderation_report'),
     re_path(r'^%s%s$' % (_('admin/'), _('static_pages/')), app.admin.static_pages, name='admin_static_pages'),
     
     re_path(r'^%s%s%s$' % (_('admin/'), _('static_pages/'), _('new/')), app.admin.edit_page, name='admin_new_page'),

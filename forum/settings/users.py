@@ -116,3 +116,23 @@ widget=RadioSelect,
 choices=GRAVATAR_DEFAULT_CHOICES,
 required=False))
 
+
+SIGNUP_MIN_SECONDS = Setting('SIGNUP_MIN_SECONDS', 3, USERS_SET, dict(
+label = _("Minimum time to fill in the sign-up form"),
+help_text = _("Seconds. Sign-up forms sent faster than this, or with the hidden trap field filled in, are refused: "
+              "bots do that, people don't. 0 turns the time check off.")))
+
+SIGNUP_LIMIT_PER_IP = Setting('SIGNUP_LIMIT_PER_IP', 5, USERS_SET, dict(
+label = _("Sign-ups per IP address per hour"),
+help_text = _("New accounts allowed from one IP address within an hour. 0 means no limit.")))
+
+PROFILE_LINKS_MIN_REP = Setting('PROFILE_LINKS_MIN_REP', 25, USERS_SET, dict(
+label = _("Reputation for profile links"),
+help_text = _("Below this reputation a user's website and the links in their \"about me\" are shown as plain text, "
+              "and their profile page asks search engines not to index it, so spam accounts gain nothing from it.")))
+
+INACTIVE_ACCOUNT_DAYS = Setting('INACTIVE_ACCOUNT_DAYS', 15, USERS_SET, dict(
+label = _("Delete dormant accounts after (days)"),
+help_text = _("The cleanup_inactive_users command (run daily from cron) deletes accounts older than this that never "
+              "confirmed their email, never posted, voted or did anything else, and haven't logged in during that "
+              "time. Staff accounts are never deleted. 0 turns it off.")))

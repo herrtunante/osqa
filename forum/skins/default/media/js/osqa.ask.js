@@ -17,6 +17,12 @@ $(function () {
     $('#id_tags').focus(function(){changeSideBar('div#tags_side_bar')});
 });
 
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function(c) {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+    });
+}
+
 $(function() {
     var $input = $('#id_title');
     var $box = $('#ask-related-questions');
@@ -57,10 +63,11 @@ $(function() {
 
                 var html = '';
                 for (var i = 0; i < data.length; i++) {
-                    var item = template.replace(new RegExp('%URL%', 'g'), data[i].url)
-                                       .replace(new RegExp('%SCORE%', 'g'), data[i].score)
-                                       .replace(new RegExp('%TITLE%', 'g'), data[i].title)
-                                       .replace(new RegExp('%SUMMARY%', 'g'), data[i].summary);
+                    // Titles and summaries are user text: escape before templating.
+                    var item = template.replace(new RegExp('%URL%', 'g'), escapeHtml(data[i].url))
+                                       .replace(new RegExp('%SCORE%', 'g'), escapeHtml(data[i].score))
+                                       .replace(new RegExp('%TITLE%', 'g'), escapeHtml(data[i].title))
+                                       .replace(new RegExp('%SUMMARY%', 'g'), escapeHtml(data[i].summary));
 
                     html += item;
 
@@ -81,8 +88,11 @@ $(function() {
         });
     }
 
-    $input.keyup(reload_suggestions_box);
-    $input.focus(reload_suggestions_box);
+    var suggestions_timer = null;
+    $input.on('keyup focus', function() {
+        clearTimeout(suggestions_timer);
+        suggestions_timer = setTimeout(reload_suggestions_box, 300);
+    });
 
     $editor.change(function() {
         if ($editor.html().length > 10) {
@@ -101,4 +111,103 @@ $(function() {
             $('#editor')[0].focus();
         }
     }
+});
+
+// AI duplicate detection (forum_modules/ai): after a pause in typing the title,
+// ask the server which existing questions ask the same thing.
+$(function() {
+    var url = window.ai_duplicates_url;
+    var $title = $('#id_title'), $box = $('#ask-duplicates');
+    if (!url || !$title.length || !$box.length) return;
+
+    var timer = null, last = '', request = 0, dismissed = {};
+
+    function render(title, duplicates) {
+        if (!duplicates.length || dismissed[title]) {
+            $box.prop('hidden', true).empty();
+            return;
+        }
+        var html = '<div class="ask-duplicates-head"><strong>' + escapeHtml(messages.ai_duplicates_title) +
+                   '</strong><button type="button" class="ask-duplicates-dismiss plain-button">' +
+                   escapeHtml(messages.ai_duplicates_dismiss) + '</button></div><ul>';
+        $.each(duplicates, function(i, d) {
+            var status = d.accepted ? messages.ai_duplicates_accepted :
+                         (d.answers == 1 ? messages.ai_duplicates_answer : messages.ai_duplicates_answers.replace('%s', d.answers));
+            html += '<li><a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener">' + escapeHtml(d.title) + '</a>' +
+                    ' <span class="ask-duplicates-status' + (d.accepted ? ' accepted' : '') + '">' + escapeHtml(status) + '</span>' +
+                    '<div class="ask-duplicates-reason">' + escapeHtml(d.reason) + '</div></li>';
+        });
+        $box.html(html + '</ul><p class="ask-duplicates-note">' + escapeHtml(messages.ai_duplicates_note) + '</p>')
+            .prop('hidden', false);
+    }
+
+    function check() {
+        var title = $.trim($title.val());
+        if (title === last) return;
+        last = title;
+        var id = ++request;
+        if (title.length < 15 || title.split(/\s+/).length < 3) {
+            render(title, []);
+            return;
+        }
+        $.post(url, {title: title, text: $('#editor').val() || ''}).done(function(data) {
+            if (id === request) render(title, data.duplicates || []);
+        });
+    }
+
+    $title.on('input', function() {
+        clearTimeout(timer);
+        timer = setTimeout(check, 1200);
+    }).on('blur', check);
+
+    $box.on('click', '.ask-duplicates-dismiss', function() {
+        dismissed[last] = true;
+        $box.prop('hidden', true).empty();
+    });
+});
+
+// AI assistant (forum_modules/ai): an answer from the forum and the
+// documentation before the question is posted.
+$(function() {
+    var url = window.ai_assistant_url;
+    var $button = $('#ask-assistant-button'), $out = $('#ask-assistant-answer');
+    if (!url || !$button.length) return;
+
+    function show(html) {
+        $out.html(html).prop('hidden', false);
+    }
+
+    $button.on('click', function() {
+        var title = $.trim($('#id_title').val());
+        if (title.length < 15) {
+            show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_title) + '</p>');
+            $('#id_title').focus();
+            return;
+        }
+        $button.prop('disabled', true);
+        show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_working) + '</p>');
+        $.post(url, {title: title, text: $('#editor').val() || ''}).done(function(data) {
+            if (data.insufficient) {
+                // Nothing in the forum or the documentation covers it: no answer is shown.
+                var reason = data.html ? '<div class="ask-assistant-body">' + data.html + '</div>' : '';
+                show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_insufficient) + '</p>' + reason);
+                return;
+            }
+            // data.html was rendered and sanitized by the server.
+            var html = '<div class="ask-assistant-body">' + data.html + '</div>';
+            if (data.sources && data.sources.length) {
+                html += '<div class="ai-suggestion-sources"><strong>' + escapeHtml(messages.ai_assistant_sources) + '</strong><ol>';
+                $.each(data.sources, function(i, s) {
+                    html += '<li><a href="' + escapeHtml(s.url) + '" target="_blank" rel="nofollow noopener">' +
+                            escapeHtml(s.title) + '</a> <span class="ai-source-kind">' + escapeHtml(s.kind) + '</span></li>';
+                });
+                html += '</ol></div>';
+            }
+            show(html + '<p class="ai-suggestion-note">' + escapeHtml(messages.ai_assistant_note) + '</p>');
+        }).fail(function(xhr) {
+            show('<p class="ask-assistant-status">' + escapeHtml(xhr.status == 429 ? messages.ai_assistant_limit : messages.ai_assistant_failed) + '</p>');
+        }).always(function() {
+            $button.prop('disabled', false);
+        });
+    });
 });

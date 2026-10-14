@@ -186,6 +186,13 @@ class User(BaseModel, DjangoUser):
     def decorated_name(self):
         return self._decorated_name()
 
+    def touch_last_seen(self):
+        """Record that the user is using the site (at most once an hour)."""
+        from django.core.cache import cache
+        if cache.add('user-seen:%d' % self.id, True, 3600):
+            self.last_seen = datetime.datetime.now()
+            User.objects.filter(id=self.id).update(last_seen=self.last_seen)
+
     @property
     def last_activity(self):
         try:
@@ -503,6 +510,11 @@ class UserPropertyDict(object):
 
 
     def __getattr__(self, name):
+        # copy/pickle probe special names (__setstate__, __deepcopy__, ...),
+        # also on instances rebuilt without __init__: those are not properties.
+        if name.startswith('__') or '_user' not in self.__dict__:
+            raise AttributeError(name)
+
         if self.__dict__.get(name, None):
             return self.__dict__[name]
 

@@ -45,6 +45,7 @@ class RecaptchaTest(OSQATestCase):
         data = {
             'username': 'carol', 'email': 'carol@example.com',
             'password1': 's3cret-pass', 'password2': 's3cret-pass', 'next': '/',
+            'form_token': self.signup_token(),
         }
         data.update(extra)
         return self.client.post('/account/local/register/', data, REMOTE_ADDR='10.1.2.3')

@@ -18,9 +18,9 @@ from forum.forms import MaintenanceModeForm, PageForm, CreateUserForm
 from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
 from forum.utils.mail import send_template_email
-from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag
+from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
-from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction
+from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction, SuspendAction
 from forum import settings
 
 TOOLS = {}
@@ -362,7 +362,55 @@ def maintenance(request):
 def flagged_posts(request):
     return ('osqaadmin/flagged_posts.html', {
     'flagged_posts': get_flagged_posts(),
+    'moderation_reports': ModerationReport.open_reports()[:50],
     })
+
+
+@require_POST
+@staff_user_required
+def resolve_moderation_report(request, id):
+    """Dismiss an automated report, or act on it: delete the reported post,
+    or suspend / delete the reported account."""
+    report = get_object_or_404(ModerationReport, id=id)
+    resolution = request.POST.get('resolution')
+
+    if report.node_id:
+        node = report.node.leaf
+        if resolution == 'delete':
+            if not node.nis.deleted:
+                DeleteAction(user=request.user, node=node, ip=request.META['REMOTE_ADDR']).save()
+            messages.info(request, _("The post has been deleted."))
+            resolution = 'deleted'
+        else:
+            resolution = 'dismissed'
+        reports = ModerationReport.objects.filter(node=report.node, resolved_at=None)
+    else:
+        target = report.user
+        if target.is_staff or target.is_superuser:
+            resolution = 'dismissed'
+        if resolution == 'delete_account':
+            if Node.objects.filter(author=target).exists():
+                messages.error(request, _("This account has posts; suspend it instead."))
+                return HttpResponseRedirect(reverse('admin_flagged_posts'))
+            messages.info(request, _("The account %s has been deleted.") % target.username)
+            target.delete()  # also removes its reports
+            return HttpResponseRedirect(reverse('admin_flagged_posts'))
+        if resolution == 'suspend':
+            if not target.is_suspended():
+                SuspendAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data={
+                    'bantype': 'indefinitely', 'publicmsg': _('Spam account'), 'suspended': target})
+            messages.info(request, _("The account %s has been suspended.") % target.username)
+            resolution = 'suspended'
+        else:
+            resolution = 'dismissed'
+        reports = ModerationReport.objects.filter(user=target, resolved_at=None)
+
+    if resolution == 'dismissed':
+        messages.info(request, _("The report has been dismissed."))
+    for open_report in reports:
+        open_report.resolve(request.user, resolution)
+
+    return HttpResponseRedirect(reverse('admin_flagged_posts'))
 
 @admin_page
 def static_pages(request):

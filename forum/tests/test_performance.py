@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -18,6 +20,14 @@ class QueryCountTest(OSQATestCase):
 
     def setUp(self):
         super().setUp()
+        # Settings keep their values in memory for a few seconds of wall-clock
+        # time; if that ran out between the warm-up request and the measured
+        # one, the measured page would re-read them and the count would vary
+        # with timing. Keep them for the whole test.
+        from forum.settings import base as settings_base
+        patcher = mock.patch.object(settings_base, 'TMP_MINICACHE_SECONDS', 3600)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.users = [self.create_user('user%d' % i, reputation=1000) for i in range(6)]
         self.questions = []
         for i in range(20):

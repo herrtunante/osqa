@@ -1,0 +1,6 @@
+#!/bin/sh
+# Hourly: add AI-suggested answers to questions that are still unanswered.
+# Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py suggest_answers

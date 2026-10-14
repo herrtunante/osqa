@@ -2741,16 +2741,17 @@ h3.or_label::before, h3.or_label::after {
         --button-bg-hover: #3b7ee8;
     }
 
-    /* White text needs a deeper blue/green than the link colours. */
+    /* White text needs a deeper blue/green than the link colours. Outline-style
+       buttons (.plain-button) keep their own colours. */
     :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes,
-            .paginator .curr):not(.dialog-no):not(.search-type):not(.account-delete-button),
+            .paginator .curr):not(.dialog-no):not(.search-type):not(.account-delete-button):not(.plain-button),
     :root[data-color-scheme="auto"] #searchBar .searchBtn {
         border-color: var(--button-bg);
         background-color: var(--button-bg);
         color: #fff;
     }
 
-    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):not(.account-delete-button):hover,
+    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):not(.account-delete-button):not(.plain-button):hover,
     :root[data-color-scheme="auto"] #searchBar .searchBtn:hover {
         border-color: var(--button-bg-hover);
         background-color: var(--button-bg-hover);
@@ -2825,4 +2826,249 @@ h3.or_label::before, h3.or_label::after {
     :root[data-color-scheme="auto"] img {
         color-scheme: light;
     }
+}
+
+/* ---- AI duplicate detection on the ask page ------------------------- */
+
+.ask-duplicates {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--warn-border);
+    border-radius: var(--radius);
+    background: var(--warn-bg);
+    color: var(--text);
+}
+
+.ask-duplicates[hidden] {
+    display: none;
+}
+
+.ask-duplicates-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--warn-text);
+}
+
+.ask-duplicates-dismiss {
+    flex: none;
+    padding: 4px 10px;
+    border: 1px solid var(--warn-border-strong);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--warn-text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ask-duplicates ul {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ask-duplicates li {
+    padding: 8px 0;
+    border-top: 1px solid var(--warn-border);
+}
+
+.ask-duplicates li a {
+    font-weight: 600;
+}
+
+.ask-duplicates-status {
+    margin-left: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.ask-duplicates-status.accepted {
+    color: var(--success);
+}
+
+.ask-duplicates-reason {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ask-duplicates-note {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---- Admin > Flagged posts: automated reports ----------------------- */
+
+.moderation-report td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.moderation-verdict {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.moderation-verdict-off_topic {
+    background: var(--warn-bg);
+    color: var(--warn-text);
+}
+
+.moderation-meta, .moderation-excerpt {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.moderation-post {
+    margin: 6px 0;
+}
+
+.moderation-reason {
+    margin: 6px 0;
+    padding-left: 10px;
+    border-left: 3px solid var(--border-strong);
+}
+
+.moderation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.moderation-actions button {
+    padding: 6px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.moderation-actions .moderation-delete {
+    border-color: var(--danger-text);
+    color: var(--danger-text);
+}
+
+/* ---- AI assistant (ask page) and suggested answers ---------------- */
+
+.ask-assistant {
+    margin: 0 0 18px;
+}
+
+.ask-assistant-hint {
+    margin-left: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ask-assistant button, .ai-suggestion-actions button {
+    padding: 6px 12px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--brand);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.ask-assistant button:disabled {
+    opacity: .6;
+    cursor: progress;
+}
+
+.ask-assistant-answer, .ai-suggestion {
+    margin-top: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--info-border, var(--border));
+    border-left: 4px solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+    color: var(--text);
+}
+
+.ask-assistant-answer[hidden] {
+    display: none;
+}
+
+.ask-assistant-status {
+    margin: 0 0 6px;
+    color: var(--muted);
+}
+
+.ai-suggestion {
+    margin: 20px 0;
+}
+
+.ai-suggestion-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ai-suggestion-head h2 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.ai-suggestion-badge {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.ai-suggestion-marked {
+    color: var(--success);
+    font-size: 13px;
+}
+
+.ai-suggestion-sources {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.ai-suggestion-sources ol {
+    margin: 4px 0 0;
+    padding-left: 22px;
+}
+
+.ai-source-kind {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.ai-suggestion-note {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.ai-suggestion-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ai-suggestion-actions form {
+    margin: 0;
 }

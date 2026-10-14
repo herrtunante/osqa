@@ -56,7 +56,8 @@ class OAuth2LoginTest(OSQATestCase):
         return self.client.session.get('_auth_user_id')
 
     def register(self, **fields):
-        data = {'bnewaccount': '1', 'next': '/', 'username_validation': '', 'username_validation_sum': '14'}
+        data = {'bnewaccount': '1', 'next': '/', 'username_validation': '', 'username_validation_sum': '14',
+                'form_token': self.signup_token()}
         data.update(fields)
         return self.client.post('/account/register/', data)
 

@@ -6,6 +6,10 @@ markdown==3.11
 nh3==0.3.7
 html2text==2025.4.15
 
+# Google Gemini (Gemini API or Vertex AI), for the optional AI module (forum_modules/ai)
+google-genai==2.30.0
+numpy==2.5.4
+
 # Database driver for the default MySQL setup (needs the MySQL client headers,
 # e.g. apt-get install default-libmysqlclient-dev pkg-config)
 mysqlclient==2.3.0

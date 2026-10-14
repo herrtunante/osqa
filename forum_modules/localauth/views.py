@@ -5,12 +5,15 @@ from django.utils.translation import gettext as _
 from .forms import ClassicRegisterForm
 from forum.views.auth import login_and_forward
 from forum.actions import UserJoinsAction
+from forum.utils.antispam import signup_limit_reached, count_signup
 
 def register(request):
     if request.method == 'POST':
         form = ClassicRegisterForm(request.POST)
 
-        if form.is_valid():
+        if signup_limit_reached(request):
+            form.add_error(None, _("Too many accounts have been created from your network recently. Please try again later."))
+        elif form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password1']
             email = form.cleaned_data['email']
@@ -23,6 +26,7 @@ def register(request):
                 user_.is_staff = True
 
             user_.save()
+            count_signup(request)
             UserJoinsAction(user=user_, ip=request.META['REMOTE_ADDR']).save()
 
             return login_and_forward(request, user_, None, _("A welcome email has been sent to your email address. "))
