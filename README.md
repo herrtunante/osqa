@@ -1,8 +1,14 @@
-# OSQA
+# OSQA, Open Foris edition
 
 OSQA is an open source Q&A site (questions, answers, comments, voting, tags,
-reputation, badges and moderation), originally from osqa.net. This fork runs on
-**Django 5.2 LTS and Python 3.12+**.
+reputation, badges and moderation), originally from osqa.net. This is the
+edition maintained by [Open Foris](https://openforis.org/) for its support
+forum; it runs on **Django 5.2 LTS and Python 3.12+**.
+
+Any organisation can use it for its own Q&A community: the code is free and
+open source (GPL v3) at <https://github.com/openforis/osqa>. Follow the setup
+below, change the name, logo, colours and texts in the admin, and turn the
+optional modules (social login, AI assistance, spam checks) on or off.
 
 ## Requirements
 
@@ -41,8 +47,10 @@ site refuses to start without one.
 - Cache: the model layer caches objects and query results, so the cache must be
   shared by all worker processes. `settings_local.py.dist` uses a file cache;
   memcached is recommended. The per-process local-memory cache is not suitable.
-- Behind HTTPS, enable the settings listed in `settings_local.py.dist`
-  (`SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`).
+- HTTPS: with an `https://` `APP_URL`, secure cookies and HSTS are on by default.
+  Behind a reverse proxy set `TRUSTED_PROXY_COUNT = 1` (or `OSQA_TRUSTED_PROXIES=1`,
+  the docker-compose default): visitor IPs then come from `X-Forwarded-For` and
+  HTTP is redirected to HTTPS. See "Security and logging" below.
 - Email digests: run `cron/send_email_alerts` daily.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
@@ -59,6 +67,66 @@ docker compose up --build
 The container runs gunicorn as an unprivileged user on `127.0.0.1:8000`; put a
 TLS reverse proxy in front of it. `settings_local.py`, uploads, cache and logs
 are mounted from the host, not baked into the image.
+
+## Security and logging
+
+- **Sign-in:** after 5 wrong passwords an account's password sign-in pauses for
+  15 minutes, and one IP address may fail 20 times. "Forgot password" links are
+  limited to 3 per address per hour, work once for 24 hours, and the page never
+  says whether an address has an account.
+- **Passwords:** Django's validators (at least 8 characters, not common, not
+  numeric only, not similar to the username or email). Change them with
+  `AUTH_PASSWORD_VALIDATORS`. Changing a password signs out the account's other sessions.
+- **Posting limits:** questions, answers and comments per user per hour
+  (moderators exempt).
+- **Headers:** Content-Security-Policy (scripts, styles and frames only from the
+  site and the Google services OSQA uses; no plugins; only this site may frame
+  it), Permissions-Policy, plus Django's nosniff, Referrer-Policy and X-Frame-Options.
+  Browsers report blocked content to `/csp-report/`, which goes to the security
+  log. Add origins for your own analytics or widgets in the admin's extra script
+  sources setting; `CONTENT_SECURITY_POLICY_REPORT_ONLY = True` only reports, and
+  `CONTENT_SECURITY_POLICY = None` turns the header off.
+- All the limits above are under Admin > Security.
+- **Security log** (`log/security.log`, logger `forum.security`), one line per event:
+  - failed and paused sign-ins;
+  - sign-in link requests and uses;
+  - password changes;
+  - pages refused to signed-in users;
+  - permission, reputation and settings changes;
+  - maintenance mode;
+  - account deletions;
+  - blocked content.
+- **Moderator actions** (votes, deletions, suspensions, closes, …) stay in the
+  actions table with user and IP.
+- **Log files:** `settings_local.py.dist` rotates them at 10 MB.
+- **Sentry:** set `SENTRY_DSN` (settings or environment) to report server
+  errors. Browser JavaScript errors and session health go to
+  `SENTRY_FRONTEND_DSN`, which defaults to the same DSN (use a separate
+  JavaScript project if you prefer; `off` turns it off).
+  - Other settings: `SENTRY_ENVIRONMENT` (default `production`),
+    `SENTRY_RELEASE` (default `osqa@<git commit>`; for Docker pass
+    `--build-arg SENTRY_RELEASE=...`) and `SENTRY_TRACES_SAMPLE_RATE`
+    (performance tracing, default 0).
+  - Blocked content (CSP reports) arrives as warnings.
+  - Flood protection: each visitor (signed-in user, or IP address) sends at
+    most `SENTRY_MAX_EVENTS_PER_VISITOR` events per hour (default 10) from
+    the server, and the same number from their browser. The browser count is
+    kept in localStorage, so reloading doesn't reset it. Identical repeated
+    errors are merged by Sentry's SDK as well. Because the browser DSN is
+    public, also set a rate limit on the client key in Sentry
+    (Project Settings > Client Keys) to cap deliberate abuse.
+  - No request bodies, cookies, IP addresses, emails or log lines with them are
+    sent. Signed-in users appear by numeric id only.
+  - The browser SDK is self-hosted (`media/vendor/sentry-10.75.3`, see its
+    README) and loads before the other scripts.
+- **Health check:** `/healthz` returns `ok` when the app and database respond. It
+  works on any host name and during maintenance; the Docker image uses it.
+- **Dependencies:** CI runs `pip-audit`, and Dependabot proposes updates weekly.
+
+Existing installations: copy the `LOGGING` block from `settings_local.py.dist`
+into `settings_local.py` to get rotation and the security log.
+Email validation and sign-in links sent before the upgrade stop working, so ask
+for a new one.
 
 ## Upgrading an existing installation
 

@@ -7,12 +7,14 @@ from django.contrib.auth.models import User as DjangoUser, AnonymousUser as Djan
 from django.db.models import Q, Manager
 from django.urls import get_script_prefix
 
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_str, force_bytes
 
 from forum.settings import TRUNCATE_LONG_USERNAMES, TRUNCATE_USERNAMES_LONGER_THAN
 
+import hashlib
+import hmac
+import secrets
 import string
-from random import Random
 
 from django.utils.translation import gettext as _
 import logging
@@ -577,15 +579,15 @@ class SubscriptionSettings(models.Model):
 from forum.utils.time import one_day_from_now
 
 class ValidationHashManager(models.Manager):
-    def _generate_md5_hash(self, user, type, hash_data, seed):
-        # Python 3: md5() requires bytes, not strings
-        hash_string = "%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)
-        return md5(hash_string.encode('utf-8')).hexdigest()
+    def _generate_hash(self, user, type, hash_data, seed):
+        # Keyed with SECRET_KEY: knowing the seed, user and data is not
+        # enough to make a valid link.
+        message = "%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)
+        return hmac.new(force_bytes(django_settings.SECRET_KEY), message.encode('utf-8'), hashlib.sha256).hexdigest()
 
     def create_new(self, user, type, hash_data=[], expiration=None):
-        # Python 3: string.letters renamed to string.ascii_letters
-        seed = ''.join(Random().sample(string.ascii_letters+string.digits, 12))
-        hash = self._generate_md5_hash(user, type, hash_data, seed)
+        seed = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        hash = self._generate_hash(user, type, hash_data, seed)
 
         obj = ValidationHash(hash_code=hash, seed=seed, user=user, type=type)
 
@@ -611,7 +613,7 @@ class ValidationHashManager(models.Manager):
         if obj.user != user:
             return False
 
-        valid = (obj.hash_code == self._generate_md5_hash(obj.user, type, hash_data, obj.seed))
+        valid = hmac.compare_digest(obj.hash_code, self._generate_hash(obj.user, type, hash_data, obj.seed))
 
         if valid:
             if obj.expiration < datetime.datetime.now():

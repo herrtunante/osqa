@@ -17,6 +17,7 @@ from forum.settings.base import Setting
 from forum.forms import MaintenanceModeForm, PageForm, CreateUserForm
 from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
+from forum.utils import security_log
 from forum.utils.mail import send_template_email
 from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
@@ -182,7 +183,9 @@ def settings_set(request, set_name):
                 request.session['previewing_settings'] = current_preview
 
                 if not 'reset' in request.POST:
+                    changed = [name for name in form.changed_data if name in form.fields]
                     form.save()
+                    security_log.event('settings_changed', request, set=set_name, fields=','.join(changed))
                     messages.info(request, _("'%s' settings saved succesfully") % set_name)
 
                     if set_name in ('minrep', 'badges', 'repgain'):
@@ -337,6 +340,7 @@ def maintenance(request):
                 settings.MAINTAINANCE_MODE.set_value({
                 'allow_ips': form.cleaned_data['ips'],
                 'message': form.cleaned_data['message']})
+                security_log.event('maintenance_on', request, allow_ips=','.join(form.cleaned_data['ips']))
 
                 if 'close' in request.POST:
                     message = _('Maintenance mode enabled')
@@ -348,6 +352,7 @@ def maintenance(request):
                 return HttpResponseRedirect(reverse('admin_maintenance'))
         elif 'open' in request.POST:
             settings.MAINTAINANCE_MODE.set_value(None)
+            security_log.event('maintenance_off', request)
             messages.info(request, _("Your site is now running normally"))
             return HttpResponseRedirect(reverse('admin_maintenance'))
     else:
@@ -393,6 +398,7 @@ def resolve_moderation_report(request, id):
                 messages.error(request, _("This account has posts; suspend it instead."))
                 return HttpResponseRedirect(reverse('admin_flagged_posts'))
             messages.info(request, _("The account %s has been deleted.") % target.username)
+            security_log.event('account_deleted', request, account=target, via='moderation report')
             target.delete()  # also removes its reports
             return HttpResponseRedirect(reverse('admin_flagged_posts'))
         if resolution == 'suspend':
@@ -480,7 +486,8 @@ def create_user(request):
                 user_.email_isvalid = True
 
             user_.save()
-            UserJoinsAction(user=user_).save()
+            UserJoinsAction(user=user_, ip=request.META['REMOTE_ADDR']).save()
+            security_log.event('account_created_by_admin', request, account=user_)
 
             messages.info(request, _("New user created sucessfully. %s.") % html.hyperlink(
                     user_.get_profile_url(), _("See %s profile") % user_.username, target="_blank"))

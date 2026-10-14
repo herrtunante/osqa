@@ -29,7 +29,7 @@ class LocalAuthTest(OSQATestCase):
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
         self.assertEqual(len(self.sent_mail), 1)
-        recipient, subject, html, text, media = self.sent_mail[0]
+        recipient, subject, html, text, media, headers = self.sent_mail[0]
         self.assertEqual(recipient, user)
         self.assertIn('Welcome', subject)
         self.assertTrue(text.strip())

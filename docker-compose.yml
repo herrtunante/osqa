@@ -6,6 +6,13 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       OSQA_SECRET_KEY: ${OSQA_SECRET_KEY:?set OSQA_SECRET_KEY (e.g. in .env)}
+      # One reverse proxy in front: read the visitor's IP and HTTPS from its headers.
+      OSQA_TRUSTED_PROXIES: ${OSQA_TRUSTED_PROXIES:-1}
+      # Sentry: server errors (SENTRY_DSN) and browser errors (SENTRY_FRONTEND_DSN,
+      # defaults to SENTRY_DSN; 'off' turns it off).
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_FRONTEND_DSN: ${SENTRY_FRONTEND_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
     volumes:
       - ./settings_local.py:/app/settings_local.py:ro
       - ./forum/upfiles:/app/forum/upfiles

@@ -12,7 +12,9 @@ CACHE_MAX_KEY_LENGTH = 235
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
 # Note: SessionMiddleware must come before CsrfViewMiddleware when using CSRF_USE_SESSIONS
 MIDDLEWARE = [
+    'forum.middleware.security.ClientIPMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'forum.middleware.security.SecurityHeadersMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -140,6 +142,64 @@ app_url_split = APP_URL.split("://")
 APP_PROTOCOL = app_url_split[0]
 APP_DOMAIN = app_url_split[1].split('/')[0]
 APP_BASE_URL = '%s://%s' % (APP_PROTOCOL, APP_DOMAIN)
+
+# Security defaults; any of them can be set differently in settings_local.py.
+globals().setdefault('AUTH_PASSWORD_VALIDATORS', [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+])
+# Number of reverse proxies in front of OSQA (nginx, a load balancer): the
+# visitor's IP is then read from X-Forwarded-For and HTTPS from X-Forwarded-Proto.
+# Leave it 0 when OSQA is reached directly, or visitors could fake their IP.
+TRUSTED_PROXY_COUNT = int(globals().get('TRUSTED_PROXY_COUNT', os.environ.get('OSQA_TRUSTED_PROXIES', 0)))
+if TRUSTED_PROXY_COUNT:
+    globals().setdefault('SECURE_PROXY_SSL_HEADER', ('HTTP_X_FORWARDED_PROTO', 'https'))
+if APP_PROTOCOL == 'https':
+    globals().setdefault('SESSION_COOKIE_SECURE', True)
+    globals().setdefault('CSRF_COOKIE_SECURE', True)
+    globals().setdefault('CSRF_TRUSTED_ORIGINS', [APP_BASE_URL])
+    # Sent only on HTTPS responses; tells browsers to use HTTPS for a year.
+    globals().setdefault('SECURE_HSTS_SECONDS', 31536000)
+    # Redirecting needs to know which requests are HTTPS: directly, or from the proxy header.
+    globals().setdefault('SECURE_SSL_REDIRECT', bool(globals().get('SECURE_PROXY_SSL_HEADER')))
+
+# Sentry error reporting (https://docs.sentry.io). SENTRY_DSN reports server
+# errors; SENTRY_FRONTEND_DSN reports JavaScript errors in visitors' browsers
+# (defaults to SENTRY_DSN; set it to 'off' to turn browser reporting off). Each
+# can also come from the environment variable of the same name. Request bodies,
+# cookies, IP addresses and emails are never sent; signed-in users are
+# identified by their numeric id only.
+def _setting(name, default=''):
+    return globals()[name] if name in globals() else (os.environ.get(name) or default)
+
+SENTRY_DSN = _setting('SENTRY_DSN')
+SENTRY_FRONTEND_DSN = _setting('SENTRY_FRONTEND_DSN', SENTRY_DSN)
+if SENTRY_FRONTEND_DSN == 'off':
+    SENTRY_FRONTEND_DSN = ''
+SENTRY_ENVIRONMENT = _setting('SENTRY_ENVIRONMENT', 'production')
+# Share of requests traced for performance (0 to 1); 0 sends errors only.
+SENTRY_TRACES_SAMPLE_RATE = float(_setting('SENTRY_TRACES_SAMPLE_RATE', 0) or 0)
+SENTRY_RELEASE = _setting('SENTRY_RELEASE')
+# Events one visitor (signed-in user or IP address) may send per hour, from the
+# server and from their browser each; more are dropped. 0 means no limit.
+SENTRY_MAX_EVENTS_PER_VISITOR = int(_setting('SENTRY_MAX_EVENTS_PER_VISITOR', 10) or 0)
+if not SENTRY_RELEASE and (SENTRY_DSN or SENTRY_FRONTEND_DSN):
+    try:
+        import subprocess
+        SENTRY_RELEASE = 'osqa@' + subprocess.run(
+            ['git', 'rev-parse', '--short=12', 'HEAD'], cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+    except Exception:
+        SENTRY_RELEASE = ''
+if SENTRY_DSN:
+    from forum.utils.sentry import init_server
+    if not init_server(SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE, SENTRY_TRACES_SAMPLE_RATE):
+        print('SENTRY_DSN is set but sentry-sdk is not installed: pip install -r requirements.txt', file=sys.stderr)
+    else:
+        MIDDLEWARE.insert(MIDDLEWARE.index('forum.middleware.extended_user.ExtendedUser') + 1,
+                          'forum.middleware.sentry.SentryUserMiddleware')
 
 FORCE_SCRIPT_NAME = ''
 

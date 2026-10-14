@@ -34,12 +34,9 @@ class TemporaryLoginRequestForm(forms.Form):
     )
 
     def clean_email(self):
-        users = list(User.objects.filter(email=self.cleaned_data['email']))
-
-        if not len(users):
-            raise forms.ValidationError(_("Sorry, but this email is not on our database."))
-
-        self.user_cache = users
+        # No error for unknown addresses: the page must not tell anyone
+        # which addresses have an account.
+        self.user_cache = list(User.objects.filter(email__iexact=self.cleaned_data['email']))
         return self.cleaned_data['email']
 
 class ChangePasswordForm(SetPasswordForm):
@@ -50,7 +47,7 @@ class ChangePasswordForm(SetPasswordForm):
     def __init__(self, data=None, user=None, *args, **kwargs):
         if user is None:
             raise TypeError("Keyword argument 'user' must be supplied")
-        super(ChangePasswordForm, self).__init__(data, *args, **kwargs)
+        super(ChangePasswordForm, self).__init__(data, user, *args, **kwargs)
         self.user = user
 
     def clean_oldpw(self):

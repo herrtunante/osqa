@@ -15,6 +15,10 @@ class HttpResponseServiceUnavailable(HttpResponse):
 class HttpResponseUnauthorized(HttpResponse):
     def __init__(self, request):
         if request.user.is_authenticated:
+            # Signed-in people reaching pages they may not see (anonymous
+            # visitors are just asked to sign in).
+            from forum.utils import security_log
+            security_log.event('permission_denied', request, path=request.path)
             super(HttpResponseUnauthorized, self).__init__(
                 content=render_to_string('403.html', request=request),
                 status=403

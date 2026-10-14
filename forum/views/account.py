@@ -1,7 +1,6 @@
 """Users download their data or delete their account."""
 import datetime
 import json
-import logging
 
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -131,10 +130,10 @@ def delete_account(request, id):
         messages.error(request, error)
         return HttpResponseRedirect(reverse('user_account_data', kwargs={'id': user.id}))
 
-    old_name = user.username
+    from forum.utils import security_log
+    security_log.event('account_deleted', request, account=user, via='self')
     anonymise_user(user)
     logout(request)
-    logging.info("User %s (id %s) deleted their account", old_name, user.id)
     messages.info(request, _("Your account has been deleted. Your posts remain, without your name."))
     return HttpResponseRedirect(reverse('index'))
 

@@ -22,11 +22,20 @@
 {% endif %}
 {% block content %}{% endblock%}
 <p style="{{ p_style }}">{% trans "Thanks" %},<br />{{settings.APP_SHORT_NAME}}</p>
-{% if not exclude_finetune %}
+{% if unsubscribe %}
+<hr style="{{ hr_style }}" />
+<p style="{{ p_style }}"><small style="{{ small_style }}">
+{% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}<br />
+{% if unsubscribe.specific_url %}<a href="{{ unsubscribe.specific_url }}" style="{{ a_style }}">{{ unsubscribe.specific_label }}</a> &middot;
+{% endif %}<a href="{{ unsubscribe.manage_url }}" style="{{ a_style }}">{% trans "Choose which emails you get" %}</a> &middot;
+<a href="{{ unsubscribe.all_url }}" style="{{ a_style }}">{% trans "Unsubscribe from all emails" %}</a> &middot;
+<a href="{{ unsubscribe.help_url }}" style="{{ a_style }}">{% trans "How email notifications work" %}</a>
+</small></p>
+{% elif not exclude_finetune %}
 <p style="{{ p_style }}">{% trans "P.S. You can always fine-tune which notifications you receive" %}
 <a href="{{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}" style="{{ a_style }}">{% trans "here" %}</a>.
-{% endif %}
 </p>
+{% endif %}
 <hr style="{{ hr_style }}" />
 <p style="{{ p_style }}"><small style="{{ small_style }}">{{ settings.EMAIL_FOOTER_TEXT }}</small></p>
 </td></tr></tbody></table>

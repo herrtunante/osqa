@@ -4,6 +4,7 @@
 {% load i18n %}
 {% load extra_tags %}
 {% load general_sidebar_tags %}
+{% load subscription_tags %}
 
 {% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
 
@@ -25,6 +26,32 @@
     {{ questions.paginator.sort_tabs }}
 </div>
 {% if tag %}
+{% tag_follow_state tag request.user as follow %}
+<div class="tag-follow">
+    {% if request.user.is_authenticated %}
+    <form method="post" action="{% url "follow_tag" tag=tag.name %}">
+        {% csrf_token %}
+        {% if follow.following %}
+        <span class="tag-follow-state">&#10003; {% trans "You follow this tag" %}</span>
+        <button type="submit" name="action" value="unfollow" class="plain-button">{% trans "Unfollow" %}</button>
+        {% else %}
+        <button type="submit" name="action" value="follow" class="submit">{% trans "Follow tag" %}</button>
+        {% endif %}
+    </form>
+    {% endif %}
+    <span class="tag-follow-help">
+        {% if not request.user.is_authenticated %}
+            {% blocktrans with url=request.get_full_path %}<a href="/account/signin/?next={{ url }}">Sign in</a> to follow this tag and get an email for each new question in it.{% endblocktrans %}
+        {% elif follow.following and follow.emails_off %}
+            {% blocktrans with url=request.user.get_user_subscriptions_url %}Your email notifications are off, so you won't get emails: <a href="{{ url }}">email settings</a>.{% endblocktrans %}
+        {% elif follow.following %}
+            {% blocktrans with url=request.user.get_user_subscriptions_url %}You get an email for each new question here. <a href="{{ url }}">Email settings</a>{% endblocktrans %}
+        {% else %}
+            {% trans "Get an email for each new question in this tag." %}
+        {% endif %}
+        {% if follow.followers %}<span class="tag-followers">{% blocktrans count counter=follow.followers %}{{ counter }} follower{% plural %}{{ counter }} followers{% endblocktrans %}</span>{% endif %}
+    </span>
+</div>
 {% if tag.description or request.user.is_superuser or request.user.is_staff %}
 <div class="tag-info">
     {% if tag.description %}<div class="tag-description">{{ tag.description_html }}</div>{% endif %}

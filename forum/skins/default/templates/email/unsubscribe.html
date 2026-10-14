@@ -1,0 +1,45 @@
+{% extends "base_content.html" %}
+{% load i18n %}
+{% block title %}{% trans "Email notifications" %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block content %}
+<div class="email-prefs">
+{% if invalid %}
+    <h1 class="headNormal">{% trans "This link doesn't work" %}</h1>
+    <p>{% blocktrans %}The unsubscribe link is incomplete or was changed. Copy the whole link from the email, or sign in and change your email settings on your profile.{% endblocktrans %}</p>
+{% elif state == 'done' %}
+    <h1 class="headNormal">{% trans "You're unsubscribed" %}</h1>
+    <p class="email-prefs-result">{% blocktrans %}You won't receive {{ what }} any more.{% endblocktrans %}</p>
+    <form method="post" class="email-prefs-actions">
+        <input type="hidden" name="action" value="undo">
+        <button type="submit" class="plain-button">{% trans "Undo: keep sending them" %}</button>
+    </form>
+{% elif state == 'restored' %}
+    <h1 class="headNormal">{% trans "You're subscribed again" %}</h1>
+    <p class="email-prefs-result">{% blocktrans %}You'll receive {{ what }} again.{% endblocktrans %}</p>
+{% else %}
+    <h1 class="headNormal">{% trans "Unsubscribe" %}</h1>
+    <p>{% blocktrans with name=person.username %}Stop sending {{ what }} to <strong>{{ name }}</strong>?{% endblocktrans %}</p>
+    {% if question %}<p class="email-prefs-question">&ldquo;<a href="{{ question.get_absolute_url }}">{{ question.title }}</a>&rdquo;</p>{% endif %}
+    <form method="post" class="email-prefs-actions">
+        <input type="hidden" name="action" value="unsubscribe">
+        <button type="submit" class="submit">{% trans "Yes, unsubscribe" %}</button>
+    </form>
+{% endif %}
+{% if not invalid %}
+    <div class="email-prefs-more">
+        {% if all_token and state != 'restored' %}
+        <form method="post" action="{% url "email_unsubscribe" all_token %}">
+            <input type="hidden" name="action" value="unsubscribe">
+            <button type="submit" class="plain-button">{% trans "Unsubscribe from all emails instead" %}</button>
+        </form>
+        {% endif %}
+        <p>
+            {% if own_page %}<a href="{{ manage_url }}">{% trans "Choose exactly which emails you get" %}</a>
+            {% else %}<a href="{% url "auth_signin" %}?next={{ manage_url|urlencode }}">{% trans "Sign in to choose exactly which emails you get" %}</a>{% endif %}
+            &middot; <a href="{% url "email_help" %}">{% trans "How email notifications work" %}</a>
+        </p>
+    </div>
+{% endif %}
+</div>
+{% endblock %}

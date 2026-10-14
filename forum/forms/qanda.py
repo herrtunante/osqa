@@ -349,7 +349,6 @@ NOTIFICATION_CHOICES = (
 )
 
 class SubscriptionSettingsForm(forms.ModelForm):
-    enable_notifications = forms.BooleanField(widget=forms.HiddenInput, required=False)
     member_joins = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     new_question = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     new_question_watched_tags = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
@@ -357,7 +356,11 @@ class SubscriptionSettingsForm(forms.ModelForm):
 
     class Meta:
         model = SubscriptionSettings
-        fields = ['enable_notifications', 'member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions']
+        # enable_notifications (the master switch) has its own buttons on the page.
+        fields = ['member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions',
+                  'questions_viewed', 'all_questions_watched_tags', 'all_questions',
+                  'notify_answers', 'notify_comments_own_post', 'notify_comments', 'notify_accepted',
+                  'send_digest', 'notify_reply_to_comments']
 
 class UserPreferencesForm(forms.Form):
     sticky_sorts = forms.BooleanField(required=False, initial=False)

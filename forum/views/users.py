@@ -1,4 +1,4 @@
-from forum.models import User
+from forum.models import User, MarkedTag
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.template.defaultfilters import slugify
@@ -14,6 +14,7 @@ from django.utils.encoding import smart_str
 from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
+from forum.utils import security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
@@ -197,6 +198,7 @@ def user_powers(request, id, action, status):
         raise Http404()
 
     user.save()
+    security_log.event('permissions_changed', request, account=user, change='%s %s' % (action, status))
     return decorators.RefreshPageCommand()
 
 
@@ -218,7 +220,8 @@ def award_points(request, id):
 
     extra = dict(message=request.POST.get('message', ''), awarding_user=request.user.id, value=points)
 
-    BonusRepAction(user=request.user, extra=extra).save(data=dict(value=points, affected=user))
+    BonusRepAction(user=request.user, extra=extra, ip=request.META['REMOTE_ADDR']).save(data=dict(value=points, affected=user))
+    security_log.event('reputation_awarded', request, account=user, points=points)
 
     return {'commands': {
             'update_profile_karma': [user.reputation]
@@ -422,7 +425,7 @@ def user_favorites(request, user, **kwargs):
 
     return {"favorites" : favorites, "view_user" : user}
 
-@user_view('users/subscriptions.html', 'subscriptions', _('subscription'), _('subscriptions'), True, tabbed=False)
+@user_view('users/subscriptions.html', 'subscriptions', _('email settings'), _('email settings'), True, tabbed=False)
 def user_subscriptions(request, user, **kwargs):
     return _user_subscriptions(request, user, **kwargs)
 
@@ -452,24 +455,26 @@ def _user_subscriptions(request, user, **kwargs):
     # Settings Tab and everything else
     else:
         manage_open = False
+        prefs = user.subscription_settings
+        if request.method == 'POST' and request.POST.get('notifications') in ('on', 'off'):
+            # The master switch: all notification emails on or off.
+            prefs.enable_notifications = request.POST['notifications'] == 'on'
+            prefs.save()
+            messages.info(request, _('Email notifications are now switched on.') if prefs.enable_notifications
+                          else _('Email notifications are now switched off. You will only get emails about your account.'))
+            return HttpResponseRedirect(user.get_user_subscriptions_url())
         if request.method == 'POST':
-            manage_open = False
-            form = SubscriptionSettingsForm(data=request.POST, instance=user.subscription_settings)
-
+            form = SubscriptionSettingsForm(data=request.POST, instance=prefs)
             if form.is_valid():
                 form.save()
-                message = _('New subscription settings are now saved')
-
-                user.subscription_settings.enable_notifications = enabled
-                user.subscription_settings.save()
-
-                messages.info(request, message)
+                messages.info(request, _('Your email settings are saved.'))
         else:
-            form = SubscriptionSettingsForm(instance=user.subscription_settings)
+            form = SubscriptionSettingsForm(instance=prefs)
 
         return {
             'view_user':user,
-            'notificatons_on': enabled,
+            'notifications_on': prefs.enable_notifications,
+            'followed_tags': [mt.tag for mt in MarkedTag.objects.filter(user=user, reason='good').select_related('tag').order_by('tag__name')],
             'form':form,
             'manage_open':manage_open,
         }

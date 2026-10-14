@@ -17,5 +17,8 @@ mysqlclient==2.3.0
 # Cache backend for CACHES 'PyMemcacheCache' (recommended in production)
 pymemcache==4.0.0
 
+# Error reporting to Sentry (optional: only used when SENTRY_DSN is set)
+sentry-sdk==2.71.0
+
 # WSGI server
 gunicorn==26.2.0

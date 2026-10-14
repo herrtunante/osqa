@@ -1,4 +1,4 @@
-{% load extra_tags extra_filters i18n %}
+{% load extra_tags extra_filters i18n sentry_tags %}
 
 <!DOCTYPE html>
 <html lang="{{ settings.LANGUAGE_CODE }}">
@@ -6,6 +6,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="csrf-token" content="{{ csrf_token }}"/>
+    {% sentry_browser %}
     <link rel="stylesheet" href="{% url "django_admin_media" "css/base.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/forms.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/changelists.css" %}" type="text/css"/>

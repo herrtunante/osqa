@@ -15,6 +15,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllow
 from django.shortcuts import get_object_or_404, render
 
 from django.contrib import messages
+from forum.utils.antispam import posting_limit_reached, posting_limit_message
 
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
@@ -280,6 +281,8 @@ def comment(request, id):
     else:
         if not user.can_comment(post):
             raise NotEnoughRepPointsException( _('comment'))
+        if posting_limit_reached(user, 'comment'):
+            raise CommandException(posting_limit_message('comment'))
 
         comment = CommentAction(user=user, ip=request.META['REMOTE_ADDR']).save(
                 data=dict(text=comment_text, parent=post)).node

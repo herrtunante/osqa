@@ -5,9 +5,12 @@
         {% loadregistry footer_links %}<span class="link-separator"> |</span>{% endloadregistry %}
     </nav>
     <p class="footer-meta">
-        <span title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% trans "Powered by OSQA" %}</span>
+        <span title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>
         <span class="footer-dot">&middot;</span>
         {% trans "Content licensed under" %}
         <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>
+    </p>
+    <p class="footer-osqa">
+        {% blocktrans %}This Q&amp;A software is free and open source (GPL). Any organisation can run it for its own community: get the code and instructions at <a href="https://github.com/openforis/osqa">github.com/openforis/osqa</a>.{% endblocktrans %}
     </p>
 </div>
