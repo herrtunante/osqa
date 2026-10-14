@@ -39,10 +39,10 @@ class UserReputationSort(pagination.SimpleSort):
 class UserListPaginatorContext(pagination.PaginatorContext):
     def __init__(self, pagesizes=(20, 35, 60), default_pagesize=35):
         super (UserListPaginatorContext, self).__init__('USERS_LIST', sort_methods=(
-            (_('reputation'), UserReputationSort(_('reputation'), '-reputation', _("sorted by reputation"))),
-            (_('newest'), pagination.SimpleSort(_('recent'), '-date_joined', _("newest members"))),
-            (_('last'), pagination.SimpleSort(_('oldest'), 'date_joined', _("oldest members"))),
-            (_('name'), pagination.SimpleSort(_('by username'), 'username', _("sorted by username"))),
+            ('reputation', UserReputationSort(_('reputation'), '-reputation', _("sorted by reputation"))),
+            ('newest', pagination.SimpleSort(_('recent'), '-date_joined', _("newest members"))),
+            ('last', pagination.SimpleSort(_('oldest'), 'date_joined', _("oldest members"))),
+            ('name', pagination.SimpleSort(_('by username'), 'username', _("sorted by username"))),
         ), pagesizes=pagesizes, default_pagesize=default_pagesize)
 
 class SubscriptionListPaginatorContext(pagination.PaginatorContext):
@@ -52,10 +52,10 @@ class SubscriptionListPaginatorContext(pagination.PaginatorContext):
 class UserAnswersPaginatorContext(pagination.PaginatorContext):
     def __init__(self):
         super (UserAnswersPaginatorContext, self).__init__('USER_ANSWER_LIST', sort_methods=(
-            (_('oldest'), pagination.SimpleSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
-            (_('newest'), pagination.SimpleSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
-            (_('votes'), pagination.SimpleSort(_('popular answers'), '-score', _("most voted answers will be shown first"))),
-        ), default_sort=_('votes'), pagesizes=(5, 10, 20), default_pagesize=20, prefix=_('answers'))
+            ('oldest', pagination.SimpleSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
+            ('newest', pagination.SimpleSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
+            ('votes', pagination.SimpleSort(_('popular answers'), '-score', _("most voted answers will be shown first"))),
+        ), default_sort='votes', pagesizes=(5, 10, 20), default_pagesize=20, prefix='answers')
 
 USERS_PAGE_SIZE = 35# refactor - move to some constants file
 
@@ -374,7 +374,7 @@ def user_profile(request, user, **kwargs):
               Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count')]
 
     return pagination.paginated(request, (
-    ('questions', QuestionListPaginatorContext('USER_QUESTION_LIST', _('questions'), default_pagesize=15)),
+    ('questions', QuestionListPaginatorContext('USER_QUESTION_LIST', 'questions', default_pagesize=15)),
     ('answers', UserAnswersPaginatorContext())), {
     "view_user" : user,
     "questions" : questions,

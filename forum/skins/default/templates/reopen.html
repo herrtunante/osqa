@@ -19,7 +19,7 @@
     <p>{% trans "Open the previously closed question" %}: <a href="{{ question.get_absolute_url }}"><span class="big">{{ question.headline }}</span></a>
     
     </p>   
-    <p><strong>{% trans "The question was closed for the following reason " %}"{{ question.get_close_reason_display }}"{% trans "reason - leave blank in english" %} <a href="{{ question.closed_by.get_profile_url }}">{{ question.closed_by.username }}</a> {% trans "on "%} {% diff_date question.closed_at %}<font class="darkred">{% trans "date closed" %}</font>
+    <p><strong>{% blocktrans with reason=question.get_close_reason_display url=question.closed_by.get_profile_url user=question.closed_by.username %}The question was closed for the following reason: "{{ reason }}", by <a href="{{ url }}">{{ user }}</a>{% endblocktrans %} ({% diff_date question.closed_at %})
         </strong>
     </p>
     

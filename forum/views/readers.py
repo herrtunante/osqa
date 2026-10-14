@@ -57,11 +57,11 @@ class UnansweredQuestionsSort(pagination.SortBase):
 class QuestionListPaginatorContext(pagination.PaginatorContext):
     def __init__(self, id='QUESTIONS_LIST', prefix='', pagesizes=(15, 30, 50), default_pagesize=30):
         super (QuestionListPaginatorContext, self).__init__(id, sort_methods=(
-            (_('active'), pagination.SimpleSort(_('active'), '-last_activity_at', _("Most <strong>recently updated</strong> questions"))),
-            (_('newest'), pagination.SimpleSort(_('newest'), '-added_at', _("most <strong>recently asked</strong> questions"))),
-            (_('hottest'), HottestQuestionsSort(_('hottest'), _("most <strong>active</strong> questions in the last 24 hours</strong>"))),
-            (_('mostvoted'), pagination.SimpleSort(_('most voted'), '-score', _("most <strong>voted</strong> questions"))),
-            (_('unanswered'), UnansweredQuestionsSort('unanswered', "questions with no answers")),
+            ('active', pagination.SimpleSort(_('active'), '-last_activity_at', _("Most <strong>recently updated</strong> questions"))),
+            ('newest', pagination.SimpleSort(_('newest'), '-added_at', _("most <strong>recently asked</strong> questions"))),
+            ('hottest', HottestQuestionsSort(_('hottest'), _("most <strong>active</strong> questions in the last 24 hours</strong>"))),
+            ('mostvoted', pagination.SimpleSort(_('most voted'), '-score', _("most <strong>voted</strong> questions"))),
+            ('unanswered', UnansweredQuestionsSort('unanswered', "questions with no answers")),
         ), pagesizes=pagesizes, default_pagesize=default_pagesize, prefix=prefix)
 
 class AnswerSort(pagination.SimpleSort):
@@ -74,18 +74,18 @@ class AnswerSort(pagination.SimpleSort):
 class AnswerPaginatorContext(pagination.PaginatorContext):
     def __init__(self, id='ANSWER_LIST', prefix='', default_pagesize=10):
         super (AnswerPaginatorContext, self).__init__(id, sort_methods=(
-            (_('active'), AnswerSort(_('active answers'), '-last_activity_at', _("most recently updated answers/comments will be shown first"))),
-            (_('oldest'), AnswerSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
-            (_('newest'), AnswerSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
-            (_('votes'), AnswerSort(_('popular answers'), ('-score', 'added_at'), _("most voted answers will be shown first"))),
-        ), default_sort=_('votes'), pagesizes=(5, 10, 20), default_pagesize=default_pagesize, prefix=prefix)
+            ('active', AnswerSort(_('active answers'), '-last_activity_at', _("most recently updated answers/comments will be shown first"))),
+            ('oldest', AnswerSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
+            ('newest', AnswerSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
+            ('votes', AnswerSort(_('popular answers'), ('-score', 'added_at'), _("most voted answers will be shown first"))),
+        ), default_sort='votes', pagesizes=(5, 10, 20), default_pagesize=default_pagesize, prefix=prefix)
 
 class TagPaginatorContext(pagination.PaginatorContext):
     def __init__(self):
         super (TagPaginatorContext, self).__init__('TAG_LIST', sort_methods=(
-            (_('name'), pagination.SimpleSort(_('by name'), 'name', _("sorted alphabetically"))),
-            (_('used'), pagination.SimpleSort(_('by popularity'), '-used_count', _("sorted by frequency of tag use"))),
-        ), default_sort=_('used'), pagesizes=(30, 60, 120))
+            ('name', pagination.SimpleSort(_('by name'), 'name', _("sorted alphabetically"))),
+            ('used', pagination.SimpleSort(_('by popularity'), '-used_count', _("sorted by frequency of tag use"))),
+        ), default_sort='used', pagesizes=(30, 60, 120))
     
 
 def feed(request):
@@ -172,13 +172,13 @@ def tag(request, tag):
 def user_questions(request, mode, user, slug):
     user = get_object_or_404(User, id=user)
 
-    if mode == _('asked-by'):
+    if mode == 'asked-by':
         questions = Question.objects.filter(author=user)
         description = _("Questions asked by %s")
-    elif mode == _('answered-by'):
+    elif mode == 'answered-by':
         questions = Question.objects.filter(children__author=user, children__node_type='answer').distinct()
         description = _("Questions answered by %s")
-    elif mode == _('subscribed-by'):
+    elif mode == 'subscribed-by':
         if not (request.user.is_superuser or request.user == user):
             return HttpResponseUnauthorized(request)
         questions = user.subscriptions
@@ -204,7 +204,7 @@ def question_list(request, initial,
                   paginator_context=None,
                   show_summary=None,
                   feed_sort=('-added_at',),
-                  feed_req_params_exclude=(_lazy('page'), _lazy('pagesize'), _lazy('sort')),
+                  feed_req_params_exclude=('page', 'pagesize', 'sort'),
                   extra_context={}):
 
     if show_summary is None:
@@ -284,8 +284,8 @@ def question_search(request, keywords):
             rank_feed = True
 
         paginator_context = QuestionListPaginatorContext()
-        paginator_context.sort_methods[_('ranking')] = pagination.SimpleSort(_('relevance'), sort_order, _("most relevant questions"))
-        paginator_context.force_sort = _('ranking')
+        paginator_context.sort_methods['ranking'] = pagination.SimpleSort(_('relevance'), sort_order, _("most relevant questions"))
+        paginator_context.force_sort = 'ranking'
     else:
         paginator_context = None
 
@@ -362,7 +362,7 @@ def answer_redirect(request, answer):
         page = 1
 
     return HttpResponseRedirect("%s?%s=%s&focusedAnswerId=%s#%s" % (
-        answer.question.get_absolute_url(), _('page'), page, answer.id, answer.id))
+        answer.question.get_absolute_url(), 'page', page, answer.id, answer.id))
 
 @decorators.render("question.html", 'questions')
 def question(request, id, slug='', answer=None):

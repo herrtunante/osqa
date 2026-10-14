@@ -37,7 +37,7 @@ def is_running():
     return state and state['running']
 
 
-@admin_tools_page(_lazy('exporter'), _lazy('XML data export'))
+@admin_tools_page('exporter', _lazy('XML data export'))
 def exporter(request):
     if is_running():
         return HttpResponseRedirect(reverse('exporter_running', kwargs=dict(mode='exporter')))
@@ -81,7 +81,7 @@ def exporter(request):
     })
 
 
-@admin_tools_page(_lazy('importer'), _lazy('XML data import'))
+@admin_tools_page('importer', _lazy('XML data import'))
 def importer(request):
     if is_running():
         return HttpResponseRedirect(reverse('exporter_running', kwargs=dict(mode='importer')))
@@ -126,7 +126,7 @@ def importer(request):
 def running(request, mode):
     state = cache.get(CACHE_KEY)
     if state is None:
-        return HttpResponseRedirect(reverse('admin_tools', args=[_('exporter')]))
+        return HttpResponseRedirect(reverse('admin_tools', args=['exporter']))
 
     return ('modules/exporter/running.html', {
         'mode': mode,

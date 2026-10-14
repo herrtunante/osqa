@@ -166,15 +166,15 @@ class PaginatorContext(object):
 
     @property
     def PAGESIZE(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('pagesize')) or _('pagesize')
+        return self.prefix and "%s_%s" % (self.prefix, 'pagesize') or 'pagesize'
 
     @property
     def PAGE(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('page')) or _('page')
+        return self.prefix and "%s_%s" % (self.prefix, 'page') or 'page'
 
     @property
     def SORT(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('sort')) or _('sort')
+        return self.prefix and "%s_%s" % (self.prefix, 'sort') or 'sort'
 
 page_numbers_template = template.loader.get_template('paginator/page_numbers.html')
 page_sizes_template = template.loader.get_template('paginator/page_sizes.html')

@@ -4,6 +4,7 @@ from django import forms
 from forum.models import *
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
+from django.utils.functional import lazy
 
 from django.utils.encoding import smart_str
 from .general import NextUrlField, UserNameField
@@ -21,8 +22,8 @@ class TitleField(forms.CharField):
         self.required = True
         self.max_length = 255
         self.widget = forms.TextInput(attrs={'size' : 70, 'autocomplete' : 'off', 'maxlength' : self.max_length})
-        self.label  = _('title')
-        self.help_text = _('please enter a descriptive title for your question')
+        self.label  = _lazy('title')
+        self.help_text = _lazy('please enter a descriptive title for your question')
         self.initial = ''
 
     def clean(self, value):
@@ -37,7 +38,7 @@ class EditorField(forms.CharField):
         super(EditorField, self).__init__(*args, **kwargs)
 
         self.widget = forms.Textarea(attrs={'id':'editor'})
-        self.label  = _('content')
+        self.label  = _lazy('content')
         self.help_text = u''
         self.initial = ''
 
@@ -77,11 +78,12 @@ class TagNamesField(forms.CharField):
         self.required = True
         self.widget = forms.TextInput(attrs={'size' : 50, 'autocomplete' : 'off'})
         self.max_length = 255
-        self.label  = _('tags')
-        #self.help_text = _('please use space to separate tags (this enables autocomplete feature)')
-        self.help_text = _('Tags are short keywords, with no spaces within. At least %(min)s and up to %(max)s tags can be used.') % {
-            'min': settings.FORM_MIN_NUMBER_OF_TAGS, 'max': settings.FORM_MAX_NUMBER_OF_TAGS    
-        }
+        self.label  = _lazy('tags')
+        #self.help_text = _lazy('please use space to separate tags (this enables autocomplete feature)')
+        # Formatted when shown, in the visitor's language and with the current settings.
+        self.help_text = lazy(lambda: _('Tags are short keywords, with no spaces within. At least %(min)s and up to %(max)s tags can be used.') % {
+            'min': settings.FORM_MIN_NUMBER_OF_TAGS, 'max': settings.FORM_MAX_NUMBER_OF_TAGS
+        }, str)()
         self.initial = ''
         self.user = user
 
@@ -129,8 +131,8 @@ class WikiField(forms.BooleanField):
     def __init__(self, disabled=False, *args, **kwargs):
         super(WikiField, self).__init__(*args, **kwargs)
         self.required = False
-        self.label  = _('community wiki')
-        self.help_text = _('if you choose community wiki option, the question and answer do not generate points and name of author will not be shown')
+        self.label  = _lazy('community wiki')
+        self.help_text = _lazy('if you choose community wiki option, the question and answer do not generate points and name of author will not be shown')
         if disabled:
             self.widget=forms.CheckboxInput(attrs={'disabled': "disabled"})
     def clean(self,value):
@@ -148,8 +150,8 @@ class SummaryField(forms.CharField):
         self.required = False
         self.widget = forms.TextInput(attrs={'size' : 50, 'autocomplete' : 'off'})
         self.max_length = 300
-        self.label  = _('update summary:')
-        self.help_text = _('enter a brief summary of your revision (e.g. fixed spelling, grammar, improved style, this field is optional)')
+        self.label  = _lazy('update summary:')
+        self.help_text = _lazy('enter a brief summary of your revision (e.g. fixed spelling, grammar, improved style, this field is optional)')
 
 
 class FeedbackForm(forms.Form):

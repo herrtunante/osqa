@@ -474,7 +474,7 @@ def delete_page(request, id=None):
     page.delete()
     return HttpResponseRedirect(reverse('admin_static_pages'))
 
-@admin_tools_page(_lazy('createuser'), _lazy("Create new user"))
+@admin_tools_page('createuser', _lazy("Create new user"))
 def create_user(request):
     if request.POST:
         form = CreateUserForm(request.POST)
@@ -504,19 +504,19 @@ def create_user(request):
 class NodeManagementPaginatorContext(pagination.PaginatorContext):
     def __init__(self, id='QUESTIONS_LIST', prefix='', default_pagesize=100):
         super (NodeManagementPaginatorContext, self).__init__(id, sort_methods=(
-            (_('added_at'), pagination.SimpleSort(_('added_at'), '-added_at', "")),
-            (_('added_at_asc'), pagination.SimpleSort(_('added_at_asc'), 'added_at', "")),
-            (_('author'), pagination.SimpleSort(_('author'), '-author__username', "")),
-            (_('author_asc'), pagination.SimpleSort(_('author_asc'), 'author__username', "")),
-            (_('score'), pagination.SimpleSort(_('score'), '-score', "")),
-            (_('score_asc'), pagination.SimpleSort(_('score_asc'), 'score', "")),
-            (_('act_at'), pagination.SimpleSort(_('act_at'), '-last_activity_at', "")),
-            (_('act_at_asc'), pagination.SimpleSort(_('act_at_asc'), 'last_activity_at', "")),
-            (_('act_by'), pagination.SimpleSort(_('act_by'), '-last_activity_by__username', "")),
-            (_('act_by_asc'), pagination.SimpleSort(_('act_by_asc'), 'last_activity_by__username', "")),
+            ('added_at', pagination.SimpleSort('added_at', '-added_at', "")),
+            ('added_at_asc', pagination.SimpleSort('added_at_asc', 'added_at', "")),
+            ('author', pagination.SimpleSort('author', '-author__username', "")),
+            ('author_asc', pagination.SimpleSort('author_asc', 'author__username', "")),
+            ('score', pagination.SimpleSort('score', '-score', "")),
+            ('score_asc', pagination.SimpleSort('score_asc', 'score', "")),
+            ('act_at', pagination.SimpleSort('act_at', '-last_activity_at', "")),
+            ('act_at_asc', pagination.SimpleSort('act_at_asc', 'last_activity_at', "")),
+            ('act_by', pagination.SimpleSort('act_by', '-last_activity_by__username', "")),
+            ('act_by_asc', pagination.SimpleSort('act_by_asc', 'last_activity_by__username', "")),
         ), pagesizes=(default_pagesize,), force_sort='added_at', default_pagesize=default_pagesize, prefix=prefix)
 
-@admin_tools_page(_lazy("nodeman"), _lazy("Bulk management"))
+@admin_tools_page("nodeman", _lazy("Bulk management"))
 def node_management(request):
     if request.POST:
         params = pagination.generate_uri(request.GET, ('page',))

@@ -234,7 +234,7 @@ class User(BaseModel, DjangoUser):
         relative_url = root_relative_url[len(get_script_prefix()):]
         return '%s/%s' % (django_settings.APP_URL, relative_url)
     def get_asked_url(self):
-        return reverse('user_questions', kwargs={'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
+        return reverse('user_questions', kwargs={'mode': 'asked-by', 'user': self.id, 'slug': slugify(smart_str(self.username))})
     def get_user_subscriptions_url(self):
         keyword_arguments = {
             'slug': slugify(smart_str(self.username))
@@ -245,13 +245,13 @@ class User(BaseModel, DjangoUser):
             })
         return reverse('user_subscriptions', kwargs=keyword_arguments)
     def get_answered_url(self):
-        return reverse('user_questions', kwargs={'mode': _('answered-by'), 'user': self.id, 'slug': slugify(self.username)})
+        return reverse('user_questions', kwargs={'mode': 'answered-by', 'user': self.id, 'slug': slugify(self.username)})
 
     def get_subscribed_url(self):
         try:
             # Try to retrieve the Subscribed User URL.
             url = reverse('user_questions',
-                           kwargs={'mode': _('subscribed-by'), 'user': self.id, 'slug': slugify(smart_str(self.username))})
+                           kwargs={'mode': 'subscribed-by', 'user': self.id, 'slug': slugify(smart_str(self.username))})
             return url
         except Exception as e:
             # If some Exception has been raised, don't forget to log it.

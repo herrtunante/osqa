@@ -3,6 +3,7 @@ from django.contrib.auth import password_validation
 import re
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
+from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from forum import settings
 from forum.models import User
@@ -47,13 +48,13 @@ class UserNameField(StrippedNonEmptyCharField):
         self.skip_clean = skip_clean
         self.db_model = db_model 
         self.db_field = db_field
-        error_messages={'required':_('user name is required'),
-                        'taken':_('sorry, this name is taken, please choose another'),
-                        'forbidden':_('sorry, this name is not allowed, please choose another'),
-                        'missing':_('sorry, there is no user with this name'),
-                        'multiple-taken':_('sorry, we have a serious error - user name is taken by several users'),
-                        'invalid':_('user name can only consist of letters, empty space, hyphens and underscore'),
-                        'toshort':_('user name is to short, please use at least %d characters') % settings.MIN_USERNAME_LENGTH
+        error_messages={'required':_lazy('user name is required'),
+                        'taken':_lazy('sorry, this name is taken, please choose another'),
+                        'forbidden':_lazy('sorry, this name is not allowed, please choose another'),
+                        'missing':_lazy('sorry, there is no user with this name'),
+                        'multiple-taken':_lazy('sorry, we have a serious error - user name is taken by several users'),
+                        'invalid':_lazy('user name can only consist of letters, empty space, hyphens and underscore'),
+                        'toshort':lazy(lambda: _('user name is to short, please use at least %d characters') % int(settings.MIN_USERNAME_LENGTH), str)()
                     }
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
@@ -104,9 +105,9 @@ class UserEmailField(forms.EmailField):
         self.skip_clean = skip_clean
         super(UserEmailField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200)), label=mark_safe(_('your email address')),
-            error_messages={'required':_('email address is required'),
-                            'invalid':_('please enter a valid email address'),
-                            'taken':_('this email is already used by someone else, please choose another'),
+            error_messages={'required':_lazy('email address is required'),
+                            'invalid':_lazy('please enter a valid email address'),
+                            'taken':_lazy('this email is already used by someone else, please choose another'),
                             },
             **kw
             )
@@ -135,7 +136,7 @@ class UserRealNameField(StrippedNonEmptyCharField):
         self.skip_clean = skip_clean
         self.db_model = db_model
         self.db_field = db_field
-        error_messages={'required':_('Real name is required')
+        error_messages={'required':_lazy('Real name is required')
                     }
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
@@ -157,7 +158,7 @@ class UserRealNameField(StrippedNonEmptyCharField):
 
 class UserNameValidationField(StrippedNonEmptyCharField):
     def __init__(self,**kw):
-       error_messages={'required':_('Real name is required')
+       error_messages={'required':_lazy('Real name is required')
                     }
        super(UserNameValidationField,self).__init__(max_length=0,
                 widget=forms.TextInput(attrs=login_form_widget_attrs),
@@ -168,7 +169,7 @@ class UserNameValidationField(StrippedNonEmptyCharField):
        super(UserNameValidationField,self).__init__(required=False, widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200)), label="Human test",
             error_messages={
-                            'invalid':_('please probe you are not a robot by not filling this')
+                            'invalid':_lazy('please probe you are not a robot by not filling this')
                             },
             **kw
             )
@@ -189,7 +190,7 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
          super(UserNameValidationSumField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200)), label="What is seven plus seven?",
             error_messages={
-                            'invalid':_('please probe you are not a robot by filling this simple sum correctly')
+                            'invalid':_lazy('please probe you are not a robot by filling this simple sum correctly')
                             },
             **kw
             )
