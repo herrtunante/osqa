@@ -1,9 +1,10 @@
 from .base import *
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 import re
 
 class Comment(Node):
-    friendly_name = _("comment")
+    friendly_name = _lazy("comment")
 
     class Meta(Node.Meta):
         ordering = ('-added_at',)

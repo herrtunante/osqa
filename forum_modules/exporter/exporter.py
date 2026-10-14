@@ -2,6 +2,7 @@ import os, tarfile, datetime, logging, re, configparser, shutil, tempfile, zipfi
 
 from django.core.cache import cache
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.models import *
 from forum.settings import APP_URL
 from forum.templatetags.extra_tags import diff_date
@@ -299,7 +300,7 @@ def exporter_step(queryset, root_tag_name, el_tag_name, name, date_lock=None, us
 
     return decorator
 
-@exporter_step(Tag.objects.all(), 'tags', 'tag', _('Tags'))
+@exporter_step(Tag.objects.all(), 'tags', 'tag', _lazy('Tags'))
 def export_tags(t, el, anon_data):
     add(el, 'name', t.name)
     if not anon_data:
@@ -314,7 +315,7 @@ def export_tags(t, el, anon_data):
             add(syn_el, 'synonym', name)
 
 
-@exporter_step(User.objects.all(), 'users', 'user', _('Users'), 'date_joined', True)
+@exporter_step(User.objects.all(), 'users', 'user', _lazy('Users'), 'date_joined', True)
 def export_users(u, el, anon_data):
     add(el, 'id', u.id)
     add(el, 'username', u.username)
@@ -376,7 +377,7 @@ def export_users(u, el, anon_data):
 
 
 
-@exporter_step(Node.objects.all(), 'nodes', 'node', _('Nodes'), 'added_at')
+@exporter_step(Node.objects.all(), 'nodes', 'node', _lazy('Nodes'), 'added_at')
 def export_nodes(n, el, anon_data):
     add(el, 'id', n.id)
     add(el, 'type', n.node_type)
@@ -427,7 +428,7 @@ def export_nodes(n, el, anon_data):
     add(el, 'extraCount', n.extra_count and n.extra_count or "")
 
 
-@exporter_step(Action.objects.all(), 'actions', 'action', _('Actions'), 'action_date')
+@exporter_step(Action.objects.all(), 'actions', 'action', _lazy('Actions'), 'action_date')
 def export_actions(a, el, anon_data):
     add(el, 'id', a.id)
     add(el, 'type', a.action_type)
@@ -459,7 +460,7 @@ def export_actions(a, el, anon_data):
             add(repute, 'value', r.value)
 
 
-@exporter_step(NodeState.objects.all(), 'states', 'state', _('Node states'), 'action__action_date')
+@exporter_step(NodeState.objects.all(), 'states', 'state', _lazy('Node states'), 'action__action_date')
 def export_states(s, el, anon_data):
     add(el, 'type', s.state_type)
     add(el, 'node', s.node_id)
@@ -473,7 +474,7 @@ def export_states(s, el, anon_data):
 #    el.add('count', b.awarded_count)
 
 
-@exporter_step(Award.objects.all(), 'awards', 'award', _('Awards'), 'awarded_at', True)
+@exporter_step(Award.objects.all(), 'awards', 'award', _lazy('Awards'), 'awarded_at', True)
 def export_awards(a, el, anon_data):
     add(el, 'badge', a.badge.cls)
     add(el, 'user', a.user_id)
@@ -482,7 +483,7 @@ def export_awards(a, el, anon_data):
     add(el, 'action', a.action_id)
     add(el, 'date', make_date(a.awarded_at))
 
-@exporter_step(KeyValue.objects.all(), 'settings', 'setting', _('Settings'))
+@exporter_step(KeyValue.objects.all(), 'settings', 'setting', _lazy('Settings'))
 def export_settings(s, el, anon_data):
     add(el, 'key', s.key)
     make_extra(add(el, 'value'), s.value)

@@ -1,8 +1,9 @@
 from .base import *
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 class Answer(Node):
-    friendly_name = _("answer")
+    friendly_name = _lazy("answer")
 
     class Meta(Node.Meta):
         proxy = True

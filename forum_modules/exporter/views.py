@@ -3,6 +3,7 @@ import json
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404, FileResponse
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.core.cache import cache
 from django.db import connections
 from django.urls import reverse
@@ -36,7 +37,7 @@ def is_running():
     return state and state['running']
 
 
-@admin_tools_page(_('exporter'), _('XML data export'))
+@admin_tools_page(_lazy('exporter'), _lazy('XML data export'))
 def exporter(request):
     if is_running():
         return HttpResponseRedirect(reverse('exporter_running', kwargs=dict(mode='exporter')))
@@ -80,7 +81,7 @@ def exporter(request):
     })
 
 
-@admin_tools_page(_('importer'), _('XML data import'))
+@admin_tools_page(_lazy('importer'), _lazy('XML data import'))
 def importer(request):
     if is_running():
         return HttpResponseRedirect(reverse('exporter_running', kwargs=dict(mode='importer')))

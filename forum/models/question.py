@@ -1,6 +1,7 @@
 from .base import *
 from .tag import Tag
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 class QuestionManager(NodeManager):
     def search(self, keywords, **kwargs):
@@ -14,7 +15,7 @@ class Question(Node):
     accepted_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"), node_type="answer", marked=True)
     favorite_count = DenormalizedField("actions", action_type="favorite", canceled=False)
 
-    friendly_name = _("question")
+    friendly_name = _lazy("question")
     objects = QuestionManager()
 
     @property

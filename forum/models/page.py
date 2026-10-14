@@ -1,5 +1,6 @@
 from .base import *
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 def silent_permalink(func):
     """
@@ -21,7 +22,7 @@ def silent_permalink(func):
     return inner
 
 class Page(Node):
-    friendly_name = _("page")
+    friendly_name = _lazy("page")
 
     @property
     def published(self):

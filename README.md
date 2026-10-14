@@ -76,6 +76,39 @@ The container runs gunicorn as an unprivileged user on `127.0.0.1:8000`; put a
 TLS reverse proxy in front of it. `settings_local.py`, uploads, cache and logs
 are mounted from the host, not baked into the image.
 
+## Languages
+
+The interface is available in English, Spanish, French and Portuguese.
+- **Choosing a language:** visitors get their browser's language, and can
+  pick another with the switcher in the footer (remembered in a cookie).
+- **Settings:**
+  - `LANGUAGE_CODE` in `settings_local.py` is the default.
+  - `LANGUAGES` limits or extends the list.
+- **What stays the same:** URLs are identical in every language.
+- **Limits:**
+  - Posts aren't translated.
+  - Notification emails and admin setting labels use the site's default language.
+
+Updating the translations after changing texts (needs GNU gettext, e.g.
+`apt-get install gettext`):
+
+```bash
+python manage.py makemessages -l es -l fr -l pt --no-location --no-obsolete \
+    --ignore='venv/*' --ignore='docs/*' --ignore='scripts/*' --ignore='forum/tests/*' \
+    --ignore='cache/*' --ignore='tmp/*' --ignore='*/media/vendor/*'
+# translate the new entries in forum/locale/<lang>/LC_MESSAGES/django.po, then
+python manage.py compilemessages
+```
+
+Commit both the `.po` and the compiled `.mo` files. To add a language, add
+it to `LANGUAGES` and pass `-l <code>` to `makemessages`.
+- **Strings defined at import time:** form labels, badge names, header
+  links and tab titles must use `gettext_lazy`, imported as `_lazy`, so they
+  follow each visitor's language. `makemessages` (overridden in
+  `forum/management/commands/makemessages.py`) extracts `_lazy("...")` too.
+- **First versions:** the current translations were written with AI
+  assistance; a review by native speakers is welcome.
+
 ## Notifications and support dashboard
 
 - **Bell:** signed-in users see a bell in the header with their unread

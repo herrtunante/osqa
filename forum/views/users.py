@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, Http404
 from forum.http_responses import HttpResponseUnauthorized
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from urllib.parse import quote as urlquote_plus
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_str
@@ -58,7 +59,7 @@ class UserAnswersPaginatorContext(pagination.PaginatorContext):
 
 USERS_PAGE_SIZE = 35# refactor - move to some constants file
 
-@decorators.render('users/users.html', 'users', _('users'), weight=200)
+@decorators.render('users/users.html', 'users', _lazy('users'), weight=200)
 def users(request):
     # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
     suser = request.GET.get('q', "")
@@ -73,7 +74,7 @@ def users(request):
     })
 
 
-@decorators.render('users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
+@decorators.render('users/online_users.html', 'online_users', _lazy('Online Users'), weight=200, tabbed=False)
 def online_users(request):
     # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
     suser = request.GET.get('q', "")
@@ -351,7 +352,7 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
     return decorator
 
 
-@user_view('users/stats.html', 'stats', _('overview'), _('user overview'))
+@user_view('users/stats.html', 'stats', _lazy('overview'), _lazy('user overview'))
 def user_profile(request, user, **kwargs):
     questions = Question.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
     answers = Answer.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
@@ -388,7 +389,7 @@ def user_profile(request, user, **kwargs):
     "total_awards" : len(awards),
     })
     
-@user_view('users/recent.html', 'recent', _('recent activity'), _('recent user activity'))
+@user_view('users/recent.html', 'recent', _lazy('recent activity'), _lazy('recent user activity'))
 def user_recent(request, user, **kwargs):
     activities = user.actions.exclude(
             action_type__in=("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage")).order_by(
@@ -397,7 +398,7 @@ def user_recent(request, user, **kwargs):
     return {"view_user" : user, "activities" : activities}
 
 
-@user_view('users/reputation.html', 'reputation', _('reputation history'), _('graph of user karma'))
+@user_view('users/reputation.html', 'reputation', _lazy('reputation history'), _lazy('graph of user karma'))
 def user_reputation(request, user, **kwargs):
     rep = list(user.reputes.order_by('date'))
     # Running total of reputation for the graph (reduce() is no longer a builtin).
@@ -412,20 +413,20 @@ def user_reputation(request, user, **kwargs):
 
     return {"view_user": user, "reputation": rep, "graph_data": graph_data}
 
-@user_view('users/votes.html', 'votes', _('votes'), _('user vote record'), True)
+@user_view('users/votes.html', 'votes', _lazy('votes'), _lazy('user vote record'), True)
 def user_votes(request, user, **kwargs):
     votes = user.votes.exclude(node__state_string__contains="(deleted").filter(
             node__node_type__in=("question", "answer")).order_by('-voted_at')[:USERS_PAGE_SIZE]
 
     return {"view_user" : user, "votes" : votes}
 
-@user_view('users/questions.html', 'favorites', _('favorites'), _('questions that user selected as his/her favorite'))
+@user_view('users/questions.html', 'favorites', _lazy('favorites'), _lazy('questions that user selected as his/her favorite'))
 def user_favorites(request, user, **kwargs):
     favorites = FavoriteAction.objects.filter(canceled=False, user=user)
 
     return {"favorites" : favorites, "view_user" : user}
 
-@user_view('users/subscriptions.html', 'subscriptions', _('email settings'), _('email settings'), True, tabbed=False)
+@user_view('users/subscriptions.html', 'subscriptions', _lazy('email settings'), _lazy('email settings'), True, tabbed=False)
 def user_subscriptions(request, user, **kwargs):
     return _user_subscriptions(request, user, **kwargs)
 
@@ -479,7 +480,7 @@ def _user_subscriptions(request, user, **kwargs):
             'manage_open':manage_open,
         }
 
-@user_view('users/preferences.html', 'preferences', _('preferences'), _('preferences'), True, tabbed=False)
+@user_view('users/preferences.html', 'preferences', _lazy('preferences'), _lazy('preferences'), True, tabbed=False)
 def user_preferences(request, user, **kwargs):
     if request.POST:
         form = UserPreferencesForm(request.POST)

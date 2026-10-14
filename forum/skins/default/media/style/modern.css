@@ -3287,3 +3287,7 @@ h3.or_label::before, h3.or_label::after {
 .support-warn { font-weight: 700; color: var(--danger-text); }
 .support-overdue td { background: var(--warn-bg); }
 .support-tags span { display: inline-block; margin: 3px 2px 0 0; padding: 0 6px; border-radius: 3px; background: var(--brand-soft); color: var(--brand-dark); font-size: 0.85em; }
+
+/* Language switcher (footer) */
+.language-switch { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 0.9em; color: var(--muted); }
+.language-switch select { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font: inherit; }

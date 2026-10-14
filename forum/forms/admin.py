@@ -1,6 +1,7 @@
 import socket
 from django import forms
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
 from .qanda import TitleField, EditorField
 from forum import settings
@@ -29,26 +30,26 @@ class IPListField(forms.CharField):
         return iplist
 
 class MaintenanceModeForm(forms.Form):
-    ips = IPListField(label=_('Allow ips'),
-                      help_text=_('Comma separated list of ips allowed to access the site while in maintenance'),
+    ips = IPListField(label=_lazy('Allow ips'),
+                      help_text=_lazy('Comma separated list of ips allowed to access the site while in maintenance'),
                       required=True,
                       widget=forms.TextInput(attrs={'class': 'longstring'}))
 
-    message = forms.CharField(label=_('Message'),
-                              help_text=_('A message to display to your site visitors while in maintainance mode'),
+    message = forms.CharField(label=_lazy('Message'),
+                              help_text=_lazy('A message to display to your site visitors while in maintainance mode'),
                               widget=forms.Textarea)
 
 
 TEMPLATE_CHOICES = (
-('default', _('Default')),
-('sidebar', _('Default with sidebar')),
-('none', _('None')),
+('default', _lazy('Default')),
+('sidebar', _lazy('Default with sidebar')),
+('none', _lazy('None')),
 )
 
 RENDER_CHOICES = (
-('markdown', _('Markdown')),
-('html', _('HTML')),
-('escape', _('Escaped'))
+('markdown', _lazy('Markdown')),
+('html', _lazy('HTML')),
+('escape', _lazy('Escaped'))
 )
 
 class UrlFieldWidget(forms.TextInput):
@@ -72,31 +73,31 @@ class PageForm(forms.Form):
             super(PageForm, self).__init__(*args, **kwargs)
 
 
-    title  = forms.CharField(label=_('Title'), max_length=255, widget=forms.TextInput(attrs={'class': 'longstring'}),
+    title  = forms.CharField(label=_lazy('Title'), max_length=255, widget=forms.TextInput(attrs={'class': 'longstring'}),
                              initial='New page')
-    path  = forms.CharField(label=_('Page URL'), widget=UrlFieldWidget, initial='pages/new/')
+    path  = forms.CharField(label=_lazy('Page URL'), widget=UrlFieldWidget, initial='pages/new/')
 
-    content = forms.CharField(label=_('Page Content'), widget=forms.Textarea(attrs={'rows': 30}))
-    mimetype = forms.CharField(label=_('Mime Type'), initial='text/html')
+    content = forms.CharField(label=_lazy('Page Content'), widget=forms.Textarea(attrs={'rows': 30}))
+    mimetype = forms.CharField(label=_lazy('Mime Type'), initial='text/html')
 
     render = forms.ChoiceField(widget=forms.RadioSelect, choices=RENDER_CHOICES, initial='markdown',
-                               label=_('Render Mode'))
+                               label=_lazy('Render Mode'))
 
     template = forms.ChoiceField(widget=forms.RadioSelect, choices=TEMPLATE_CHOICES, initial='default',
-                                 label=_('Template'))
-    sidebar = forms.CharField(label=_('Sidebar Content'), widget=forms.Textarea(attrs={'rows': 20}), required=False)
-    sidebar_wrap = forms.BooleanField(label=_("Wrap sidebar block"), initial=True, required=False)
+                                 label=_lazy('Template'))
+    sidebar = forms.CharField(label=_lazy('Sidebar Content'), widget=forms.Textarea(attrs={'rows': 20}), required=False)
+    sidebar_wrap = forms.BooleanField(label=_lazy("Wrap sidebar block"), initial=True, required=False)
     sidebar_render = forms.ChoiceField(widget=forms.RadioSelect, choices=RENDER_CHOICES, initial='markdown',
-                                       label=_('Sidebar Render Mode'))
+                                       label=_lazy('Sidebar Render Mode'))
 
-    comments = forms.BooleanField(label=_("Allow comments"), initial=False, required=False)
+    comments = forms.BooleanField(label=_lazy("Allow comments"), initial=False, required=False)
 
 from forum.forms.auth import SimpleRegistrationForm
 from forum.forms.general import SetPasswordForm
 
 
 class CreateUserForm(SimpleRegistrationForm, SetPasswordForm):
-    validate_email = forms.BooleanField(required=False, label=_('send validation email'))
+    validate_email = forms.BooleanField(required=False, label=_lazy('send validation email'))
 
     def __init__(self, *args, **kwargs):
         super(CreateUserForm, self).__init__(*args, **kwargs)

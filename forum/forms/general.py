@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 import re
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from forum import settings
 from forum.models import User
@@ -41,7 +42,7 @@ login_form_widget_attrs = { 'class': 'required login' }
 username_re = re.compile(r'^[\-\w\s ]+$', re.UNICODE)
 
 class UserNameField(StrippedNonEmptyCharField):
-    def __init__(self,db_model=User, db_field='username', must_exist=False,skip_clean=False,label=_('choose a username'),**kw):
+    def __init__(self,db_model=User, db_field='username', must_exist=False,skip_clean=False,label=_lazy('choose a username'),**kw):
         self.must_exist = must_exist
         self.skip_clean = skip_clean
         self.db_model = db_model 
@@ -129,7 +130,7 @@ class UserEmailField(forms.EmailField):
             return email 
 
 class UserRealNameField(StrippedNonEmptyCharField):
-    def __init__(self, db_model=User, db_field='real_name', must_exist=True, skip_clean=False, label=_('Your real name'),**kw):
+    def __init__(self, db_model=User, db_field='real_name', must_exist=True, skip_clean=False, label=_lazy('Your real name'),**kw):
         self.must_exist = must_exist
         self.skip_clean = skip_clean
         self.db_model = db_model
@@ -204,15 +205,15 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
 
 class SetPasswordForm(forms.Form):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
-                                label=_('choose password'),
-                                help_text=_('At least 8 characters; not a common password and not similar to your '
+                                label=_lazy('choose password'),
+                                help_text=_lazy('At least 8 characters; not a common password and not similar to your '
                                             'username or email.'),
-                                error_messages={'required':_('password is required')},
+                                error_messages={'required':_lazy('password is required')},
                                 )
     password2 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
-                                label=mark_safe(_('retype password')),
-                                error_messages={'required':_('please, retype your password'),
-                                                'nomatch':_('sorry, entered passwords did not match, please try again')},
+                                label=_lazy('retype password'),
+                                error_messages={'required':_lazy('please, retype your password'),
+                                                'nomatch':_lazy('sorry, entered passwords did not match, please try again')},
                                 )
 
     def __init__(self, data=None, user=None, *args, **kwargs):

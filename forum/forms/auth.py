@@ -2,6 +2,7 @@ from .general import NextUrlField,  UserNameField,  UserEmailField, UserRealName
 
 from forum.models import User
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django import forms
 from forum.utils.antispam import BotTrapMixin
@@ -26,10 +27,10 @@ class TemporaryLoginRequestForm(forms.Form):
 
     email = forms.EmailField(
             required=True,
-            label=_("Your account email"),
+            label=_lazy("Your account email"),
             error_messages={
-                'required': _("You cannot leave this field blank"),
-                'invalid': _('please enter a valid email address'),
+                'required': _lazy("You cannot leave this field blank"),
+                'invalid': _lazy('please enter a valid email address'),
             }
     )
 
@@ -42,7 +43,7 @@ class TemporaryLoginRequestForm(forms.Form):
 class ChangePasswordForm(SetPasswordForm):
     """ change password form """
     oldpw = forms.CharField(widget=forms.PasswordInput(attrs={'class':'required'}),
-                label=mark_safe(_('Current password')))
+                label=_lazy('Current password'))
 
     def __init__(self, data=None, user=None, *args, **kwargs):
         if user is None:

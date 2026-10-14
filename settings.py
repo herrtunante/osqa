@@ -17,6 +17,8 @@ MIDDLEWARE = [
     'forum.middleware.security.SecurityHeadersMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # Interface language: the visitor's choice (language switcher) or browser.
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,6 +121,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.template.context_processors.csrf',
+                'django.template.context_processors.i18n',
                 'forum.context.application_settings',
                 'django.contrib.messages.context_processors.messages',
                 'forum.user_messages.context_processors.user_messages',
@@ -142,6 +145,17 @@ app_url_split = APP_URL.split("://")
 APP_PROTOCOL = app_url_split[0]
 APP_DOMAIN = app_url_split[1].split('/')[0]
 APP_BASE_URL = '%s://%s' % (APP_PROTOCOL, APP_DOMAIN)
+
+# Interface languages offered (the language switcher in the footer, or the
+# browser's Accept-Language). LANGUAGE_CODE in settings_local.py is the
+# default; it must be one of these. URLs are the same in every language.
+globals().setdefault('LANGUAGES', [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'Français'),
+    ('pt', 'Português'),
+])
+LOCALE_PATHS = [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'forum', 'locale')]
 
 # Security defaults; any of them can be set differently in settings_local.py.
 globals().setdefault('AUTH_PASSWORD_VALIDATORS', [

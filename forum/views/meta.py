@@ -10,6 +10,7 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 
 from django.contrib import messages
@@ -93,7 +94,7 @@ def feedback(request):
 
     return render(request, 'feedback.html', {'form': form})
 
-feedback.CANCEL_MESSAGE=_('We look forward to hearing your feedback! Please, give it next time :)')
+feedback.CANCEL_MESSAGE=_lazy('We look forward to hearing your feedback! Please, give it next time :)')
 
 def privacy(request):
     return render(request, 'privacy.html')
@@ -104,7 +105,7 @@ def logout(request):
     'next' : get_next_url(request),
     })
 
-@decorators.render('badges.html', 'badges', _('badges'), weight=300)
+@decorators.render('badges.html', 'badges', _lazy('badges'), weight=300)
 def badges(request):
     from forum.badges.base import BadgesMeta
     BadgesMeta.install()

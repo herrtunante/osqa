@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.db import models
 
 from django.contrib import messages
@@ -473,7 +474,7 @@ def delete_page(request, id=None):
     page.delete()
     return HttpResponseRedirect(reverse('admin_static_pages'))
 
-@admin_tools_page(_('createuser'), _("Create new user"))
+@admin_tools_page(_lazy('createuser'), _lazy("Create new user"))
 def create_user(request):
     if request.POST:
         form = CreateUserForm(request.POST)
@@ -515,7 +516,7 @@ class NodeManagementPaginatorContext(pagination.PaginatorContext):
             (_('act_by_asc'), pagination.SimpleSort(_('act_by_asc'), 'last_activity_by__username', "")),
         ), pagesizes=(default_pagesize,), force_sort='added_at', default_pagesize=default_pagesize, prefix=prefix)
 
-@admin_tools_page(_("nodeman"), _("Bulk management"))
+@admin_tools_page(_lazy("nodeman"), _lazy("Bulk management"))
 def node_management(request):
     if request.POST:
         params = pagination.generate_uri(request.GET, ('page',))

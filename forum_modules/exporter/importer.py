@@ -3,6 +3,7 @@ import os, tarfile, datetime, configparser, logging, shutil, tempfile, zipfile
 from django.core.cache import cache
 from django.db import models, transaction
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler, ErrorHandler
@@ -398,7 +399,7 @@ def user_import_pre_callback(user, data):
 
 SUBSCRIPTION_FIELDS = set([f.name for f in SubscriptionSettings._meta.fields])
 
-@file_handler('users.xml', 'users', 'user', _('Users'), pre_callback=user_import_pre_callback,
+@file_handler('users.xml', 'users', 'user', _lazy('Users'), pre_callback=user_import_pre_callback,
               args_handler=lambda u, d: [u, d['is_merge'], d['users_map'], d['marked_tags']])
 def user_import(row, current_user, is_merge, users_map, marked_tags):
     existent = is_merge and verify_existence(row) or None
@@ -502,7 +503,7 @@ def post_tag_import(user, data):
             TagSynonym(source_name=source_name, target=target).save()
 
 
-@file_handler('tags.xml', 'tags', 'tag', _('Tags'), pre_callback=pre_tag_import, post_callback=post_tag_import,
+@file_handler('tags.xml', 'tags', 'tag', _lazy('Tags'), pre_callback=pre_tag_import, post_callback=post_tag_import,
               args_handler=lambda u, d: [u, d['is_merge'], d['tag_merge'], d['users_map'], d['tag_mappings'], d['tag_synonyms']])
 def tag_import(row, current_user, is_merge, tag_merge, users_map, tag_mappings, tag_synonyms):
     created_by = row.get('author').as_int(None)
@@ -540,7 +541,7 @@ def post_node_import(user, data):
         Node.objects.filter(id=node_id).update(
             parent_id=nodes_map.get(parent), abs_parent_id=nodes_map.get(abs_parent), extra_ref_id=nodes_map.get(extra_ref))
 
-@file_handler('nodes.xml', 'nodes', 'node', _('Nodes'), pre_callback=pre_node_import, post_callback=post_node_import,
+@file_handler('nodes.xml', 'nodes', 'node', _lazy('Nodes'), pre_callback=pre_node_import, post_callback=post_node_import,
               args_handler=lambda u, d: [u, d['is_merge'], d['tag_merge'], d['tag_mappings'], d['nodes_map'], d['users_map'], d['node_refs']])
 def node_import(row, current_user, is_merge, tag_merge, tags, nodes_map, users_map, node_refs):
 
@@ -641,7 +642,7 @@ def pre_action_import_callback(user, data):
     data['persisted_votes'] = set()
     data['persisted_flags'] = set()
 
-@file_handler('actions.xml', 'actions', 'action', _('Actions'),
+@file_handler('actions.xml', 'actions', 'action', _lazy('Actions'),
               pre_callback=pre_action_import_callback, args_handler=lambda u, d: [u, d['nodes_map'], d['users_map'], d['actions_map'], d])
 def actions_import(row, current_user, nodes, users, actions_map, data):
     node = row.get('node').as_int(None)
@@ -737,7 +738,7 @@ def flag_action(row, action, data):
         data['persisted_flags'].add((action.user_id, action.node_id))
 
 
-@file_handler('states.xml', 'states', 'state', _('Node states'), args_handler=lambda u, d: [d['nodes_map'], d['actions_map']])
+@file_handler('states.xml', 'states', 'state', _lazy('Node states'), args_handler=lambda u, d: [d['nodes_map'], d['actions_map']])
 def states_import(row, nodes, actions):
     node = nodes.get(row.get('node').as_int())
     action = actions.get(row.get('trigger').as_int())
@@ -772,7 +773,7 @@ def award_import_args(user, data):
              data['awarded_badges']]
 
 
-@file_handler('awards.xml', 'awards', 'award', _('Awards'), args_handler=award_import_args)
+@file_handler('awards.xml', 'awards', 'award', _lazy('Awards'), args_handler=award_import_args)
 def awards_import(row, badges, nodes, users, actions, awarded_badges):
     badge_type = badges.get(row.getc('badge'), None)
 

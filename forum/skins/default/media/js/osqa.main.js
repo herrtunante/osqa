@@ -1115,9 +1115,7 @@ var i18nEs = {
 	'redo':'rehacer',
 	'enter image url':'introduzca la URL de la imagen, por ejemplo?<br />http://www.example.com/image.jpg   \"titulo de imagen\"',
 	'enter url':'introduzca direcciones web, ejemplo?<br />http://www.cnprog.com/   \"titulo del enlace\"</p>"',
-	'upload image':'cargar imagen?',
-	'questions/' : 'preguntas/',
-	'vote/' : 'votar/'
+	'upload image':'cargar imagen?'
 };
 
 var i18n = {
@@ -1126,7 +1124,9 @@ var i18n = {
 	'es':i18nEs
 };
 
-var i18n_dict = i18n[i18nLang];
+// URL paths are the same in every language, so dictionaries must not translate them;
+// languages without a dictionary fall back to English.
+var i18n_dict = jQuery.extend({}, i18nEn, i18n[i18nLang] || {});
 
 var notify = function() {
     var visible = false;

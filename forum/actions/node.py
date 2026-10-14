@@ -1,5 +1,6 @@
 from django.utils.html import strip_tags, escape
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.models.action import ActionProxy
 from forum.models import Comment, Question, Answer, NodeRevision
 from forum import settings, REQUEST_HOLDER
@@ -19,7 +20,7 @@ class NodeEditAction(ActionProxy):
         return revision_data
 
 class AskAction(NodeEditAction):
-    verb = _("asked")
+    verb = _lazy("asked")
 
     def process_data(self, **data):
         processed_data = self.create_revision_data(True, **data)
@@ -41,7 +42,7 @@ class AskAction(NodeEditAction):
         }
 
 class AnswerAction(NodeEditAction):
-    verb = _("answered")
+    verb = _lazy("answered")
 
     def process_data(self, **data):
         revision_data = self.create_revision_data(True, **data)
@@ -65,7 +66,7 @@ class AnswerAction(NodeEditAction):
         }
 
 class CommentAction(ActionProxy):
-    verb = _("commented")
+    verb = _lazy("commented")
 
     def process_data(self, text='', parent=None):
         comment = Comment(author=self.user, parent=parent, body=text)
@@ -79,7 +80,7 @@ class CommentAction(ActionProxy):
         }
 
 class ReviseAction(NodeEditAction):
-    verb = _("edited")
+    verb = _lazy("edited")
 
     def process_data(self, **data):
         revision_data = self.create_revision_data(**data)
@@ -100,7 +101,7 @@ class ReviseAction(NodeEditAction):
         return self.node.get_revisions_url()
 
 class RetagAction(ActionProxy):
-    verb = _("retagged")
+    verb = _lazy("retagged")
 
     def process_data(self, tagnames=''):
         active = self.node.active_revision
@@ -122,7 +123,7 @@ class RetagAction(ActionProxy):
         return self.node.get_revisions_url()
 
 class RollbackAction(ActionProxy):
-    verb = _("reverted")
+    verb = _lazy("reverted")
 
     def process_data(self, activate=None):
         previous = self.node.active_revision
@@ -147,7 +148,7 @@ class RollbackAction(ActionProxy):
         return self.node.get_revisions_url()
 
 class CloseAction(ActionProxy):
-    verb = _("closed")
+    verb = _lazy("closed")
 
     def process_data(self, duplicate_of=None, move_answers=False):
         self._duplicate_of = duplicate_of
@@ -206,7 +207,7 @@ class CloseAction(ActionProxy):
         }
 
 class AnswerToCommentAction(ActionProxy):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, new_parent=None):
         self.node.parent = new_parent
@@ -230,7 +231,7 @@ class AnswerToCommentAction(ActionProxy):
         }
 
 class CommentToAnswerAction(ActionProxy):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, question):
         self.node.parent = question
@@ -247,7 +248,7 @@ class CommentToAnswerAction(ActionProxy):
             'question': self.describe_node(viewer, self.node.abs_parent),
         }
 class CommentToQuestionAction(NodeEditAction):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, **data):
         revision_data = self.create_revision_data(**data)
@@ -272,7 +273,7 @@ class CommentToQuestionAction(NodeEditAction):
         }
 
 class AnswerToQuestionAction(NodeEditAction):
-    verb = _("converted to question")
+    verb = _lazy("converted to question")
 
     def process_data(self,  **data):
         revision_data = self.create_revision_data(**data)
@@ -303,7 +304,7 @@ class AnswerToQuestionAction(NodeEditAction):
         }
 
 class WikifyAction(ActionProxy):
-    verb = _("wikified")
+    verb = _lazy("wikified")
 
     def process_action(self):
         self.node.nstate.wiki = self

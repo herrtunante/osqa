@@ -3,6 +3,8 @@ from django.utils.translation import gettext as _
 from django.conf import settings
 
 urlpatterns = [
+    # set_language: the language switcher in the footer
+    re_path(r'^i18n/', include('django.conf.urls.i18n')),
     re_path(r'', include('forum.urls')),
 ]
 

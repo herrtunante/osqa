@@ -7,6 +7,7 @@ from .tag import Tag
 import markdown
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
 from forum.utils.html import sanitize_html
@@ -287,7 +288,7 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
     comment_count = DenormalizedField("children", node_type="comment", canceled=False)
     flag_count = DenormalizedField("actions", action_type="flag", canceled=False)
 
-    friendly_name = _("post")
+    friendly_name = _lazy("post")
 
     objects = NodeManager()
 

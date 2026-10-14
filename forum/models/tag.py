@@ -4,6 +4,7 @@ from .base import *
 from django.conf import settings as django_settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.encoding import smart_str, force_str
 
 from forum import modules
@@ -105,7 +106,7 @@ class TagSynonym(models.Model):
         return out
 
 class MarkedTag(models.Model):
-    TAG_MARK_REASONS = (('good', _('interesting')), ('bad', _('ignored')))
+    TAG_MARK_REASONS = (('good', _lazy('interesting')), ('bad', _lazy('ignored')))
     tag = models.ForeignKey(Tag, related_name='user_selections', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='tag_selections', on_delete=models.CASCADE)
     reason = models.CharField(max_length=16, choices=TAG_MARK_REASONS)

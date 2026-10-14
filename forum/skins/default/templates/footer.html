@@ -4,6 +4,17 @@
     <nav class="footerLinks">
         {% loadregistry footer_links %}<span class="link-separator"> |</span>{% endloadregistry %}
     </nav>
+    {% get_available_languages as LANGUAGES %}{% if LANGUAGES|length > 1 %}
+    <form class="language-switch" action="{% url "set_language" %}" method="post">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        <label for="language-select">{% trans "Language" %}</label>
+        <select id="language-select" name="language" onchange="this.form.submit()">
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% for code, name in LANGUAGES %}<option value="{{ code }}" lang="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit">{% trans "Change" %}</button></noscript>
+    </form>
+    {% endif %}
     <p class="footer-meta">
         <span title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>
         <span class="footer-dot">&middot;</span>

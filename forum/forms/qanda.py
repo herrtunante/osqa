@@ -3,6 +3,7 @@ from datetime import date
 from django import forms
 from forum.models import *
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from django.utils.encoding import smart_str
 from .general import NextUrlField, UserNameField
@@ -152,7 +153,7 @@ class SummaryField(forms.CharField):
 
 
 class FeedbackForm(forms.Form):
-    message = forms.CharField(label=_('Your message:'), max_length=800,widget=forms.Textarea(attrs={'cols':60}))
+    message = forms.CharField(label=_lazy('Your message:'), max_length=800,widget=forms.Textarea(attrs={'cols':60}))
     next = NextUrlField()
 
     def __init__(self, user, *args, **kwargs):
@@ -301,12 +302,12 @@ class EditAnswerForm(forms.Form):
             self.fields['wiki'] = WikiField(disabled=(answer.nis.wiki and not user.can_cancel_wiki(answer)), initial=answer.nis.wiki)
 
 class EditUserForm(forms.Form):
-    email = forms.EmailField(label=u'Email', help_text=_('this email does not have to be linked to gravatar'), required=True, max_length=75, widget=forms.TextInput(attrs={'size' : 35}))
-    realname = forms.CharField(label=_('Real name'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    website = forms.URLField(label=_('Website'), required=False, assume_scheme='http', max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    city = forms.CharField(label=_('Location'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    birthday = forms.DateField(label=_('Date of birth'), help_text=_('will not be shown, used to calculate age, format: YYYY-MM-DD'), required=False, widget=forms.TextInput(attrs={'size' : 35}))
-    about = forms.CharField(label=_('Profile'), required=False, widget=forms.Textarea(attrs={'cols' : 60}))
+    email = forms.EmailField(label=u'Email', help_text=_lazy('this email does not have to be linked to gravatar'), required=True, max_length=75, widget=forms.TextInput(attrs={'size' : 35}))
+    realname = forms.CharField(label=_lazy('Real name'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    website = forms.URLField(label=_lazy('Website'), required=False, assume_scheme='http', max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    city = forms.CharField(label=_lazy('Location'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    birthday = forms.DateField(label=_lazy('Date of birth'), help_text=_lazy('will not be shown, used to calculate age, format: YYYY-MM-DD'), required=False, widget=forms.TextInput(attrs={'size' : 35}))
+    about = forms.CharField(label=_lazy('Profile'), required=False, widget=forms.Textarea(attrs={'cols' : 60}))
 
     def __init__(self, user, *args, **kwargs):
         super(EditUserForm, self).__init__(*args, **kwargs)
@@ -342,10 +343,10 @@ class EditUserForm(forms.Form):
         
 
 NOTIFICATION_CHOICES = (
-    ('i', _('Instantly')),
+    ('i', _lazy('Instantly')),
     #('d', _('Daily')),
     #('w', _('Weekly')),
-    ('n', _('No notifications')),
+    ('n', _lazy('No notifications')),
 )
 
 class SubscriptionSettingsForm(forms.ModelForm):

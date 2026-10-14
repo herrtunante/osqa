@@ -1,4 +1,5 @@
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.badges.base import AbstractBadge
 from forum.models import Badge, Tag
 from forum.actions import VoteUpAction
@@ -7,7 +8,7 @@ from . import settings
 
 class BugBuster(AbstractBadge):
     type = Badge.SILVER
-    name = _("Bug Buster")
+    name = _lazy("Bug Buster")
     listen_to = (VoteUpAction, )
 
     @property

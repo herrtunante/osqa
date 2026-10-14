@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.badges.base import AbstractBadge
 from forum.models import Badge
 from forum.actions import *
@@ -21,18 +22,18 @@ class QuestionViewBadge(AbstractBadge):
 
 
 class PopularQuestion(QuestionViewBadge):
-    name = _('Popular Question')
+    name = _lazy('Popular Question')
     nviews = settings.POPULAR_QUESTION_VIEWS
 
 
 class NotableQuestion(QuestionViewBadge):
     type = Badge.SILVER
-    name = _('Notable Question')
+    name = _lazy('Notable Question')
     nviews = settings.NOTABLE_QUESTION_VIEWS
 
 class FamousQuestion(QuestionViewBadge):
     type = Badge.GOLD
-    name = _('Famous Question')
+    name = _lazy('Famous Question')
     nviews = settings.FAMOUS_QUESTION_VIEWS
 
 
@@ -55,17 +56,17 @@ class QuestionScoreBadge(NodeScoreBadge):
 
 class NiceQuestion(QuestionScoreBadge):
     expected_score = settings.NICE_QUESTION_VOTES_UP
-    name = _("Nice Question")
+    name = _lazy("Nice Question")
 
 class GoodQuestion(QuestionScoreBadge):
     type = Badge.SILVER
     expected_score = settings.GOOD_QUESTION_VOTES_UP
-    name = _("Good Question")
+    name = _lazy("Good Question")
 
 class GreatQuestion(QuestionScoreBadge):
     type = Badge.GOLD
     expected_score = settings.GREAT_QUESTION_VOTES_UP
-    name = _("Great Question")
+    name = _lazy("Great Question")
 
 
 class AnswerScoreBadge(NodeScoreBadge):
@@ -78,17 +79,17 @@ class AnswerScoreBadge(NodeScoreBadge):
 
 class NiceAnswer(AnswerScoreBadge):
     expected_score = settings.NICE_ANSWER_VOTES_UP
-    name = _("Nice Answer")
+    name = _lazy("Nice Answer")
 
 class GoodAnswer(AnswerScoreBadge):
     type = Badge.SILVER
     expected_score = settings.GOOD_ANSWER_VOTES_UP
-    name = _("Good Answer")
+    name = _lazy("Good Answer")
 
 class GreatAnswer(AnswerScoreBadge):
     type = Badge.GOLD
     expected_score = settings.GREAT_ANSWER_VOTES_UP
-    name = _("Great Answer")
+    name = _lazy("Great Answer")
 
 
 class FavoriteQuestionBadge(AbstractBadge):
@@ -105,18 +106,18 @@ class FavoriteQuestionBadge(AbstractBadge):
 
 class FavoriteQuestion(FavoriteQuestionBadge):
     type = Badge.SILVER
-    name = _("Favorite Question")
+    name = _lazy("Favorite Question")
     expected_count = settings.FAVORITE_QUESTION_FAVS
 
 class StellarQuestion(FavoriteQuestionBadge):
     type = Badge.GOLD
-    name = _("Stellar Question")
+    name = _lazy("Stellar Question")
     expected_count = settings.STELLAR_QUESTION_FAVS
 
 
 class Disciplined(AbstractBadge):
     listen_to = (DeleteAction,)
-    name = _("Disciplined")
+    name = _lazy("Disciplined")
     @property
     def description(self):
         return _('Deleted own post with score of %s or higher') % settings.DISCIPLINED_MIN_SCORE
@@ -127,7 +128,7 @@ class Disciplined(AbstractBadge):
 
 class PeerPressure(AbstractBadge):
     listen_to = (DeleteAction,)
-    name = _("Peer Pressure")
+    name = _lazy("Peer Pressure")
     @property
     def description(self):
         return _('Deleted own post with score of %s or lower') % settings.PEER_PRESSURE_MAX_SCORE
@@ -140,8 +141,8 @@ class PeerPressure(AbstractBadge):
 class Critic(AbstractBadge):
     award_once = True
     listen_to = (VoteDownAction,)
-    name = _("Critic")
-    description = _('First down vote')
+    name = _lazy("Critic")
+    description = _lazy('First down vote')
 
     def award_to(self, action):
         if (action.user.vote_down_count == 1):
@@ -151,8 +152,8 @@ class Critic(AbstractBadge):
 class Supporter(AbstractBadge):
     award_once = True
     listen_to = (VoteUpAction,)
-    name = _("Supporter")
-    description = _('First up vote')
+    name = _lazy("Supporter")
+    description = _lazy('First up vote')
 
     def award_to(self, action):
         if (action.user.vote_up_count == 1):
@@ -169,35 +170,35 @@ class FirstActionBadge(AbstractBadge):
 
 class CitizenPatrol(FirstActionBadge):
     listen_to = (FlagAction,)
-    name = _("Citizen Patrol")
-    description = _('First flagged post')
+    name = _lazy("Citizen Patrol")
+    description = _lazy('First flagged post')
 
 class Organizer(FirstActionBadge):
     listen_to = (RetagAction,)
-    name = _("Organizer")
-    description = _('First retag')
+    name = _lazy("Organizer")
+    description = _lazy('First retag')
 
 class Editor(FirstActionBadge):
     listen_to = (ReviseAction,)
-    name = _("Editor")
-    description = _('First edit')
+    name = _lazy("Editor")
+    description = _lazy('First edit')
 
 class Scholar(FirstActionBadge):
     listen_to = (AcceptAnswerAction,)
-    name = _("Scholar")
-    description = _('First accepted answer on your own question')
+    name = _lazy("Scholar")
+    description = _lazy('First accepted answer on your own question')
 
 class Cleanup(FirstActionBadge):
     listen_to = (RollbackAction,)
-    name = _("Cleanup")
-    description = _('First rollback')
+    name = _lazy("Cleanup")
+    description = _lazy('First rollback')
 
 
 class Autobiographer(AbstractBadge):
     award_once = True
     listen_to = (EditProfileAction,)
-    name = _("Autobiographer")
-    description = _('Completed all user profile fields')
+    name = _lazy("Autobiographer")
+    description = _lazy('Completed all user profile fields')
 
     def award_to(self, action):
         user = action.user
@@ -210,7 +211,7 @@ class CivicDuty(AbstractBadge):
     type = Badge.SILVER
     award_once = True
     listen_to = (VoteUpAction, VoteDownAction)
-    name = _("Civic Duty")
+    name = _lazy("Civic Duty")
     @property
     def description(self):
         return _('Voted %s times') % settings.CIVIC_DUTY_VOTES
@@ -223,7 +224,7 @@ class CivicDuty(AbstractBadge):
 class Pundit(AbstractBadge):
     award_once = True
     listen_to = (CommentAction,)
-    name = _("Pundit")
+    name = _lazy("Pundit")
     @property
     def description(self):
         return _('Left %s comments') % settings.PUNDIT_COMMENT_COUNT
@@ -236,7 +237,7 @@ class Pundit(AbstractBadge):
 
 class SelfLearner(AbstractBadge):
     listen_to = (VoteUpAction, )
-    name = _("Self Learner")
+    name = _lazy("Self Learner")
     @property
     def description(self):
         return _('Answered your own question with at least %s up votes') % settings.SELF_LEARNER_UP_VOTES
@@ -251,7 +252,7 @@ class StrunkAndWhite(AbstractBadge):
     type = Badge.SILVER
     award_once = True
     listen_to = (ReviseAction,)
-    name = _("Strunk & White")
+    name = _lazy("Strunk & White")
     @property
     def description(self):
         return _('Edited %s entries') % settings.STRUNK_AND_WHITE_EDITS
@@ -264,8 +265,8 @@ class StrunkAndWhite(AbstractBadge):
 class Student(AbstractBadge):
     award_once = True
     listen_to = (VoteUpAction,)
-    name = _("Student")
-    description = _('Asked first question with at least one up vote')
+    name = _lazy("Student")
+    description = _lazy('Asked first question with at least one up vote')
 
     def award_to(self, action):
         if (action.node.node_type == "question") and (action.node.author.nodes.filter_state(deleted=False).filter(
@@ -276,8 +277,8 @@ class Student(AbstractBadge):
 class Teacher(AbstractBadge):
     award_once = True
     listen_to = (VoteUpAction,)
-    name = _("Teacher")
-    description = _('Answered first question with at least one up vote')
+    name = _lazy("Teacher")
+    description = _lazy('Answered first question with at least one up vote')
 
     def award_to(self, action):
         if (action.node.node_type == "answer") and (action.node.author.nodes.filter_state(deleted=False).filter(
@@ -289,7 +290,7 @@ class Enlightened(AbstractBadge):
     type = Badge.SILVER
     award_once = True
     listen_to = (VoteUpAction, AcceptAnswerAction)
-    name = _("Enlightened")
+    name = _lazy("Enlightened")
     @property
     def description(self):
         return _('First answer was accepted with at least %s up votes') % settings.ENLIGHTENED_UP_VOTES
@@ -303,7 +304,7 @@ class Enlightened(AbstractBadge):
 class Guru(AbstractBadge):
     type = Badge.SILVER
     listen_to = (VoteUpAction, AcceptAnswerAction)
-    name = _("Guru")
+    name = _lazy("Guru")
     @property
     def description(self):
         return _('Accepted answer and voted up %s times') % settings.GURU_UP_VOTES
@@ -317,7 +318,7 @@ class Guru(AbstractBadge):
 class Necromancer(AbstractBadge):
     type = Badge.SILVER
     listen_to = (VoteUpAction,)
-    name = _("Necromancer")
+    name = _lazy("Necromancer")
     @property
     def description(self):
         return _('Answered a question more than %(dif_days)s days later with at least %(up_votes)s votes') % \
@@ -332,7 +333,7 @@ class Necromancer(AbstractBadge):
 class Taxonomist(AbstractBadge):
     type = Badge.SILVER
     listen_to = tuple()
-    name = _("Taxonomist")
+    name = _lazy("Taxonomist")
     @property
     def description(self):
         return _('Created a tag used by %s questions') % settings.TAXONOMIST_USE_COUNT
@@ -343,8 +344,8 @@ class Taxonomist(AbstractBadge):
 class ValidatedEmail(AbstractBadge):
     type = Badge.BRONZE
     listen_to = (EmailValidationAction,)
-    name = _("Validated Email")
-    description = _("User who has validated email associated to the account")
+    name = _lazy("Validated Email")
+    description = _lazy("User who has validated email associated to the account")
     award_once = True
 
     def award_to(self, action):

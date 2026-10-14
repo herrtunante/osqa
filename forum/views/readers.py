@@ -10,6 +10,7 @@ from django.utils.html import *
 from urllib.parse import quote as urlquote
 from django.db.models import Q, Count
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
@@ -104,7 +105,7 @@ def index(request):
                          feed_url=reverse('latest_questions_feed'),
                          paginator_context=paginator_context)
 
-@decorators.render('questions.html', 'unanswered', _('unanswered'), weight=400)
+@decorators.render('questions.html', 'unanswered', _lazy('unanswered'), weight=400)
 def unanswered(request):
     return question_list(request,
                          Question.objects.exclude(id__in=Question.objects.filter(children__marked=True).distinct()).exclude(marked=True),
@@ -112,7 +113,7 @@ def unanswered(request):
                          None,
                          _("Unanswered Questions"))
 
-@decorators.render('questions.html', 'questions', _('questions'), weight=0)
+@decorators.render('questions.html', 'questions', _lazy('questions'), weight=0)
 def questions(request):
     return question_list(request,
                          Question.objects.all(),
@@ -195,15 +196,15 @@ def user_questions(request, mode, user, slug):
                          page_title=description % user.username)
 
 def question_list(request, initial,
-                  list_description=_('questions'),
+                  list_description=_lazy('questions'),
                   base_path=None,
-                  page_title=_("All Questions"),
+                  page_title=_lazy("All Questions"),
                   allowIgnoreTags=True,
                   feed_url=None,
                   paginator_context=None,
                   show_summary=None,
                   feed_sort=('-added_at',),
-                  feed_req_params_exclude=(_('page'), _('pagesize'), _('sort')),
+                  feed_req_params_exclude=(_lazy('page'), _lazy('pagesize'), _lazy('sort')),
                   extra_context={}):
 
     if show_summary is None:
@@ -298,7 +299,7 @@ def question_search(request, keywords):
                          feed_url=feed_url, feed_sort=rank_feed and (can_rank,) or '-added_at')
 
 
-@decorators.render('tags.html', 'tags', _('tags'), weight=100)
+@decorators.render('tags.html', 'tags', _lazy('tags'), weight=100)
 def tags(request):
     stag = ""
     tags = Tag.active.all()

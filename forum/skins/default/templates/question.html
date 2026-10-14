@@ -300,7 +300,7 @@
 
 {% sidebar_upper %}
 
-{% cache 60 questions_tags settings.APP_URL question.id %}
+{% cache 60 questions_tags settings.APP_URL question.id LANGUAGE_CODE %}
 <div class="boxC">
     <p>
         {% trans "Question tags" %}:
