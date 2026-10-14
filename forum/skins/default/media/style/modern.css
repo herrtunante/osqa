@@ -3291,3 +3291,15 @@ h3.or_label::before, h3.or_label::after {
 /* Language switcher (footer) */
 .language-switch { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 0.9em; color: var(--muted); }
 .language-switch select { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font: inherit; }
+
+/* Label/field rows (password settings and similar forms): flexible instead of
+   absolutely positioned, so help texts fit and phones don't scroll sideways. */
+ul.form-horizontal-rows li { height: auto; position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 12px; }
+ul.form-horizontal-rows label { position: static; flex: 0 0 150px; font-size: 13px; line-height: 1.3; }
+ul.form-horizontal-rows li input { position: static; flex: 1 1 220px; max-width: 360px; box-sizing: border-box; }
+ul.form-horizontal-rows .helptext { flex-basis: 100%; margin-left: 162px; color: var(--muted); font-size: 0.85em; }
+@media (max-width: 640px) {
+    ul.form-horizontal-rows label { flex-basis: 100%; }
+    ul.form-horizontal-rows li input { max-width: none; }
+    ul.form-horizontal-rows .helptext { margin-left: 0; }
+}

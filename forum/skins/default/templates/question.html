@@ -72,7 +72,9 @@
 
         function beforeUnload(e) {
 
-            if($("textarea#editor")[0].value != "") {
+            // Closed questions have no answer box.
+            var editor = $("textarea#editor")[0];
+            if(editor && editor.value != "") {
                 return yourWorkWillBeLost(e);
             }
 

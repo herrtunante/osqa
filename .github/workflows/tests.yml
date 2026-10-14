@@ -24,6 +24,28 @@ jobs:
       - name: Run tests
         run: OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 
+  e2e:
+    # Browser tests (e2e/README.md): every workflow in Chromium.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install MySQL client headers (for mysqlclient)
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Run browser tests
+        run: OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e --noinput
+      - name: Screenshots of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: tmp/e2e/
+
   audit:
     # Known vulnerabilities in the pinned dependencies (PyPI advisory database).
     runs-on: ubuntu-latest

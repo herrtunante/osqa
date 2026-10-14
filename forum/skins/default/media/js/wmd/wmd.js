@@ -32,7 +32,7 @@ function ajaxFileUpload(imageUrl)
                   	  alert("There was an internal server error uploading your file.\nPermission denied.");
                   	}
                   	else{
-                      imageUrl.attr('value', appUrl + fileURL);
+                      imageUrl.val(appUrl + fileURL);
                    }
                   }
 

@@ -260,6 +260,11 @@ these, because the old values may not fit the new version:
     shows up in `log/security.log` and Sentry.
   - Old Google Analytics (`ga.js`) no longer collects data; use Google
     Analytics 4 or another tool.
+- **Header search:** the forum's own search is used by default. It finds
+  questions by keywords, and by meaning when the AI module is configured.
+  The Open Foris forum used a Google Programmable Search engine, which was
+  hard-coded. To keep it, enter its ID (`011544878288102132035:auatq0p6-wo`)
+  under Admin > External Keys > "Google custom search engine ID".
 - **Sidebar:** the old default blocks advertising osqa.net/WebFaction are
   hidden automatically. Check your own blocks.
 - **Admin > Security and Users settings:** the new sign-in, posting and spam

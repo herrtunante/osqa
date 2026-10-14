@@ -48,9 +48,10 @@ STORAGES = {
     'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
 }
 
-# Skin media is served by OSQA itself (/m/...); STATIC_URL is only needed by
-# apps that use django.contrib.staticfiles, such as the debug toolbar.
-STATIC_URL = '/static/'
+# Skin media is served by OSQA itself (/m/...). STATIC_URL is used by Django's
+# own admin (/nimda/); OSQA serves those files too (/m/static/admin/...), so
+# no collectstatic or web server configuration is needed.
+STATIC_URL = '/m/static/'
 
 # OSQA stores naive local datetimes; Django 5.0 changed the default to True.
 USE_TZ = False

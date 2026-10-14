@@ -2,3 +2,6 @@
 
 # Enabled automatically when DEBUG = True
 django-debug-toolbar==8.0.0
+
+# Browser tests (e2e/): also run "python -m playwright install chromium"
+playwright==1.63.0
