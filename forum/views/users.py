@@ -150,11 +150,9 @@ def edit_user(request, id, slug):
                 user.email = new_email
                 user.email_isvalid = False
 
-                try:
-                    hash = ValidationHash.objects.get(user=request.user, type='email')
-                    hash.delete()
-                except:
-                    pass
+                # A pending validation link for the old address must stop
+                # working; it belongs to the edited user, not to whoever edits.
+                ValidationHash.objects.filter(user=user, type='email').delete()
 
             if settings.EDITABLE_SCREEN_NAME:
                 user.username = sanitize_html(form.cleaned_data['username'])

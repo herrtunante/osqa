@@ -46,6 +46,9 @@ core_urls = [
     re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap_section_index, {'sitemaps': sitemaps}, name="sitemap_section_index"),
 
     re_path(r'^favicon\.ico$', app.meta.favicon),
+    re_path(r'^manifest\.webmanifest$', app.pwa.manifest, name='manifest'),
+    re_path(r'^sw\.js$', app.pwa.service_worker, name='service_worker'),
+    re_path(r'^offline/$', app.pwa.offline, name='offline'),
     re_path(r'^cstyle\.css$', app.meta.custom_css, name='custom_css'),
     
     re_path(r'^m/django_admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_media'),

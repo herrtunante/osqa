@@ -294,3 +294,25 @@ class SettingDefaultRaceTest(OSQATestCase):
             self.assertEqual(setting.value, setting.default)
         setting._temp = None
         self.assertEqual(real_get(key=setting.name).value, setting.default)
+
+
+class CommandNotFoundTest(OSQATestCase):
+    def test_missing_post_is_a_404_not_an_unknown_error(self):
+        self.login(self.create_user('alice'))
+        response = self.client.post('/node_markdown/999999/', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 404)
+
+
+class StaleCopyCacheTest(OSQATestCase):
+    def test_saving_an_old_copy_does_not_cache_its_old_values(self):
+        # The user's own request holds a copy from before an admin made them a
+        # moderator; saving it (e.g. last_login) must not undo that in the cache.
+        alice = self.create_user('alice')
+        own_copy = User.objects.get(id=alice.id)
+        admin_copy = User.objects.get(id=alice.id)
+        admin_copy.is_staff = True
+        admin_copy.save()
+        import datetime
+        own_copy.last_login = datetime.datetime.now()
+        own_copy.save()
+        self.assertTrue(User.objects.get(id=alice.id).is_staff)

@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from django.utils.translation import ngettext, gettext as _
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseNotFound, Http404
 from django.shortcuts import get_object_or_404, render
 
 from django.contrib import messages
@@ -93,21 +93,22 @@ def vote_post(request, id, vote_type):
     if user == post.author:
         raise CannotDoOnOwnException(_('vote'))
 
-    if not (vote_type == 'up' and user.can_vote_up() or user.can_vote_down()):
+    # Each direction has its own minimum: an up vote needs REP_TO_VOTE_UP even
+    # when REP_TO_VOTE_DOWN is lower (and the other way round).
+    can_vote = user.can_vote_up() if vote_type == 'up' else user.can_vote_down()
+    if not can_vote:
         reputation_required = int(settings.REP_TO_VOTE_UP) if vote_type == 'up' else int(settings.REP_TO_VOTE_DOWN)
-        action_type = vote_type == 'up' and _('upvote') or _('downvote')
+        action_type = _('upvote') if vote_type == 'up' else _('downvote')
         raise NotEnoughRepPointsException(action_type, user_reputation=user.reputation, reputation_required=reputation_required, node=post)
-
-    user_vote_count_today = user.get_vote_count_today()
-    user_can_vote_count_today = user.can_vote_count_today()
-
-    if user_vote_count_today >= user.can_vote_count_today():
-        raise NotEnoughLeftException(_('votes'), str(settings.MAX_VOTES_PER_DAY))
 
     new_vote_cls = (vote_type == 'up') and VoteUpAction or VoteDownAction
     score_inc = 0
 
     old_vote = VoteAction.get_action_for(node=post, user=user)
+
+    # The daily limit is on casting votes; taking one back is always allowed.
+    if not old_vote and user.get_vote_count_today() >= user.can_vote_count_today():
+        raise NotEnoughLeftException(_('votes'), str(user.can_vote_count_today()))
 
     if old_vote:
         if old_vote.action_date < datetime.datetime.now() - datetime.timedelta(days=int(settings.DENY_UNVOTE_DAYS)):
@@ -131,7 +132,9 @@ def vote_post(request, id, vote_type):
     }
     }
 
-    votes_left = (user_can_vote_count_today - user_vote_count_today) + (vote_type == 'none' and -1 or 1)
+    # Counted after the vote (or its cancellation), so the number is what the
+    # user can still cast today.
+    votes_left = max(0, user.can_vote_count_today() - user.get_vote_count_today())
 
     if int(settings.START_WARN_VOTES_LEFT) >= votes_left:
         response['message'] = _("You have %(nvotes)s %(tvotes)s left today.") % \
@@ -274,6 +277,9 @@ def comment(request, id):
         comment = get_object_or_404(Comment, id=request.POST['id'])
 
         if not user.can_edit_comment(comment):
+            if comment.author == user:
+                raise CommandException(_("Sorry, a comment can only be edited during the first 60 minutes after it "
+                                         "was posted."))
             raise NotEnoughRepPointsException( _('edit comments'))
 
         comment = ReviseAction(user=user, node=comment, ip=request.META['REMOTE_ADDR']).save(
@@ -326,7 +332,9 @@ def node_markdown(request, id):
 @decorate.withfn(command)
 def accept_answer(request, id):
     if settings.DISABLE_ACCEPTING_FEATURE:
-        raise Http404()
+        # Returned, not raised: the command decorator turns exceptions into an
+        # "unknown error" reply with status 200.
+        return HttpResponseNotFound()
 
     user = request.user
 
@@ -694,10 +702,13 @@ def award_points(request, user_id, answer_id):
             'reputation_to_comment' : str(settings.REP_TO_COMMENT)
         })
     else:
-        points = int(request.POST['points'])
+        try:
+            points = int(request.POST.get('points', ''))
+        except ValueError:
+            points = 0
 
         # We should check if the user has enough reputation points, otherwise we raise an exception.
-        if points < 0:
+        if points <= 0:
             raise CommandException(_("The number of points to award needs to be a positive value."))
 
         if user.reputation < points:

@@ -67,6 +67,8 @@ def content_security_policy(request):
         "connect-src " + with_extra(("'self' %s %s %s" % (GOOGLE, ANALYTICS, sentry)).strip()),
         "frame-src " + with_extra("'self' %s" % GOOGLE),
         # Posts may show images from anywhere.
+        "worker-src 'self'",  # the service worker (/sw.js)
+        "manifest-src 'self'",
         "img-src * data: blob:",
         "media-src *",
         "object-src 'none'",

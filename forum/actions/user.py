@@ -77,11 +77,11 @@ class BonusRepAction(ActionProxy):
 
         if self._value < 0:
             messages.info(REQUEST_HOLDER.request, _("You have penalized %s in %s reputation points.") % (self._affected, self._value) +
-                    '<br />%s' % self.extra.get('message', ''))
+                    '<br />%s' % escape(self.extra.get('message', '')))
 
     def describe(self, viewer=None):
         value = self.extra.get('value', _('unknown'))
-        message = self.extra.get('message', '')
+        message = escape(self.extra.get('message', ''))
 
         try:
             if int(value) > 0:
@@ -252,5 +252,6 @@ class SuspendAction(ActionProxy):
 
         return _("%(user)s suspended %(users)s %(suspension)s: %(msg)s") % {
         'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
-        'users': self.affected_links(viewer), 'suspension': suspension, 'msg': self.extra.get('publicmsg', _('Bad behaviour'))
+        'users': self.affected_links(viewer), 'suspension': suspension,
+        'msg': escape(self.extra.get('publicmsg', _('Bad behaviour')))
         }

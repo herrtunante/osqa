@@ -209,7 +209,9 @@ class User(BaseModel, DjangoUser):
     
     def save(self, *args, **kwargs):
         # If the community doesn't allow negative reputation, set it to 0
-        if not settings.ALLOW_NEGATIVE_REPUTATION and self.reputation < 0:
+        # (changes from actions are F() expressions, already kept from going
+        # below 0 by ActionRepute)
+        if not settings.ALLOW_NEGATIVE_REPUTATION and isinstance(self.reputation, int) and self.reputation < 0:
             self.reputation = 0
 
         new = not bool(self.id)
@@ -264,23 +266,30 @@ class User(BaseModel, DjangoUser):
     def get_visible_answers(self, question):
         return question.answers.filter_state(deleted=False)
 
+    # The per-day limits (votes, flags, reputation from up votes) count the
+    # last 24 hours. (They used to start at midnight yesterday, so a "day"
+    # lasted up to 48 hours.)
+    @staticmethod
+    def _one_day_ago():
+        return datetime.datetime.now() - datetime.timedelta(days=1)
+
     def get_vote_count_today(self):
-        today = datetime.date.today()
         return self.actions.filter(canceled=False, action_type__in=("voteup", "votedown"),
-                                   action_date__gte=(today - datetime.timedelta(days=1))).count()
+                                   action_date__gte=self._one_day_ago()).count()
 
     def get_reputation_by_upvoted_today(self):
-        today = datetime.datetime.now()
-        sum = self.reputes.filter(reputed_at__range=(today - datetime.timedelta(days=1), today)).aggregate(
-                models.Sum('value'))
-        #todo: redo this, maybe transform in the daily cap
-        #if sum.get('value__sum', None) is not None: return sum['value__sum']
-        return 0
+        """Net reputation this user got in the last 24 hours from up votes on
+        their posts: the gains of the up votes cast in that time, less the
+        part given back by those of them that were cancelled."""
+        from forum.models.action import ActionRepute
+        total = ActionRepute.objects.filter(user=self, action__action_type='voteup',
+                                            action__action_date__gte=self._one_day_ago()
+                                            ).aggregate(total=models.Sum('value'))['total']
+        return int(total or 0)
 
     def get_flagged_items_count_today(self):
-        today = datetime.date.today()
         return self.actions.filter(canceled=False, action_type="flag",
-                                   action_date__gte=(today - datetime.timedelta(days=1))).count()
+                                   action_date__gte=self._one_day_ago()).count()
     
     def can_vote_count_today(self):
         votes_today = settings.MAX_VOTES_PER_DAY

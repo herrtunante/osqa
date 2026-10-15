@@ -1,5 +1,4 @@
-{% load i18n %}
-{% load question_list_tags %}
+{% load i18n humanize extra_tags %}
 
 <div id="subscription_list" align="left">
     <h2>
@@ -14,7 +13,17 @@
     </h2>
 
     {% for subscription in subscriptions.paginator.page %}
-        {% subscription_list_item subscription subscription.question %}
+    {% with question=subscription.question %}
+    <div class="subscription_summary">
+        {# A form, not a link: the subscribe command only accepts POST, then returns here. #}
+        <form method="post" style="float:left;margin:5px 15px 0 0" action="{% url "subscribe" id=question.id user=subscription.user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="plain-button subscription_unsubscribe_button">{% trans "Unsubscribe" %}</button>
+        </form>
+        <div class="subscription_title"><a title="{{ question.summary }}" href="{{ question.get_absolute_url }}">{{ question.headline }}</a></div>
+        <div class="subscription_details"><span class="relativetime" title="{{ subscription.last_view }}">{% trans "Last checked" %} {% diff_date subscription.last_view %}</span></div>
+    </div>
+    {% endwith %}
     {% endfor %}
 
     <div class="pager">{{ subscriptions.paginator.page_numbers }}</div>

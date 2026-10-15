@@ -425,6 +425,21 @@ The header search box uses Google Programmable Search when Admin > External
 Keys > "Google custom search engine ID" is set (it defaults to the engine this
 fork used before), and the site's own search when it is empty.
 
+### Installable app and offline reading
+
+The forum is a progressive web app: browsers offer to install it (name,
+description and short name from Admin > Basic settings; the icon is the
+admin's logo when it is an uploaded square image of at least 192 pixels,
+otherwise the bundled icons in `media/images/icons/`). A service worker
+(`/sw.js`, template `pwa/sw.js`, registered by `media/js/osqa.pwa.js`) keeps
+the skin files and the last 50 question, question list and tag pages a visitor
+read. Without a connection those pages open from the saved copy with an
+"offline" banner, and other pages show `/offline/`, which lists what was saved.
+Posting, votes, the admin, account, notification and profile pages are never
+cached, and saved pages are forgotten on sign-out or when another user signs
+in. Static files are cached under a name that changes with every deploy that
+changes them; HTTPS (or localhost) is required.
+
 ## Features added in this fork
 
 - Fenced code blocks (```` ```python ````) and syntax highlighting (highlight.js,

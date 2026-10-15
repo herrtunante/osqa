@@ -95,7 +95,8 @@ class EditingTest(E2ETestCase):
             const r = await fetch(path);
             return [r.status, r.headers.get('content-type'), (await r.arrayBuffer()).byteLength];
         }""", path)
-        self.assertEqual(served, [200, 'image/png', os.path.getsize(image)])
+        # Re-encoded by Pillow: what is served is the stored copy, not the original.
+        self.assertEqual(served, [200, 'image/png', os.path.getsize(os.path.join(folder, stored[0]))])
         self.check_page(page)
 
     def assert_upload_refused(self, page, upload, status, message):

@@ -222,7 +222,8 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
         if hasattr(self, '_state'):
             self._state.db = 'default'
 
-        if self.id and not full_save:
+        partial = bool(self.id) and not full_save
+        if partial:
             self.__class__.objects.filter(id=self.id).update(**self._get_update_kwargs())
         else:
             super(BaseModel, self).save()
@@ -238,7 +239,13 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
 
         self.reset_original_state()
         self._set_query_cache_invalidation_timestamp()
-        self.cache()
+        if partial:
+            # Only the changed fields were written; the others may be out of
+            # date in this copy (another request changed them), so the cache
+            # is refilled from the database on the next read.
+            self.uncache()
+        else:
+            self.cache()
 
     @classmethod
     def _get_cache_query_invalidation_key(cls):

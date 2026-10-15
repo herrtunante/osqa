@@ -319,21 +319,18 @@ function process_ajax_response(data, evt, callback) {
     if (!data.success && data['error_message'] != undefined) {
         show_message(evt, data.error_message, function() {if (callback) callback(true);});
         end_command(false);
+        return;  // the success callback must not run: it would clear the user's input
     }
-    if (typeof data['commands'] != undefined){
-        for (var command in data.commands) {
-            response_commands[command].apply(null, data.commands[command])
-
-
-        }
-
-        if (data['message'] != undefined) {
-            show_message(evt, data.message, function() {if (callback) callback(false);})
-        } else {
-            if (callback) callback(false);
-        }
-        end_command(true);
+    for (var command in (data.commands || {})) {
+        response_commands[command].apply(null, data.commands[command]);
     }
+
+    if (data['message'] != undefined) {
+        show_message(evt, data.message, function() {if (callback) callback(false);})
+    } else {
+        if (callback) callback(false);
+    }
+    end_command(true);
 }
 
 var running = false;

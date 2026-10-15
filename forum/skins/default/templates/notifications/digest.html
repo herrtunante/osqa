@@ -2,21 +2,21 @@
 
 {% declare %}
     prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
-    app_name = smart_unicode(settings.APP_SHORT_NAME)
+    app_name = smart_str(settings.APP_SHORT_NAME)
     app_url = settings.APP_URL
 
-    new_member_links = html.mark_safe(smart_unicode(", ".join([html.objlink(u, style=settings.EMAIL_ANCHOR_STYLE) for u in new_members])))
+    new_member_links = html.mark_safe(smart_str(", ".join([html.objlink(u, style=settings.EMAIL_ANCHOR_STYLE) for u in new_members])))
     new_question_count = digest.count
 
 {% enddeclare %}
 
 {% email %}
 
-    {% subject %}{% blocktrans %}{{ prefix }} Weekly digest{% endblocktrans %}{% endsubject %}
+    {% subject %}{% blocktrans %}{{ prefix }} Daily digest{% endblocktrans %}{% endsubject %}
 
     {% htmlcontent notifications/base.html %}
         {% declare %}
-            new_questions_link = html.hyperlink(smart_unicode(app_url) + reverse('questions') + '?sort=' + _('latest'), smart_unicode(_('new questions')), style=a_style)
+            new_questions_link = html.hyperlink(smart_str(app_url) + reverse('questions') + '?sort=' + _('latest'), smart_str(_('new questions')), style=a_style)
             user_questions = digest.get_for_user(recipient)
             subscribed_url = '%s%s' % (app_url, recipient.get_subscribed_url())
             subscriptions_link = html.hyperlink(subscribed_url, _('subscriptions'), style=a_style)
@@ -74,6 +74,7 @@
             </li>
         {% endfor %}
         </ul>
+        {% endif %}
 
         {% if user_questions.subscriptions %}
         <p style="{{ p_style }}">
@@ -87,14 +88,12 @@
         {% endfor %}
         </ul>
         {% endif %}
-        
-        {% endif %}
 
         {% endif %}
 
         {% if recipient.is_superuser %}
         {% declare %}
-            flagged_url = html.hyperlink(smart_unicode(app_url + reverse('admin_flagged_posts')), smart_unicode(str(flagged_count) + ' ' + _('posts')), style=a_style)
+            flagged_url = html.hyperlink(smart_str(app_url + reverse('admin_flagged_posts')), smart_str(str(flagged_count) + ' ' + _('posts')), style=a_style)
         {% enddeclare %}
         <p style="{{ p_style }}">
             {% blocktrans %}
@@ -130,13 +129,13 @@
 {% for q in user_questions.may_help %}
 * {{ q.title }}
 {% endfor %}
+{% endif %}
 
 {% if user_questions.subscriptions %}
 {% blocktrans %}Meanwhile, some of your subscriptions have new updates since you last visited them:{% endblocktrans %}
 {% for q in user_questions.subscriptions %}
 * {{ q.title }}
 {% endfor %}
-{% endif %}
 {% endif %}
 {% endif %}
 

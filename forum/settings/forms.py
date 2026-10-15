@@ -99,13 +99,18 @@ class ImageFormWidget(forms.Widget):
             # check file type
             file_name_suffix = os.path.splitext(f.name)[1].lower()
 
-            if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico'):
+            if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
                 raise Exception('File type not allowed')
 
             from forum.settings import UPFILES_FOLDER, UPFILES_ALIAS
 
+            from django.core.files.base import ContentFile
+            from forum.utils.images import process_image
+
+            # Re-encoded without metadata (EXIF, GPS...); icons are kept as they are.
+            data, file_name = process_image(f, "_".join(f.name.split()), keep_ico=True)
             storage = FileSystemStorage(str(UPFILES_FOLDER), str(UPFILES_ALIAS))
-            new_file_name = storage.save(f.name, f)
+            new_file_name = storage.save(file_name, ContentFile(data))
             return str(UPFILES_ALIAS) + new_file_name
         else:
             if "%s_old" % name in data:

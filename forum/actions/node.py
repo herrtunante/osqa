@@ -247,6 +247,15 @@ class CommentToAnswerAction(ActionProxy):
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'question': self.describe_node(viewer, self.node.abs_parent),
         }
+def original_question(action):
+    """The question a converted post belonged to (its parent links are
+    cleared by the conversion); the new question itself if it's gone."""
+    from forum.models import Question
+    extra = action.extra if isinstance(action.extra, dict) else {}
+    # Older conversions stored the question object itself.
+    question_id = extra.get('original_question_id') or getattr(extra.get('original_question'), 'id', None)
+    return Question.objects.filter(id=question_id).first() or action.node
+
 class CommentToQuestionAction(NodeEditAction):
     verb = _lazy("converted")
 
@@ -256,6 +265,7 @@ class CommentToQuestionAction(NodeEditAction):
 
         self.extra = {
             'covert_revision': revision.revision,
+            'original_question_id': self.node.abs_parent_id,
         }
 
         self.node.node_type = "question"
@@ -269,7 +279,7 @@ class CommentToQuestionAction(NodeEditAction):
     def describe(self, viewer=None):
         return _("%(user)s converted comment on %(question)s to a new question") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'question': self.describe_node(viewer, self.node.abs_parent),
+            'question': self.describe_node(viewer, original_question(self)),
         }
 
 class AnswerToQuestionAction(NodeEditAction):
@@ -283,7 +293,7 @@ class AnswerToQuestionAction(NodeEditAction):
 
         self.extra = {
             'covert_revision': revision.revision,
-            'original_question': original_question
+            'original_question_id': original_question.id,
         }
 
         self.node.node_type = "question"
@@ -300,7 +310,7 @@ class AnswerToQuestionAction(NodeEditAction):
     def describe(self, viewer=None):
         return _("%(user)s converted an answer to %(question)s into a separate question") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'question': self.describe_node(viewer, self.node.abs_parent),
+            'question': self.describe_node(viewer, original_question(self)),
         }
 
 class WikifyAction(ActionProxy):

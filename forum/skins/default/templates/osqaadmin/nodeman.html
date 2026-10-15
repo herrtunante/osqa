@@ -393,7 +393,7 @@
                                     is_root = node.abs_parent == None
                                     title = is_root and node.title or node.abs_parent.title
 
-                                    anchor = "<strong>%s</strong>" % html.hyperlink(node.get_absolute_url(), title)
+                                    anchor = "<strong>%s</strong>" % html.hyperlink(node.leaf.get_absolute_url(), title)
                                     anchor = ((not is_root) and node.abs_parent.nis.deleted) and "<span class=\"question-deleted\">%s</span>" % anchor or anchor
                                     anchor = is_root and anchor or "(%s)" % anchor
                                     anchor = html.mark_safe(anchor)

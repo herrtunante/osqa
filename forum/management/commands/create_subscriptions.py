@@ -1,15 +1,14 @@
-from forum.models import User, SubscriptionSettings, QuestionSubscription
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
-class Command(NoArgsCommand):
-    def handle_noargs(self, **options):
-        users = User.objects.all()
-        for u in users:
-            s = SubscriptionSettings(user=u)
-            s.save()
+from forum.models import Question, User, SubscriptionSettings, QuestionSubscription
 
-            user_questions = u.questions.all()
 
-            for q in user_questions:
-                sub = QuestionSubscription(user=u, question=q)
-                sub.save()
+class Command(BaseCommand):
+    help = "Creates missing email settings for every user, and makes them follow the questions they asked."
+
+    def handle(self, *args, **options):
+        for u in User.objects.all():
+            SubscriptionSettings.objects.get_or_create(user=u)
+            for q in Question.objects.filter(author=u):
+                if not QuestionSubscription.objects.filter(user=u, question=q).exists():
+                    QuestionSubscription(user=u, question=q).save()

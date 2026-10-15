@@ -19,7 +19,8 @@ from .base import E2ETestCase
 # Links that sign out or change something when followed, and files that aren't pages.
 SKIP = re.compile(r'/logout/|/account/signout/|/switch_interface/|/i18n/setlang/|^/m/|^/upfiles/|'
                   r'/notifications/\d+/|/unsubscribe/|/account/tempsignin/\d+/|/validate/|'
-                  r'/export/qa\.jsonl|\.md$|/llms\.txt|/feeds/|/sitemap|/opensearch|/healthz|/mcp')
+                  r'/export/qa\.jsonl|\.md$|/llms\.txt|/feeds/|/sitemap|/opensearch|/healthz|/mcp|'
+                  r'/sw\.js|/manifest\.webmanifest')
 MAX_PAGES = 400
 
 

@@ -16,7 +16,7 @@
             var display = true;
             var txt = "[{% trans "hide preview" %}]";
             $('#pre-collapse').text(txt);
-            $('#pre-collapse').bind('click', function(){
+            $('#pre-collapse').on('click', function(){
                 txt = display ? "[{% trans "show preview" %}]" : "[{% trans "hide preview" %}]";
                 display = !display;
                 $('#previewer').toggle();

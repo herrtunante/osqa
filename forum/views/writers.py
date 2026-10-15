@@ -7,6 +7,7 @@ import datetime
 
 from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
+from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404, JsonResponse
@@ -21,27 +22,10 @@ from forum.forms import *
 from forum.models import *
 from forum.models.node import render_markdown
 from forum.utils import html
+from forum.utils.images import process_image, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
-
-IMAGE_SIGNATURES = (
-    b'\x89PNG\r\n\x1a\n',       # PNG
-    b'\xff\xd8\xff',              # JPEG
-    b'GIF87a', b'GIF89a',
-    b'BM',                         # BMP
-    b'II*\x00', b'MM\x00*',        # TIFF
-    b'\x00\x00\x01\x00',          # ICO
-)
-
-
-def looks_like_image(f):
-    head = f.read(16)
-    f.seek(0)
-    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
-        return True
-    return any(head.startswith(signature) for signature in IMAGE_SIGNATURES)
-
 
 # Longer than any post body the forms accept; the preview refuses anything bigger.
 MAX_PREVIEW_LENGTH = 100000
@@ -62,7 +46,7 @@ def upload(request):
 
     Answers JSON: {"url": "/upfiles/name.png"} on success, otherwise
     {"error": "message for the user"} with status 403 (not allowed), 400
-    (not an image), 413 (too big) or 500.
+    (not an image, or too many pixels), 413 (too big) or 500.
     """
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -85,13 +69,18 @@ def upload(request):
     if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
         return refused(_("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, 413)
 
-    # The extension is chosen by the client; check the content too.
-    if not looks_like_image(f):
+    # The extension is chosen by the client: Pillow decodes the content, and
+    # only the re-encoded image (no metadata, downscaled) is written to disk.
+    try:
+        data, name = process_image(f, "_".join(f.name.split()), max_side=int(settings.UPLOAD_MAX_IMAGE_SIDE))
+    except ImageTooLarge:
+        return refused(_('This image has too many pixels. Please upload a smaller image.'), 400)
+    except NotAnImage:
         return refused(file_types, 400)
 
     try:
         storage = FileSystemStorage(str(settings.UPFILES_FOLDER), str(settings.UPFILES_ALIAS))
-        new_file_name = storage.save("_".join(f.name.split()), f)
+        new_file_name = storage.save(name, ContentFile(data))
     except Exception:
         logging.exception('File upload failed')
         return refused(_('Error uploading file. Please contact the site administrator. Thank you.'), 500)

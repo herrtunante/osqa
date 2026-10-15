@@ -26,11 +26,23 @@ def email_unsubscribe(request, token):
 
     state = 'confirm'
     if request.method == 'POST':
+        undo_key = 'unsubscribe-undo:%s' % token
         if request.POST.get('action') == 'undo':
             unsubscribe.undo(user, scope, question)
+            # Put back exactly what the unsubscribe changed (e.g. "all new
+            # questions" as well as "new questions in tags I follow").
+            previous = request.session.pop(undo_key, None)
+            if previous:
+                prefs = user.subscription_settings
+                for field, value in previous.items():
+                    setattr(prefs, field, value)
+                prefs.save()
             state = 'restored'
         else:
+            before = _prefs_snapshot(user)
             unsubscribe.apply(user, scope, question)
+            after = _prefs_snapshot(user)
+            request.session[undo_key] = {f: v for f, v in before.items() if after[f] != v}
             state = 'done'
     # GET only shows the page: link checkers and mail scanners that open the
     # link must not unsubscribe anyone.
@@ -41,6 +53,15 @@ def email_unsubscribe(request, token):
         'manage_url': user.get_user_subscriptions_url(),
         'own_page': request.user.is_authenticated and request.user == user,
     })
+
+
+_UNSUBSCRIBE_FIELDS = ('enable_notifications', 'new_question', 'new_question_watched_tags',
+                       'notify_reply_to_comments', 'member_joins', 'send_digest')
+
+
+def _prefs_snapshot(user):
+    prefs = type(user.subscription_settings).objects.get(user=user)
+    return {field: getattr(prefs, field) for field in _UNSUBSCRIBE_FIELDS}
 
 
 def email_help(request):

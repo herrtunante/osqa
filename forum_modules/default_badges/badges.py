@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from forum.badges.base import AbstractBadge
-from forum.models import Badge
+from forum.models import Badge, Tag
 from forum.actions import *
 from forum.models import Vote, Flag
 
@@ -332,14 +332,31 @@ class Necromancer(AbstractBadge):
 
 class Taxonomist(AbstractBadge):
     type = Badge.SILVER
-    listen_to = tuple()
+    # Questions get their tags when asked, edited or retagged.
+    listen_to = (AskAction, ReviseAction, RetagAction)
     name = _lazy("Taxonomist")
     @property
     def description(self):
         return _('Created a tag used by %s questions') % settings.TAXONOMIST_USE_COUNT
 
     def award_to(self, action):
-        return None
+        question = action.node
+        if question is None or question.node_type != "question" or question.nis.deleted:
+            return None
+
+        # Only the tags this action gave the question: an edit that keeps a tag
+        # must not count it again.
+        added = set(question.tagname_list())
+        if not isinstance(action, AskAction):
+            try:
+                previous = question.revisions.get(revision=int(action.extra) - 1)
+            except Exception:
+                return None
+            added -= set(previous.tagname_list())
+
+        for tag in Tag.objects.filter(name__in=added).select_related('created_by'):
+            if tag.used_count == int(settings.TAXONOMIST_USE_COUNT):
+                return tag.created_by
 
 class ValidatedEmail(AbstractBadge):
     type = Badge.BRONZE

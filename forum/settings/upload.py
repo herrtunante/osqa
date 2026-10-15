@@ -15,3 +15,8 @@ help_text = _("The url alias for uploaded files. Notice that if you change this 
 ALLOW_MAX_FILE_SIZE = Setting('ALLOW_MAX_FILE_SIZE', 2.5, UPLOAD_SET, dict(
 label = _("Max file size"),
 help_text = _("The maximum allowed file size for uploads in mb.")))
+
+UPLOAD_MAX_IMAGE_SIDE = Setting('UPLOAD_MAX_IMAGE_SIDE', 2000, UPLOAD_SET, dict(
+label = _("Max image size in pixels"),
+help_text = _("Uploaded images are reduced so that their longest side is at most this many pixels. Location and other metadata are always removed."),
+min_value = 100))

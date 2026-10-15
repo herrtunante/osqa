@@ -13,14 +13,14 @@
 #-------------------------------------------------------------------------------
 
 from datetime import datetime, date
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand as DjangoBaseCommand
 from django.db import connection
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 
 from forum.models import *
 
-class BaseCommand(NoArgsCommand):
+class BaseCommand(DjangoBaseCommand):
     def update_activities_auditted(self, cursor, activity_ids):
         # update processed rows to auditted
         if len(activity_ids):
@@ -32,3 +32,10 @@ class BaseCommand(NoArgsCommand):
         
         
         
+
+
+class Command(BaseCommand):
+    help = "Base class for OSQA cron commands; does nothing by itself."
+
+    def handle(self, *args, **options):
+        pass

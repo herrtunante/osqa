@@ -1207,8 +1207,11 @@ msgstr "Reputação inicial"
 msgid "The initial reputation an user gets when he first signs in."
 msgstr "A reputação inicial que um usuário recebe ao entrar pela primeira vez."
 
-msgid "Maximum reputation a user can gain in one day for being upvoted."
-msgstr "Reputação máxima que um usuário pode ganhar em um dia por receber votos a favor."
+msgid "Max rep by up votes / day"
+msgstr "Reputação máxima por votos positivos por dia"
+
+msgid "Maximum reputation a user can gain in 24 hours from up votes on their posts. Up votes past it still count in the score. 0 for no limit."
+msgstr "Reputação máxima que um usuário pode ganhar em 24 horas com votos positivos nas suas publicações. Os votos acima do limite continuam a contar na pontuação. 0 para sem limite."
 
 msgid "Rep gain by e-mail validation"
 msgstr "Ganho de reputação por validar o e-mail"
@@ -1255,8 +1258,8 @@ msgstr "Reputação que um usuário perde quando uma das suas publicações é d
 msgid "Rep lost by post flagged and hidden"
 msgstr "Perda de reputação por publicação denunciada e ocultada"
 
-msgid "Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to hide the post."
-msgstr "Reputação que um usuário perde quando a última revisão de uma das suas publicações é denunciada vezes suficientes para ocultar a publicação."
+msgid "Reputation a user loses once when one of his posts reaches the \"Flag count to hide post\" number of flags."
+msgstr "Reputação que um usuário perde uma única vez quando uma das suas publicações atinge o número de denúncias de \"Denúncias para ocultar uma publicação\"."
 
 msgid "Rep lost by post flagged and deleted"
 msgstr "Perda de reputação por publicação denunciada e excluída"
@@ -1494,6 +1497,12 @@ msgstr "Tamanho máximo de arquivo"
 
 msgid "The maximum allowed file size for uploads in mb."
 msgstr "O tamanho máximo permitido para envio de arquivos, em MB."
+
+msgid "Max image size in pixels"
+msgstr "Tamanho máximo de imagem em pixels"
+
+msgid "Uploaded images are reduced so that their longest side is at most this many pixels. Location and other metadata are always removed."
+msgstr "As imagens enviadas são reduzidas para que o seu lado mais longo tenha no máximo este número de pixels. A localização e os outros metadados são sempre removidos."
 
 msgid "URL settings"
 msgstr "Configurações de URL"
@@ -1837,8 +1846,8 @@ msgstr "O número máximo de vezes que um usuário pode denunciar uma publicaç�
 msgid "Flag count to hide post"
 msgstr "Número de denúncias para ocultar a publicação"
 
-msgid "How many times a post needs to be flagged to be hidden from the main page."
-msgstr "Quantas vezes uma publicação precisa ser denunciada para ser ocultada da página principal."
+msgid "How many flags a post can get before its author loses the reputation set in \"Rep lost by post flagged and hidden\". The post is not hidden: moderators review it under Flagged posts."
+msgstr "Quantas denúncias uma publicação pode receber antes que o autor perca a reputação definida em \"Reputação perdida por publicação denunciada e ocultada\". A publicação não é ocultada: os moderadores revisam-na em Publicações denunciadas."
 
 msgid "Flag count to delete post"
 msgstr "Número de denúncias para excluir a publicação"
@@ -2334,6 +2343,9 @@ msgstr "Enviando"
 
 msgid "The image could not be uploaded."
 msgstr "Não foi possível enviar a imagem."
+
+msgid "You are offline – showing a saved copy of this page."
+msgstr "Você está offline – mostrando uma cópia salva desta página."
 
 msgid "Close question"
 msgstr "Fechar pergunta"
@@ -2946,8 +2958,8 @@ msgid "P.S. You can always fine-tune which notifications you receive here:"
 msgstr "P.S. É sempre possível ajustar quais notificações receber aqui:"
 
 #, python-format
-msgid "%(prefix)s Weekly digest"
-msgstr "%(prefix)s Resumo semanal"
+msgid "%(prefix)s Daily digest"
+msgstr "%(prefix)s Resumo diário"
 
 #, python-format
 msgid ""
@@ -3837,6 +3849,15 @@ msgstr "Alterações da política"
 
 msgid "how privacy policies can be changed"
 msgstr ""
+
+msgid "You are offline"
+msgstr "Você está offline"
+
+msgid "This page could not be loaded because there is no connection. These pages were saved on this device when you read them, and can be read offline:"
+msgstr "Não foi possível carregar esta página porque não há conexão. Estas páginas foram salvas neste dispositivo quando você as leu e podem ser lidas offline:"
+
+msgid "No pages have been saved on this device yet. Questions you read while online are kept here for offline reading."
+msgstr "Nenhuma página foi salva neste dispositivo ainda. As perguntas que você lê online ficam guardadas aqui para leitura offline."
 
 #, python-format
 msgid "see questions tagged '%(tagname)s'"
@@ -5050,6 +5071,9 @@ msgstr "O comentário deve ter pelo menos %d caracteres."
 msgid "No more than %d characters on comment body."
 msgstr "O comentário não pode ter mais de %d caracteres."
 
+msgid "Sorry, a comment can only be edited during the first 60 minutes after it was posted."
+msgstr "Desculpe, um comentário só pode ser editado durante os primeiros 60 minutos após a publicação."
+
 msgid "edit comments"
 msgstr "editar comentários"
 
@@ -5364,6 +5388,9 @@ msgstr "os tipos de arquivo permitidos são 'jpg', 'jpeg', 'gif', 'bmp', 'png', 
 #, python-format
 msgid "maximum upload file size is %sM"
 msgstr "o tamanho máximo de arquivo é de %sM"
+
+msgid "This image has too many pixels. Please upload a smaller image."
+msgstr "Esta imagem tem demasiados pixels. Envie uma imagem mais pequena."
 
 msgid "Error uploading file. Please contact the site administrator. Thank you."
 msgstr "Erro ao enviar o arquivo. Contacte o administrador do site. Obrigado."

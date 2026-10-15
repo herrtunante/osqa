@@ -1,12 +1,10 @@
-from django.core.management.base import NoArgsCommand
-from forum.models import User
-import sys
+from django.core.management.base import BaseCommand, CommandError
 
-class Command(NoArgsCommand):
-    def handle_noargs(self, **options):
-        msg = None
-        if msg == None:
-            print('to run this command, please first edit the file %s' % __file__)
-            sys.exit(1)
-        for u in User.objects.all():
-            u.message_set.create(message = msg % u.username)
+
+class Command(BaseCommand):
+    help = ("Formerly showed a message to every user through Django's per-user messages, "
+            "which no longer exist. Kept so old cron entries fail with a clear error.")
+
+    def handle(self, *args, **options):
+        raise CommandError("Django's per-user messages (user.message_set) were removed, so this command "
+                           "can't deliver anything. Use the site announcement settings or email instead.")
