@@ -48,8 +48,8 @@ class AdminMessagesMiddleware(object):
     def check_app_url(self, request):
         # We consider the APP_URL setting not configured if it contains only the protocol
         # name or if it's shorter than 7 characters.
-        if request.user.is_authenticated and request.user.is_staff and request.user.is_superuser and \
-            APP_URL == 'http://' or APP_URL == 'https://' or len(APP_URL) < 7:
+        if request.user.is_authenticated and request.user.is_superuser and \
+            (APP_URL in ('http://', 'https://') or len(APP_URL) < 7):
 
             msg = _("""
                        Please, configure your APP_URL setting from the local settings file.

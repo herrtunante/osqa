@@ -15,6 +15,7 @@
     <div class="headNormal">
         {% trans "OSQA administration area" %} - {% block subtitle %}{% endblock %}
     </div>
+    {% autoescape off %}{% for message in user_messages %}<p class="admin_message">{{ message }}</p>{% endfor %}{% endautoescape %}
     <div id="admin_page_description">
         {% block description %}{% endblock %}
     </div>

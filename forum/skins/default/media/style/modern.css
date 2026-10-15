@@ -5639,3 +5639,20 @@ a.badge-awardee img.gravatar {
         border-color: var(--warn-border);
     }
 }
+
+/* The editor toolbar wraps on narrow screens: wmd.css fixes its height at
+   20px, which drew the second row over the text box. */
+#wmd-button-bar #wmd-button-row, .question-page #wmd-button-row {
+    height: auto !important;
+}
+
+/* A clearer fade on scrolling tab rows. */
+.scroll-row.fade-start { --fade-left: 56px; }
+.scroll-row.fade-end { --fade-right: 56px; }
+
+/* Badge names keep their medal colours in dark mode. */
+@media (prefers-color-scheme: dark) {
+    :root[data-color-scheme="auto"] .badges a.medal {
+        color: inherit;
+    }
+}

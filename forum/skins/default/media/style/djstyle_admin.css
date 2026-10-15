@@ -804,3 +804,35 @@ input[type="file"]::file-selector-button:hover {
         box-sizing: border-box;
     }
 }
+
+/* Colours the charts (osqa.charts.js) and shared widgets read from the
+   public skin's variables, which the admin pages don't otherwise define. */
+body.djstyle-admin {
+    --muted: var(--body-quiet-color, #666);
+    --border: var(--hairline-color, #ddd);
+    --text: var(--body-fg, #333);
+}
+
+/* Phones: comfortable form controls (16px text also stops iOS zooming in on
+   focus), visible borders in dark mode, room under help text. */
+@media (max-width: 767px) {
+    #content input[type="text"], #content input[type="email"], #content input[type="password"],
+    #content input[type="number"], #content input[type="url"], #content select, #content textarea {
+        min-height: 40px;
+        font-size: 16px;
+        border: 1px solid var(--border-color, #ccc);
+    }
+    #content .help, #content .helptext { display: block; margin-top: 6px; }
+    #content input[type="radio"], #content input[type="checkbox"] { width: 20px; height: 20px; }
+    #content label:has(input[type="radio"]) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 0; }
+    /* Node manager filters: tappable chips instead of tiny links. */
+    #filter-panel ul { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; }
+    #filter-panel li a { display: inline-block; min-height: 36px; padding: 8px 12px; border: 1px solid var(--border-color, #ccc); border-radius: 18px; font-size: 14px; }
+    #filter-panel li.selected a { border-color: var(--primary, #417690); font-weight: 600; }
+    /* Support tables scroll inside their box instead of being cut off. */
+    .support-module table { min-width: 520px; }
+}
+@media (prefers-color-scheme: dark) {
+    :root[data-color-scheme="auto"] #content input, :root[data-color-scheme="auto"] #content select,
+    :root[data-color-scheme="auto"] #content textarea { border-color: #5a5a5a; }
+}

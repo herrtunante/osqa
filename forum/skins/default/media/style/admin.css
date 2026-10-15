@@ -106,3 +106,7 @@ table caption {
     padding: 0 15px 10px;
     list-style: none;
 }
+
+/* Admin pages show messages in their own box (osqaadmin/base.html), not as
+   the public pages' toast at the bottom of the screen. */
+.notify { display: none !important; }

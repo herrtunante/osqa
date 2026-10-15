@@ -376,7 +376,7 @@
                         {% for node in nodes.paginator.page %}
                             <tr class="{% cycle 'row1' 'row2' %}">
                                 <td class="node-select"><input type="checkbox" name="_selected_node" value="{{ node.id }}" class="action-select" aria-label="{% trans "Select" %}"></td>
-                                <td class="node-type" data-label="{% trans "Type" %}">{{ node.friendly_name }}</td>
+                                <td class="node-type" data-label="{% trans "Type" %}">{{ node.leaf.friendly_name }}</td>
                                 {% declare %}
                                     is_root = node.abs_parent == None
                                     title = is_root and node.title or node.abs_parent.title

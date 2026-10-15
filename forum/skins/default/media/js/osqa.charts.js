@@ -123,7 +123,8 @@
         var $el = $(placeholder);
         if (!$el.length) return;
         data = data || [];
-        var css = getComputedStyle(document.documentElement);
+        // Read from the chart itself: it inherits the page's variables wherever they are set.
+        var css = getComputedStyle($el[0]);
         function color(name, fallback) {
             return css.getPropertyValue(name).trim() || fallback;
         }
