@@ -26,6 +26,7 @@ from forum.utils import html
 from forum.views.decorators import login_required
 from forum.modules import decorate
 from forum.forms import PublicRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
+from forum.forms.general import clean_next, username_for_signin
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils.mail import send_template_email
 from forum.utils.redact import redact_meta
@@ -39,59 +40,49 @@ from forum import settings
 
 from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
 
-def signin_page(request):
-    referer = request.META.get('HTTP_REFERER', '/')
+SIGNIN_USERNAME_SESSION_ATTR = 'auth_username'
 
-    # If the referer is equal to the sign up page, e. g. if the previous login attempt was not successful we do not
-    # change the sign in URL. The user should go to the same page.
-    # The referer is sent by the browser and may point to another site; only
-    # remember it as the post-login destination if it is on this site.
-    on_this_site = url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()},
-                                                   require_https=request.is_secure())
 
-    if on_this_site and not referer.replace(settings.APP_URL, '') == reverse('auth_signin'):
-        request.session[ON_SIGNIN_SESSION_ATTR] = referer
-
+def signin_providers(request):
+    """The enabled sign-in methods the visitor can use, by how the sign-in page shows them."""
     # Providers that need configuration (e.g. OAuth client keys) define is_enabled().
     all_providers = [provider.context for provider in AUTH_PROVIDERS.values()
                      if provider.context and getattr(provider.context, 'is_enabled', lambda: True)()]
-
-    sort = lambda c: c.weight
     can_show = lambda c: not request.user.is_authenticated or c.show_to_logged_in_user
+    by_mode = lambda *modes: sorted([c for c in all_providers if c.mode in modes and can_show(c)],
+                                    key=lambda c: c.weight)
+    return {
+        'all_providers': all_providers,
+        # Buttons ("Continue with Google"), then the forms (username and password).
+        'button_providers': by_mode('BIGICON', 'SMALLICON'),
+        'top_stackitem_providers': by_mode('TOP_STACK_ITEM'),
+        'stackitem_providers': by_mode('STACK_ITEM'),
+    }
 
-    bigicon_providers = sorted([
-    context for context in all_providers if context.mode == 'BIGICON' and can_show(context)
-    ], key=sort)
 
-    smallicon_providers = sorted([
-    context for context in all_providers if context.mode == 'SMALLICON' and can_show(context)
-    ], key=sort)
+def signin_page(request):
+    referer = request.META.get('HTTP_REFERER', '/')
 
-    top_stackitem_providers = sorted([
-    context for context in all_providers if context.mode == 'TOP_STACK_ITEM' and can_show(context)
-    ], key=sort)
+    # Where to go after signing in: the page given by ?next=, or else the page
+    # the visitor came from. The referer is sent by the browser and may point
+    # to another site; it is only used when it is on this site, and not when
+    # it is one of the sign-in pages (e.g. after a failed attempt, or coming
+    # back from the sign-up page).
+    on_this_site = url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()},
+                                                   require_https=request.is_secure())
+    account_pages = reverse('auth_signin')[:-len('signin/')]
 
-    stackitem_providers = sorted([
-    context for context in all_providers if context.mode == 'STACK_ITEM' and can_show(context)
-    ], key=sort)
+    if request.GET.get('next'):
+        request.session[ON_SIGNIN_SESSION_ATTR] = clean_next(request.GET['next'])
+    elif on_this_site and not urlparse(referer).path.startswith(account_pages):
+        request.session[ON_SIGNIN_SESSION_ATTR] = referer
 
-    try:
-        msg = request.session['auth_error']
-        del request.session['auth_error']
-    except:
-        msg = None
-
-    return render(
-            request,
-            'auth/signin.html',
-            {
-            'msg': msg,
-            'all_providers': all_providers,
-            'bigicon_providers': bigicon_providers,
-            'top_stackitem_providers': top_stackitem_providers,
-            'stackitem_providers': stackitem_providers,
-            'smallicon_providers': smallicon_providers,
-            })
+    context = signin_providers(request)
+    context['msg'] = request.session.pop('auth_error', None)
+    # What was typed in "Username or email" before a failed attempt.
+    context['username'] = request.session.pop(SIGNIN_USERNAME_SESSION_ATTR, '')
+    context['can_register'] = 'local' in AUTH_PROVIDERS and not request.user.is_authenticated
+    return render(request, 'auth/signin.html', context)
 
 def login_paused(request, username):
     limit = int(settings.LOGIN_FAILURES_LIMIT)
@@ -106,10 +97,6 @@ def count_login_failure(request, username):
 
 
 def prepare_provider_signin(request, provider):
-    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
-    force_email_request = request.GET.get('validate_email', 'yes') == 'yes'
-    request.session['force_email_request'] = force_email_request
-
     if provider in AUTH_PROVIDERS:
         provider_class = AUTH_PROVIDERS[provider].consumer
 
@@ -134,13 +121,17 @@ def process_provider_signin(request, provider):
         provider_class = AUTH_PROVIDERS[provider].consumer
 
         # Password sign-ins (local, LDAP) are paused after too many failures.
-        username = request.POST.get('username', '').strip() if request.method == 'POST' and \
+        typed = request.POST.get('username', '').strip() if request.method == 'POST' and \
             'password' in request.POST else None
+        # Local accounts also sign in with their email address: count failures
+        # against the account, whichever of the two was typed.
+        username = username_for_signin(typed) if provider == 'local' else typed
         if username and login_paused(request, username):
             security_log.event('login_paused', request, logging.WARNING, provider=provider, username=username)
             request.session['auth_error'] = _(
-                "Too many failed sign-in attempts. Please wait %(minutes)s minutes, or get a sign-in link by email "
-                "with \"forgot password\".") % {'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)}
+                "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your "
+                "password?\" to get a sign-in link by email.") % {'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)}
+            request.session[SIGNIN_USERNAME_SESSION_ATTR] = typed
             return HttpResponseRedirect(reverse('auth_signin'))
 
         try:
@@ -153,6 +144,7 @@ def process_provider_signin(request, provider):
             if username:
                 count_login_failure(request, username)
                 security_log.event('login_failed', request, logging.WARNING, provider=provider, username=username)
+                request.session[SIGNIN_USERNAME_SESSION_ATTR] = typed
             request.session['auth_error'] = e.message
             return HttpResponseRedirect(reverse('auth_signin'))
 
@@ -235,7 +227,7 @@ def external_register(request):
             del request.session['assoc_key']
             del request.session['auth_provider']
 
-            return login_and_forward(request, user_, message=_("A welcome email has been sent to your email address. "))
+            return login_and_forward(request, user_, message=_("Welcome! We've emailed you a link to confirm your address."))
     else:
         auth_provider = request.session.get('auth_provider', None)
         if not auth_provider:
@@ -318,9 +310,8 @@ def temp_signin(request, user, code):
         security_log.event('temp_login_used', request, account=user)
         
         return login_and_forward(request, user, reverse('user_authsettings', kwargs={'id': user.id}),
-                                 _(
-                                         "You are logged in with a temporary access key, please take the time to fix your issue with authentication."
-                                         ))
+                                 _("You're signed in with a one-time link. Set a new password below so you can "
+                                   "sign in with it next time."))
     else:
         raise Http404()
 
@@ -440,7 +431,7 @@ def login_and_forward(request, user, forward=None, message=None):
     UserLoginAction(user=user, ip=request.META['REMOTE_ADDR']).save()
 
     if message is None:
-        message = _("Welcome back %s, you are now logged in") % smart_str(user.username)
+        message = _("Welcome back, %s! You're signed in.") % smart_str(user.username)
 
     messages.info(request, message)
 

@@ -55,7 +55,7 @@ class SignUpAndSignInTest(E2ETestCase):
         page = self.open()
         for _ in range(5):
             self.sign_in(page, 'carol', 'wrong-password')
-            self.assertIn('valid username and password', page.content())
+            self.assertIn('or email and password', page.content())
         self.sign_in(page, 'carol', PASSWORD)
         self.assertIn('Too many failed sign-in attempts', page.content())
         self.assertNotIn('carol', page.locator('#top').inner_text())

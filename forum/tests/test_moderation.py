@@ -65,12 +65,12 @@ class SuspensionTest(OSQATestCase):
         self.assertIn('this account is suspended', page)
         self.assertIn('Private &lt;b&gt;x&lt;/b&gt;', page)
         self.assertNotIn('<b>x</b>', page)
-        self.assertNotIn('valid username and password', page)
+        self.assertNotIn('or email and password', page)
 
     def test_wrong_password_of_a_suspended_account_says_nothing_about_it(self):
         self.suspend(bantype='indefinitely', publicmsg='Advertising', privatemsg='Secret note')
         page = self.sign_in('wrong-pass').content.decode()
-        self.assertIn('valid username and password', page)
+        self.assertIn('or email and password', page)
         self.assertNotIn('Secret note', page)
         self.assertNotIn('suspended', page)
 

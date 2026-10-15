@@ -1,4 +1,5 @@
-from .general import NextUrlField,  UserNameField,  UserEmailField, UserRealNameField, UserNameValidationField, UserNameValidationSumField, SetPasswordForm
+from .general import NextUrlField,  UserNameField,  UserEmailField, UserRealNameField, UserNameValidationField, UserNameValidationSumField, SetPasswordForm, DescribedFieldsMixin
+from forum import settings
 
 from forum.models import User
 from django.utils.translation import gettext as _
@@ -16,21 +17,43 @@ class SimpleRegistrationForm(forms.Form):
     username_validation = UserNameValidationField()
     username_validation_sum = UserNameValidationSumField()
 
-class PublicRegistrationForm(BotTrapMixin, SimpleRegistrationForm):
+class SignUpFieldsMixin(DescribedFieldsMixin):
+    """Help texts and browser hints (autocomplete, no autocapitalisation) for
+    the fields of the sign-up forms; errors and help are linked to the inputs."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        fields = self.fields
+        fields['username'].help_text = _(
+            "Shown with your questions and answers. %(min)d to 30 characters: letters, numbers, spaces, "
+            "hyphens (-) and underscores (_).") % {'min': int(settings.MIN_USERNAME_LENGTH)}
+        fields['username'].widget.attrs.update(autocomplete='username', autocapitalize='none', spellcheck='false',
+                                               autofocus=True)
+        fields['email'].help_text = _("We'll email you a link to confirm it. It's never shown publicly.")
+        fields['email'].widget.attrs.update(autocomplete='email', autocapitalize='none', spellcheck='false')
+        if 'real_name' in fields:
+            fields['real_name'].help_text = _("Shown on your profile.")
+            fields['real_name'].widget.attrs.update(autocomplete='name')
+        self.describe_fields()
+
+
+class PublicRegistrationForm(BotTrapMixin, SignUpFieldsMixin, SimpleRegistrationForm):
     """The sign-up form after an external login, with the bot traps."""
 
 
-class TemporaryLoginRequestForm(forms.Form):
+class TemporaryLoginRequestForm(DescribedFieldsMixin, forms.Form):
     def __init__(self, data=None):
         super(TemporaryLoginRequestForm, self).__init__(data)
         self.user_cache = None
 
     email = forms.EmailField(
             required=True,
-            label=_lazy("Your account email"),
+            label=_lazy("Email address"),
+            widget=forms.EmailInput(attrs={'autocomplete': 'email', 'autocapitalize': 'none', 'spellcheck': 'false',
+                                           'autofocus': True}),
             error_messages={
-                'required': _lazy("You cannot leave this field blank"),
-                'invalid': _lazy('please enter a valid email address'),
+                'required': _lazy("Enter your email address."),
+                'invalid': _lazy('Enter an email address like name@example.com.'),
             }
     )
 
@@ -42,7 +65,7 @@ class TemporaryLoginRequestForm(forms.Form):
 
 class ChangePasswordForm(SetPasswordForm):
     """ change password form """
-    oldpw = forms.CharField(widget=forms.PasswordInput(attrs={'class':'required'}),
+    oldpw = forms.CharField(widget=forms.PasswordInput(attrs={'class':'required', 'autocomplete': 'current-password'}),
                 label=_lazy('Current password'))
 
     def __init__(self, data=None, user=None, *args, **kwargs):
@@ -50,10 +73,11 @@ class ChangePasswordForm(SetPasswordForm):
             raise TypeError("Keyword argument 'user' must be supplied")
         super(ChangePasswordForm, self).__init__(data, user, *args, **kwargs)
         self.user = user
+        self.fields['password1'].label = _('New password')
+        self.fields['password2'].label = _('Confirm new password')
 
     def clean_oldpw(self):
         """ test old password """
         if not self.user.check_password(self.cleaned_data['oldpw']):
-            raise forms.ValidationError(_("Old password is incorrect. \
-                    Please enter the correct password."))
+            raise forms.ValidationError(_("That isn't your current password. Please try again."))
         return self.cleaned_data['oldpw']

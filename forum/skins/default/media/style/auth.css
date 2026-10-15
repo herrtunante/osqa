@@ -1,118 +1,384 @@
-#bigicon_providers, #smallicon_providers {
-    display: block;
-    padding: 0px;
-    max-width:600px;
-    margin:0px 0px 5px 0px;
-    clear:both;
+/*
+ * Sign-in, sign-up and "forgot your password" pages (templates/auth/): a
+ * centred card. Colours come from the variables in modern.css, so dark mode
+ * follows them.
+ */
+
+.auth-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 32px 0 48px;
 }
 
-.provider_logo {
-    display: block;
-    border: 1px solid #DDD;
-    text-align: center;
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 28px 32px 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
 }
 
-.provider_logo.big {
-    display: block;
-    border:1px solid #DDDDDD;
-    float:left;
-    height:60px;
-    margin:3px;
-    width:110px;
+.auth-card h1 {
+    margin: 0 0 20px;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.25;
 }
 
-.provider_logo.big .inner {
-    display:block;
-    margin: 0px auto;
-    margin-top: 18px;
-}
-
-.provider_logo.small {
-    border:1px solid #DDDDDD;
-    float:left;
-    height:30px;
-    margin:3px;
-    width:30px;
-}
-
-.provider_logo.small .inner {
-    display:block;
-    margin: 0px auto;
-    margin-top: 6px;
-}
-
-.provider_logo.selected {
-    outline: 2px solid #FFF8C6;
-}
-
-.provider_logo .provider_url {
-    display: none;
-}
-
-.signin_form {
-    clear:both;
-}
-
-.signin_form fieldset {
-    padding: 10px;
-}
-
-.signin_form input[type="text"], .signin_form input[type="password"], .signin_form input[type="submit"] {
-    font-size: 16px;
-    margin: 0 6px 6px 0;
-}
-
-.signin_form .icon_input  {
-    padding-left: 20px;
-}
-
-.signin_form #openid_identifier {
-    padding-left: 18px;
-}
-
-.or_label {
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
-
-.signin_form fieldset {
-    border: 1px solid var(--border, #ddd);
-    border-radius: 8px;
-}
-
-.signin-intro {
-    margin-bottom: 12px;
-}
-
-.signin-validate-email {
+.auth-card h1:has(+ .auth-lead) {
     margin-bottom: 8px;
 }
 
-/* OAuth 2.0 buttons ("Sign in with Google") are text buttons, not 110x60 icons. */
-.provider_logo.big:has(.oauth2_button) {
-    width: auto;
-    height: auto;
-    border: 0;
+.auth-lead {
+    margin: 0 0 20px;
+    color: var(--muted);
 }
 
-.provider_logo.big:has(.oauth2_button) .inner {
+/* Links inside sentences are underlined, so they don't rely on colour alone. */
+.auth-card a:not(.auth-provider) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ---- Messages ---- */
+
+.auth-alert {
+    margin: 0 0 20px;
+    padding: 12px 14px;
+    border: 1px solid var(--danger-text);
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: var(--danger-soft);
+    color: var(--text);
+}
+
+.auth-alert:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.auth-alert p, .auth-alert ul {
     margin: 0;
 }
 
-a.oauth2_button {
-    display: inline-block;
-    padding: 10px 16px;
-    border: 1px solid var(--border, #ccc);
-    border-radius: 6px;
-    background: var(--surface, #fff);
-    color: var(--text, #222);
-    font-size: 14px;
+.auth-alert p + p {
+    margin-top: 4px;
+}
+
+.auth-alert .auth-alert-title {
+    margin-bottom: 4px;
     font-weight: 600;
+}
+
+.auth-alert ul {
+    padding-left: 20px;
+}
+
+.auth-alert a {
+    color: var(--danger-text);
+}
+
+/* ---- Sign-in services ---- */
+
+.auth-providers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-provider, a.oauth2_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.auth-provider:hover, a.oauth2_button:hover {
+    border-color: var(--brand);
+    background: var(--hover-overlay);
+    color: var(--text);
     text-decoration: none;
 }
 
-a.oauth2_button:hover {
-    border-color: var(--brand, #2c5aa0);
-    color: var(--brand, #2c5aa0);
-    text-decoration: none;
+.auth-provider:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.auth-provider svg, .auth-provider img {
+    flex: none;
+}
+
+.auth-provider-form summary {
+    list-style: none;
+}
+
+.auth-provider-form summary::-webkit-details-marker {
+    display: none;
+}
+
+.auth-provider-form form {
+    margin-top: 12px;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.auth-divider::before, .auth-divider::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--border);
+}
+
+/* ---- Fields ---- */
+
+.auth-field {
+    margin-bottom: 18px;
+}
+
+.auth-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.auth-label-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin-bottom: 6px;
+}
+
+.auth-label-row label {
+    margin-bottom: 0;
+}
+
+.auth-label-row a {
+    font-size: 13px;
+}
+
+.auth-help {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+ul.auth-rules {
+    padding-left: 18px;
+    list-style: disc;
+}
+
+ul.auth-rules li {
+    margin: 0;
+    list-style: disc;
+}
+
+.auth-error {
+    margin: 0 0 8px;
+    color: var(--danger-text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"] {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 46px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.auth-card input[aria-invalid="true"] {
+    border-color: var(--danger-text);
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input[type="password"], .password-field input[type="text"] {
+    padding-right: 52px;
+}
+
+.auth-card .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    transform: translateY(-50%);
+}
+
+.auth-card .password-toggle[hidden] {
+    display: none;
+}
+
+.auth-card .password-toggle:hover {
+    border: 0;
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.auth-card .password-toggle:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+}
+
+.password-toggle svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.password-toggle .icon-hide, .password-toggle[aria-pressed="true"] .icon-show {
+    display: none;
+}
+
+.password-toggle[aria-pressed="true"] .icon-hide {
+    display: block;
+}
+
+/* Bots fill in every field; people never see these. */
+.form-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* ---- Submitting ---- */
+
+.auth-note {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.auth-card .auth-submit {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    margin: 4px 0 0;
+    font-size: 16px;
+}
+
+.auth-switch {
+    margin: 22px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--muted);
+    text-align: center;
+}
+
+.auth-switch a {
+    font-weight: 600;
+}
+
+/* ---- Why sign in ---- */
+
+.auth-benefits {
+    width: 100%;
+    max-width: 440px;
+    padding: 0 8px;
+    color: var(--muted);
+}
+
+.auth-benefits h2 {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.auth-benefits ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.auth-benefits li {
+    position: relative;
+    margin: 0;
+    padding-left: 22px;
+    list-style: none;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.auth-benefits li::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    width: 10px;
+    height: 6px;
+    border-bottom: 2px solid var(--success);
+    border-left: 2px solid var(--success);
+    transform: rotate(-45deg);
+}
+
+@media (max-width: 640px) {
+    .auth-page {
+        gap: 16px;
+        padding: 16px 0 32px;
+    }
+
+    .auth-card {
+        padding: 22px 18px 20px;
+        border-radius: 10px;
+    }
+
+    .auth-card h1 {
+        font-size: 22px;
+    }
+
+    .auth-benefits ul {
+        grid-template-columns: 1fr;
+    }
 }

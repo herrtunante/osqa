@@ -359,60 +359,70 @@ msgstr "envoyer l'e-mail de validation"
 msgid "email address"
 msgstr "adresse e-mail"
 
-msgid "Your account email"
-msgstr "L'adresse e-mail de votre compte"
+#, python-format
+msgid "Shown with your questions and answers. %(min)d to 30 characters: letters, numbers, spaces, hyphens (-) and underscores (_)."
+msgstr "Affiché avec vos questions et réponses. De %(min)d à 30 caractères : lettres, chiffres, espaces, tirets (-) et tirets bas (_)."
 
-msgid "You cannot leave this field blank"
-msgstr "Ce champ ne peut pas être vide"
+msgid "We'll email you a link to confirm it. It's never shown publicly."
+msgstr "Nous vous enverrons un lien pour la confirmer. Elle n'est jamais affichée publiquement."
 
-msgid "please enter a valid email address"
-msgstr "veuillez saisir une adresse e-mail valide"
+msgid "Shown on your profile."
+msgstr "Affiché sur votre profil."
+
+msgid "Email address"
+msgstr "Adresse e-mail"
+
+msgid "Enter your email address."
+msgstr "Saisissez votre adresse e-mail."
+
+msgid "Enter an email address like name@example.com."
+msgstr "Saisissez une adresse e-mail comme nom@exemple.com."
 
 msgid "Current password"
 msgstr "Mot de passe actuel"
 
-msgid "Old password is incorrect.                     Please enter the correct password."
-msgstr "L'ancien mot de passe est incorrect. Veuillez saisir le bon mot de passe."
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+msgid "Confirm new password"
+msgstr "Confirmez le nouveau mot de passe"
+
+msgid "That isn't your current password. Please try again."
+msgstr "Ce n'est pas votre mot de passe actuel. Réessayez."
 
 msgid "this field is required"
 msgstr "ce champ est obligatoire"
 
-msgid "choose a username"
-msgstr "choisissez un nom d'utilisateur"
+msgid "Username"
+msgstr "Nom d'utilisateur"
 
-msgid "user name is required"
-msgstr "le nom d'utilisateur est obligatoire"
+msgid "Choose a username."
+msgstr "Choisissez un nom d'utilisateur."
 
-msgid "sorry, this name is taken, please choose another"
-msgstr "désolé, ce nom est déjà pris, veuillez en choisir un autre"
+msgid "That username is taken. Please choose another one."
+msgstr "Ce nom d'utilisateur est déjà pris. Choisissez-en un autre."
 
-msgid "sorry, this name is not allowed, please choose another"
-msgstr "désolé, ce nom n'est pas autorisé, veuillez en choisir un autre"
+msgid "That username isn't allowed. Please choose another one."
+msgstr "Ce nom d'utilisateur n'est pas autorisé. Choisissez-en un autre."
 
-msgid "sorry, there is no user with this name"
-msgstr "désolé, aucun utilisateur ne porte ce nom"
+msgid "There is no member with this username."
+msgstr "Aucun membre n'a ce nom d'utilisateur."
 
-msgid "sorry, we have a serious error - user name is taken by several users"
-msgstr "désolé, une erreur grave s'est produite : ce nom d'utilisateur est utilisé par plusieurs utilisateurs"
-
-msgid "user name can only consist of letters, empty space, hyphens and underscore"
-msgstr "le nom d'utilisateur ne peut contenir que des lettres, des espaces, des traits d'union et des traits de soulignement"
+msgid "Use only letters, numbers, spaces, hyphens (-) and underscores (_)."
+msgstr "Utilisez uniquement des lettres, des chiffres, des espaces, des tirets (-) et des tirets bas (_)."
 
 #, python-format
-msgid "user name is to short, please use at least %d characters"
-msgstr "le nom d'utilisateur est trop court, veuillez utiliser au moins %d caractères"
+msgid "Use at least %(count)d characters."
+msgstr "Utilisez au moins %(count)d caractères."
 
-msgid "your email address"
-msgstr "votre adresse e-mail"
+msgid "There is already an account with this email address. Sign in instead, or ask for a sign-in link if you forgot your password."
+msgstr "Un compte existe déjà avec cette adresse e-mail. Connectez-vous, ou demandez un lien de connexion si vous avez oublié votre mot de passe."
 
-msgid "email address is required"
-msgstr "l'adresse e-mail est obligatoire"
+msgid "Your name"
+msgstr "Votre nom"
 
-msgid "this email is already used by someone else, please choose another"
-msgstr "cette adresse e-mail est déjà utilisée par quelqu'un d'autre, veuillez en choisir une autre"
-
-msgid "Your real name"
-msgstr "Votre nom réel"
+msgid "Enter your name."
+msgstr "Saisissez votre nom."
 
 msgid "Real name is required"
 msgstr "Le nom réel est obligatoire"
@@ -420,26 +430,44 @@ msgstr "Le nom réel est obligatoire"
 msgid "please probe you are not a robot by not filling this"
 msgstr "veuillez prouver que vous n'êtes pas un robot en laissant ce champ vide"
 
-msgid "please probe you are not a robot by filling this simple sum correctly"
-msgstr "veuillez prouver que vous n'êtes pas un robot en calculant correctement cette simple somme"
+msgid "What is seven plus seven?"
+msgstr "Combien font sept plus sept ?"
 
-msgid "choose password"
-msgstr "choisissez un mot de passe"
+msgid "A quick check that you are not a robot. Type the answer in digits."
+msgstr "Une vérification rapide que vous n'êtes pas un robot. Écrivez la réponse en chiffres."
 
-msgid "At least 8 characters; not a common password and not similar to your username or email."
-msgstr "Au moins 8 caractères ; pas un mot de passe courant ni proche de votre nom d'utilisateur ou de votre adresse e-mail."
+msgid "That is not the right answer. Type the result of seven plus seven in digits."
+msgstr "Ce n'est pas la bonne réponse. Écrivez le résultat de sept plus sept en chiffres."
 
-msgid "password is required"
-msgstr "le mot de passe est obligatoire"
+#, python-format
+msgid "At least %(count)d character"
+msgid_plural "At least %(count)d characters"
+msgstr[0] "Au moins %(count)d caractère"
+msgstr[1] "Au moins %(count)d caractères"
 
-msgid "retype password"
-msgstr "confirmez le mot de passe"
+msgid "Not a common password"
+msgstr "Pas un mot de passe courant"
 
-msgid "please, retype your password"
-msgstr "veuillez saisir à nouveau votre mot de passe"
+msgid "Not only numbers"
+msgstr "Pas uniquement des chiffres"
 
-msgid "sorry, entered passwords did not match, please try again"
-msgstr "désolé, les mots de passe saisis ne correspondent pas, veuillez réessayer"
+msgid "Not too close to your username or email"
+msgstr "Pas trop proche de votre nom d'utilisateur ou de votre e-mail"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Choose a password."
+msgstr "Choisissez un mot de passe."
+
+msgid "Confirm password"
+msgstr "Confirmez le mot de passe"
+
+msgid "Type your password again."
+msgstr "Saisissez à nouveau votre mot de passe."
+
+msgid "The passwords don't match. Type the same password in both boxes."
+msgstr "Les mots de passe ne correspondent pas. Saisissez le même mot de passe dans les deux champs."
 
 msgid "title"
 msgstr "titre"
@@ -2101,29 +2129,63 @@ msgstr "Ajouter un fournisseur"
 msgid "This is where you can change your password. Make sure you remember it!"
 msgstr "Vous pouvez modifier votre mot de passe ici. Veillez à bien le retenir !"
 
-msgid "You can set up a password for your account, so you can login using standard username and password!"
-msgstr "Vous pouvez définir un mot de passe pour votre compte afin de vous connecter avec un nom d'utilisateur et un mot de passe classiques !"
+msgid "Set a password so you can sign in with your username or email and a password."
+msgstr "Choisissez un mot de passe pour pouvoir vous connecter avec votre nom d'utilisateur ou votre e-mail et un mot de passe."
 
 msgid "Create password"
 msgstr "Créer un mot de passe"
 
-msgid "Connect your OpenID with this site"
-msgstr "Associer votre OpenID à ce site"
+msgid "Why sign in?"
+msgstr "Pourquoi se connecter ?"
 
-msgid "Connect your OpenID with your account on this site"
-msgstr "Associer votre OpenID à votre compte sur ce site"
+msgid "Ask questions and post answers"
+msgstr "Posez des questions et publiez des réponses"
 
-msgid "You are here for the first time with "
-msgstr "Vous venez ici pour la première fois avec "
+msgid "Vote, comment and mark favourite questions"
+msgstr "Votez, commentez et marquez des questions comme favorites"
 
-msgid "Please choose your screen name and confirm your email address. A valid email address is necessary to receive notifications about activity in the areas of this community you're most interested in, and will help you become an involved participant in this community."
-msgstr "Veuillez choisir votre pseudonyme et confirmer votre adresse e-mail. Une adresse e-mail valide est nécessaire pour recevoir des notifications sur l'activité dans les sujets de cette communauté qui vous intéressent le plus, et vous aidera à participer activement à cette communauté."
+msgid "Get notified by email when someone answers"
+msgstr "Soyez averti par e-mail lorsque quelqu'un répond"
 
-msgid "This account already exists, please use another."
-msgstr "Ce compte existe déjà, veuillez en utiliser un autre."
+msgid "Earn reputation and badges"
+msgstr "Gagnez de la réputation et des badges"
 
-msgid "create account"
-msgstr "créer un compte"
+msgid "Finish signing up"
+msgstr "Terminez votre inscription"
+
+msgid "Create your account"
+msgstr "Créez votre compte"
+
+#, python-format
+msgid "You're signing in with %(provider)s for the first time. Check your details to create your account on %(site)s."
+msgstr "C'est la première fois que vous vous connectez avec %(provider)s. Vérifiez vos informations pour créer votre compte sur %(site)s."
+
+msgid "Your account isn't created yet. Please check:"
+msgstr "Votre compte n'est pas encore créé. Vérifiez les points suivants :"
+
+msgid "or"
+msgstr "ou"
+
+msgid "Leave this field empty"
+msgstr "Laissez ce champ vide"
+
+msgid "Next, we'll email you a link to confirm your address."
+msgstr "Ensuite, nous vous enverrons un lien pour confirmer votre adresse."
+
+msgid "Create account"
+msgstr "Créer un compte"
+
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+msgid "Sign in"
+msgstr "Se connecter"
+
+msgid "Why create an account?"
+msgstr "Pourquoi créer un compte ?"
+
+msgid "Error:"
+msgstr "Erreur :"
 
 msgid "This e-mail has already been validated"
 msgstr "Cette adresse e-mail a déjà été validée"
@@ -2147,50 +2209,35 @@ msgstr "Si le lien ci-dessus n'est pas cliquable, copiez cette URL et collez-la 
 msgid "Copy and paste this url into your web browser's address bar to help us verify your email address:"
 msgstr "Copiez cette URL et collez-la dans la barre d'adresse de votre navigateur pour nous aider à vérifier votre adresse e-mail :"
 
-msgid "Login"
-msgstr "Connexion"
+msgid "Show password"
+msgstr "Afficher le mot de passe"
 
-msgid "User login"
-msgstr "Connexion utilisateur"
+#, python-format
+msgid "Continue with %(name)s"
+msgstr "Continuer avec %(name)s"
 
-msgid "Or..."
-msgstr "Ou..."
+#, python-format
+msgid "Your %(what)s"
+msgstr "Votre %(what)s"
 
-msgid ""
-"\n"
-"        Sign in with an account you already have on one of these services; your password stays with that service.\n"
-"    "
-msgstr ""
-"\n"
-"        Connectez-vous avec un compte que vous possédez déjà sur l'un de ces services ; votre mot de passe reste chez ce service.\n"
-"    "
+msgid "Continue"
+msgstr "Continuer"
 
-msgid "Validate my email after I login."
-msgstr "Valider mon adresse e-mail après ma connexion."
+msgid "Connect another account"
+msgstr "Associer un autre compte"
 
-msgid "Click"
-msgstr "Cliquez"
+msgid "Choose a service you also want to sign in with."
+msgstr "Choisissez un service avec lequel vous voulez aussi vous connecter."
 
-msgid "if you're having trouble signing in."
-msgstr "si vous avez des difficultés à vous connecter."
+#, python-format
+msgid "Sign in to %(site)s"
+msgstr "Se connecter à %(site)s"
 
-msgid "Enter your "
-msgstr "Saisissez votre "
+msgid "New here?"
+msgstr "Nouveau ici ?"
 
-msgid "Why sign in?"
-msgstr "Pourquoi se connecter ?"
-
-msgid "Ask questions and post answers"
-msgstr "Posez des questions et publiez des réponses"
-
-msgid "Vote, comment and mark favourite questions"
-msgstr "Votez, commentez et marquez des questions comme favorites"
-
-msgid "Get notified by email when someone answers"
-msgstr "Soyez averti par e-mail lorsque quelqu'un répond"
-
-msgid "Earn reputation and badges"
-msgstr "Gagnez de la réputation et des badges"
+msgid "Create an account"
+msgstr "Créer un compte"
 
 #, python-format
 msgid "%(prefix)s Temporary login link"
@@ -2207,27 +2254,20 @@ msgstr "Accéder à votre compte"
 msgid "The following url grants you a one time access to your account at %(app_name)s."
 msgstr "L'URL suivante vous donne un accès unique à votre compte sur %(app_name)s."
 
-msgid "Request temporary login key"
-msgstr "Demander une clé de connexion temporaire"
+msgid "Forgot your password?"
+msgstr "Mot de passe oublié ?"
 
-msgid "Account: request temporary login key"
-msgstr "Compte : demander une clé de connexion temporaire"
+msgid "Enter the email address of your account and we'll send you a link that signs you in. Then you can set a new password. The link works once, for 24 hours."
+msgstr "Saisissez l'adresse e-mail de votre compte et nous vous enverrons un lien qui vous connecte. Vous pourrez ensuite choisir un nouveau mot de passe. Le lien fonctionne une fois, pendant 24 heures."
 
-msgid ""
-"\n"
-"    If you're experiencing problems accessing your account, or if you forgot your password,\n"
-"    here you can request a temporary login key. Fill out your account email and we'll send you a temporary access link that\n"
-"    will enable you to access your account. This token is valid only once and for a limited period of time.\n"
-" "
-msgstr ""
-"\n"
-"    Si vous rencontrez des problèmes pour accéder à votre compte ou si vous avez oublié votre mot de passe,\n"
-"    vous pouvez demander ici une clé de connexion temporaire. Indiquez l'adresse e-mail de votre compte et nous vous enverrons un lien d'accès temporaire qui\n"
-"    vous permettra d'accéder à votre compte. Ce jeton n'est valable qu'une seule fois et pour une durée limitée.\n"
-" "
+msgid "Email me a sign-in link"
+msgstr "M'envoyer un lien de connexion"
 
-msgid "Send link"
-msgstr "Envoyer le lien"
+msgid "Remembered it?"
+msgstr "Vous vous en souvenez ?"
+
+msgid "Back to sign in"
+msgstr "Retour à la connexion"
 
 #, python-format
 msgid "%(prefix)s Welcome to %(app_name)s"
@@ -4737,9 +4777,6 @@ msgstr "FAQ"
 msgid "About"
 msgstr "À propos"
 
-msgid "Leave this field empty"
-msgstr "Laissez ce champ vide"
-
 msgid "Sorry, your registration could not be completed. Please try again."
 msgstr "Désolé, votre inscription n'a pas pu être finalisée. Veuillez réessayer."
 
@@ -4911,8 +4948,8 @@ msgid "All selected nodes deleted"
 msgstr "Tous les nœuds sélectionnés ont été supprimés"
 
 #, python-format
-msgid "Too many failed sign-in attempts. Please wait %(minutes)s minutes, or get a sign-in link by email with \"forgot password\"."
-msgstr "Trop de tentatives de connexion échouées. Veuillez patienter %(minutes)s minutes, ou obtenez un lien de connexion par e-mail via « mot de passe oublié »."
+msgid "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your password?\" to get a sign-in link by email."
+msgstr "Trop de tentatives de connexion échouées. Attendez %(minutes)s minutes et réessayez, ou utilisez « Mot de passe oublié ? » pour recevoir un lien de connexion par e-mail."
 
 msgid "Sorry, these login credentials belong to anoother user. Plese terminate your current session and try again."
 msgstr "Désolé, ces identifiants de connexion appartiennent à un autre utilisateur. Veuillez mettre fin à votre session actuelle et réessayer."
@@ -4932,8 +4969,8 @@ msgstr "Trop de comptes ont été créés récemment depuis votre réseau. Veuil
 msgid "Oops, something went wrong in the middle of this process. Please try again. Note that you need to have cookies enabled for the authentication to work."
 msgstr "Oups, un problème est survenu au cours de ce processus. Veuillez réessayer. Notez que les cookies doivent être activés pour que l'authentification fonctionne."
 
-msgid "A welcome email has been sent to your email address. "
-msgstr "Un e-mail de bienvenue a été envoyé à votre adresse e-mail. "
+msgid "Welcome! We've emailed you a link to confirm your address."
+msgstr "Bienvenue ! Nous vous avons envoyé un lien pour confirmer votre adresse e-mail."
 
 msgid "Oops, something went wrong in the middle of this process. Please try again."
 msgstr "Oups, un problème est survenu au cours de ce processus. Veuillez réessayer."
@@ -4944,8 +4981,8 @@ msgstr "Trop de liens de connexion ont été demandés. Veuillez réessayer dans
 msgid "If this address belongs to an account, we have sent it an email with a sign-in link. The link works once, for 24 hours."
 msgstr "Si cette adresse appartient à un compte, nous lui avons envoyé un e-mail contenant un lien de connexion. Le lien ne fonctionne qu'une fois, pendant 24 heures."
 
-msgid "You are logged in with a temporary access key, please take the time to fix your issue with authentication."
-msgstr "Vous êtes connecté avec une clé d'accès temporaire, veuillez prendre le temps de résoudre votre problème d'authentification."
+msgid "You're signed in with a one-time link. Set a new password below so you can sign in with it next time."
+msgstr "Vous êtes connecté avec un lien à usage unique. Choisissez ci-dessous un nouveau mot de passe pour vous connecter la prochaine fois."
 
 msgid "A message with an email validation link was just sent to your address."
 msgstr "Un message contenant un lien de validation de l'e-mail vient d'être envoyé à votre adresse."
@@ -4964,8 +5001,8 @@ msgid "You removed the association with %s"
 msgstr "Vous avez supprimé l'association avec %s"
 
 #, python-format
-msgid "Welcome back %s, you are now logged in"
-msgstr "Bon retour %s, vous êtes maintenant connecté"
+msgid "Welcome back, %s! You're signed in."
+msgstr "Bon retour, %s ! Vous êtes connecté."
 
 #, python-format
 msgid "You have a %s pending submission."
@@ -6240,44 +6277,26 @@ msgstr "Champ e-mail"
 msgid "ldap field that holds the email"
 msgstr "champ LDAP contenant l'adresse e-mail"
 
-msgid "Enter your LDAP user name and password"
-msgstr "Saisissez votre nom d'utilisateur et votre mot de passe LDAP"
+msgid "Sign in with your organisation's username and password."
+msgstr "Connectez-vous avec le nom d'utilisateur et le mot de passe de votre organisation."
 
-msgid "Login name"
-msgstr "Identifiant"
+msgid "That username or email and password don't match. Check them and try again (the password is case-sensitive)."
+msgstr "Le nom d'utilisateur ou l'e-mail et le mot de passe ne correspondent pas. Vérifiez-les et réessayez (le mot de passe tient compte des majuscules)."
 
-msgid "Password"
-msgstr "Mot de passe"
+msgid "This account can't sign in here. Please contact the site administrators."
+msgstr "Ce compte ne peut pas se connecter ici. Contactez les administrateurs du site."
 
-msgid "Please enter valid username and password (both are case-sensitive)."
-msgstr "Veuillez saisir un nom d'utilisateur et un mot de passe valides (tous deux sont sensibles à la casse)."
+msgid "Enter your username or email and your password."
+msgstr "Saisissez votre nom d'utilisateur ou votre e-mail et votre mot de passe."
 
-msgid "Login failed."
-msgstr "Échec de la connexion."
+msgid "Enter your password."
+msgstr "Saisissez votre mot de passe."
 
-msgid "This user is not a valid user"
-msgstr "Cet utilisateur n'est pas un utilisateur valide"
+msgid "Enter your username or email."
+msgstr "Saisissez votre nom d'utilisateur ou votre e-mail."
 
-msgid "Please enter username and password"
-msgstr "Veuillez saisir le nom d'utilisateur et le mot de passe"
-
-msgid "Please enter your password"
-msgstr "Veuillez saisir votre mot de passe"
-
-msgid "Please enter user name"
-msgstr "Veuillez saisir le nom d'utilisateur"
-
-msgid "Enter your local user name and password"
-msgstr "Saisissez votre nom d'utilisateur et votre mot de passe locaux"
-
-msgid "or select your external provider above"
-msgstr "ou sélectionnez votre fournisseur externe ci-dessus"
-
-msgid "Create account"
-msgstr "Créer un compte"
-
-msgid "Forgot your password?"
-msgstr "Mot de passe oublié ?"
+msgid "Username or email"
+msgstr "Nom d'utilisateur ou e-mail"
 
 msgid "Could not contact the login provider. Please try again later."
 msgstr "Impossible de contacter le fournisseur de connexion. Veuillez réessayer plus tard."
@@ -6326,10 +6345,6 @@ msgstr "Provenant de developers.facebook.com (produit Facebook Login). URI de re
 
 msgid "Facebook app secret"
 msgstr "Clé secrète de l'application Facebook"
-
-#, python-format
-msgid "Sign in with %(name)s"
-msgstr "Se connecter avec %(name)s"
 
 msgid "Bug Buster"
 msgstr "Chasseur de bugs"

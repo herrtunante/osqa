@@ -1803,10 +1803,12 @@ div.comment-tools a:hover {
     /* Keep "ask a question" in view while the tabs scroll underneath it. */
     #nav a#nav_ask, #nav a#nav_ask.on {
         position: sticky;
-        right: 0;
+        right: 12px;
         padding: 7px 12px;
         font-size: 13px;
-        box-shadow: -16px 0 12px -4px var(--surface);
+        /* Covers the tabs scrolling underneath: a fade on the left and the
+           header colour up to the screen edge on the right. */
+        box-shadow: 40px 0 0 var(--surface), -24px 0 16px -2px var(--surface);
     }
 
     #wrapper {
@@ -2598,33 +2600,6 @@ img[src*="feed-icon-small"] {
     cursor: grab;
 }
 
-/* ---- Sign-in ----------------------------------------------------------- */
-
-.signin_form fieldset {
-    padding: 16px 18px;
-    background: var(--surface);
-}
-
-.signin_form fieldset legend, .signin_form fieldset > span:first-child {
-    font-weight: 600;
-}
-
-h3.or_label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0 12px;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-h3.or_label::before, h3.or_label::after {
-    content: "";
-    flex: 1;
-    border-top: 1px solid var(--border);
-}
-
 /* ---- Markdown editor toolbar ---------------------------------------- */
 
 /* SVG icons instead of the wmd sprite. wmd.js sets the sprite offset inline:
@@ -3362,6 +3337,6 @@ ul.form-horizontal-rows .helptext { flex-basis: 100%; margin-left: 162px; color:
 
 /* Links inside sentences are underlined, so they don't rely on colour alone. */
 .tag-follow-help a, .email-settings-hint a, .email-settings-empty a, .email-help-link a, .inbox-note a,
-.subscription-settings-note a, .signin_form fieldset a, .notify a, .form-help a {
+.subscription-settings-note a, .notify a, .form-help a {
     text-decoration: underline;
 }
