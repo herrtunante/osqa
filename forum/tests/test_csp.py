@@ -180,7 +180,8 @@ class TemplatesTest(OSQATestCase):
     def files(self, *patterns):
         for pattern in patterns:
             for path in glob.glob(os.path.join(ROOT, pattern), recursive=True):
-                if '/vendor/' not in path and '/tests/' not in path:
+                unix_path = path.replace(os.sep, '/')  # glob returns backslashes on Windows
+                if '/vendor/' not in unix_path and '/tests/' not in unix_path:
                     yield path
 
     def test_no_inline_event_handlers(self):
