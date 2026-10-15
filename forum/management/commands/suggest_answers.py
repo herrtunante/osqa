@@ -29,8 +29,8 @@ class Command(BaseCommand):
             raise CommandError("The ai module has no Gemini API key or Vertex AI project configured.")
 
         now = datetime.now()
-        answered = Answer.objects.filter(parent=OuterRef('pk')).filter_state(deleted=False)
-        questions = Question.objects.filter_state(deleted=False, closed=False).filter(
+        answered = Answer.objects.filter(parent=OuterRef('pk')).public()
+        questions = Question.objects.public().filter_state(closed=False).filter(
             added_at__lt=now - timedelta(hours=int(AI_SUGGEST_AFTER_HOURS)),
             added_at__gt=now - timedelta(days=max_age_days),
         ).exclude(Exists(answered)).exclude(

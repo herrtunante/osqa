@@ -20,7 +20,7 @@ class AnonymousUser(DjangoAnonymousUser):
     reputation = 0
 
     def get_visible_answers(self, question):
-        return question.answers.filter_state(deleted=False)
+        return question.answers.visible_to(self)
 
     def can_view_deleted_post(self, post):
         return False
@@ -257,7 +257,7 @@ class User(BaseModel, DjangoUser):
             logging.error("Error retrieving a subscribed user URL: %s" % e)
 
     def get_visible_answers(self, question):
-        return question.answers.filter_state(deleted=False)
+        return question.answers.visible_to(self)
 
     # The per-day limits (votes, flags, reputation from up votes) count the
     # last 24 hours. (They used to start at midnight yesterday, so a "day"
@@ -574,6 +574,16 @@ class SubscriptionSettings(models.Model):
     notify_accepted = models.BooleanField(default=False)
 
     send_digest = models.BooleanField(default=True)
+
+    # How often activity emails (answers, comments, mentions, accepted answers,
+    # new questions, new members) are sent: as it happens, gathered into a
+    # daily or weekly summary (forum/utils/email_frequency.py), or never.
+    FREQUENCY_IMMEDIATE, FREQUENCY_DAILY, FREQUENCY_WEEKLY, FREQUENCY_NEVER = 'i', 'd', 'w', 'n'
+    email_frequency = models.CharField(max_length=1, default=FREQUENCY_IMMEDIATE)
+    # Mentions are emailed right away even with a summary (or "never").
+    mentions_immediate = models.BooleanField(default=True)
+    # When the last daily or weekly summary was sent (at most one a day).
+    last_summary_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         app_label = 'forum'

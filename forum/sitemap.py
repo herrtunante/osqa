@@ -76,7 +76,7 @@ class OsqaSitemap(Sitemap):
     changefreq = QUESTIONS_SITEMAP_CHANGEFREQ
     priority = 0.5
     def items(self):
-        return Question.objects.filter_state(deleted=False).order_by('id')
+        return Question.objects.public().order_by('id')
 
     def lastmod(self, obj):
         return obj.last_activity_at

@@ -2,13 +2,15 @@
 
 Node.save() and Node.delete() call node_saved() / node_deleted(); a question
 is indexed again when its title, body, tags or state change, or when one of
-its answers is added, edited, deleted or moved. Deleted questions have no
-document. rebuild() indexes everything again (manage.py rebuild_search_index).
+its answers is added, edited, deleted or moved. Deleted questions, and posts
+held for review (forum/utils/review.py), have no document. rebuild() indexes everything again (manage.py rebuild_search_index).
 """
 import datetime
 import logging
 
 from django.db import connection, transaction
+
+from forum.utils.review import hidden_q
 
 from .text import MAX_FIELD, html_to_text
 
@@ -24,7 +26,7 @@ def _documents(questions):
     ids = [q[0] for q in questions]
     answers = {}
     for parent_id, body in Node.objects.filter(parent_id__in=ids, node_type='answer').exclude(
-            state_string__contains='(deleted)').order_by('id').values_list('parent_id', 'body'):
+            hidden_q()).order_by('id').values_list('parent_id', 'body'):
         answers.setdefault(parent_id, []).append(html_to_text(body))
     return [SearchDocument(question_id=qid, title=(title or '')[:300], tagnames=(tagnames or '')[:125],
                            body=html_to_text(body), answers=' '.join(answers.get(qid, []))[:2 * MAX_FIELD])
@@ -39,7 +41,7 @@ def index_question(question_id):
     try:
         with transaction.atomic():
             row = Node.objects.filter(id=question_id, node_type='question').exclude(
-                state_string__contains='(deleted)').values_list('id', 'title', 'tagnames', 'body').first()
+                hidden_q()).values_list('id', 'title', 'tagnames', 'body').first()
             if row is None:
                 SearchDocument.objects.filter(question_id=question_id).delete()
                 return
@@ -125,7 +127,7 @@ def rebuild(batch_size=500, stdout=None):
     from forum.models import Node, SearchDocument
     from . import backends
     sqlite = connection.vendor == 'sqlite'
-    questions = Node.objects.filter(node_type='question').exclude(state_string__contains='(deleted)').order_by('id')
+    questions = Node.objects.filter(node_type='question').exclude(hidden_q()).order_by('id')
     total = 0
     with transaction.atomic():
         if sqlite:

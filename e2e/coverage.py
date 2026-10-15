@@ -15,6 +15,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RECORD = os.path.join(ROOT, 'tmp', 'e2e', 'requested.txt')
 
 # Patterns that are not pages people use, or that the browser can't reach.
+# /healthz, /readyz and /metrics (probes, Prometheus) are not URL patterns at
+# all: ClientIPMiddleware answers them, so they never show up here; they are
+# covered by forum/tests/test_ops.py and test_hardening.py.
 IGNORED = {
     'osqa_media', 'django_admin_media', 'django_admin_static', 'uploaded_file', 'custom_css', 'favicon',
     'csp_report',  # posted by the browser only when something is blocked

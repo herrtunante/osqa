@@ -168,7 +168,12 @@ core_urls = [
     re_path(r'^%s%s$' % ('admin/', 'go_defaults/'), app.admin.go_defaults, name='admin_go_defaults'),
     re_path(r'^%s%s(?P<set_name>\w+)/(?P<var_name>\w+)/$' % ('admin/', 'settings/'), app.admin.get_default, name='admin_default'),
     re_path(r'^%s%s$' % ('admin/', 'maintenance/'), app.admin.maintenance, name='admin_maintenance'),
-    re_path(r'^%s%s$' % ('admin/', 'flagged_posts/'), app.admin.flagged_posts, name='admin_flagged_posts'),
+    # The old Flagged posts page shows the moderation inbox (links in old emails keep working).
+    re_path(r'^%s%s$' % ('admin/', 'flagged_posts/'), app.moderation.inbox, name='admin_flagged_posts'),
+    re_path(r'^admin/moderation/$', app.moderation.inbox, name='admin_moderation'),
+    re_path(r'^admin/moderation/post/(?P<id>\d+)/$', app.moderation.act_on_post, name='admin_moderation_post'),
+    re_path(r'^admin/moderation/user/(?P<id>\d+)/$', app.moderation.act_on_user, name='admin_moderation_user'),
+    re_path(r'^admin/moderation/undo/$', app.moderation.undo, name='admin_moderation_undo'),
     re_path(r'^%s%s$' % ('admin/', 'support/'), app.admin.support_dashboard, name='admin_support'),
     re_path(r'^admin/email-previews/$', app.admin.email_previews, name='admin_email_previews'),
     re_path(r'^admin/email-previews/(?P<kind>[\w-]+)/$', app.admin.email_previews, name='admin_email_preview'),

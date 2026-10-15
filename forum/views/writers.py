@@ -24,6 +24,7 @@ from forum.models.node import render_markdown
 from forum.utils import html
 from forum.utils.images import process_image, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
+from forum.utils import review
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
@@ -159,6 +160,8 @@ def edit_question(request, id):
     question = get_object_or_404(Question, id=id)
     if question.nis.deleted and not request.user.can_view_deleted_post(question):
         raise Http404
+    if not review.can_view(question, request.user):
+        raise Http404
     if request.user.can_edit_post(question):
         return _edit_question(request, question)
     elif request.user.can_retag_questions():
@@ -233,6 +236,8 @@ def edit_answer(request, id):
     answer = get_object_or_404(Answer, id=id)
     if answer.deleted and not request.user.can_view_deleted_post(answer):
         raise Http404
+    elif not review.can_view(answer, request.user):
+        raise Http404
     elif not request.user.can_edit_post(answer):
         raise Http404
 
@@ -274,6 +279,8 @@ def edit_answer(request, id):
 
 def answer(request, id):
     question = get_object_or_404(Question, id=id)
+    if not review.can_view(question, request.user):
+        raise Http404
 
     if request.POST:
         form = AnswerForm(request.POST, request.user)

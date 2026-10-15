@@ -76,7 +76,7 @@ class RssAnswerFeed(BaseNodeFeed):
         else:
             qs = self._question.answers
 
-        return qs.filter_state(deleted=False).order_by('-added_at')
+        return qs.public().order_by('-added_at')
 
     def items(self):
         return self._items()[:30]

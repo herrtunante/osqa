@@ -1,0 +1,26 @@
+# Settings that are not secret (settings_local_docker.py reads them).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osqa-config
+data:
+  OSQA_SETTINGS_LOCAL: settings_local_docker
+  OSQA_APP_URL: https://forum.example.org
+  OSQA_ALLOWED_HOSTS: forum.example.org
+  # The ingress controller appends to X-Forwarded-For: count every such hop.
+  OSQA_TRUSTED_PROXIES: "1"
+  OSQA_DB_ENGINE: mysql
+  OSQA_DB_HOST: mysql.example.internal
+  OSQA_DB_PORT: "3306"
+  OSQA_DB_NAME: osqa
+  OSQA_DB_USER: osqa
+  OSQA_MEMCACHED: osqa-memcached:11211
+  # Dates are stored in this zone: keep the old value when moving an existing forum.
+  OSQA_TIME_ZONE: UTC
+  OSQA_LANGUAGE_CODE: en
+  OSQA_DISABLED_MODULES: recaptcha,project_badges
+  OSQA_BACKUP_DIR: /app/backups
+  OSQA_BACKUP_KEEP: "14"
+  LOG_FORMAT: json
+  LOG_LEVEL: INFO
+  SENTRY_ENVIRONMENT: production

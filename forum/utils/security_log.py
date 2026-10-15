@@ -3,7 +3,8 @@ changes to permissions and site settings.
 
 Everything goes to the 'forum.security' logger (see LOGGING in
 settings_local.py.dist), one line per event as key=value pairs. Passwords and
-tokens are never logged.
+tokens are never logged. Each event is also counted for /metrics
+(osqa_security_events_total{event="login_failed"} etc.).
 """
 import logging
 
@@ -28,3 +29,5 @@ def event(name, request=None, level=logging.INFO, **fields):
             # Text is quoted so values typed by visitors can't fake other fields.
             parts.append('%s=%r' % (key, value) if isinstance(value, str) else '%s=%s' % (key, value))
     log.log(level, ' '.join(parts))
+    from forum.utils import metrics
+    metrics.count('osqa_security_events_total', event=name)

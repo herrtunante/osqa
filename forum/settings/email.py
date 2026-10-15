@@ -1,6 +1,6 @@
 from .base import Setting, SettingSet
 from django.utils.translation import gettext_lazy as _
-from django.forms.widgets import PasswordInput
+from django.forms.widgets import PasswordInput, RadioSelect
 from .forms import TestEmailSettingsWidget
 
 EMAIL_SET = SettingSet('email', _('Email settings'), _("Email server and other email related settings."), 50)
@@ -82,4 +82,17 @@ label = _("Send digest only to validated users"),
 help_text = _("If checked the daily digest won't be sent to users that haven't validated their emails."),
 required=False))
 
+WEEKLY_SUMMARY_DAY_CHOICES = (
+    ('0', _('Monday')), ('1', _('Tuesday')), ('2', _('Wednesday')), ('3', _('Thursday')),
+    ('4', _('Friday')), ('5', _('Saturday')), ('6', _('Sunday')),
+)
+
+WEEKLY_SUMMARY_DAY = Setting('WEEKLY_SUMMARY_DAY', '0', EMAIL_SET, dict(
+label = _("Weekly summary day"),
+help_text = _("The day send_email_alerts sends the weekly summary to members who chose one (run it daily)."),
+widget=RadioSelect,
+choices=WEEKLY_SUMMARY_DAY_CHOICES,
+required=False))
+
+# LAST_DAILY: the previous daily digest run; LAST_WEEKLY: the previous weekly summary run.
 EMAIL_DIGEST_FLAG = Setting('EMAIL_DIGEST_FLAG', None)

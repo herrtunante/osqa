@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _lazy
 from forum.models.action import ActionProxy
 from forum.models import Comment, Question, Answer, NodeRevision
 from forum import settings, REQUEST_HOLDER
+from forum.utils import review
 
 from django.contrib import messages
 
@@ -29,11 +30,15 @@ class AskAction(NodeEditAction):
         if 'added_at' in data:
             processed_data['added_at'] = data['added_at']
 
-        question = Question(author=self.user, **processed_data)
+        self._review_state = review.state_for_new_post(self.user)
+        # Held posts are hidden from their first save (search index, tag counts).
+        question = Question(author=self.user, state_string=review.state_mark(self._review_state), **processed_data)
         question.save()
         self.node = question
 
-        messages.info(REQUEST_HOLDER.request, self.describe(self.user))
+    def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
+        messages.info(REQUEST_HOLDER.request, review.held_notice() if review.is_held(self.node) else self.describe(self.user))
 
     def describe(self, viewer=None):
         return _("%(user)s asked %(question)s") % {
@@ -47,14 +52,17 @@ class AnswerAction(NodeEditAction):
     def process_data(self, **data):
         revision_data = self.create_revision_data(True, **data)
         revision_data.pop('summary', None)
-        answer = Answer(author=self.user, parent=data['question'], **revision_data)
+        self._review_state = review.state_for_new_post(self.user, data['question'])
+        answer = Answer(author=self.user, parent=data['question'], state_string=review.state_mark(self._review_state),
+                        **revision_data)
         answer.save()
         self.node = answer
 
     def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
         self.node.question.reset_answer_count_cache()
 
-        messages.info(REQUEST_HOLDER.request, self.describe(self.user))
+        messages.info(REQUEST_HOLDER.request, review.held_notice() if review.is_held(self.node) else self.describe(self.user))
 
 
     def describe(self, viewer=None):
@@ -69,9 +77,13 @@ class CommentAction(ActionProxy):
     verb = _lazy("commented")
 
     def process_data(self, text='', parent=None):
-        comment = Comment(author=self.user, parent=parent, body=text)
+        self._review_state = review.state_for_new_post(self.user, parent)
+        comment = Comment(author=self.user, parent=parent, body=text, state_string=review.state_mark(self._review_state))
         comment.save()
         self.node = comment
+
+    def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
 
     def describe(self, viewer=None):
         return _("%(user)s commented on %(post_desc)s") % {
@@ -331,3 +343,48 @@ class WikifyAction(ActionProxy):
             'node': self.describe_node(viewer, self.node),
         }
 
+
+
+class QueueForReviewAction(ActionProxy):
+    """A new post went to the review queue (FIRST_POSTS_MODERATION): `extra`
+    is the state, 'pending_review' (held) or 'unreviewed' (published). The
+    action of that node state; see forum/utils/review.py."""
+    verb = _lazy("waiting for review")
+
+    def describe(self, viewer=None):
+        return _("%(post_desc)s is waiting for review") % {
+            'post_desc': self.describe_node(viewer, self.node),
+        }
+
+
+class ApprovePostAction(ActionProxy):
+    """A moderator approved a post from the review queue. A held post is
+    published (and the posts held under it approved with it); followers get
+    the notifications that were held back (hooks in forum/subscriptions.py and
+    forum/notifications.py). Cancelling it puts the post back in the queue."""
+    verb = _lazy("approved")
+
+    def save(self, data=None, *args, **kwargs):
+        if not self.id:
+            self.extra = {'state': review.HELD if review.is_held(self.node) else review.UNREVIEWED}
+        return super().save(data, *args, **kwargs)
+
+    def process_action(self):
+        for child in review.release(self.node):
+            approval = ApprovePostAction(user=self.user, node=child, ip=self.ip)
+            approval.cascade = True
+            approval.save()
+
+    def cancel_action(self):
+        state = self.extra.get('state') if isinstance(self.extra, dict) else None
+        review.hold_again(self.node, state or review.UNREVIEWED)
+
+    @property
+    def was_held(self):
+        return isinstance(self.extra, dict) and self.extra.get('state') == review.HELD
+
+    def describe(self, viewer=None):
+        return _("%(user)s approved %(post_desc)s") % {
+            'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
+            'post_desc': self.describe_node(viewer, self.node),
+        }

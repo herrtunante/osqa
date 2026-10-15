@@ -4,8 +4,10 @@ ClientIPMiddleware (first in MIDDLEWARE): behind a reverse proxy REMOTE_ADDR is
 the proxy; with TRUSTED_PROXY_COUNT = n it is replaced by the address the
 n-th proxy from the right saw in X-Forwarded-For, so sign-up limits, sign-in
 lockouts, action IPs and the maintenance allow-list see the real visitor.
-It also answers /healthz before host checks and maintenance mode, so Docker
-or a load balancer can probe it on any host name.
+It also answers /healthz (liveness), /readyz (database and cache, see
+forum/views/ops.py) and /metrics (Prometheus, token-protected) before host
+checks, sessions and maintenance mode, so Docker, Kubernetes, a load balancer
+or Prometheus can reach them on any host name or pod address.
 
 SecurityHeadersMiddleware adds Content-Security-Policy and Permissions-Policy.
 Scripts run only from this site, the listed origins, or an inline <script>
@@ -47,6 +49,9 @@ class ClientIPMiddleware:
                 request.META['REMOTE_ADDR'] = forwarded[-min(proxies, len(forwarded))]
         if request.path_info == '/healthz':
             return health(request)
+        if request.path_info in ('/readyz', '/metrics'):
+            from forum.views.ops import ENDPOINTS
+            return ENDPOINTS[request.path_info](request)
         return self.get_response(request)
 
 

@@ -56,7 +56,7 @@ def _source(node):
 
 def thread_document(question):
     """(text, quality) of an answered question, or None. Best answers first."""
-    answers = list(Answer.objects.filter(parent=question).filter_state(deleted=False).order_by('-score', 'added_at'))
+    answers = list(Answer.objects.filter(parent=question).public().order_by('-score', 'added_at'))
     answers.sort(key=lambda a: not a.nis.accepted)
     if not answers:
         return None
@@ -71,7 +71,7 @@ def thread_document(question):
 
 
 def forum_documents():
-    for question in Question.objects.filter_state(deleted=False).order_by('id').iterator():
+    for question in Question.objects.public().order_by('id').iterator():
         if question.duplicate_of:
             continue  # the original holds the answers
         document = thread_document(question)
@@ -196,7 +196,7 @@ def similar_questions(query, limit=10):
     for chunk in search(query, limit=limit, source='forum'):
         if chunk.node_id and chunk.node_id not in [q.id for q in questions]:
             question = Question.objects.filter(id=chunk.node_id).first()
-            if question is not None and not question.nis.deleted:
+            if question is not None and not question.nis.deleted and not question.nis.pending_review:
                 questions.append(question)
     return questions
 

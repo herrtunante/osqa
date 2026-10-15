@@ -10,6 +10,7 @@ from django.utils.encoding import smart_str
 from .general import DescribedFieldsMixin, NextUrlField, UserNameField
 
 from forum import settings, REQUEST_HOLDER
+from forum.utils.email_frequency import FREQUENCY_CHOICES
 
 from forum.modules import call_all_handlers
 
@@ -357,14 +358,22 @@ class SubscriptionSettingsForm(forms.ModelForm):
     new_question = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     new_question_watched_tags = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     subscribed_questions = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
+    # How often activity emails come (forum/utils/email_frequency.py). Its radio cards are
+    # outside the <form> element on the page, joined to it with the form attribute.
+    email_frequency = forms.ChoiceField(widget=forms.RadioSelect(attrs={'form': 'email-settings-form'}),
+                                        choices=FREQUENCY_CHOICES, required=False)
 
     class Meta:
         model = SubscriptionSettings
         # enable_notifications (the master switch) has its own buttons on the page.
-        fields = ['member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions',
-                  'questions_viewed', 'all_questions_watched_tags', 'all_questions',
+        fields = ['email_frequency', 'member_joins', 'new_question', 'new_question_watched_tags',
+                  'subscribed_questions', 'questions_viewed', 'all_questions_watched_tags', 'all_questions',
                   'notify_answers', 'notify_comments_own_post', 'notify_comments', 'notify_accepted',
-                  'send_digest', 'notify_reply_to_comments']
+                  'send_digest', 'notify_reply_to_comments', 'mentions_immediate']
+
+    def clean_email_frequency(self):
+        # Left out of the post (an old page): keep what was chosen.
+        return self.cleaned_data.get('email_frequency') or self.instance.email_frequency
 
 class UserPreferencesForm(forms.Form):
     sticky_sorts = forms.BooleanField(required=False, initial=False)

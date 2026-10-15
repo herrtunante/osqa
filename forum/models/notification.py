@@ -13,6 +13,8 @@ class Notification(models.Model):
     email preferences; created by forum/notifications.py."""
 
     ANSWER, COMMENT, MENTION, ACCEPTED, BADGE, REMINDER = 'answer', 'comment', 'mention', 'accepted', 'badge', 'reminder'
+    # A post held for review (forum/utils/review.py) was approved or removed.
+    APPROVED, REMOVED = 'approved', 'removed'
     KINDS = (
         (ANSWER, _('New answer')),
         (COMMENT, _('New comment')),
@@ -20,6 +22,8 @@ class Notification(models.Model):
         (ACCEPTED, _('Answer accepted')),
         (BADGE, _('Badge')),
         (REMINDER, _('Accept an answer')),
+        (APPROVED, _('Post approved')),
+        (REMOVED, _('Post removed')),
     )
 
     user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
@@ -49,3 +53,33 @@ class QuestionReminder(models.Model):
 
     class Meta:
         app_label = 'forum'
+
+
+class PendingEmail(models.Model):
+    """An activity email held back for a member's daily or weekly summary
+    (SubscriptionSettings.email_frequency). Queued by forum/subscriptions.py
+    instead of the immediate email; send_email_alerts sends one summary per
+    member and deletes the rows it covered."""
+
+    ANSWER, COMMENT, MENTION, ACCEPTED, NEW_QUESTION, MEMBER = (
+        'answer', 'comment', 'mention', 'accepted', 'new_question', 'member')
+    KINDS = (
+        (ANSWER, _('New answer')),
+        (COMMENT, _('New comment')),
+        (MENTION, _('Mention')),
+        (ACCEPTED, _('Answer accepted')),
+        (NEW_QUESTION, _('New question')),
+        (MEMBER, _('New member')),
+    )
+
+    user = models.ForeignKey(User, related_name='pending_emails', on_delete=models.CASCADE)
+    kind = models.CharField(max_length=16, choices=KINDS)
+    # Who did it (the answerer, the person who accepted, the new member...).
+    actor = models.ForeignKey(User, null=True, blank=True, related_name='+', on_delete=models.CASCADE)
+    node = models.ForeignKey(Node, null=True, blank=True, related_name='+', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        app_label = 'forum'
+        ordering = ('created_at', 'id')
+        indexes = [models.Index(fields=['user', 'created_at'], name='pendingemail_user_date_idx')]

@@ -64,7 +64,15 @@ def reset_visitor(token):
 
 def before_send(event, hint):
     """Drops the event when this request's visitor already sent the hourly
-    maximum. Events from outside a request (commands, cron) are not limited."""
+    maximum. Events from outside a request (commands, cron) are not limited.
+    Events from a request carry its id (X-Request-ID) as the request_id tag."""
+    from forum.utils.logs import current_request_id
+    request_id = current_request_id()
+    if request_id:
+        tags = event.get('tags')
+        if not isinstance(tags, dict):
+            tags = event['tags'] = dict(tags or {})
+        tags['request_id'] = request_id
     visitor, limit = _visitor.get(), max_events_per_visitor()
     if visitor is None or limit <= 0:
         return event

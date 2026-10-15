@@ -1,0 +1,7 @@
+{% load i18n %}{% if account %}<p class="mod-author">
+    <a href="{{ account.get_profile_url }}">{{ account.username }}</a>
+    <span>{% blocktrans with rep=account.reputation %}{{ rep }} reputation{% endblocktrans %}</span>
+    <span>{% blocktrans with joined=account.date_joined|date:"Y-m-d" %}joined {{ joined }}{% endblocktrans %}</span>
+    <span>{% blocktrans count counter=info.posts %}{{ counter }} post{% plural %}{{ counter }} posts{% endblocktrans %}</span>
+    {% if account.is_staff or account.is_superuser %}<span class="mod-tag">{% trans "moderator" %}</span>{% elif account.is_suspended %}<span class="mod-tag mod-tag-held">{% trans "suspended" %}</span>{% endif %}
+</p>{% endif %}

@@ -18,3 +18,7 @@ importData/
 /*.sqlite3
 *.log
 __pycache__/
+# Docker Compose configuration (secrets) and backup_site archives
+/.env
+/backups/
+settings_local_extra.py

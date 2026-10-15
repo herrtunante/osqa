@@ -17,12 +17,14 @@ from django.utils.encoding import smart_str
 from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
-from forum.utils import security_log
+from forum.utils import email_frequency, security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
 from forum.modules import ui
 from forum.utils import pagination
+from forum.utils import review
+from forum.models import Node
 from forum.views.readers import QuestionListPaginatorContext, AnswerPaginatorContext
 from forum.settings import ONLINE_USERS
 
@@ -295,7 +297,13 @@ def report_user(request, id):
 
 
 # Actions left out of the activity lists (votes are private, page edits are admin work).
-ACTIVITY_EXCLUDED_TYPES = ("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage")
+ACTIVITY_EXCLUDED_TYPES = ("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage", "queueforreview")
+
+
+def visible_activity(user, viewer):
+    """`user`'s actions shown in their profile to `viewer`: none about posts
+    held for review that `viewer` may not see."""
+    return review.visible_to(user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES), viewer, prefix='node__')
 
 
 def _profile_tab_counts(user, can_view_private):
@@ -405,9 +413,9 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
 
 @user_view('users/stats.html', 'stats', _lazy('overview'), _lazy('user overview'))
 def user_profile(request, user, **kwargs):
-    questions = Question.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at') \
+    questions = Question.objects.visible_to(request.user).filter(author=user).order_by('-added_at') \
         .prefetch_cached(fks=('last_activity_by',), counts=('answer_count', 'accepted_count'))
-    answers = Answer.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at') \
+    answers = Answer.objects.visible_to(request.user).filter(author=user).order_by('-added_at') \
         .prefetch_cached(fks=('parent',))
 
     # Check whether the passed slug matches the one for the user object
@@ -419,9 +427,12 @@ def user_profile(request, user, **kwargs):
     down_votes = user.vote_down_count
     accepted_count = Answer.objects.filter_state(deleted=False).filter(author=user, marked=True).count()
     recent_activity = prefetch_activity(
-        user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES).order_by('-action_date')[:6], user)
+        visible_activity(user, request.user).order_by('-action_date')[:6], user)
 
-    user_tags = Tag.objects.filter(Q(nodes__author=user) | Q(nodes__children__author=user)) \
+    own_posts = Node.objects.filter(author=user)
+    if not (review.is_moderator(request.user) or request.user == user):
+        own_posts = review.published(own_posts)
+    user_tags = Tag.objects.filter(Q(nodes__in=own_posts.values('id')) | Q(nodes__children__author=user)) \
         .annotate(user_tag_usage_count=Count('name')).order_by('-user_tag_usage_count')
 
     award_counts = list(Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count'))
@@ -446,7 +457,7 @@ def user_profile(request, user, **kwargs):
     
 @user_view('users/recent.html', 'recent', _lazy('activity'), _lazy('recent user activity'))
 def user_recent(request, user, **kwargs):
-    activities = prefetch_activity(user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES).order_by(
+    activities = prefetch_activity(visible_activity(user, request.user).order_by(
             '-action_date')[:USERS_PAGE_SIZE], user)
 
     return {"view_user" : user, "activities" : activities}
@@ -557,9 +568,12 @@ def _user_subscriptions(request, user, **kwargs):
         else:
             form = SubscriptionSettingsForm(instance=prefs)
 
+        hints = email_frequency.frequency_hints()
         return {
             'view_user':user,
             'notifications_on': prefs.enable_notifications,
+            # The radio cards of "How often": (radio, one-line explanation).
+            'frequency_options': [(radio, hints[radio.data['value']]) for radio in form['email_frequency']],
             'followed_tags': [mt.tag for mt in MarkedTag.objects.filter(user=user, reason='good').select_related('tag').order_by('tag__name')],
             'form':form,
             'manage_open':manage_open,

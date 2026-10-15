@@ -6,7 +6,7 @@
 - /mcp: a read-only Model Context Protocol server (Streamable HTTP transport,
   JSON responses) with the tools search_forum and get_question
 
-Only public, non-deleted content is exposed, always with its URL, so agents
+Only public content is exposed (not deleted, not held for review), always with its URL, so agents
 can cite the thread it came from.
 """
 import json
@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from forum import settings
 from forum.models import Question, Answer, Comment, AISuggestion
+from forum.utils import review
 from forum.utils.similar import search_questions
 
 MCP_PROTOCOL_VERSIONS = ('2025-06-18', '2025-03-26', '2024-11-05')
@@ -29,8 +30,8 @@ def absolute(url):
 
 
 def answered_questions():
-    answered = Answer.objects.filter(parent=OuterRef('pk')).filter_state(deleted=False)
-    return Question.objects.filter_state(deleted=False).filter(Exists(answered))
+    answered = Answer.objects.filter(parent=OuterRef('pk')).public()
+    return Question.objects.public().filter(Exists(answered))
 
 
 def public_question(id):
@@ -38,7 +39,7 @@ def public_question(id):
         question = Question.objects.get(id=id)
     except (Question.DoesNotExist, ValueError):
         raise Http404()
-    if question.nis.deleted:
+    if question.nis.deleted or review.is_held(question):
         raise Http404()
     return question
 
@@ -51,7 +52,7 @@ def source(node):
 
 def visible_answers(question):
     # active_revision holds the Markdown source; authors come from the object cache.
-    answers = list(Answer.objects.filter(parent=question).filter_state(deleted=False)
+    answers = list(Answer.objects.filter(parent=question).public()
                    .select_related('active_revision').prefetch_cached(fks=('author',))
                    .order_by('-score', 'added_at'))
     return sorted(answers, key=lambda a: not a.nis.accepted)
@@ -61,7 +62,7 @@ def thread_comments(question):
     """{post id: [comments]} for the question and its answers, in one query."""
     comments = {}
     for comment in (Comment.objects.filter(Q(parent=question) | Q(parent__parent=question))
-                    .filter_state(deleted=False).select_related('active_revision')
+                    .public().select_related('active_revision')
                     .prefetch_cached(fks=('author',)).order_by('added_at')):
         comments.setdefault(comment.parent_id, []).append(comment)
     return comments

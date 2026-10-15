@@ -1,9 +1,13 @@
-"""The daily digest (run from cron, e.g. once a day).
+"""The daily digest and the daily/weekly activity summaries (run from cron
+once a day, e.g. at 07:00).
 
-Each run covers what happened since the previous run (stored in the
-EMAIL_DIGEST_FLAG setting as LAST_DAILY), so running it twice sends nothing
-new the second time. There is no weekly digest: users only choose whether
-they get the daily one (SubscriptionSettings.send_digest).
+- The digest of new questions (SubscriptionSettings.send_digest) covers what
+  happened since the previous run (LAST_DAILY in the EMAIL_DIGEST_FLAG
+  setting), so running it twice sends nothing new the second time.
+- The summaries replace the separate activity emails of members who chose a
+  daily or weekly summary (SubscriptionSettings.email_frequency): daily ones
+  on every run, weekly ones on the WEEKLY_SUMMARY_DAY weekday (LAST_WEEKLY),
+  so weekly needs no cron line of its own. See forum/utils/email_frequency.py.
 """
 import datetime
 import logging
@@ -15,6 +19,7 @@ from django.utils import translation
 from forum import settings
 from forum.models import Flag, Question, QuestionSubscription, Tag, User
 from forum.settings.email import EMAIL_DIGEST_FLAG
+from forum.utils.email_frequency import send_summaries
 from forum.utils.mail import send_template_email
 
 SHOW_N_MORE_ACTIVE_NEW_MEMBERS = 5
@@ -26,7 +31,7 @@ class DigestQuestionsIndex:
     def __init__(self, from_date):
         self.from_date = from_date
 
-        new_questions = Question.objects.filter_state(deleted=False).\
+        new_questions = Question.objects.public().\
             filter(added_at__gt=from_date).\
             annotate(n_actions=models.Count('actions', distinct=True)).\
             annotate(child_count=models.Count('all_children', distinct=True))
@@ -74,7 +79,8 @@ class DigestQuestionsIndex:
 
 
 class Command(BaseCommand):
-    help = "Sends the daily digest email to the users who want it."
+    help = ("Sends the daily digest and the daily and weekly activity summaries that are due "
+            "(run it once a day).")
 
     def handle(self, *args, **options):
         try:
@@ -83,6 +89,12 @@ class Command(BaseCommand):
             logging.error("Unable to set the locale in the send emails cron job")
 
         now = datetime.datetime.now()
+        self.send_digest(now)
+        sent = send_summaries(now)
+        if options.get('verbosity', 1) > 1:
+            self.stdout.write("Summaries sent: %(daily)d daily, %(weekly)d weekly." % sent)
+
+    def send_digest(self, now):
         digest_control = EMAIL_DIGEST_FLAG.value
         if not isinstance(digest_control, dict) or 'LAST_DAILY' not in digest_control:
             digest_control = {'LAST_DAILY': now - datetime.timedelta(days=1)}

@@ -1,0 +1,240 @@
+# The scheduled commands, one CronJob each (times in UTC). Every run's outcome
+# is recorded and exported by /metrics as
+# osqa_cron_last_success_timestamp_seconds{command="..."}: alert on it
+# (docs/prometheus/alerts.yml) rather than on Job failures alone.
+---
+# Daily email digests
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-send-email-alerts
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "15 6 * * *"
+  timeZone: Etc/UTC
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+          containers:
+            - name: send-email-alerts
+              image: osqa
+              args: ["python", "manage.py", "send_email_alerts"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+---
+# Dormant (bot) account clean-up
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-cleanup-inactive-users
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "45 6 * * *"
+  timeZone: Etc/UTC
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+          containers:
+            - name: cleanup-inactive-users
+              image: osqa
+              args: ["python", "manage.py", "cleanup_inactive_users"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+---
+# Accept reminders
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-remind-unaccepted
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "0 7 * * *"
+  timeZone: Etc/UTC
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+          containers:
+            - name: remind-unaccepted
+              image: osqa
+              args: ["python", "manage.py", "remind_unaccepted"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+---
+# Database + uploads archive into the osqa-backups volume
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-backup-site
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "30 3 * * *"
+  timeZone: Etc/UTC
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 7200
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999, fsGroup: 999}
+          containers:
+            - name: backup-site
+              image: osqa
+              args: ["python", "manage.py", "backup_site"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+              volumeMounts:
+                - {name: uploads, mountPath: /app/forum/upfiles, readOnly: true}
+                - {name: backups, mountPath: /app/backups}
+          volumes:
+            - name: uploads
+              persistentVolumeClaim: {claimName: osqa-uploads}
+            - name: backups
+              persistentVolumeClaim: {claimName: osqa-backups}
+---
+# AI module: set suspend: false once Admin > AI assistance has a key
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-build-knowledge-index
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "30 2 * * *"
+  timeZone: Etc/UTC
+  suspend: true
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 7200
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+          containers:
+            - name: build-knowledge-index
+              image: osqa
+              args: ["python", "manage.py", "build_knowledge_index"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+---
+# AI module: set suspend: false once Admin > AI assistance has a key
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osqa-suggest-answers
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+spec:
+  schedule: "5 * * * *"
+  timeZone: Etc/UTC
+  suspend: true
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: cron}
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+          containers:
+            - name: suggest-answers
+              image: osqa
+              args: ["python", "manage.py", "suggest_answers"]
+              envFrom:
+                - configMapRef: {name: osqa-config}
+                - secretRef: {name: osqa-secrets}
+              resources:
+                requests: {cpu: 50m, memory: 256Mi}
+                limits: {memory: 1Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}

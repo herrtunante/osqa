@@ -3934,6 +3934,46 @@ time.relative-time {
     margin-top: 4px;
 }
 
+/* First posts review: "Waiting for review" on a held post (its author and
+   moderators see it), in lists, on the question page and on comments. */
+.review-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border: 1px solid var(--warn-border-strong);
+    border-radius: 999px;
+    background: var(--warn-bg);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.review-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--warn-border);
+    border-left: 4px solid var(--warn-border-strong);
+    border-radius: 8px;
+    background: var(--warn-bg);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.review-notice a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.question-page .post.pending-review, .question-page .answer-card.pending-review {
+    border-style: dashed;
+}
+
 /* Post layout: votes beside the content. */
 .question-page .post {
     display: grid;
@@ -5447,6 +5487,22 @@ ul.question-tags-list .tag-number {
     margin: 14px 0;
 }
 
+.email-prefs-alternative {
+    margin: 18px 0 0;
+    padding: 14px 16px;
+    border: 1px solid var(--info-border);
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+}
+
+.email-prefs-alternative h2 {
+    margin: 0 0 4px;
+}
+
+.email-prefs-alternative p {
+    margin: 0 0 10px;
+}
+
 .email-prefs-more {
     margin-top: 22px;
     padding-top: 14px;
@@ -5504,6 +5560,12 @@ ul.question-tags-list .tag-number {
     line-height: 16px; text-align: center; box-sizing: border-box;
 }
 .notification-bell .notification-count[hidden] { display: none; }
+/* Moderation inbox link (staff), with the number of items waiting */
+.moderation-link .moderation-count {
+    display: inline-block; min-width: 18px; height: 18px; margin-left: 2px; padding: 0 5px;
+    border-radius: 9px; background: #c62828; color: #fff; font-size: 11px; font-weight: 700;
+    line-height: 18px; text-align: center; box-sizing: border-box;
+}
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .inbox-list { list-style: none; margin: 12px 0; padding: 0; border-top: 1px solid var(--border); }
@@ -8479,6 +8541,80 @@ ul.settings-list li + li {
 
 .settings-main fieldset.email-choice label {
     margin: 0;
+}
+
+/* How often: radio cards (email settings). */
+.settings-main fieldset.frequency-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.settings-main .frequency-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.settings-main .frequency-option:hover {
+    border-color: var(--border-strong);
+}
+
+.settings-main .frequency-option:has(input:checked) {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.settings-main .frequency-option:has(input:focus-visible) {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.settings-main .frequency-option input[type="radio"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    accent-color: var(--brand);
+}
+
+.settings-main .frequency-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.settings-main .frequency-name {
+    font-weight: 650;
+}
+
+.settings-main .frequency-hint {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.settings-main .email-frequency .settings-actions {
+    margin-top: 12px;
+}
+
+.settings-main .email-settings-form label.email-sub-option {
+    margin-left: 25px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
 /* Questions you follow. */

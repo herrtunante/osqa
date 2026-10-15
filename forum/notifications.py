@@ -9,10 +9,12 @@ sees replies to their posts in the forum.
 - mention (@username): the people mentioned, in a post, comment or edit
 - accepted answer: the answer's author
 - badge: the person awarded
+- post approved / removed: the author of a post held for review (forum/review_notices.py)
 """
 import datetime
 
-from forum.actions import AnswerAction, CommentAction, AcceptAnswerAction, AskAction, ReviseAction, AwardAction
+from forum.actions import AnswerAction, CommentAction, AcceptAnswerAction, AskAction, ReviseAction, AwardAction, \
+    ApprovePostAction
 from forum.models import Notification, User, Award
 from forum.utils.mentions import mentioned_user_ids
 
@@ -115,3 +117,12 @@ def badge_awarded(action, new):
         notify({action.user_id}, Notification.BADGE, None, action.node, text=str(award.badge.name))
 
 AwardAction.hook(badge_awarded)
+
+
+def post_approved(action, new):
+    """A post held for review was approved: the notifications held back are
+    created now (see forum/utils/review.py)."""
+    from forum.utils.review import replay_on_approval
+    replay_on_approval(action, {'ask': question_asked, 'answer': answer_posted, 'comment': comment_posted})
+
+ApprovePostAction.hook(post_approved)

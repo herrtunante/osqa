@@ -2,9 +2,13 @@
 
 Every notification email carries signed links that work without logging in:
 one to stop that kind of email (this question, new questions, mentions,
-new members, the digest) and one to stop all emails. The same "all" link is
-sent as the List-Unsubscribe header (RFC 8058 one-click), so mail programs
-can show their own unsubscribe button.
+new members, the digest, the summaries) and one to stop all emails. The same
+"all" link is sent as the List-Unsubscribe header (RFC 8058 one-click), so
+mail programs can show their own unsubscribe button.
+
+The same tokens switch how often activity emails come (SWITCH_SCOPES): the
+footer of an email sent as it happens offers "Get a daily summary instead",
+and the unsubscribe page offers "Switch to a weekly summary instead".
 """
 from django.core import signing
 from django.urls import reverse
@@ -23,7 +27,17 @@ SCOPES = {
     'mentions': (_("emails when someone mentions you"), _("Stop emails when someone mentions you")),
     'members': (_("emails about new members"), _("Stop emails about new members")),
     'digest': (_("the daily digest"), _("Stop the daily digest")),
+    'summary': (_("the daily or weekly summary of activity"), _("Stop these summaries")),
+    # Not unsubscribing: switching to a summary (see SWITCH_SCOPES).
+    'daily': (_("a daily summary"), _("Get a daily summary instead")),
+    'weekly': (_("a weekly summary"), _("Switch to a weekly summary instead")),
 }
+
+# scope -> the email frequency it switches to (forum/utils/email_frequency.py)
+SWITCH_SCOPES = {'daily': 'd', 'weekly': 'w'}
+
+# Kinds whose emails are sent as things happen, and so can offer a summary instead.
+SUMMARY_OFFER_KINDS = ('question', 'new_question', 'mention', 'member')
 
 # email kind -> (why the person gets it, the specific scope to offer)
 KINDS = {
@@ -33,6 +47,8 @@ KINDS = {
     'mention': (_("someone mentioned you"), 'mentions'),
     'member': (_("you asked to be told when new members join"), 'members'),
     'digest': (_("you are subscribed to the daily digest"), 'digest'),
+    'summary_daily': (_("you chose a daily summary of the activity you follow"), 'summary'),
+    'summary_weekly': (_("you chose a weekly summary of the activity you follow"), 'summary'),
 }
 
 
@@ -68,8 +84,9 @@ def url(user, scope, question=None):
     return '%s%s' % (settings.APP_URL, path)
 
 
-def links(user, kind, question=None):
-    """What the footer of a notification email shows to `user`."""
+def links(user, kind, question=None, offer_summary=True):
+    """What the footer of a notification email shows to `user`. Emails sent as
+    things happen also offer a daily summary instead (`offer_summary`)."""
     reason, scope = KINDS[kind]
     data = {
         'reason': reason,
@@ -80,6 +97,9 @@ def links(user, kind, question=None):
     if scope != 'question' or question is not None:
         data['specific_url'] = url(user, scope, question)
         data['specific_label'] = SCOPES[scope][1]
+    if offer_summary and kind in SUMMARY_OFFER_KINDS and user.subscription_settings.email_frequency == 'i':
+        data['summary_url'] = url(user, 'daily')
+        data['summary_label'] = SCOPES['daily'][1]
     return data
 
 
@@ -101,6 +121,12 @@ def apply(user, scope, question=None):
         prefs.member_joins = 'n'
     elif scope == 'digest':
         prefs.send_digest = False
+    elif scope == 'summary':
+        prefs.email_frequency = 'n'
+    elif scope in SWITCH_SCOPES:
+        # Someone who switches to a summary wants that summary, even after "unsubscribe from all".
+        prefs.email_frequency = SWITCH_SCOPES[scope]
+        prefs.enable_notifications = True
     prefs.save()
 
 
@@ -121,4 +147,8 @@ def undo(user, scope, question=None):
         prefs.member_joins = 'i'
     elif scope == 'digest':
         prefs.send_digest = True
+    elif scope == 'summary':
+        prefs.email_frequency = 'd'
+    elif scope in SWITCH_SCOPES:
+        prefs.email_frequency = 'i'
     prefs.save()

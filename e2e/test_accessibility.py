@@ -224,3 +224,46 @@ class AccessibilityTest(E2ETestCase):
 
     def axe_failures(self, page, where, device, dark):
         return ['%s (%s%s):\n%s' % (where, device, ', dark' if dark else '', violation) for violation in self.axe(page)]
+
+    def test_moderation_inbox(self):
+        """The moderation inbox with an item of every kind (both admin layouts,
+        the "Delete as spam" dialog open), and a post waiting for review as its
+        author and a moderator see it."""
+        from forum import settings
+        from forum.actions import FlagAction, ReportAction
+        from forum.models import ModerationReport
+        newcomer = self.create_user('newcomer', reputation=60)
+        self.set_setting(settings.FIRST_POSTS_MODERATION, 'before')
+        held = self.create_answer(newcomer, self.question, 'A first answer by a newcomer, waiting for review.')
+        FlagAction(user=self.alice, node=self.answer, extra='Advertising', ip='127.0.0.1').save()
+        self._as_request(self.bob)
+        ReportAction(user=self.bob, ip='127.0.0.1').save(data={'reported': newcomer, 'publicmsg': 'Spam links'})
+        ModerationReport.objects.create(node=self.question, source='ai', verdict='spam', confidence=0.9,
+                                        reason='Advertises a product.')
+        moderator = self.create_user('moderator', reputation=10, is_staff=True)
+        failures = []
+        for layout in ('djstyle', 'default'):
+            self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, layout == 'djstyle')
+            for device, dark in VIEWS:
+                page = self.open(moderator, device=device, dark=dark)
+                where = 'inbox, %s layout' % layout
+                self.visit(page, reverse('admin_moderation'))
+                failures += self.axe_failures(page, where, device, dark)
+                page.locator('#review-%d' % held.id).get_by_role('button', name='Delete as spam').click()
+                page.wait_for_selector('#spam-review-%d[open]' % held.id)
+                failures += self.axe_failures(page, where + ' with the spam dialog', device, dark)
+        for user in (newcomer, moderator):
+            failures += ['%s:\n%s' % (path, v) for path in [self.question.get_absolute_url()]
+                         for v in self._axe_path(user, path)]
+        if failures:
+            self.fail('%d accessibility violations (WCAG 2.1 A/AA, axe-core):\n\n%s' % (
+                len(failures), '\n'.join(failures)))
+
+    def _axe_path(self, user, path):
+        violations = []
+        for device, dark in VIEWS:
+            page = self.open(user, device=device, dark=dark)
+            self.visit(page, path)
+            self.assertEqual(page.locator('.review-notice').count(), 1)
+            violations += self.axe(page)
+        return violations

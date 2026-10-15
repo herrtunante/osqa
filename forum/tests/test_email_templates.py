@@ -23,6 +23,8 @@ CTA = {
     'new-question': ('View the question', '/questions/990010/how-do-i-export-survey-data-to-csv'),
     'new-member': ('View their profile', '/users/990003/dana'),
     'digest': ('See all new questions', '/questions/?sort=latest'),
+    'summary': ('See all your notifications', '/notifications/'),
+    'post-reviewed': ('View your post', '/questions/990010/how-do-i-export-survey-data-to-csv/990011'),
     'accept-reminder': ('Review the answers', '/questions/990010/how-do-i-export-survey-data-to-csv'),
     'feedback': ('Reply by email', 'mailto:carol@example.com'),
     'user-reported': ("Review bob's profile", '/users/990001/bob'),
@@ -32,7 +34,7 @@ CTA = {
     'test-email': (None, None),
 }
 NOTIFICATIONS = {'new-answer', 'new-comment', 'answer-accepted', 'mention', 'new-question', 'new-member', 'digest',
-                 'accept-reminder'}
+                 'summary', 'accept-reminder'}
 
 
 def button(html):
@@ -111,6 +113,7 @@ class EveryEmailKindTest(OSQATestCase):
         self.assertEqual(subjects['new-question'], 'New question: How do I export survey data to CSV?')
         self.assertEqual(subjects['new-member'], 'dana joined OSQA')
         self.assertEqual(subjects['digest'], 'Daily digest: 12 new questions')
+        self.assertEqual(subjects['summary'], 'Your weekly summary: 7 updates')
         self.assertEqual(subjects['accept-reminder'], 'Did an answer solve "How do I export survey data to CSV?"?')
         self.assertEqual(subjects['feedback'], 'Feedback from carol')
         self.assertEqual(subjects['user-reported'], 'User reported: bob by carol')

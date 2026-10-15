@@ -99,7 +99,7 @@ def find_duplicates(title, body='', may_call_api=lambda: True):
     results, seen = [], set()
     for item in cached['duplicates']:
         question = by_id.get(item.get('id'))
-        if question and question.id not in seen and not question.nis.deleted:
+        if question and question.id not in seen and not question.nis.deleted and not question.nis.pending_review:
             seen.add(question.id)
             results.append((question, str(item.get('reason', ''))[:300]))
     return results[:MAX_DUPLICATES]

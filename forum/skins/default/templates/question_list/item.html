@@ -25,7 +25,7 @@
     </div>
 
     <div class="question-summary-wrapper">
-        <h2><a href="{{ question.get_absolute_url }}">{{question.headline}}</a></h2>
+        <h2><a href="{{ question.get_absolute_url }}">{{question.headline}}</a>{% if question.nis.pending_review %} <span class="review-badge">{% trans "Waiting for review" %}</span>{% endif %}</h2>
         {% with excerpt=question.summary %}{% if excerpt %}
         <p class="summary{% if not question_summary %} excerpt{% endif %}">{{ excerpt }}</p>
         {% endif %}{% endwith %}

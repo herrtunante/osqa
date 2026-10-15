@@ -1,0 +1,59 @@
+{% load i18n extra_tags email_tags %}
+{% comment %}To the author of a post held for review (FIRST_POSTS_MODERATION "before"):
+   outcome is "approved" (now published) or "removed". Sent by forum/review_notices.py.{% endcomment %}
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+    question = node.absolute_parent
+    question_title = smart_str(question.title)
+    post_url = settings.APP_URL + node.get_absolute_url()
+    rules_url = settings.APP_URL + reverse('faq')
+{% enddeclare %}
+
+{% email %}
+    {% if outcome == "approved" %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your post is published: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "A moderator approved your post. Everyone can see it now." %}{% endpreheader %}
+    {% else %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your post was not published: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "A moderator reviewed your post and removed it." %}{% endpreheader %}
+    {% endif %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this email because you posted on {{ app_name }}.{% endblocktrans %}
+        {% trans "community guidelines" as guidelines_text %}
+        {% declare %}
+            question_link = html.hyperlink(post_url, question_title, style=a_style, **{'class': 'em-link'})
+            rules_link = html.hyperlink(rules_url, guidelines_text, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        {% if outcome == "approved" %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Good news: a moderator approved your post in {{ question_link }}. It is now published, and the people following the question have been told.{% endblocktrans %}</p>
+        {% include "notifications/_quote.html" with text=node.html|email_snippet:300 %}
+        {% trans "View your post" as cta %}{% include "notifications/_button.html" with url=post_url label=cta %}
+        {% else %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}A moderator reviewed your post in "{{ question_title }}" and removed it, so it won't be published. Please read the {{ rules_link }} before posting again.{% endblocktrans %}</p>
+        {% include "notifications/_quote.html" with text=node.html|email_snippet:300 %}
+        {% endif %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this email because you posted on {{ app_name }}.{% endblocktrans %}
+{% trans "community guidelines" as rules_link %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% if outcome == "approved" %}{% blocktrans %}Good news: a moderator approved your post in {{ question_link }}. It is now published, and the people following the question have been told.{% endblocktrans %}
+
+> {{ node.html|email_snippet:300 }}
+
+{% trans "View your post" %}:
+{{ post_url }}
+{% else %}{% blocktrans %}A moderator reviewed your post in "{{ question_title }}" and removed it, so it won't be published. Please read the {{ rules_link }} before posting again.{% endblocktrans %}
+
+> {{ node.html|email_snippet:300 }}
+
+{{ rules_url }}
+{% endif %}
+{% endtextcontent %}
+
+{% endemail %}

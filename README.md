@@ -58,23 +58,45 @@ Step-by-step guides:
   Behind a reverse proxy set `TRUSTED_PROXY_COUNT = 1` (or `OSQA_TRUSTED_PROXIES=1`,
   the docker-compose default): visitor IPs then come from `X-Forwarded-For` and
   HTTP is redirected to HTTPS. See "Security and logging" below.
-- Email digests: run `cron/send_email_alerts` daily.
+- Email digests and summaries: run `cron/send_email_alerts` once a day (e.g. at 07:00); it
+  also sends the weekly summaries on their day, so weekly needs no cron line of its own.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
 - Accept reminders: run `cron/remind_unaccepted` daily (see "Notifications and support dashboard" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
   `cron/suggest_answers` hourly (see "AI assistance" below).
+- Backups: run `manage.py backup_site` daily; monitoring, JSON logs and restores: see "Operations" below.
 
 ### Docker
 
 ```bash
-cp settings_local.py.dist settings_local.py   # configure the database, APP_URL, ...
-echo "OSQA_SECRET_KEY=<random key>" > .env
-docker compose up --build
+cp .env.example .env      # secrets, APP_URL, host names
+docker compose up -d --build
 ```
 
-The container runs gunicorn as an unprivileged user on `127.0.0.1:8000`; put a
-TLS reverse proxy in front of it. `settings_local.py`, uploads, cache and logs
-are mounted from the host, not baked into the image.
+`docker-compose.yml` runs the full stack: MySQL 8.4, memcached, a one-off
+`migrate` step, gunicorn on `127.0.0.1:8000` (put a TLS reverse proxy in front
+of it) and a `cron` service running the scheduled commands (`cron/crontab`,
+supercronic). Settings come from environment variables
+(`settings_local_docker.py`); uploads and backups are volumes. Kubernetes
+manifests are in `docs/k8s/`. See [docs/deployment.md](docs/deployment.md).
+
+### Operations
+
+- **Probes:** `/healthz` (process and database) and `/readyz` (database and
+  cache) answer `ok` or 503 on any host name.
+- **Metrics:** Prometheus metrics at `/metrics` once `METRICS_TOKEN` is set
+  (`Authorization: Bearer <token>`; 404 otherwise): requests by view and
+  status, latency, posts, unanswered questions, moderation queue, emails
+  sent/failed, sign-in failures and lockouts, memcached, and the last
+  successful run of each scheduled command. Scrape config and alerts are in
+  `docs/prometheus/`.
+- **Logs:** `LOG_FORMAT = 'json'` gives one JSON object per line on stdout,
+  with emails, IPs and secrets masked outside the security log. Every response
+  carries an `X-Request-ID` (the proxy's or a new one); logs and Sentry events
+  carry the same id.
+- **Backups:** `manage.py backup_site` writes the database and the uploads
+  into a timestamped `.tar.gz` and keeps the last `BACKUP_KEEP`.
+  `manage.py restore_site <archive> --dry-run`, then `--confirm`, restores one.
 
 ## Languages
 
@@ -155,6 +177,52 @@ python manage.py rebuild_search_index
 
 Running it again at any time is safe; it rebuilds everything.
 
+## Moderation
+
+Moderators (staff) and administrators find everything that waits for them in
+the **moderation inbox** (`/admin/moderation/`): a "moderation" link in the
+header shows how many items wait, and the admin menu links to it. The old
+Admin > Flagged posts address (`/admin/flagged_posts/`) shows the inbox too.
+It lists, as cards with the post, its author (reputation, join date, number
+of posts) and why it is there:
+
+- **First posts** waiting for review (see below);
+- **Flagged posts**: posts members reported, with each reason;
+- **Reported users**: accounts members reported ("report user");
+- **AI moderation reports** from the `ai` module.
+
+One click acts on an item: **Approve** (or **Dismiss** for flags and
+reports), **Delete**, **Delete as spam** (a dialog offers to suspend the
+author and delete their other posts as well), and **Suspend** the author.
+Every action is an ordinary forum action (reputation, activity log, undelete
+and unsuspend work as usual), and the last one can be undone from the inbox.
+The cards work from the keyboard (j / k move between them) and on a phone.
+
+### Reviewing new members' first posts
+
+Bots that sign up sometimes post spam. To have new members' first posts
+reviewed, choose under **Admin > Moderation settings > Review new members'
+first posts**:
+
+- **Off** (the default): posts are published at once, as before.
+- **Review after publishing**: posts appear at once and are listed in the
+  inbox until a moderator approves (or deletes) them.
+- **Review before publishing**: posts are held. Until a moderator approves
+  them only their author (who sees "Your post will appear once a moderator
+  has reviewed it" and a "Waiting for review" badge) and the moderators see
+  them: they are left out of question lists, the question page, search,
+  feeds, the sitemap, `llms.txt` / `.md` / JSONL / MCP, related questions,
+  tag counts, other people's view of the author's profile and the AI index.
+  Followers are notified (email and bell) only when the post is approved;
+  the author gets an email and a notification when it is approved or removed.
+  A reply under a held post is held with it and approved with it.
+
+"Posts to review per member" (1) is how many of a member's posts a moderator
+must approve before the next ones are published directly (deleted posts don't
+count); "Also review posts by members below this reputation" (0, off) reviews
+every post of low-reputation members. Moderators and administrators are never
+reviewed. The visibility rules live in `forum/utils/review.py`.
+
 ## Notifications and support dashboard
 
 - **Bell:** signed-in users see a bell in the header with their unread
@@ -186,6 +254,40 @@ Running it again at any time is safe; it rebuilds everything.
   for 7 days (configurable) and none is accepted. It only looks at questions
   from the last 60 days, so an imported history isn't flooded. There is no
   email if the asker stopped following the question or turned emails off.
+
+### Email frequency
+
+Members choose how often activity emails come (Email settings > "How often
+should we email you?"):
+
+- **As it happens** (the default, and what existing members keep): a separate
+  email for each new answer, comment, mention, accepted answer, new question in
+  a followed tag or new member (admins).
+- **Daily summary / Weekly summary**: those emails are held back
+  (`PendingEmail` rows, queued by `forum/subscriptions.py` through
+  `forum/utils/email_frequency.deliver()`) and `manage.py send_email_alerts`
+  sends one summary per member and period, grouped into sections (mentions,
+  answers to your questions, answers on questions you follow, comments,
+  accepted answers, new questions, new members). Nothing new, no email.
+- **Never**: no activity emails.
+
+The per-kind switches still decide which kinds are collected. Mentions stay
+immediate unless the member unticks "Send mentions right away"; account
+emails (sign-in links, validation) are always immediate. The daily digest of
+new questions (`send_digest`) is a separate email, unchanged.
+
+`send_email_alerts` should run once a day. Daily summaries go out on every
+run (at most one a day per member); weekly ones on the weekday set in Admin >
+Email settings > "Weekly summary day" (Monday by default), or on the next run
+if that day's run was missed (`LAST_WEEKLY`). Queued items are removed as they
+are sent, so running the command twice sends nothing twice, and after missed
+runs a summary covers everything since the member's last one.
+
+Emails sent as things happen have a signed "Get a daily summary instead" link
+in the footer, and the unsubscribe page offers "Switch to a weekly summary
+instead"; both work without signing in and have an undo button. The summary
+itself has "Stop these summaries" and the usual unsubscribe links and
+`List-Unsubscribe` header. Preview it under Admin > Email previews.
 
 ## Security and logging
 
@@ -400,7 +502,7 @@ Users settings:
   deleted; `--dry-run` lists them instead, and 0 days turns it off.
 - With the `ai` module configured, Gemini also reviews new and changed
   profiles (website, "about me") of low-reputation users; suspect accounts are
-  listed under Admin > Flagged posts, where a moderator suspends the account or
+  listed in the moderation inbox, where a moderator suspends the account or
   deletes it (deleting is offered only for accounts without posts).
 
 ### AI assistance
@@ -427,9 +529,9 @@ Each feature can be switched off under Admin > AI assistance:
 - **Spam and abuse moderation**: new and edited posts by users below a
   reputation threshold (staff are never checked) are reviewed in the
   background. Likely spam, abuse or off-topic posts, and posts Gemini's safety
-  filters refuse to read, are listed under Admin > Flagged posts > "Reported
-  by automated checks", where a moderator dismisses the report or deletes the
-  post. The AI never hides or deletes anything itself, and a report costs the
+  filters refuse to read, are listed in the moderation inbox under "AI
+  moderation reports", where a moderator dismisses the report or deletes the
+  post (also as spam). The AI never hides or deletes anything itself, and a report costs the
   author no reputation.
 - **Profile spam review**: new or changed websites and "about me" texts of
   low-reputation users are checked for SEO links and advertising; suspect

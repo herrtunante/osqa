@@ -15,8 +15,8 @@ then follow [upgrading-from-original-osqa.md](upgrading-from-original-osqa.md).
 | Web server | gunicorn behind nginx, Apache, Caddy or a load balancer that terminates HTTPS | The app speaks plain HTTP on a local port |
 | Disk | `forum/upfiles/` (uploaded images, logo), `log/`, `cache/` (with the file cache) | Uploads must persist and be shared if you run several app servers |
 | Email | An SMTP server | Entered in the admin (Admin > Email settings), not in files |
-| Scheduled jobs | cron, systemd timers or the platform's scheduler | Digests and dormant-account clean-up daily; AI jobs if used |
-| Optional | Sentry, Google Gemini (AI features), OAuth apps (Google/GitHub/Facebook sign-in) | |
+| Scheduled jobs | cron, systemd timers or the platform's scheduler | Email digests and daily/weekly summaries (one daily run, e.g. 07:00) and dormant-account clean-up daily; AI jobs if used |
+| Optional | Sentry, Prometheus (`/metrics`), Google Gemini (AI features), OAuth apps (Google/GitHub/Facebook sign-in) | |
 
 Everything that changes per site (name, logo, colours, texts, email server,
 reputation rules, limits) lives in the database and is edited in the admin at
@@ -40,6 +40,9 @@ committed and is mounted into the container in Docker setups. Set:
 | `LANGUAGE_CODE` | `'en'` | Interface language |
 | `SENTRY_DSN` (optional) | `'https://<key>@o<org>.ingest.sentry.io/<project>'` | Server and browser error reports (see the README) |
 | `DISABLED_MODULES` | `['recaptcha', 'project_badges']` | Optional modules to switch off |
+| `METRICS_TOKEN` (optional, or env) | a long random string | Turns on Prometheus metrics at `/metrics` (see [Monitoring](#monitoring-with-prometheus)) |
+| `LOG_FORMAT` (optional, or env) | `'json'` | One JSON object per line on standard output (see [Logs](#logs-and-request-ids)) |
+| `BACKUP_DIR`, `BACKUP_KEEP` (optional) | `'/srv/osqa/backups'`, `14` | Where `backup_site` writes and how many archives it keeps (see [Backups](#backups-and-restore)) |
 
 MySQL / MariaDB connection:
 
@@ -246,8 +249,9 @@ response, so:
 ```cron
 OSQA=/srv/osqa/app
 PY=/srv/osqa/venv/bin/python
-# Daily digests and dormant (bot) account clean-up
-15 6 * * *  cd $OSQA && $PY manage.py send_email_alerts
+# Daily digest and daily/weekly summaries (weekly ones go out on their day from this same
+# daily run: no separate weekly line), and dormant (bot) account clean-up
+0 7 * * *   cd $OSQA && $PY manage.py send_email_alerts
 45 6 * * *  cd $OSQA && $PY manage.py cleanup_inactive_users
 0 7 * * *   cd $OSQA && $PY manage.py remind_unaccepted
 # Only with the AI module configured:
@@ -279,133 +283,140 @@ sites, since some migrations add indexes to big tables.
 
 ## Option B: Docker Compose
 
-The repository's `Dockerfile` builds an image that runs gunicorn on port 8000
-as an unprivileged user, with a health check on `/healthz`.
-`docker-compose.yml` publishes it on `127.0.0.1:8000` for a reverse proxy on
-the host. It mounts `settings_local.py`, `forum/upfiles`, `cache` and `log`
-from the host, so the image contains no site data.
+`docker-compose.yml` runs the whole stack from the repository's `Dockerfile`:
+
+| Service | What it does |
+|---|---|
+| `db` | MySQL 8.4, `utf8mb4`, data in the `db-data` volume |
+| `memcached` | the shared cache |
+| `migrate` | runs `manage.py migrate` once and exits; `web` and `cron` start after it succeeds |
+| `web` | gunicorn on `127.0.0.1:8000` (for a reverse proxy on the host), health check on `/readyz` |
+| `cron` | the scheduled commands in `cron/crontab`, run by [supercronic](https://github.com/aptible/supercronic) (pinned and checksum-verified in the image) |
+
+Configuration comes from environment variables, read by
+`settings_local_docker.py` (selected with `OSQA_SETTINGS_LOCAL`); there is no
+settings file to mount. Uploads (`/app/forum/upfiles`) and `backup_site`
+archives (`/app/backups`) are the `uploads` and `backups` volumes. Logs go to
+standard output as JSON lines (`docker compose logs web`).
 
 ### 1. Configure
 
 ```bash
 git clone https://github.com/openforis/osqa.git && cd osqa
-cp settings_local.py.dist settings_local.py     # DATABASES, APP_URL, ALLOWED_HOSTS, CACHES
-cat > .env <<EOF
-OSQA_SECRET_KEY=$(python3 -c 'from secrets import token_urlsafe; print(token_urlsafe(50))')
-SENTRY_DSN=
-SENTRY_ENVIRONMENT=production
-EOF
-mkdir -p forum/upfiles cache log
+cp .env.example .env
+editor .env      # OSQA_SECRET_KEY, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD, OSQA_APP_URL, OSQA_ALLOWED_HOSTS
 ```
 
-In Docker the database host is not `127.0.0.1`. Use the database container's
-service name (below), or `host.docker.internal` for a database on the host.
-`OSQA_TRUSTED_PROXIES` defaults to `1` in `docker-compose.yml`, which is right
-for one reverse proxy on the host.
+Generate each secret with
+`python3 -c 'from secrets import token_urlsafe; print(token_urlsafe(50))'`.
+`OSQA_TRUSTED_PROXIES` defaults to `1`, right for one reverse proxy on the
+host. Anything `settings_local_docker.py` doesn't cover can go in a
+`settings_local_extra.py` mounted next to it (`/app/settings_local_extra.py`);
+it is applied last.
 
-### 2. Database and cache in the same Compose project (optional)
-
-To run MariaDB and memcached next to the forum, add a
-`docker-compose.override.yml`:
-
-```yaml
-services:
-  osqa:
-    depends_on: [db, memcached]
-  db:
-    image: mariadb:11.4
-    restart: unless-stopped
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    environment:
-      MARIADB_DATABASE: osqa
-      MARIADB_USER: osqa
-      MARIADB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
-    volumes:
-      - db-data:/var/lib/mysql
-  memcached:
-    image: memcached:1.6
-    restart: unless-stopped
-volumes:
-  db-data:
-```
-
-and in `settings_local.py` use `'HOST': 'db'` and
-`CACHES = {'default': {'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache', 'LOCATION': 'memcached:11211'}}`.
-
-### 3. Build, create the tables, start
+### 2. Build and start
 
 ```bash
-docker compose build --build-arg SENTRY_RELEASE=osqa@$(git rev-parse --short=12 HEAD)
-docker compose run --rm osqa python manage.py migrate
-docker compose up -d
-docker compose ps                    # the osqa service turns "healthy"
-curl http://127.0.0.1:8000/healthz   # -> ok
+export SENTRY_RELEASE=osqa@$(git rev-parse --short=12 HEAD)   # optional
+docker compose up -d --build
+docker compose ps                    # db and web turn "healthy", migrate exits with 0
+curl http://127.0.0.1:8000/readyz    # -> ok
 ```
 
 Put the nginx configuration from Option A in front of `127.0.0.1:8000`; drop
 the two optional `alias` locations (OSQA then sends the caching headers
-described there itself), or point them at the mounted `forum/upfiles`. Caddy, Traefik or a cloud load balancer work the same way, as
-long as they set `X-Forwarded-For` and `X-Forwarded-Proto`.
+described there itself). Caddy, Traefik or a cloud load balancer work the same
+way, as long as they set `X-Forwarded-For` and `X-Forwarded-Proto` (and
+ideally `X-Request-ID`, see [Logs](#logs-and-request-ids)).
 
-### 4. Scheduled jobs
+### 3. Scheduled jobs
 
-From the host's crontab:
-
-```cron
-15 6 * * *  cd /srv/osqa && docker compose exec -T osqa python manage.py send_email_alerts
-45 6 * * *  cd /srv/osqa && docker compose exec -T osqa python manage.py cleanup_inactive_users
-0 7 * * *   cd /srv/osqa && docker compose exec -T osqa python manage.py remind_unaccepted
-```
+The `cron` service runs `cron/crontab` (times in UTC): digests,
+dormant-account clean-up, accept reminders and a nightly `backup_site`; the AI
+commands are commented out until the AI module is configured. To change the
+schedule without rebuilding, mount your own file over `/app/cron/crontab`.
+Each run's outcome is exported by `/metrics` (see
+[Monitoring](#monitoring-with-prometheus)).
 
 ### Updating
 
 ```bash
 git pull
-docker compose build --build-arg SENTRY_RELEASE=osqa@$(git rev-parse --short=12 HEAD)
-docker compose run --rm osqa python manage.py migrate
-docker compose up -d
+docker compose up -d --build         # migrate runs again before web and cron restart
 ```
 
-### Backups
+### Moving from the single-service compose file
 
-- **Database:** `docker compose exec -T db mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" --single-transaction osqa | gzip > osqa-$(date +%F).sql.gz`.
-  On a plain server, use `mysqldump --single-transaction osqa`.
-- **Files:** `forum/upfiles/` and `settings_local.py`.
-- `cache/` and `log/` don't need backing up.
+Earlier versions of `docker-compose.yml` had one `osqa` service that mounted
+`settings_local.py` and used a database outside the project. To keep that
+setup, either:
+
+- keep your old compose file under another name (`docker compose -f
+  docker-compose.old.yml ...`); the image still reads a mounted
+  `/app/settings_local.py` when `OSQA_SETTINGS_LOCAL` isn't set; or
+- move to the new file: put the values from `settings_local.py` into `.env`,
+  and either restore your data into the new `db` service (`backup_site` on the
+  old setup, `restore_site` on the new one, see [Backups](#backups-and-restore)),
+  or point the services at your existing database with a
+  `docker-compose.override.yml` that sets `OSQA_DB_HOST` (and drop `db`
+  from `depends_on`).
+
+The image's `osqa` user is now uid/gid 999 (it was assigned automatically
+before): if a host directory mounted for uploads isn't writable, `chown -R
+999:999` it.
 
 ---
 
 ## Option C: Kubernetes, Cloud Run and other container platforms
 
-Use the same image. What changes is where state lives:
+Use the same image. Example manifests are in [`k8s/`](k8s/) (a kustomization):
+the web Deployment with probes, its Service, memcached, the migration Job, one
+CronJob per scheduled command, PersistentVolumeClaims for uploads and backups,
+and the ConfigMap/Secret they read. The database is not included.
 
-- **Configuration:** mount `settings_local.py` from a Secret (or ConfigMap plus
-  Secret) at `/app/settings_local.py`. Pass `OSQA_SECRET_KEY`, `SENTRY_DSN`,
-  `OSQA_TRUSTED_PROXIES` and the AI keys as environment variables from Secrets.
-  You can keep database passwords out of the file by reading them in
-  `settings_local.py` with `os.environ['DB_PASSWORD']`.
+```bash
+docker build -t registry.example.org/osqa:1.0.0 --build-arg SENTRY_RELEASE=osqa@$(git rev-parse --short=12 HEAD) .
+docker push registry.example.org/osqa:1.0.0
+editor docs/k8s/configmap.yaml docs/k8s/kustomization.yaml   # APP_URL, hosts, DB host, image
+kubectl create namespace osqa
+kubectl -n osqa create secret generic osqa-secrets \
+    --from-literal=OSQA_SECRET_KEY=... --from-literal=OSQA_DB_PASSWORD=... --from-literal=METRICS_TOKEN=...
+kubectl apply -k docs/k8s/
+kubectl -n osqa wait --for=condition=complete job/osqa-migrate --timeout=15m
+```
+
+Add an Ingress (TLS) for the `osqa` Service. For a new version, push the
+image, change `newTag`, delete the finished `osqa-migrate` Job and apply
+again (or run the migration from a Helm/Argo CD pre-sync hook).
+
+What changes compared to a server is where state lives:
+
+- **Configuration:** environment variables from the ConfigMap and Secret,
+  read by `settings_local_docker.py` (`OSQA_SETTINGS_LOCAL=settings_local_docker`;
+  the variables are listed at the top of that file). A variable can also be
+  given as `NAME_FILE`, the path of a mounted secret file. Mounting a
+  `settings_local.py` at `/app/settings_local.py` still works.
 - **Database:** use a managed MySQL/MariaDB or PostgreSQL (Cloud SQL, RDS, Azure Database).
 - **Cache:** use a managed or in-cluster **memcached** (Memorystore,
-  ElastiCache). The file cache doesn't work across replicas, and the
-  local-memory cache isn't shared between workers.
+  ElastiCache; `k8s/memcached.yaml`). The file cache doesn't work across
+  replicas, and the local-memory cache isn't shared between workers.
 - **Uploads:** `/app/forum/upfiles` must be persistent and, with more than one
   replica, shared. Use a ReadWriteMany volume (NFS, Filestore, EFS), or on
   Cloud Run a Cloud Storage volume mount. Container file systems are
   temporary, so without such a volume uploaded images are lost on the next deploy.
-- **Logs:** with no persistent `log/` directory, send logs to the platform:
-  set `LOGGING` in `settings_local.py` to a `logging.StreamHandler`
-  (stdout). Keep the `forum.security` logger at `INFO`, so its lines reach
-  the platform's log viewer.
-- **Health checks:** use `GET /healthz` for liveness and readiness probes. It
-  answers on any host name, also during maintenance, and returns 503 when the
-  database is down.
-- **Migrations:** run `python manage.py migrate` as a one-off job (a Kubernetes
-  Job, Helm hook or Cloud Run job) before each new version starts serving.
-- **Scheduled jobs:** create CronJobs (Kubernetes) or Cloud Scheduler +
-  Cloud Run jobs that run the same image with
-  `python manage.py send_email_alerts`, `cleanup_inactive_users` and `remind_unaccepted` (plus the
-  AI commands if used).
+- **Logs:** `LOG_FORMAT=json` writes one JSON object per line to standard
+  output (see [Logs](#logs-and-request-ids)); the `forum.security` lines stay
+  at `INFO`.
+- **Health checks:** `GET /healthz` for liveness (process and database) and
+  `GET /readyz` for readiness (database and cache). Both answer on any host
+  name, also during maintenance, without authentication, with `ok` or a bare
+  503.
+- **Migrations:** run `python manage.py migrate` as a one-off job
+  (`k8s/migrate-job.yaml`, a Helm hook or a Cloud Run job) before each new
+  version starts serving.
+- **Scheduled jobs:** CronJobs (`k8s/cronjobs.yaml`), or Cloud Scheduler +
+  Cloud Run jobs, that run the same image with the commands from
+  `cron/crontab`.
 - **Proxy count:** the ingress or load balancer is the proxy. Usually
   `OSQA_TRUSTED_PROXIES=1`; count every hop that appends to
   `X-Forwarded-For` (check the platform's documentation, e.g. a Google
@@ -413,6 +424,158 @@ Use the same image. What changes is where state lives:
   `ip=` field shows which address OSQA sees. If it is always the same internal
   address, the count is too low.
 - **Resources:** about 3 gunicorn workers per container, with 512 MB to 1 GB of memory.
+
+---
+
+## Monitoring with Prometheus
+
+`/metrics` serves Prometheus metrics in the text format. It is off until
+`METRICS_TOKEN` is set (settings_local.py or the environment; a long random
+string): without it `/metrics` answers 404, without the header 401, with a
+wrong token 403 (logged as `metrics_token_refused` in the security log).
+
+```bash
+curl -H "Authorization: Bearer $METRICS_TOKEN" http://127.0.0.1:8000/metrics
+```
+
+| Metric | Type | Labels |
+|---|---|---|
+| `osqa_http_requests_total` | counter | `view` (URL name, `static`, `unmatched`), `method`, `status` (`2xx`...`5xx`) |
+| `osqa_http_request_duration_seconds` | histogram | `view` |
+| `osqa_users`, `osqa_users_active` | gauge | |
+| `osqa_posts` | gauge | `type` (question, answer, comment; not deleted) |
+| `osqa_questions_unanswered` | gauge | questions without any answer |
+| `osqa_moderation_pending` | gauge | `kind` (`flag`: open user flags, `report`: unresolved automated reports) |
+| `osqa_emails_sent_total`, `osqa_emails_failed_total` | counter | |
+| `osqa_security_events_total` | counter | `event` (`login_failed`, `login_paused` = a locked-out sign-in, `temp_login_limited`, `permission_denied`, ...) |
+| `osqa_cron_last_success_timestamp_seconds`, `osqa_cron_last_failure_timestamp_seconds`, `osqa_cron_last_duration_seconds` | gauge | `command` |
+| `osqa_cache_get_hits_total`, `osqa_cache_get_misses_total`, `osqa_cache_evictions_total`, `osqa_cache_items`, `osqa_cache_bytes` | | memcached only |
+| `osqa_database_up` | gauge | |
+
+How it works (`forum/utils/metrics.py`):
+
+- **Site-wide totals.** The counters live in the shared cache, so every
+  worker and container reports the same totals. Scrape **one** target (the
+  Service, the load balancer, or one container), not every pod.
+- **Cheap per request.** Requests are counted in memory and added to the cache
+  every 5 seconds. Counters restart from zero when memcached restarts;
+  `rate()` and `increase()` handle that.
+- **Cached database figures.** Database figures are computed at most once a
+  minute.
+- **Cron runs.** The scheduled commands record their last run in the database
+  (`forum/utils/cron.py`; the commands themselves are not changed: a hook on
+  Django's `BaseCommand.execute`, enabled from `forum/apps.py`, records the
+  commands listed in `CRON_COMMANDS`; by default `send_email_alerts`,
+  `remind_unaccepted`, `cleanup_inactive_users`, `build_knowledge_index`,
+  `suggest_answers`, `backup_site` and `rebuild_search_index`; `--dry-run`
+  runs aren't recorded).
+
+`/metrics` and `/readyz` answer on any host name (Prometheus scrapes pod
+addresses) and before the HTTPS redirect, so keep them off the public site in
+the reverse proxy:
+
+```nginx
+location = /metrics { return 404; }
+```
+
+Scrape configuration and example alerts: [`prometheus/prometheus.yml`](prometheus/prometheus.yml)
+and [`prometheus/alerts.yml`](prometheus/alerts.yml) (`promtool check rules`
+passes). The alerts cover: a scheduled command not completed for 26 hours or
+whose last run failed, a 5xx share above 2%, slow pages, email failures,
+sign-in attacks, a moderation backlog and the site or database being down.
+The core of the scrape job:
+
+```yaml
+scrape_configs:
+  - job_name: osqa
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/osqa-metrics-token
+    static_configs:
+      - targets: ['osqa.osqa.svc.cluster.local:80']
+```
+
+## Logs and request ids
+
+- **Request ids:** every response carries an `X-Request-ID` header: the
+  proxy's own id when it sends one (letters, digits, `.`, `_`, `:`, `-`; at
+  most 128 characters), otherwise a new random id. The same id goes into log
+  records (`request_id`) and Sentry events (the `request_id` tag). In nginx
+  add `proxy_set_header X-Request-ID $request_id;` to `location /`, and
+  `$request_id` to its `log_format`, to follow one request from the access
+  log to the application log and Sentry.
+- **JSON logs:** `LOG_FORMAT = 'json'` in `settings_local.py` (or the
+  `LOG_FORMAT` environment variable; the default in containers) replaces
+  `LOGGING` with one JSON object per line on standard output, with these
+  fields:
+  - `time` (UTC);
+  - `level`, `logger`, `message`;
+  - `request_id`;
+  - `user_id` (a number; never a name);
+  - `exception` (the traceback, when there is one).
+
+  `LOG_LEVEL` sets the level (default `INFO`).
+- **What is masked in JSON logs:** email addresses, IP addresses and
+  `password=`/`token=`/`secret=`/`Authorization:`/`sessionid=` values are
+  replaced in every logger's message and traceback, except `forum.security`.
+  Its lines are the security log and name the IP address, the account and,
+  for refused sign-in links, the email address typed (as in the text format).
+- **gunicorn's access log** (`--access-logfile -`) stays in gunicorn's own
+  format, with client IPs. Leave it out if the proxy logs requests already.
+- **Text logs** (the default outside containers) are unchanged:
+  `log/django.osqa.log` and `log/security.log`.
+
+## Backups and restore
+
+`manage.py backup_site` writes one archive with everything needed to rebuild
+the site, `osqa-backup-YYYYMMDD-HHMMSS.tar.gz`:
+
+- `data.json`: the database contents, as `dumpdata --all` (works with any
+  database; content types, permissions, sessions and the admin log are left
+  out, as in [upgrading-from-original-osqa.md](upgrading-from-original-osqa.md));
+- `upfiles/`: the uploaded files (`UPFILES_FOLDER`);
+- `manifest.json`: date, database engine, last applied migration, row counts.
+
+```bash
+python manage.py backup_site                       # into BACKUP_DIR (default backups/), keeps BACKUP_KEEP (14)
+python manage.py backup_site --output-dir /srv/backups --keep 30
+python manage.py backup_site --no-uploads          # database only
+docker compose exec cron python manage.py backup_site      # Compose (also nightly from cron/crontab)
+```
+
+Archives hold personal data (email addresses, password hashes). They are
+written with mode 0600 into a 0700 directory. Copy them off the machine (or
+off the volume) regularly. `settings_local.py` / `.env` are not included:
+keep them separately, as they hold `SECRET_KEY`. For large forums, the
+database's own tool is faster: `mysqldump --single-transaction osqa`
+(Compose: `docker compose exec -T db sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction osqa' | gzip > osqa.sql.gz`).
+
+Restoring **replaces all data** in the database the settings point at:
+
+```bash
+python manage.py restore_site backups/osqa-backup-20261015-033000.tar.gz --dry-run   # check; changes nothing
+python manage.py restore_site backups/osqa-backup-20261015-033000.tar.gz --confirm
+```
+
+- **What it does:**
+  - checks the archive (no absolute paths, `..` or links);
+  - saves the current site as `osqa-pre-restore-*.tar.gz` (unless `--no-safety-backup`);
+  - empties the database (`flush`) and loads `data.json`;
+  - clears the cache;
+  - writes the uploaded files into `UPFILES_FOLDER`. Files not in the archive
+    stay; `--no-uploads` skips this step.
+- **Code version:** restore with the version of the code the backup was made
+  with (the dry run warns when the migrations differ), then update and
+  `migrate`.
+- **MySQL:** emptying the tables can't be rolled back there, so a failed load
+  leaves an empty database: restore the safety backup.
+- **Afterwards:** run `manage.py rebuild_search_index` if search results look
+  incomplete.
+- **Containers:** stop the `web` and `cron` services, or scale the Deployment
+  to 0, while restoring, and run the command in a one-off container that
+  mounts the uploads and backups volumes, e.g.
+  `docker compose run --rm cron python manage.py restore_site /app/backups/... --confirm`.
 
 ---
 
@@ -435,7 +598,7 @@ Use the same image. What changes is where state lives:
    - Admin > AI assistance: Gemini key or Vertex AI project.
    - `SENTRY_DSN`.
 7. **Check:**
-   - `/healthz` returns `ok`.
+   - `/healthz` and `/readyz` return `ok`.
    - Ask a question, answer it from a second account, and check the
      notification email and its unsubscribe link.
    - Upload an image.
