@@ -1,4 +1,5 @@
 from forum.models import User, MarkedTag
+from forum.models.base import load_cached
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.template.defaultfilters import slugify
@@ -357,8 +358,10 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
 
 @user_view('users/stats.html', 'stats', _lazy('overview'), _lazy('user overview'))
 def user_profile(request, user, **kwargs):
-    questions = Question.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
-    answers = Answer.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
+    questions = Question.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at') \
+        .prefetch_cached(fks=('last_activity_by',), counts=('answer_count', 'accepted_count'))
+    answers = Answer.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at') \
+        .prefetch_cached(fks=('parent',))
 
     # Check whether the passed slug matches the one for the user object
     slug = kwargs['slug']
@@ -373,8 +376,9 @@ def user_profile(request, user, **kwargs):
     user_tags = Tag.objects.filter(Q(nodes__author=user) | Q(nodes__children__author=user)) \
         .annotate(user_tag_usage_count=Count('name')).order_by('-user_tag_usage_count')
 
-    awards = [(Badge.objects.get(id=b['id']), b['count']) for b in
-              Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count')]
+    award_counts = list(Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count'))
+    badges = load_cached(Badge, [b['id'] for b in award_counts])
+    awards = [(badges[b['id']], b['count']) for b in award_counts if b['id'] in badges]
 
     return pagination.paginated(request, (
     ('questions', QuestionListPaginatorContext('USER_QUESTION_LIST', 'questions', default_pagesize=15)),

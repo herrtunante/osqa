@@ -109,6 +109,52 @@ it to `LANGUAGES` and pass `-l <code>` to `makemessages`.
 - **First versions:** the current translations were written with AI
   assistance; a review by native speakers is welcome.
 
+## Search
+
+The search box looks through question titles, tags, question text and answer
+text (not comments), with titles weighted highest, and ranks the results by
+relevance. Each result shows a snippet of the matching text with the words
+marked. The search page explains the operators:
+
+| Query | Finds |
+|---|---|
+| `csv export` | questions with any of the words; more matches, and matches in the title, rank higher |
+| `"survey data"` | the exact phrase |
+| `-excel` | leaves out questions with the word (`-"a phrase"` too) |
+| `[collect]` or `tag:collect` | only questions with the tag (synonyms work) |
+| `is:answered`, `is:unanswered`, `is:accepted` | by answers |
+| `user:alice` (`user:"Some Name"`) | questions asked by that person |
+
+Results sort by relevance (default), newest, votes or activity. The same
+index serves the MCP `search_forum` tool and "related" searches through
+`forum.utils.similar.search_questions()`, whose providers are blended (the AI
+module's semantic search, when configured, is added to the full-text results).
+
+How it works: one `SearchDocument` row per question (`forum/search/`, table
+`forum_searchdocument`) holds the plain text, and is updated whenever a
+question or one of its answers is posted, edited, deleted or moved. Deleted
+questions are removed from it. The full-text index depends on the database:
+
+- **MySQL/MariaDB:** InnoDB `FULLTEXT` indexes (created by migration `0013`),
+  queried in natural language mode, and in boolean mode for phrases and
+  exclusions. Words shorter than `innodb_ft_min_token_size` (3) and MySQL's
+  stopwords are ignored.
+- **SQLite:** an FTS5 table kept in step by triggers, ranked with `bm25()`,
+  with English stemming. If SQLite was built without FTS5, search falls back
+  to keyword matching.
+- **PostgreSQL:** `SearchVector`/`SearchRank` computed at query time (no
+  extra index; fine for small and medium forums).
+- **Anything else** (or if the full-text query fails): keyword matching.
+
+After upgrading to this version, and after importing data, fill the index
+once (until then search uses simple keyword matching):
+
+```bash
+python manage.py rebuild_search_index
+```
+
+Running it again at any time is safe; it rebuilds everything.
+
 ## Notifications and support dashboard
 
 - **Bell:** signed-in users see a bell in the header with their unread
@@ -222,6 +268,9 @@ for a new one.
 - Migration `0007` hides the two default sidebar blocks (the WebFaction hosting
   advert and "Learn more about OSQA", both pointing at services that no longer
   exist) when they still contain the shipped text; edited blocks are kept.
+- Migration `0013` adds the search index (MySQL `FULLTEXT` indexes, an FTS5
+  table on SQLite). Run `python manage.py rebuild_search_index` once after
+  `migrate` to index the existing questions (see "Search").
 - A database created by the old Django 1.6/South version is not migrated in
   place: create a fresh database with `migrate` and import the old data into it
   (next section).
@@ -454,6 +503,8 @@ changes them; HTTPS (or localhost) is required.
   saved in the browser until posted.
 - schema.org QAPage structured data and OpenGraph/Twitter link previews.
 - Tag descriptions and synonyms (moderators: "edit tag" on a tag's page).
+- Full-text search with relevance ranking, highlighted snippets and operators
+  (phrases, exclusions, tags, `is:`, `user:`); see "Search".
 - Users can download their data (JSON) and delete their account, which
   anonymises it and keeps their posts (profile menu > "your data and account").
 - Optional AI assistance with Google Gemini: duplicate detection while asking, and a

@@ -15,6 +15,8 @@ MIDDLEWARE = [
     'forum.middleware.security.ClientIPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'forum.middleware.security.SecurityHeadersMiddleware',
+    # Skin media, admin media and uploads: answered here, before sessions and users.
+    'forum.middleware.static_files.StaticFilesMiddleware',
     'forum.middleware.django_cookies.CookiePreHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # Interface language: the visitor's choice (language switcher) or browser.

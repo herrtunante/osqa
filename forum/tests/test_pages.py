@@ -101,19 +101,36 @@ class LayoutTest(OSQATestCase):
         from forum import settings
         self.addCleanup(setattr, settings.GOOGLE_CSE_ID, '_temp', None)
 
-        settings.GOOGLE_CSE_ID.set_value('')
         response = self.client.get('/')
         self.assertContains(response, 'name="q" id="keywords"')
-        self.assertContains(response, '<select name="t" class="search-type"')
-        self.assertContains(self.client.get('/tags/'), '<option value="tag" selected="selected">')
+        self.assertContains(response, 'role="combobox"')
+        self.assertContains(response, 'aria-controls="searchbox-listbox"')
+        self.assertContains(response, 'data-suggest-url="/search/suggest/"')
+        self.assertContains(response, 'placeholder="Search questions, tags and people"')
+        self.assertNotContains(response, '<select name="t"')
+        # The tags page's filter isn't a question search.
+        self.assertNotContains(self.client.get('/tags/', {'q': 'gis'}), 'id="keywords" value="gis"')
+        self.assertContains(self.client.get('/search/', {'q': 'gis'}), 'id="keywords" value="gis"')
+        # Old links with t=tag still work.
         self.assertRedirects(self.client.get('/search/', {'q': 'gis', 't': 'tag'}), '/tags/?q=gis',
                              fetch_redirect_response=False)
-        self.assertNotContains(response, 'cse.google.com')
 
+        # A Google custom search engine ID left in the database is ignored.
         settings.GOOGLE_CSE_ID.set_value('123:abc')
         response = self.client.get('/')
-        self.assertContains(response, "encodeURIComponent('123:abc')")
-        self.assertNotContains(response, 'id="keywords"')
+        self.assertContains(response, 'id="keywords"')
+        self.assertNotContains(response, 'cse.google.com')
+        self.assertNotContains(response, '123:abc')
+        self.assertNotIn('google.com/cse', response['Content-Security-Policy'])
+        self.assertNotIn('*.google.com', response['Content-Security-Policy'])
+
+    def test_google_cse_setting_not_in_admin(self):
+        admin = self.create_user('admin', is_superuser=True, is_staff=True)
+        self.login(admin)
+        response = self.client.get('/admin/settings/extkeys/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'GOOGLE_ANALYTICS_KEY')
+        self.assertNotContains(response, 'GOOGLE_CSE_ID')
 
 
 class AdminInterfaceTest(OSQATestCase):

@@ -216,9 +216,41 @@ def post_controls(post, user):
 
     return {'controls': controls, 'menu': menu, 'post': post, 'user': user}
 
+def _visible_comments(post):
+    """The post's comments (not deleted), in display order.
+
+    A question page shows the comments of the question and of every answer:
+    load all of them in one query (comments whose parent is the question or
+    one of its answers) and keep them, grouped by post, for the rest of the
+    request, instead of one query per post. Comment authors are filled from
+    the object cache in one round trip.
+    """
+    from forum.models import Comment
+    from forum.models.base import prefetch_cached_fk
+    order = '-added_at' if settings.SHOW_LATEST_COMMENTS_FIRST else 'added_at'
+    request = REQUEST_HOLDER.request
+    if request is None:
+        return list(post.comments.filter_state(deleted=False).order_by(order))
+
+    root_id = post.abs_parent_id or post.id
+    memo = request.__dict__.setdefault('_osqa_comments', {})
+    if root_id not in memo:
+        comments = list(Comment.objects.filter(Q(parent_id=root_id) | Q(parent__parent_id=root_id))
+                        .filter_state(deleted=False).order_by(order))
+        prefetch_cached_fk(comments, 'author', 'parent')
+        grouped = {}
+        for comment in comments:
+            grouped.setdefault(comment.parent_id, []).append(comment)
+        memo[root_id] = grouped
+    grouped = memo[root_id]
+    if post.id not in grouped and post.id != root_id and post.parent_id != root_id:
+        # Not a direct child of the question (abs_parent out of date): ask directly.
+        grouped[post.id] = list(post.comments.filter_state(deleted=False).order_by(order))
+    return grouped.get(post.id, [])
+
+
 def _comments(post, user):
-    all_comments = post.comments.filter_state(deleted=False)\
-                                .order_by('-added_at' if settings.SHOW_LATEST_COMMENTS_FIRST else 'added_at')
+    all_comments = _visible_comments(post)
 
     if len(all_comments) <= 5:
         top_scorers = all_comments
@@ -289,3 +321,25 @@ def contributors_info(context, node, verb=None):
 @register.inclusion_tag("node/reviser_info.html")
 def reviser_info(revision):
     return {'revision': revision}
+
+
+@register.simple_tag
+def post_time(date):
+    """A date as relative text ("2 hours ago") in a <time> element that holds
+    the exact date and time in `datetime` and in the tooltip."""
+    from django.utils import formats
+    from django.utils.html import format_html
+    from forum.templatetags.extra_tags import diff_date
+    if not date:
+        return diff_date(date)
+    return format_html('<time class="relative-time" datetime="{}" title="{}">{}</time>',
+                       date.isoformat(timespec='seconds'), formats.date_format(date, 'DATETIME_FORMAT'),
+                       diff_date(date))
+
+
+@register.simple_tag
+def accepted_answer(question):
+    """The question's accepted answer (not deleted), or None."""
+    if settings.DISABLE_ACCEPTING_FEATURE:
+        return None
+    return question.accepted_answers.order_by('id').first()

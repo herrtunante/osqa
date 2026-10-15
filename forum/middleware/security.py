@@ -17,7 +17,8 @@ from django.db import connection
 from django.http import HttpResponse
 from django.urls import reverse
 
-GOOGLE = 'https://www.google.com https://*.google.com https://www.gstatic.com'
+# reCAPTCHA (forum_modules/recaptcha) loads from these.
+GOOGLE = 'https://www.google.com https://www.gstatic.com'
 ANALYTICS = 'https://ssl.google-analytics.com https://www.google-analytics.com'
 
 PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()'

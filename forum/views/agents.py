@@ -11,7 +11,7 @@ can cite the thread it came from.
 """
 import json
 
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 from django.http import Http404, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
@@ -50,12 +50,21 @@ def source(node):
 
 
 def visible_answers(question):
-    answers = list(Answer.objects.filter(parent=question).filter_state(deleted=False).order_by('-score', 'added_at'))
+    # active_revision holds the Markdown source; authors come from the object cache.
+    answers = list(Answer.objects.filter(parent=question).filter_state(deleted=False)
+                   .select_related('active_revision').prefetch_cached(fks=('author',))
+                   .order_by('-score', 'added_at'))
     return sorted(answers, key=lambda a: not a.nis.accepted)
 
 
-def visible_comments(node):
-    return Comment.objects.filter(parent=node).filter_state(deleted=False).order_by('added_at')
+def thread_comments(question):
+    """{post id: [comments]} for the question and its answers, in one query."""
+    comments = {}
+    for comment in (Comment.objects.filter(Q(parent=question) | Q(parent__parent=question))
+                    .filter_state(deleted=False).select_related('active_revision')
+                    .prefetch_cached(fks=('author',)).order_by('added_at')):
+        comments.setdefault(comment.parent_id, []).append(comment)
+    return comments
 
 
 def question_status(question, answers):
@@ -68,9 +77,10 @@ def question_status(question, answers):
     return 'answered' if answers else 'unanswered'
 
 
-def question_data(question, with_text=True):
+def question_data(question, with_text=True, answers=None):
     """The thread as plain data (used by the JSON export and the MCP tools)."""
-    answers = visible_answers(question)
+    if answers is None:
+        answers = visible_answers(question)
     data = {
         'id': question.id,
         'url': absolute(question.get_absolute_url()),
@@ -97,13 +107,14 @@ def question_data(question, with_text=True):
     return data
 
 
-def _comments_md(node):
-    return ['> %s (%s)' % (' '.join(source(c).split()), c.author.username) for c in visible_comments(node)]
+def _comments_md(comments):
+    return ['> %s (%s)' % (' '.join(source(c).split()), c.author.username) for c in comments]
 
 
 def question_markdown(question):
     answers = visible_answers(question)
-    meta = question_data(question, with_text=False)
+    comments = thread_comments(question)
+    meta = question_data(question, with_text=False, answers=answers)
     lines = ['---']
     for key in ('title', 'url', 'tags', 'status', 'score', 'answer_count', 'asked', 'last_activity', 'duplicate_of'):
         if key in meta:
@@ -114,13 +125,13 @@ def question_markdown(question):
     lines += ['---', '', '# %s' % question.title, '',
               'Asked by %s on %s' % (question.author.username, question.added_at.strftime('%Y-%m-%d')), '',
               source(question), '']
-    lines += _comments_md(question)
+    lines += _comments_md(comments.get(question.id, ()))
     for answer in answers:
         heading = 'Accepted answer' if answer.nis.accepted else 'Answer'
         lines += ['', '## %s (score %d, by %s on %s)' % (heading, answer.score, answer.author.username,
                                                         answer.added_at.strftime('%Y-%m-%d')),
                   '', 'Link: %s' % absolute(answer.get_absolute_url()), '', source(answer), '']
-        lines += _comments_md(answer)
+        lines += _comments_md(comments.get(answer.id, ()))
     if not answers:
         lines += ['', '_No answers yet._']
     return '\n'.join(lines).rstrip() + '\n'

@@ -48,7 +48,7 @@ class ManifestTest(PWATestCase):
         for icon in icons:
             response = self.client.get(icon['src'])
             self.assertEqual(response.status_code, 200, icon['src'])
-            with Image.open(os.path.join(pwa.SKINS_ROOT, icon['src'].split('/m/', 1)[1])) as image:
+            with Image.open(os.path.join(pwa.SKINS_ROOT, icon['src'].split('/m/', 1)[1].split('?')[0])) as image:
                 self.assertEqual('%dx%d' % image.size, icon['sizes'])
 
     def test_square_uploaded_logo_is_the_icon(self):
@@ -87,15 +87,18 @@ class ServiceWorkerTest(PWATestCase):
         self.assertNotIn('{{', text)
 
     def test_version_follows_the_media_files(self):
+        # Made of the media files' content hashes (the ?v= tokens of their URLs).
+        from unittest import mock
+        from forum.utils import static_files
         old = pwa.version()
         self.assertRegex(old, r'^[0-9a-f]{12}$')
         media = os.path.join(pwa.SKINS_ROOT, 'default', 'media', 'js', 'osqa.pwa.js')
-        stat = os.stat(media)
-        self.addCleanup(os.utime, media, (stat.st_atime, stat.st_mtime))
+        real_token = static_files.file_token
+        changed = lambda path: 'changed00000' if path == media else real_token(path)
         self.addCleanup(setattr, pwa, '_version', None)
-        os.utime(media, (stat.st_atime, stat.st_mtime + 10))
         pwa._version = None
-        self.assertNotEqual(pwa.version(), old)
+        with mock.patch.object(static_files, 'file_token', changed):
+            self.assertNotEqual(pwa.version(), old)
 
     def test_never_caches_personal_pages(self):
         text = self.client.get('/sw.js').content.decode()
@@ -111,14 +114,15 @@ class PagesTest(PWATestCase):
         self.assertIn('<link rel="manifest" href="/manifest.webmanifest" />', html)
         self.assertIn('<meta name="theme-color" content="#2c5aa0" media="(prefers-color-scheme: light)" />', html)
         self.assertIn('<meta name="theme-color" content="#161b22" media="(prefers-color-scheme: dark)" />', html)
-        self.assertIn('<link rel="apple-touch-icon" href="/m/default/media/images/icons/apple-touch-icon.png" />', html)
-        self.assertIn('/m/default/media/js/osqa.pwa.js" data-user=""', html)
+        self.assertRegex(html, r'<link rel="apple-touch-icon" href="/m/default/media/images/icons/apple-touch-icon\.png'
+                               r'\?v=[0-9a-f]{12}" />')
+        self.assertRegex(html, r'/m/default/media/js/osqa\.pwa\.js\?v=[0-9a-f]{12}" data-user=""')
         self.assertIn('id="offline-banner" class="offline-banner" role="status" hidden', html)
 
     def test_signed_in_user_is_given_to_the_script(self):
         alice = self.create_user('alice')
         self.login(alice)
-        self.assertIn('osqa.pwa.js" data-user="%d"' % alice.pk, self.client.get('/').content.decode())
+        self.assertRegex(self.client.get('/').content.decode(), r'osqa\.pwa\.js\?v=[0-9a-f]{12}" data-user="%d"' % alice.pk)
 
     def test_single_theme_colour_without_dark_mode(self):
         self.set(settings.DARK_MODE, False)

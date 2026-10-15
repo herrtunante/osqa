@@ -178,3 +178,7 @@ input.longstring {
     #content table input, #content table select, #content table textarea { max-width: 100%; box-sizing: border-box; }
     #content table th, #content table td { word-break: break-word; }
 }
+
+/* Recent activity: names and posts linked inside a sentence are underlined
+   (link-in-text-block: the admin's link colour is too close to the text). */
+.action_body a { text-decoration: underline; }

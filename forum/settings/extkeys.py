@@ -14,7 +14,10 @@ help_text = _("Your Google analytics key. You can get one at the <a href='http:/
 required=False))
 
 
-GOOGLE_CSE_ID = Setting('GOOGLE_CSE_ID', '', EXT_KEYS_SET, dict(
+# No longer used: the header always uses the forum's own search (with
+# suggestions). Kept, out of the External Keys page, so databases that have a
+# value for it still load.
+GOOGLE_CSE_ID = Setting('GOOGLE_CSE_ID', '', None, dict(
 label = _("Google custom search engine ID"),
-help_text = _("The search engine ID (cx) of a <a href='https://programmablesearchengine.google.com/'>Google Programmable Search Engine</a> to use for the search box in the header. Leave it empty to use the site's own search."),
+help_text = _("No longer used: the search box in the header always uses the site's own search."),
 required=False))

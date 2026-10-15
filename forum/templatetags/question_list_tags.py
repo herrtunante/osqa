@@ -71,11 +71,13 @@ def tag_selector(context):
     show_interesting_tags = settings.SHOW_INTERESTING_TAGS_BOX
 
     if request.user.is_authenticated:
-        pt = MarkedTag.objects.filter(user=request.user)
+        # One query for both lists (the template reads each of them twice).
+        marked = list(MarkedTag.objects.filter(user=request.user, reason__in=('good', 'bad'))
+                      .values_list('reason', 'tag__name'))
         return {
             'request' : request,
-            "interesting_tag_names": pt.filter(reason='good').values_list('tag__name', flat=True),
-            'ignored_tag_names': pt.filter(reason='bad').values_list('tag__name', flat=True),
+            "interesting_tag_names": [name for reason, name in marked if reason == 'good'],
+            'ignored_tag_names': [name for reason, name in marked if reason == 'bad'],
             'user_authenticated': True,
             'show_interesting_tags' : show_interesting_tags,
         }

@@ -30,7 +30,12 @@ def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
             if tab is not None:
                 context['tab'] = tab
 
-            return django_render(request, context.pop('template', template), context)
+            etag = context.pop('_etag', None)
+            response = django_render(request, context.pop('template', template), context)
+            if etag:
+                from forum.utils import conditional
+                conditional.finish(response, etag)
+            return response
 
         if tabbed and tab and tab_title:
             ui.register(ui.PAGE_TOP_TABS,

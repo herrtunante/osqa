@@ -78,7 +78,9 @@ class Question(Node):
             ).exclude(id=self.id).annotate(frequency=models.Count('id')).order_by('-frequency')[:count]
             cache.set(cache_key, related_list, 60 * 60)
 
-        return [Question.objects.get(id=r['id']) for r in related_list]
+        from .base import load_cached
+        loaded = load_cached(Question, [r['id'] for r in related_list])
+        return [loaded[r['id']] for r in related_list if isinstance(loaded.get(r['id']), Question)]
     
 
 
@@ -91,7 +93,9 @@ class QuestionSubscription(models.Model):
 
     class Meta:
         app_label = 'forum'
-        indexes = [models.Index(fields=['user', 'last_view'], name='subscription_user_view_idx')]
+        indexes = [models.Index(fields=['user', 'last_view'], name='subscription_user_view_idx'),
+                   # Looked up on every signed-in question view.
+                   models.Index(fields=['question', 'user'], name='subscription_question_user_idx')]
 
 
 class QuestionRevision(NodeRevision):

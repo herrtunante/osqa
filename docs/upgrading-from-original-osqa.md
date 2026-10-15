@@ -202,6 +202,14 @@ Then, on the production site:
 python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 ```
 
+Then fill the search index (imported posts don't go through the code that
+keeps it up to date; until it is built, search falls back to simple keyword
+matching):
+
+```bash
+python manage.py rebuild_search_index
+```
+
 Then **Admin > Recalculate scores and reputation**. The old version had bugs
 in stored scores, and recalculating fixes them from the votes and reputation
 history.

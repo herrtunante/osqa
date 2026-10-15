@@ -45,6 +45,8 @@ class AISuggestion(models.Model):
     class Meta:
         app_label = 'forum'
         ordering = ('-created_at',)
+        # Every question page looks up its suggestion.
+        indexes = [models.Index(fields=['question', 'status', 'created_at'], name='aisuggestion_question_idx')]
 
     @property
     def visible(self):

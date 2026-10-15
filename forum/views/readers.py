@@ -26,6 +26,7 @@ from forum import notifications
 from forum.http_responses import HttpResponseUnauthorized
 from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
+from forum.utils import conditional
 
 from . import decorators
 
@@ -89,6 +90,14 @@ class TagPaginatorContext(pagination.PaginatorContext):
     
 
 def feed(request):
+    etag = conditional.anonymous_page_etag(request, 'feed', shows_messages=False)
+    response = conditional.not_modified(request, etag)
+    if response is not None:
+        return response
+    return conditional.finish(_latest_questions_feed(request), etag)
+
+
+def _latest_questions_feed(request):
     return RssQuestionFeed(
                 request,
                 Question.objects.filter_state(deleted=False).order_by('-last_activity_at'),
@@ -239,7 +248,10 @@ def question_list(request, initial,
         feed_url = request.path + "?type=rss" + req_params
 
     context = {
-        'questions' : questions.distinct(),
+        # Per row: who was active last (from the object cache) and the answer
+        # counts, loaded for the shown page in one go instead of per question.
+        'questions' : questions.distinct().prefetch_cached(fks=('last_activity_by',),
+                                                           counts=('answer_count', 'accepted_count')),
         'questions_count' : questions.count(),
         'keywords' : keywords,
         'list_description': list_description,
@@ -253,50 +265,6 @@ def question_list(request, initial,
 
     return pagination.paginated(request,
                                ('questions', paginator_context or QuestionListPaginatorContext()), context)
-
-
-def search(request):
-    if request.method == "GET" and "q" in request.GET:
-        keywords = request.GET.get("q")
-        search_type = request.GET.get("t")
-
-        if not keywords:
-            return HttpResponseRedirect(reverse(index))
-        if search_type == 'tag':
-            return HttpResponseRedirect(reverse('tags') + '?q=%s' % urlquote(keywords.strip()))
-        elif search_type == "user":
-            return HttpResponseRedirect(reverse('users') + '?q=%s' % urlquote(keywords.strip()))
-        else:
-            return question_search(request, keywords)
-    else:
-        return render(request, "search.html")
-
-@decorators.render('questions.html')
-def question_search(request, keywords):
-    rank_feed = False
-    can_rank, initial = Question.objects.search(keywords)
-
-    if can_rank:
-        sort_order = None
-
-        if isinstance(can_rank, str):
-            sort_order = can_rank
-            rank_feed = True
-
-        paginator_context = QuestionListPaginatorContext()
-        paginator_context.sort_methods['ranking'] = pagination.SimpleSort(_('relevance'), sort_order, _("most relevant questions"))
-        paginator_context.force_sort = 'ranking'
-    else:
-        paginator_context = None
-
-    feed_url = mark_safe(escape(request.path + "?type=rss&q=" + keywords))
-
-    return question_list(request, initial,
-                         _("questions matching '%(keywords)s'") % {'keywords': keywords},
-                         None,
-                         _("questions matching '%(keywords)s'") % {'keywords': keywords},
-                         paginator_context=paginator_context,
-                         feed_url=feed_url, feed_sort=rank_feed and (can_rank,) or '-added_at')
 
 
 @decorators.render('tags.html', 'tags', _lazy('tags'), weight=100)
@@ -396,12 +364,26 @@ def question(request, id, slug='', answer=None):
     if settings.FORCE_SINGLE_URL and (slug != slugify(question.title)):
         return HttpResponsePermanentRedirect(question.get_absolute_url())
 
+    # Conditional GET for anonymous visitors whose view of this question is
+    # already counted (see forum.utils.conditional for what the ETag covers).
+    etag = None
+    last_seen = request.session.get('last_seen_in_question', {}).get(str(question.id)) \
+        if not request.user.is_authenticated else None
+    if not request.POST and last_seen and question.last_activity_at and \
+            datetime.datetime.fromisoformat(last_seen) >= question.last_activity_at:
+        etag = conditional.anonymous_page_etag(request, 'question', question.id)
+        response = conditional.not_modified(request, etag)
+        if response is not None:
+            return response
+
     if request.POST:
         answer_form = AnswerForm(request.POST, user=request.user)
     else:
         answer_form = AnswerForm(user=request.user)
 
-    answers = request.user.get_visible_answers(question)
+    # Authors and the question itself (each answer's parent) from the object
+    # cache in one round trip for the shown page.
+    answers = request.user.get_visible_answers(question).prefetch_cached(fks=('author', 'parent'))
 
     update_question_view_times(request, question)
 
@@ -425,7 +407,8 @@ def question(request, id, slug='', answer=None):
     "similar_questions" : question.get_related_questions(),
     "subscription": subscription,
     "embed_youtube_videos" : settings.EMBED_YOUTUBE_VIDEOS,
-    "focused_answer_id" : focused_answer_id
+    "focused_answer_id" : focused_answer_id,
+    "_etag": etag,
     })
 
 

@@ -10,10 +10,11 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
-from forum.utils.html import sanitize_html
+from forum.utils.html import sanitize_html, lazy_images
 from forum.utils.mentions import link_mentions
 from forum.settings import SUMMARY_LENGTH
 from .utils import PickledObjectField
+from forum.search import index as search_index
 
 # Short names used by callers, mapped to the OSQA markdown extension modules.
 MARKDOWN_EXTENSIONS = {
@@ -50,9 +51,10 @@ def normalize_fences(content):
 
 def render_markdown(content):
     """Turns post Markdown into the sanitized HTML stored for each revision
-    (also used by the editor preview): fenced code, auto links, @mentions."""
+    (also used by the editor preview): fenced code, auto links, @mentions,
+    images loaded lazily."""
     html, mentioned = link_mentions(NodeContent._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code'))
-    return mark_safe(html)
+    return mark_safe(lazy_images(html))
 
 
 class NodeContent(models.Model):
@@ -530,9 +532,25 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
         for a in self.actions.all():
             a.cancel()
 
+        node_id, node_type, parent_id = self.id, self.node_type, self.abs_parent_id or self.parent_id
         super(Node, self).delete(*args, **kwargs)
+        search_index.node_deleted(node_id, node_type, parent_id)
 
     def save(self, *args, **kwargs):
+        # The first save of a new node saves again (activate_revision): index once, at the end.
+        outermost = not self.__dict__.get('_saving')
+        created, dirty = not self.id, self.get_dirty_fields()
+        old_parent_id = self._original_state.get('parent_id')
+        self._saving = True
+        try:
+            self._save(*args, **kwargs)
+        finally:
+            if outermost:
+                del self._saving
+        if outermost:
+            search_index.node_saved(self, dirty, created, old_parent_id)
+
+    def _save(self, *args, **kwargs):
         if not self.id:
             self.node_type = self.get_type()
             super(BaseModel, self).save(*args, **kwargs)
@@ -564,6 +582,9 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
             models.Index(fields=['node_type', 'last_activity_at'], name='node_type_activity_idx'),
             models.Index(fields=['node_type', 'added_at'], name='node_type_added_idx'),
             models.Index(fields=['node_type', 'score'], name='node_type_score_idx'),
+            # Answers and comments of a post; a user's questions and answers.
+            models.Index(fields=['parent', 'node_type'], name='node_parent_type_idx'),
+            models.Index(fields=['author', 'node_type', 'added_at'], name='node_author_type_added_idx'),
         ]
 
 

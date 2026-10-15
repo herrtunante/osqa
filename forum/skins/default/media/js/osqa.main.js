@@ -16,13 +16,13 @@ var response_commands = {
         var $upvote_button = $('#post-' + id + '-upvote');
         var $downvote_button = $('#post-' + id + '-downvote');
 
-        $upvote_button.removeClass('on');
-        $downvote_button.removeClass('on');
+        $upvote_button.removeClass('on').attr('aria-pressed', 'false');
+        $downvote_button.removeClass('on').attr('aria-pressed', 'false');
 
         if (vote_type == 'up') {
-            $upvote_button.addClass('on');
+            $upvote_button.addClass('on').attr('aria-pressed', 'true');
         } else if (vote_type == 'down') {
-            $downvote_button.addClass('on');
+            $downvote_button.addClass('on').attr('aria-pressed', 'true');
         }
     },
 
@@ -43,9 +43,9 @@ var response_commands = {
 
     update_favorite_mark: function(type) {
         if (type == 'on') {
-            $('#favorite-mark').addClass('on');
+            $('#favorite-mark').addClass('on').attr('aria-pressed', 'true');
         } else {
-            $('#favorite-mark').removeClass('on');
+            $('#favorite-mark').removeClass('on').attr('aria-pressed', 'false');
         }
     },
 
@@ -53,6 +53,7 @@ var response_commands = {
         var $answer = $('#answer-container-' + id);
         $answer.addClass('accepted-answer');
         $answer.find('.accept-answer').addClass('on');
+        $answer.find('a.accept-answer').attr('aria-pressed', 'true');
         $answer.find('.accept-answer').attr('title', $answer.find('.accept-answer').attr('bn:on'));
     },
 
@@ -60,6 +61,7 @@ var response_commands = {
         var $answer = $('#answer-container-' + id);
         $answer.removeClass('accepted-answer');
         $answer.find('.accept-answer').removeClass('on');
+        $answer.find('a.accept-answer').attr('aria-pressed', 'false');
         $answer.find('.accept-answer').attr('title', $answer.find('.accept-answer').attr('bn:off'));
     },
 
@@ -380,6 +382,7 @@ $(function() {
         ajax_url = ajax_url + "?nocache=" + new Date().getTime()
 
         $('.context-menu-dropdown').slideUp('fast');
+        $('.context-menu-trigger[aria-expanded]').attr('aria-expanded', 'false');
 
         if (el.is('.withprompt')) {
             load_prompt(evt, el, ajax_url);
@@ -421,27 +424,81 @@ $(function() {
         return false
     });
 
+    // Post menus ("more"): a disclosure button (aria-expanded) with a list of
+    // links; arrow keys move between the links, Escape closes and returns
+    // focus to the button.
     $('.context-menu').each(function() {
         var $menu = $(this);
         var $trigger = $menu.find('.context-menu-trigger');
         var $dropdown = $menu.find('.context-menu-dropdown');
+        var native_button = $trigger.is('button');
+        // aria-expanded is only allowed on buttons (not on a plain span trigger).
+        var expandable = native_button || $trigger.attr('role') === 'button';
+
+        function set_expanded(open) {
+            if (expandable) $trigger.attr('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function close(focus_trigger) {
+            set_expanded(false);
+            if ($dropdown.is(':visible')) $dropdown.slideUp('fast');
+            if (focus_trigger) $trigger.trigger('focus');
+        }
+
+        if (!native_button) {
+            $trigger.on('keydown', function(evt) {
+                if (evt.key === 'Enter' || evt.key === ' ') {
+                    evt.preventDefault();
+                    $trigger.click();
+                }
+            });
+        }
 
         $trigger.on('keydown', function(evt) {
-            if (evt.key === 'Enter' || evt.key === ' ') {
+            if (evt.key === 'ArrowDown' && $dropdown.is(':visible')) {
                 evt.preventDefault();
-                $trigger.click();
+                $dropdown.find('a').first().trigger('focus');
             }
         });
 
-        $trigger.click(function() {
-            $dropdown.slideToggle('fast', function() {
+        $dropdown.on('keydown', 'a', function(evt) {
+            var $links = $dropdown.find('a'), index = $links.index(this);
+            if (evt.key === 'Escape') {
+                evt.preventDefault();
+                close(true);
+            } else if (evt.key === 'ArrowDown' || evt.key === 'ArrowUp') {
+                evt.preventDefault();
+                index = (index + (evt.key === 'ArrowDown' ? 1 : -1) + $links.length) % $links.length;
+                $links.eq(index).trigger('focus');
+            } else if (evt.key === 'Home' || evt.key === 'End') {
+                evt.preventDefault();
+                $links.eq(evt.key === 'Home' ? 0 : -1).trigger('focus');
+            }
+        });
+
+        $trigger.on('keydown', function(evt) {
+            if (evt.key === 'Escape' && $dropdown.is(':visible')) close(true);
+        });
+
+        // Tabbing out of the menu closes it.
+        $menu.on('focusout', function(evt) {
+            if (evt.relatedTarget && !$menu[0].contains(evt.relatedTarget)) close(false);
+        });
+
+        $trigger.click(function(evt) {
+            var opening = !$dropdown.is(':visible');
+            set_expanded(opening);
+            // Opened from the keyboard: move to the first link.
+            var from_keyboard = native_button && evt.detail === 0;
+            $dropdown.stop(true, true).slideToggle('fast', function() {
                 if ($dropdown.is(':visible')) {
+                   if (from_keyboard) $dropdown.find('a').first().trigger('focus');
                    $dropdown.one('clickoutside', function() {
                        if ($dropdown.is(':visible'))
-                            $dropdown.slideUp('fast');
+                            close(false);
                     });
                 }
-            });    
+            });
         });
     });
 

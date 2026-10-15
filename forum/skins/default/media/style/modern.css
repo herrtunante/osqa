@@ -758,19 +758,6 @@ a.medal:hover {
 
 /* ---- Question and answers ------------------------------------------ */
 
-#question-table, .answer > table {
-    border-collapse: collapse;
-}
-
-#question-table td, .answer > table td {
-    padding: 0;
-}
-
-#question-table > tbody > tr > td:first-child, .answer > table > tbody > tr > td:first-child {
-    width: 52px !important;
-    padding-right: 12px;
-}
-
 .vote-buttons {
     float: none;
     display: flex;
@@ -1894,12 +1881,7 @@ div.comment-tools a:hover {
         margin-top: 4px;
     }
 
-    /* Question page */
-    #question-table > tbody > tr > td:first-child, .answer > table > tbody > tr > td:first-child {
-        width: 44px !important;
-        padding-right: 8px;
-    }
-
+    /* Question page (see also "Question page" below) */
     a.post-vote, .favorite-mark, .accept-answer {
         width: 40px;
         height: 40px;
@@ -2709,6 +2691,1113 @@ img[src*="feed-icon-small"] {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01'/%3E%3C/svg%3E") !important;
 }
 
+/* ---- Question page ---------------------------------------------------- */
+
+/* question.html and node/*.html. Rules are scoped to .question-page (the
+   main column) and .question-header so they win over the older generic
+   post rules above; colours come from the tokens, so dark mode follows. */
+
+.question-header {
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+}
+
+.question-header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    overflow-wrap: anywhere;
+}
+
+.question-header h1 a:hover {
+    color: var(--brand);
+    text-decoration: none;
+}
+
+ul.question-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 8px 0 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: 13px;
+    list-style: none;
+}
+
+ul.question-meta li {
+    margin: 0;
+    list-style: none;
+}
+
+ul.question-meta time {
+    color: var(--text);
+}
+
+time.relative-time {
+    white-space: nowrap;
+}
+
+/* Closed and duplicate notices. */
+.question-page .callout {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--info-border);
+    border-left: 4px solid var(--brand);
+    border-radius: 8px;
+    background: var(--brand-soft);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.question-page .callout-warn {
+    border-color: var(--warn-border);
+    border-left-color: var(--warn-border-strong);
+    background: var(--warn-bg);
+}
+
+.question-page .callout h3, .question-page .callout .callout-title {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.question-page .callout a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.question-page .callout .callout-title + a {
+    display: inline-block;
+    margin-top: 4px;
+}
+
+/* Post layout: votes beside the content. */
+.question-page .post {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 0 16px;
+    width: auto;
+    margin: 0;
+}
+
+/* style.css gives every div "margin: 0 auto", which stops grid items from stretching. */
+.question-page .post > .post-votes, .question-page .post > .post-main {
+    margin: 0;
+}
+
+.question-page .post-main {
+    min-width: 0;
+}
+
+.question-page .answer-card {
+    margin: 0 0 16px;
+    padding: 18px 18px 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.question-page .answer-card.accepted-answer {
+    border-color: var(--success);
+    box-shadow: inset 3px 0 0 var(--success);
+    background: var(--surface);
+}
+
+.question-page .answer-card.focusedAnswer {
+    background: var(--highlight-bg);
+}
+
+.question-page .post.deleted, .question-page .answer-card.deleted {
+    background: var(--danger-soft);
+}
+
+.question-page .answer-card .comments-container {
+    background: none;
+}
+
+.accepted-badge {
+    display: none;
+}
+
+.question-page .accepted-answer .accepted-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 2px 10px 2px 8px;
+    border-radius: 999px;
+    background: var(--success-soft);
+    color: var(--success);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.question-page .accepted-badge::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: currentColor url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 12.5l3.5 3.5 7.5-8'/%3E%3C/svg%3E") no-repeat center / 12px;
+}
+
+/* ---- Post text ---- */
+
+.question-page .post-body {
+    min-height: 0;
+    margin: 0;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-wrap: break-word;
+}
+
+.question-page .post-body > :first-child {
+    margin-top: 0;
+}
+
+.question-page .post-body > :last-child {
+    margin-bottom: 0;
+}
+
+.question-page .post-body p, .question-page .post-body li, .question-page .post-body blockquote,
+.question-page .post-body h1, .question-page .post-body h2, .question-page .post-body h3,
+.question-page .post-body h4, .question-page .post-body h5, .question-page .post-body h6 {
+    max-width: 70ch;
+}
+
+.question-page .post-body p {
+    margin: 0 0 1em;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.question-page .post-body h1, .question-page .post-body h2, .question-page .post-body h3,
+.question-page .post-body h4, .question-page .post-body h5, .question-page .post-body h6 {
+    margin: 1.4em 0 .5em;
+    color: var(--text);
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.question-page .post-body h1 { font-size: 1.5em; }
+.question-page .post-body h2 { font-size: 1.3em; }
+.question-page .post-body h3 { font-size: 1.15em; }
+.question-page .post-body h4, .question-page .post-body h5, .question-page .post-body h6 { font-size: 1em; }
+
+.question-page .post-body ul, .question-page .post-body ol {
+    margin: 0 0 1em;
+    padding-left: 1.6em;
+}
+
+.question-page .post-body ul { list-style: disc; }
+.question-page .post-body ol { list-style: decimal; }
+.question-page .post-body ul ul { list-style: circle; }
+
+.question-page .post-body li {
+    margin: .25em 0;
+    list-style: inherit;
+}
+
+.question-page .post-body li > ul, .question-page .post-body li > ol {
+    margin: .25em 0 0;
+}
+
+.question-page .post-body blockquote {
+    margin: 0 0 1em;
+    padding: .2em 1em;
+    border: 0;
+    border-left: 4px solid var(--border-strong);
+    background: none;
+    color: var(--quote-text);
+}
+
+.question-page .post-body blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.question-page .post-body hr {
+    height: 0;
+    margin: 1.5em 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+
+.question-page .post-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+/* Wide tables scroll inside the post instead of widening the page. */
+.question-page .post-body table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 0 0 1em;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.question-page .post-body th, .question-page .post-body td {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.question-page .post-body th {
+    background: var(--code-bg);
+    font-weight: 600;
+}
+
+.question-page .post-body :not(pre) > code, .question-page .post-body kbd {
+    padding: .1em .4em;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    background: var(--code-inline-bg);
+    font-size: .875em;
+    white-space: break-spaces;
+}
+
+.question-page .post-body kbd {
+    border-color: var(--border);
+    border-bottom-width: 2px;
+    font-family: var(--mono);
+}
+
+/* Code blocks with a Copy button (osqa.posts.js). */
+.question-page .code-block {
+    position: relative;
+    margin: 0 0 1em;
+}
+
+.question-page .post-body pre {
+    margin: 0 0 1em;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.question-page .code-block pre {
+    margin: 0;
+    padding-right: 76px;
+}
+
+.question-page .code-copy, .question-page .code-copy:hover {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    min-width: 0;
+    padding: 4px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.question-page .code-copy:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.question-page .code-copy.copied {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.question-page .code-copy:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+/* ---- Votes, favourite, accept ---- */
+
+.question-page .post-votes {
+    float: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.question-page a.post-vote {
+    width: 40px;
+    height: 40px;
+}
+
+.question-page a.post-vote:focus-visible, .question-page .favorite-mark:focus-visible,
+.question-page a.accept-answer:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.question-page .post-score {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.question-page .favorite-mark {
+    margin-top: 8px;
+}
+
+.question-page .favorite-count {
+    min-height: 0;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.question-page span.accept-answer {
+    margin-top: 8px;
+}
+
+/* The asker's accept control: the tick with a label under it. */
+.question-page a.accept-answer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 52px;
+    height: auto;
+    margin-top: 8px;
+    padding: 34px 2px 4px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    background-position: center 5px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+}
+
+.question-page a.accept-answer:hover {
+    border-color: var(--success);
+    background-color: var(--success-soft);
+    color: var(--success);
+    opacity: 1;
+}
+
+.question-page a.accept-answer.on {
+    color: var(--success);
+}
+
+.question-page a.accept-answer .accept-label {
+    display: block;
+}
+
+/* ---- Footer: post menu and author cards ---- */
+
+.question-page .post-tags {
+    margin: 16px 0 0;
+    line-height: 2;
+}
+
+.question-page .post-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0 0;
+}
+
+.question-page .post-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.question-page .post-controls .action-link {
+    padding: 0;
+}
+
+.question-page .post-controls .action-link a, .question-page .post-controls .context-menu-trigger,
+.question-page .post-controls .context-menu-trigger:hover {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    margin: 0;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: none;
+}
+
+.question-page .post-controls .action-link a:hover, .question-page .post-controls .context-menu-trigger:hover,
+.question-page .post-controls .context-menu-trigger[aria-expanded="true"] {
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.question-page .post-controls a:focus-visible, .question-page .post-controls .context-menu-trigger:focus-visible,
+.question-page .context-menu-dropdown a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 0;
+}
+
+.question-page .post-menu {
+    position: relative;
+    float: none;
+    width: auto;
+    text-align: left;
+}
+
+.question-page .post-menu .context-menu-dropdown {
+    top: calc(100% + 4px);
+    right: auto;
+    left: 0;
+    min-width: 200px;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, .16);
+}
+
+.question-page .context-menu-dropdown li.item {
+    padding: 0;
+}
+
+.question-page .context-menu-dropdown li.item:hover {
+    background: none;
+}
+
+.question-page .context-menu-dropdown li a {
+    display: block;
+    padding: 7px 12px;
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.question-page .context-menu-dropdown li a:hover, .question-page .context-menu-dropdown li a:focus {
+    background: var(--hover-overlay);
+    text-decoration: none;
+}
+
+.question-page .post-update-info-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: stretch;
+    gap: 8px;
+    margin: 0 0 0 auto;
+}
+
+.question-page .post-update-info {
+    float: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+    min-width: 0;
+    max-width: 280px;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+}
+
+.question-post .post-update-info-user {
+    border-color: var(--info-border);
+    background: var(--brand-soft);
+}
+
+.question-page .post-update-info.post-update-info-edited {
+    display: block;
+    border-color: transparent;
+}
+
+.question-page .post-update-info-avatar {
+    flex: none;
+    line-height: 0;
+}
+
+.question-page .post-update-info img.gravatar {
+    float: none;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 50%;
+}
+
+.question-page .post-update-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.question-page .post-update-info-who {
+    display: block;
+    margin: 0;
+}
+
+.question-page .post-update-info-who a.post-author {
+    margin-right: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.question-page .post-update-info-who .score {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.question-page .post-update-info-edited a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.question-page .post-update-info-edited a:hover {
+    color: var(--brand);
+}
+
+.question-page .community-wiki {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---- Comments ---- */
+
+.question-page .comments-container {
+    margin-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.question-page .comment {
+    padding: 8px 0;
+    border-top: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 14px;
+}
+
+.question-page .comment-score {
+    width: 28px;
+    padding-right: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+}
+
+.question-page .comment-text {
+    flex: 1 1 60%;   /* a basis, so the info line (100%) always wraps under it */
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.question-page .comment-info {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 2px 8px;
+    padding-left: 28px;
+}
+
+.question-page .comment-info a.comment-user {
+    font-weight: 600;
+}
+
+.question-page .comment-age {
+    color: var(--muted);
+}
+
+.question-page .comment-info a.comment-like, .question-page .comment-info a.comment-edit,
+.question-page .comment-info a.comment-delete, .question-page .comment-info a.comment-convert,
+.question-page .comment-info a.comment-convert-to-question {
+    width: 26px;
+    height: 26px;
+}
+
+.question-page .comment-info a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 0;
+}
+
+.question-page div.comment-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 8px 0 0 28px;
+    border-top: 0;
+    text-align: left;
+}
+
+.question-page div.comment-tools .comments-showing {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.question-page div.comment-tools a, .question-page div.comment-tools a:hover {
+    padding: 2px 0;
+    background: none;
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.question-page div.comment-tools a:hover {
+    text-decoration: underline;
+}
+
+/* The comment form: fields as on the sign-in pages. */
+.question-page .comment-form-container {
+    padding: 12px 0 4px 28px;
+}
+
+.question-page .comment-form-widgets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.question-page .comment-form-widgets-container textarea.commentBox {
+    float: none;
+    width: 100%;
+    min-height: 80px;
+    margin: 0;
+    padding: 10px 12px !important;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.question-page .comment-form-widgets-container textarea.commentBox:focus {
+    border-color: var(--brand);
+    outline: 2px solid rgba(44, 90, 160, .25);
+}
+
+.question-page .comment-form-buttons {
+    float: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: auto;
+    height: auto;
+}
+
+.question-page span.comment-chars-left {
+    margin: 0 auto 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.question-page .comments-char-left-count {
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.question-page .comments-char-left-count.warn {
+    color: var(--accent-dark);
+}
+
+.question-page .comment-form-buttons input {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 8px 16px;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.question-page .comment-form-buttons input:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.question-page .comment-form-buttons input.comment-cancel, .question-page .comment-form-buttons input.comment-cancel:hover {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.question-page .comment-form-buttons input.comment-cancel:hover {
+    background: var(--hover-overlay);
+}
+
+.question-page .canned_comment {
+    font-size: 13px;
+}
+
+/* ---- Answers header ---- */
+
+.question-page .answers-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin: 28px 0 16px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.question-page .answers-header > a[name] {
+    position: absolute;
+}
+
+.question-page .answers-count {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.question-page .jump-to-accepted {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--success);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.question-page .jump-to-accepted::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: currentColor url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 12.5l3.5 3.5 7.5-8'/%3E%3C/svg%3E") no-repeat center / 12px;
+}
+
+.question-page .answer-sort {
+    margin-left: auto;
+    max-width: 100%;
+}
+
+.question-page .answer-sort .tabsA {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.question-page .answer-sort .tabsA a {
+    flex: none;
+    white-space: nowrap;
+}
+
+.question-page .answer-sort .tabsA a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 0;
+}
+
+/* ---- Answer form ---- */
+
+.question-page #fmanswer {
+    margin-top: 28px;
+}
+
+.question-page .answer-form-title {
+    margin: 0 0 12px;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.question-page .answer-editor #editor {
+    min-height: 200px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 0 0 8px 8px;
+    font-size: 15px;
+}
+
+.question-page .answer-editor #wmd-button-bar {
+    overflow: visible;
+    border-color: var(--border-strong);
+}
+
+.question-page #wmd-button-row {
+    flex-wrap: wrap;
+}
+
+.question-page .editor-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.question-page .link-button, .question-page .link-button:hover {
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.question-page .link-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.question-page .editor-metrics {
+    margin-left: auto;
+}
+
+.question-page .editor-wiki {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.question-page .editor-wiki label {
+    font-weight: 500;
+}
+
+.question-page #previewer {
+    min-height: 48px;
+    padding: 14px 16px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 8px;
+    background: transparent;
+}
+
+.question-page #previewer:empty {
+    display: none;
+}
+
+.question-page .question-captcha {
+    margin: 12px 0;
+}
+
+.question-page input.answer-submit {
+    min-height: 44px;
+    padding: 11px 22px;
+    font-size: 15px;
+}
+
+/* ---- Sidebar: follow box and question tags ---- */
+
+#subscription_box a.sidebar_button {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#subscription_box a.sidebar_button:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    color: var(--brand);
+    text-decoration: none;
+}
+
+#CARight > .question-tags-box {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+ul.question-tags-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+ul.question-tags-list li {
+    margin: 0;
+    list-style: none;
+}
+
+ul.question-tags-list .tag-number {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---- Phones ---- */
+
+@media (max-width: 640px) {
+    .question-header h1 {
+        font-size: 21px;
+    }
+
+    .question-page .post {
+        grid-template-columns: 36px minmax(0, 1fr);
+        gap: 0 10px;
+    }
+
+    .question-page .answer-card {
+        margin: 0 -4px 12px;
+        padding: 14px 12px 6px 8px;
+    }
+
+    .question-page a.post-vote, .question-page .favorite-mark {
+        width: 36px;
+        height: 36px;
+        background-size: 18px;
+    }
+
+    .question-page a.accept-answer {
+        width: 40px;
+        padding-top: 32px;
+        font-size: 10px;
+    }
+
+    .question-page .post-score {
+        font-size: 17px;
+    }
+
+    .question-page .post-body {
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .question-page .code-block pre {
+        padding-right: 16px;
+        padding-top: 38px;
+    }
+
+    .question-page .post-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .question-page .post-update-info-container {
+        justify-content: flex-start;
+        margin-left: 0;
+    }
+
+    .question-page .post-update-info {
+        max-width: 100%;
+    }
+
+    .question-page .post-controls .action-link a, .question-page .post-controls .context-menu-trigger,
+    .question-page .post-controls .context-menu-trigger:hover {
+        min-height: 36px;
+        padding: 6px 10px;
+    }
+
+    /* The post menu as a sheet at the bottom of the screen: big touch targets. */
+    .question-page .post-menu .context-menu-dropdown {
+        position: fixed;
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        min-width: 0;
+        max-width: none;
+        padding: 6px;
+        border-radius: 12px;
+        box-shadow: 0 -4px 32px rgba(16, 24, 40, .25);
+        z-index: 1001;
+    }
+
+    .question-page .context-menu-dropdown li a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 16px;
+        white-space: normal;
+    }
+
+    .question-page .comment-info, .question-page div.comment-tools, .question-page .comment-form-container {
+        padding-left: 0;
+    }
+
+    .question-page .comment-score {
+        width: auto;
+        min-width: 22px;
+    }
+
+    .question-page span.comment-chars-left {
+        flex: 1 1 100%;
+    }
+
+    .question-page .comment-score:empty {
+        display: none;
+    }
+
+    .question-page .post-body th, .question-page .post-body td {
+        white-space: nowrap;
+    }
+
+    .question-page .comment-info a.comment-like, .question-page .comment-info a.comment-edit,
+    .question-page .comment-info a.comment-delete, .question-page .comment-info a.comment-convert,
+    .question-page .comment-info a.comment-convert-to-question {
+        width: 32px;
+        height: 32px;
+        opacity: .8;
+    }
+
+    .question-page .answers-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .question-page .answer-sort {
+        flex: 1 1 100%;
+        margin-left: 0;
+    }
+
+    .question-page .editor-metrics {
+        margin-left: 0;
+    }
+
+    .question-page input.answer-submit {
+        width: 100%;
+    }
+}
+
 /* ---- Dark mode ------------------------------------------------------ */
 
 /* Follows the device setting; Admin > View settings > "Dark mode" turns it off. */
@@ -3335,8 +4424,146 @@ ul.form-horizontal-rows .helptext { flex-basis: 100%; margin-left: 162px; color:
     font-weight: 600;
 }
 
+/* Recent awards (sidebar): the member's name after the badge. */
+.badge-list a:not(.medal) {
+    color: var(--brand);
+}
+
+/* "Mark all as read" in the notification list: an outline button. */
+.inbox-head .plain-button {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.inbox-head .plain-button:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    color: var(--text);
+}
+
 /* Links inside sentences are underlined, so they don't rely on colour alone. */
 .tag-follow-help a, .email-settings-hint a, .email-settings-empty a, .email-help-link a, .inbox-note a,
 .subscription-settings-note a, .notify a, .form-help a {
     text-decoration: underline;
+}
+
+/* ---- Search page (search.html) ---------------------------------------
+ * Results with snippets, the search form, tips and the empty state.
+ * Colours come from the variables above, so dark mode follows. */
+
+.search-page-form {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 10px;
+}
+
+.search-page-form input[type="search"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.search-page-form button {
+    flex: none;
+}
+
+.search-tips {
+    margin: 0 0 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.search-tips summary {
+    cursor: pointer;
+    color: var(--brand);
+    font-weight: 600;
+}
+
+.search-tips dl {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    gap: 6px 14px;
+    margin: 8px 0 4px;
+}
+
+.search-tips dt, .search-tips dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.search-tips code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--code-inline-bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.search-count {
+    margin: 0 0 4px;
+    color: var(--muted);
+}
+
+ol.search-results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.search-result .search-snippet {
+    flex-basis: 100%;
+    margin: 0 0 2px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.search-result mark {
+    padding: 0 1px;
+    border-radius: 2px;
+    background: var(--warn-bg-strong);
+    color: var(--text);
+    font-weight: 600;
+}
+
+.search-empty {
+    margin: 12px 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.search-empty h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+}
+
+.search-empty ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.search-empty a {
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .search-tips dl {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+    }
+
+    .search-tips dd {
+        margin-bottom: 6px;
+    }
 }

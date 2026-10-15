@@ -113,4 +113,6 @@ class MarkedTag(models.Model):
 
     class Meta:
         app_label = 'forum'
+        # The tag selector and the ignored-tags filter.
+        indexes = [models.Index(fields=['user', 'reason'], name='markedtag_user_reason_idx')]
 

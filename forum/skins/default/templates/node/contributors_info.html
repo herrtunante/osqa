@@ -1,29 +1,22 @@
-{% load extra_tags i18n %}
+{% load extra_tags node_tags i18n %}
 <div class='post-update-info post-update-info-user'>
-    <p class="post-update-info-when">
-        {{ node_verb }}
-        <strong>{% diff_date node.added_at %}</strong>
-    </p>
-    <div class="post-update-info-who">
-        <a href="{{ node.author.get_profile_url }}" class="post-update-info-avatar">{% gravatar node.author 32 %}</a>
-        <p><a {% if node.author.is_suspended %}class="suspended-user" {% endif %}href="{{ node.author.get_profile_url }}">{{ node.author.decorated_name }}</a><br/>
+    <a href="{{ node.author.get_profile_url }}" class="post-update-info-avatar" tabindex="-1" aria-hidden="true">{% gravatar node.author 32 %}</a>
+    <div class="post-update-info-details">
+        <p class="post-update-info-when">{{ node_verb }} {% post_time node.added_at %}</p>
+        <p class="post-update-info-who"><a class="post-author{% if node.author.is_suspended %} suspended-user{% endif %}" href="{{ node.author.get_profile_url }}">{{ node.author.decorated_name }}</a>
         {% get_score_badge node.author %} {% get_accept_rate node.author %}</p>
     </div>
 </div>
 {% if node.last_edited %}
     <div class='post-update-info post-update-info-edited'>
         <p class="post-update-info-when">
-            <a href="{{ node.get_revisions_url }}">
-                {{ node.last_edited.verb }}
-                <strong>{% diff_date node.last_edited.at %}</strong>
-            </a>
+            <a href="{{ node.get_revisions_url }}" title="{% trans "see revisions" %}">{{ node.last_edited.verb }} {% post_time node.last_edited.at %}</a>
         </p>
         {% if node.author != node.last_edited.by %}
-        <div class="post-update-info-who">
-            <a href="{{ node.last_edited.by.get_profile_url }}" class="post-update-info-avatar">{% gravatar node.last_edited.by 32 %}</a>
-            <p><a {% if node.last_edited.by.is_suspended %}class="suspended-user" {% endif %}href="{{ node.last_edited.by.get_profile_url }}">{{ node.last_edited.by.decorated_name }}</a><br/>
-            {% get_score_badge node.last_edited.by %}</p>
-        </div>
+        <p class="post-update-info-who">
+            <a class="post-author{% if node.last_edited.by.is_suspended %} suspended-user{% endif %}" href="{{ node.last_edited.by.get_profile_url }}">{{ node.last_edited.by.decorated_name }}</a>
+            {% get_score_badge node.last_edited.by %}
+        </p>
         {% endif %}
     </div>
 {% endif %}

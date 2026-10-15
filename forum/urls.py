@@ -142,7 +142,8 @@ core_urls = [
     
     re_path(r'^%s$' % 'upload/', app.writers.upload, name='upload'),
     re_path(r'^%s$' % 'preview/', app.writers.markdown_preview, name='markdown_preview'),
-    re_path(r'^%s$' % 'search/', app.readers.search, name='search'),
+    re_path(r'^%s$' % 'search/', app.search.search, name='search'),
+    re_path(r'^search/suggest/$', app.search.suggest, name='search_suggest'),
     re_path(r'^%s$' % 'contact/', app.meta.feedback, name='feedback'),
 
     re_path(r'^i18n/', include('django.conf.urls.i18n')),

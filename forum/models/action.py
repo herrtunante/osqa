@@ -194,6 +194,8 @@ class Action(BaseModel):
         indexes = [
             models.Index(fields=['user', 'action_date'], name='action_user_date_idx'),
             models.Index(fields=['user', 'action_type', 'action_date'], name='action_user_type_date_idx'),
+            # A post's favourites, flags and votes.
+            models.Index(fields=['node', 'action_type', 'canceled'], name='action_node_type_idx'),
         ]
 
 def trigger_hooks_in_thread(action, hooks, new):

@@ -931,8 +931,8 @@ msgstr "Su clave de Google Analytics. Puede obtener una en el <a href='http://ww
 msgid "Google custom search engine ID"
 msgstr "ID del motor de búsqueda personalizado de Google"
 
-msgid "The search engine ID (cx) of a <a href='https://programmablesearchengine.google.com/'>Google Programmable Search Engine</a> to use for the search box in the header. Leave it empty to use the site's own search."
-msgstr "El ID del motor de búsqueda (cx) de un <a href='https://programmablesearchengine.google.com/'>Google Programmable Search Engine</a> que se usará en el cuadro de búsqueda del encabezado. Déjelo vacío para usar la búsqueda propia del sitio."
+msgid "No longer used: the search box in the header always uses the site's own search."
+msgstr "Ya no se usa: el cuadro de búsqueda del encabezado siempre usa la búsqueda propia del sitio."
 
 msgid "FAQ page"
 msgstr "Página de preguntas frecuentes"
@@ -2548,23 +2548,40 @@ msgstr "Este software de preguntas y respuestas (Q&amp;A) es libre y de código 
 msgid "back to home page"
 msgstr "volver a la página de inicio"
 
+msgid "Questions"
+msgstr "Preguntas"
+
+msgid "Tags"
+msgstr "Etiquetas"
+
+msgid "People"
+msgstr "Personas"
+
+#, python-brace-format
+msgid "Search for “{query}”"
+msgstr "Buscar «{query}»"
+
+msgid "1 suggestion"
+msgstr "1 sugerencia"
+
+#, python-brace-format
+msgid "{count} suggestions"
+msgstr "{count} sugerencias"
+
 msgid "Search"
 msgstr "Buscar"
 
-msgid "Search..."
-msgstr "Buscar..."
+msgid "Search questions, tags and people"
+msgstr "Buscar preguntas, etiquetas y personas"
 
-msgid "Search in"
-msgstr "Buscar en"
+msgid "Clear search"
+msgstr "Borrar la búsqueda"
 
-msgid "questions"
-msgstr "preguntas"
+msgid "Press / to search"
+msgstr "Pulse / para buscar"
 
-msgid "users"
-msgstr "usuarios"
-
-msgid "search"
-msgstr "buscar"
+msgid "Search suggestions"
+msgstr "Sugerencias de búsqueda"
 
 msgid "ask a question"
 msgstr "formular una pregunta"
@@ -2784,6 +2801,9 @@ msgstr "%(who)s ha seleccionado esta respuesta como la correcta"
 msgid "mark this answer as the accepted answer"
 msgstr "marcar esta respuesta como la respuesta aceptada"
 
+msgid "Accept"
+msgstr "Aceptar"
+
 msgid "AI"
 msgstr "IA"
 
@@ -2852,6 +2872,9 @@ msgstr "Mantener las respuestas en esta pregunta"
 msgid "Move the answers to the original question"
 msgstr "Mover las respuestas a la pregunta original"
 
+msgid "Your comment"
+msgstr "Tu comentario"
+
 msgid "characters needed"
 msgstr "caracteres necesarios"
 
@@ -2867,6 +2890,9 @@ msgstr " cancelar"
 msgid "Use canned comment"
 msgstr "Usar un comentario predefinido"
 
+msgid "just now"
+msgstr "ahora mismo"
+
 msgid "Edit comment"
 msgstr "Editar comentario"
 
@@ -2876,8 +2902,11 @@ msgstr "Eliminar comentario"
 msgid "Convert comment to answer"
 msgstr "Convertir el comentario en respuesta"
 
-msgid "just now"
-msgstr "ahora mismo"
+msgid "likes"
+msgstr "me gusta"
+
+msgid "Like"
+msgstr "Me gusta"
 
 msgid "I like this comment (click again to cancel)"
 msgstr "Me gusta este comentario (haga clic de nuevo para cancelar)"
@@ -2896,6 +2925,9 @@ msgstr "mostrar %(more_comments_count)s comentarios más"
 msgid "add new comment"
 msgstr "añadir un comentario"
 
+msgid "see revisions"
+msgstr "ver revisiones"
+
 msgid "Place the comment under:"
 msgstr "Colocar el comentario debajo de:"
 
@@ -2904,6 +2936,12 @@ msgstr "Convertir en pregunta"
 
 msgid "mark/unmark this question as favorite (click again to cancel)"
 msgstr "marcar/desmarcar esta pregunta como favorita (haga clic de nuevo para cancelar)"
+
+msgid "Favourite"
+msgstr "Favorita"
+
+msgid "number of people who marked this question as a favourite"
+msgstr "número de personas que marcaron esta pregunta como favorita"
 
 msgid ""
 "\n"
@@ -2921,11 +2959,17 @@ msgstr "más"
 msgid "I like this post (click again to cancel)"
 msgstr "Me gusta esta publicación (haga clic de nuevo para cancelar)"
 
+msgid "Vote up"
+msgstr "Votar a favor"
+
 msgid "current number of votes"
 msgstr "número actual de votos"
 
 msgid "I dont like this post (click again to cancel)"
 msgstr "No me gusta esta publicación (haga clic de nuevo para cancelar)"
+
+msgid "Vote down"
+msgstr "Votar en contra"
 
 #, python-format
 msgid "This %(post_type)s is marked \"community wiki\"."
@@ -3270,6 +3314,9 @@ msgstr ""
 
 msgid "using your browser."
 msgstr "con su navegador."
+
+msgid "search"
+msgstr "buscar"
 
 msgid "Site Administration"
 msgstr "Administración del sitio"
@@ -3624,9 +3671,6 @@ msgstr "Última actividad de"
 msgid "Last activity at"
 msgstr "Última actividad el"
 
-msgid "Tags"
-msgstr "Etiquetas"
-
 msgid "by"
 msgstr "por"
 
@@ -3903,9 +3947,32 @@ msgstr "No se pudo cargar esta página porque no hay conexión. Estas páginas s
 msgid "No pages have been saved on this device yet. Questions you read while online are kept here for offline reading."
 msgstr "Todavía no se ha guardado ninguna página en este dispositivo. Las preguntas que leas con conexión se guardan aquí para leerlas sin conexión."
 
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Copy code to the clipboard"
+msgstr "Copiar el código al portapapeles"
+
+msgid "Copied"
+msgstr "Copiado"
+
+msgid "Press Ctrl+C to copy"
+msgstr "Pulse Ctrl+C para copiar"
+
+msgctxt "question meta"
+msgid "Asked"
+msgstr "Preguntada"
+
+msgctxt "question meta"
+msgid "Active"
+msgstr "Activa"
+
 #, python-format
-msgid "see questions tagged '%(tagname)s'"
-msgstr "ver las preguntas etiquetadas como '%(tagname)s'"
+msgid "Viewed %(counter)s time"
+msgid_plural "Viewed %(counter)s times"
+msgstr[0] "Vista %(counter)s vez"
+msgstr[1] "Vista %(counter)s veces"
+msgstr[2] "Vista %(counter)s veces"
 
 msgid "This question already has an answer here:"
 msgstr "Esta pregunta ya tiene una respuesta aquí:"
@@ -3922,11 +3989,49 @@ msgid "The question has been closed for the following reason \"%(close_reason)s\
 msgstr "La pregunta ha sido cerrada por el siguiente motivo: \"%(close_reason)s\" por"
 
 #, python-format
-msgid "One Answer:"
-msgid_plural "%(counter)s Answers:"
-msgstr[0] "Una respuesta:"
-msgstr[1] "%(counter)s respuestas:"
-msgstr[2] "%(counter)s respuestas:"
+msgid "see questions tagged '%(tagname)s'"
+msgstr "ver las preguntas etiquetadas como '%(tagname)s'"
+
+#, python-format
+msgid "%(counter)s Answer"
+msgid_plural "%(counter)s Answers"
+msgstr[0] "%(counter)s respuesta"
+msgstr[1] "%(counter)s respuestas"
+msgstr[2] "%(counter)s respuestas"
+
+msgid "Jump to accepted answer"
+msgstr "Ir a la respuesta aceptada"
+
+msgid "Sort answers by"
+msgstr "Ordenar respuestas por"
+
+msgid "most voted answers will be shown first"
+msgstr "se mostrarán primero las respuestas más votadas"
+
+msgid "Highest score"
+msgstr "Más votadas"
+
+msgid "newest answers will be shown first"
+msgstr "se mostrarán primero las respuestas más recientes"
+
+msgid "Newest"
+msgstr "Más recientes"
+
+msgid "oldest answers will be shown first"
+msgstr "se mostrarán primero las respuestas más antiguas"
+
+msgid "Oldest"
+msgstr "Más antiguas"
+
+msgid "most recently updated answers/comments will be shown first"
+msgstr "se mostrarán primero las respuestas o comentarios actualizados más recientemente"
+
+#, python-format
+msgid "Answer by %(name)s"
+msgstr "Respuesta de %(name)s"
+
+msgid "Accepted answer"
+msgstr "Respuesta aceptada"
 
 msgid "Your answer"
 msgstr "Su respuesta"
@@ -3951,18 +4056,6 @@ msgstr "ver las preguntas etiquetadas como"
 
 msgid "using tags"
 msgstr "con las etiquetas"
-
-msgid "question asked"
-msgstr "pregunta formulada"
-
-msgid "question was seen"
-msgstr "la pregunta se ha visto"
-
-msgid "times"
-msgstr "veces"
-
-msgid "last updated"
-msgstr "última actualización"
 
 msgid "Related questions"
 msgstr "Preguntas relacionadas"
@@ -4141,15 +4234,55 @@ msgstr "Historial de revisiones"
 msgid "click to hide/show revision"
 msgstr "haga clic para ocultar o mostrar la revisión"
 
+msgid "Search questions"
+msgstr "Buscar preguntas"
+
+msgid "Words, &quot;a phrase&quot;, [tag]..."
+msgstr "Palabras, &quot;una frase&quot;, [etiqueta]..."
+
+msgid "Search tips"
+msgstr "Consejos de búsqueda"
+
+msgid "Questions with any of these words; those with more of them, or with them in the title, come first."
+msgstr "Preguntas con cualquiera de estas palabras; primero las que tienen más de ellas, o las tienen en el título."
+
+msgid "This exact phrase."
+msgstr "Esta frase exacta."
+
+msgid "Leave out questions with this word."
+msgstr "Excluye las preguntas con esta palabra."
+
+msgid "Only questions with this tag."
+msgstr "Solo preguntas con esta etiqueta."
+
+msgid "Only questions with answers, without answers, or with an accepted answer."
+msgstr "Solo preguntas con respuestas, sin respuestas o con una respuesta aceptada."
+
+msgid "Only questions asked by this person."
+msgstr "Solo preguntas hechas por esta persona."
+
 #, python-format
-msgid ""
-"\n"
-"\t    Search in %(app_name)s\n"
-"\t"
-msgstr ""
-"\n"
-"\t    Buscar en %(app_name)s\n"
-"\t"
+msgid "%(counter)s question found"
+msgid_plural "%(counter)s questions found"
+msgstr[0] "%(counter)s pregunta encontrada"
+msgstr[1] "%(counter)s preguntas encontradas"
+msgstr[2] "%(counter)s preguntas encontradas"
+
+msgid "No questions match your search."
+msgstr "Ninguna pregunta coincide con tu búsqueda."
+
+#, python-format
+msgid "Search for &ldquo;%(words)s&rdquo; without the filters"
+msgstr "Buscar &ldquo;%(words)s&rdquo; sin los filtros"
+
+msgid "Remove some of the filters (tags, people, is:) to see more questions."
+msgstr "Quita algunos filtros (etiquetas, personas, is:) para ver más preguntas."
+
+msgid "Try other or fewer words, or check their spelling."
+msgstr "Prueba con otras palabras o con menos, o revisa la ortografía."
+
+msgid "and let the community answer it."
+msgstr "y deja que la comunidad la responda."
 
 msgid "Markdown Basics"
 msgstr "Conceptos básicos de Markdown"
@@ -4687,6 +4820,12 @@ msgstr "voto a favor"
 msgid "downvote"
 msgstr "voto en contra"
 
+msgid "questions"
+msgstr "preguntas"
+
+msgid "users"
+msgstr "usuarios"
+
 msgid "reputation points"
 msgstr "puntos de reputación"
 
@@ -4783,9 +4922,6 @@ msgstr "denunciar como ofensivo (p. ej., contiene spam, publicidad, texto malici
 
 msgid "undelete"
 msgstr "restaurar"
-
-msgid "see revisions"
-msgstr "ver revisiones"
 
 msgid "mark as community wiki"
 msgstr "marcar como wiki de la comunidad"
@@ -5265,26 +5401,14 @@ msgstr "preguntas <strong>más votadas</strong>"
 msgid "active answers"
 msgstr "respuestas activas"
 
-msgid "most recently updated answers/comments will be shown first"
-msgstr "se mostrarán primero las respuestas o comentarios actualizados más recientemente"
-
 msgid "oldest answers"
 msgstr "respuestas más antiguas"
-
-msgid "oldest answers will be shown first"
-msgstr "se mostrarán primero las respuestas más antiguas"
 
 msgid "newest answers"
 msgstr "respuestas más recientes"
 
-msgid "newest answers will be shown first"
-msgstr "se mostrarán primero las respuestas más recientes"
-
 msgid "popular answers"
 msgstr "respuestas populares"
-
-msgid "most voted answers will be shown first"
-msgstr "se mostrarán primero las respuestas más votadas"
 
 msgid "by name"
 msgstr "por nombre"
@@ -5337,8 +5461,12 @@ msgstr "Preguntas a las que se suscribió %s"
 msgid "Questions subscribed by %s"
 msgstr "Preguntas suscritas por %s"
 
-msgid "Questions"
-msgstr "Preguntas"
+msgid "oldest"
+msgstr "más antiguas"
+
+#, python-format
+msgid "Revision n. %(rev_number)d"
+msgstr "Revisión n.º %(rev_number)d"
 
 msgid "relevance"
 msgstr "relevancia"
@@ -5350,12 +5478,30 @@ msgstr "preguntas más relevantes"
 msgid "questions matching '%(keywords)s'"
 msgstr "preguntas que coinciden con '%(keywords)s'"
 
-msgid "oldest"
-msgstr "más antiguas"
+#, python-format
+msgid "Search results for %(query)s"
+msgstr "Resultados de búsqueda para %(query)s"
 
 #, python-format
-msgid "Revision n. %(rev_number)d"
-msgstr "Revisión n.º %(rev_number)d"
+msgid "%(count)d answer"
+msgid_plural "%(count)d answers"
+msgstr[0] "%(count)d respuesta"
+msgstr[1] "%(count)d respuestas"
+msgstr[2] "%(count)d respuestas"
+
+#, python-format
+msgid "%(count)d question"
+msgid_plural "%(count)d questions"
+msgstr[0] "%(count)d pregunta"
+msgstr[1] "%(count)d preguntas"
+msgstr[2] "%(count)d preguntas"
+
+#, python-format
+msgid "%(count)d reputation point"
+msgid_plural "%(count)d reputation points"
+msgstr[0] "%(count)d punto de reputación"
+msgstr[1] "%(count)d puntos de reputación"
+msgstr[2] "%(count)d puntos de reputación"
 
 msgid "sorted by reputation"
 msgstr "ordenados por reputación"

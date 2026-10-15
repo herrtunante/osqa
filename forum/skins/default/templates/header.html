@@ -11,33 +11,30 @@
 		</div>
 	  
 	<div id="searchBar">
-    {% if settings.GOOGLE_CSE_ID %}
-        <div class="gcse-container">
-            <script>
-			  (function() {
-			    var gcse = document.createElement('script');
-			    gcse.async = true;
-			    gcse.src = 'https://cse.google.com/cse.js?cx=' + encodeURIComponent('{{ settings.GOOGLE_CSE_ID|escapejs }}');
-			    var s = document.getElementsByTagName('script')[0];
-			    s.parentNode.insertBefore(gcse, s);
-			  })();
-			</script>
-			<div class="gcse-search"></div>
+    {# The site's own search; suggestions come from osqa.searchbox.js (search_suggest). #}
+    <form action="{% url "search" %}" method="get" role="search" class="searchbox" id="searchbox"
+        data-suggest-url="{% url "search_suggest" %}"
+        data-text-questions="{% trans "Questions" %}" data-text-tags="{% trans "Tags" %}"
+        data-text-people="{% trans "People" %}" data-text-search-for="{% trans "Search for “{query}”" %}"
+        data-text-one="{% trans "1 suggestion" %}" data-text-many="{% trans "{count} suggestions" %}">
+        <div class="searchbox-field">
+            <button type="submit" class="searchbox-submit plain-button" aria-label="{% trans "Search" %}" title="{% trans "Search" %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5l-4.2-4.2"/></svg>
+            </button>
+            <input type="search" class="searchbox-input" name="q" id="keywords" value="{% if tab != "tags" and tab != "users" %}{{ keywords }}{% endif %}"
+                placeholder="{% trans "Search questions, tags and people" %}" aria-label="{% trans "Search" %}"
+                autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" maxlength="300"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchbox-listbox" />
+            <button type="button" class="searchbox-clear plain-button" aria-label="{% trans "Clear search" %}" title="{% trans "Clear search" %}" hidden>
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <kbd class="searchbox-kbd" title="{% trans "Press / to search" %}" aria-hidden="true">/</kbd>
         </div>
-    {% else %}
-    <form action="{% url "search" %}" method="get" role="search">
-        <div class="search-field">
-            <input type="search" class="searchInput" value="{{ keywords }}" name="q" id="keywords"
-                aria-label="{% trans "Search" %}" placeholder="{% trans "Search..." %}" />
-            <select name="t" class="search-type" aria-label="{% trans "Search in" %}">
-                <option value="question">{% trans "questions" %}</option>
-                <option value="tag"{% if tab == "tags" %} selected="selected"{% endif %}>{% trans "tags" %}</option>
-                <option value="user"{% if tab == "users" %} selected="selected"{% endif %}>{% trans "users" %}</option>
-            </select>
-            <button type="submit" class="searchBtn" aria-label="{% trans "search" %}" title="{% trans "search" %}"></button>
+        <div class="searchbox-panel" hidden>
+            <div role="listbox" id="searchbox-listbox" class="searchbox-listbox" aria-label="{% trans "Search suggestions" %}"></div>
         </div>
+        <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
     </form>
-    {% endif %}
 	</div>
 
 		<div id="top">

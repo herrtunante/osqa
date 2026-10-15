@@ -127,7 +127,11 @@ def ask(request):
             form = AskForm({'title': request.POST['q']}, user=request.user)
             
     if not form:
-        form = AskForm(user=request.user)
+        if request.GET.get('title'):
+            # From the search page: "Ask a question" with the search words as its title.
+            form = AskForm(initial={'title': request.GET['title'].strip()[:300]}, user=request.user)
+        else:
+            form = AskForm(user=request.user)
 
     return render(request, 'ask.html', {
         'form' : form,

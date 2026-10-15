@@ -27,12 +27,14 @@
         {% endif %}
         <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
-        <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
-        <script type="text/javascript" src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
+        {# Deferred: only used from ready handlers and later events (tag/user suggestions, date picker). #}
+        <script defer src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
         <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
         <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
         <link href="{% media  "/media/style/modern.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media "/media/style/searchbox.css" %}" rel="stylesheet" type="text/css" />
         {% if settings.USE_CUSTOM_CSS|or_preview:request %}
         <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
         {% endif %}
@@ -75,6 +77,7 @@
         <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.mentions.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.searchbox.js" %}"></script>
         {% if user_messages %}
         <script type="text/javascript">
             $(document).ready(function() {

@@ -16,6 +16,7 @@ from django.utils.safestring import mark_safe
 from django.contrib import messages
 
 from forum.utils.redact import redact_params, redact_meta, REDACTED
+from forum.utils import static_files
 from forum import settings
 from forum.views.decorators import login_required
 from forum.forms import FeedbackForm
@@ -41,10 +42,12 @@ def static(request, title, content):
 DJANGO_ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(django.contrib.admin.__file__), 'static', 'admin')
 
 
+SKINS_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skins').replace('\\', '/')
+
+
 def media(request, skin, path):
-    response = serve(request, "%s/media/%s" % (skin, path),
-                 document_root=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skins').replace('\\', '/'))
-    return _with_charset(response)
+    """Skin media (/m/<skin>/media/...); caching rules in forum.utils.static_files."""
+    return static_files.serve_file(request, "%s/media/%s" % (skin, path), SKINS_ROOT)
 
 
 BUNDLED_UPFILES_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'upfiles')
@@ -53,29 +56,24 @@ BUNDLED_UPFILES_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
 def uploaded_file(request, path):
     """Files uploaded in the editor and the site logo, from the folder the
     UPFILES_FOLDER setting names; files shipped with OSQA (the default logo)
-    come from forum/upfiles when that folder is somewhere else."""
+    come from forum/upfiles when that folder is somewhere else.
+
+    Uploads are never overwritten (a new file gets a new name), so they are
+    cached for a year; the shipped files can change on upgrade."""
+    shipped = os.path.isfile(os.path.join(BUNDLED_UPFILES_ROOT, path)) and '..' not in path.split('/')
     try:
-        return serve(request, path, document_root=str(settings.UPFILES_FOLDER))
+        return static_files.serve_file(request, path, str(settings.UPFILES_FOLDER), immutable=not shipped)
     except Http404:
         if os.path.realpath(str(settings.UPFILES_FOLDER)) == os.path.realpath(BUNDLED_UPFILES_ROOT):
             raise
-        return serve(request, path, document_root=BUNDLED_UPFILES_ROOT)
+        return static_files.serve_file(request, path, BUNDLED_UPFILES_ROOT)
 
 
 def django_admin_media(request, path):
     """Django's own admin CSS, JS and icons, used by the django-style admin
     interface. Served like the skin media so no collectstatic/web server
     setup is needed."""
-    return _with_charset(serve(request, path, document_root=DJANGO_ADMIN_MEDIA_ROOT))
-
-
-def _with_charset(response):
-    content_type = response.get('Content-Type', '')
-    if ('charset=' not in content_type):
-        if (content_type.startswith('text') or content_type=='application/x-javascript'):
-            content_type += '; charset=utf-8'
-            response['Content-Type'] = content_type
-    return response
+    return static_files.serve_file(request, path, DJANGO_ADMIN_MEDIA_ROOT)
 
 
 def markdown_help(request):

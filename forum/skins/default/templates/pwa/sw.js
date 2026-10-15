@@ -10,9 +10,13 @@
      /users/ (profiles and their tabs), /upfiles/, /mcp, /export/, /pending-data/,
      /upload/, /preview/, /logout/, /i18n/, /csp-report/, /sw.js, the manifest.
 
-   Skin media (/m/<skin>/media/...): stale-while-revalidate in a cache named
-   after VERSION, a hash of this file and of the media files, so each deploy
-   gets a new cache and `activate` deletes the old ones.
+   Skin media (/m/<skin>/media/...), in a cache named after VERSION, a hash
+   of this file and of the media files (the same content hashes as the ?v=
+   tokens of media URLs), so each deploy gets a new cache and `activate`
+   deletes the old ones. Versioned URLs (?v=<hash>) never change: cache first.
+   Others (images referenced from CSS): stale-while-revalidate. Offline, a
+   saved page that refers to an older version of a file gets the version in
+   the cache (same path, any ?v=).
 
    Pages (navigations): network first. Successful (200) pages of the home
    page, question lists, questions and tags are stored in PAGES, newest last,
@@ -93,11 +97,26 @@ self.addEventListener('fetch', event => {
     }
     if (NEVER.test(path)) return;
     if (MEDIA.test(path) && !request.headers.has('range')) {
-        event.respondWith(staleWhileRevalidate(event, request));
+        event.respondWith(url.searchParams.has('v') ? cacheFirst(event, request) : staleWhileRevalidate(event, request));
     } else if (request.mode === 'navigate') {
         event.respondWith(networkFirst(event, request, SAVED_PAGES.some(pattern => pattern.test(path))));
     }
 });
+
+async function cacheFirst(event, request) {
+    const cache = await caches.open(STATIC);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    try {
+        const response = await fetch(request);
+        if (response.ok && response.type === 'basic') event.waitUntil(cache.put(request, response.clone()));
+        return response;
+    } catch (error) {
+        const other = await cache.match(request, {ignoreSearch: true});
+        if (other) return other;
+        throw error;
+    }
+}
 
 async function staleWhileRevalidate(event, request) {
     const cache = await caches.open(STATIC);
@@ -112,7 +131,11 @@ async function staleWhileRevalidate(event, request) {
         event.waitUntil(fresh.catch(() => null));
         return cached;
     }
-    return fresh;
+    return fresh.catch(async error => {
+        const other = await cache.match(request, {ignoreSearch: true});
+        if (other) return other;
+        throw error;
+    });
 }
 
 async function networkFirst(event, request, save) {

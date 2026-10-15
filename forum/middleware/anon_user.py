@@ -33,6 +33,11 @@ class ConnectToSessionMessagesMiddleware(object):
         return response
 
     def process_request(self, request):
+        from forum.utils.static_files import is_static_request
+        if is_static_request(request):
+            # Files (media, uploads, the service worker): no session, no greeting,
+            # so the response sets no cookie and shared caches may keep it.
+            return None
         # Django 1.10+: is_authenticated is a property
         if not request.user.is_authenticated:
             request.user.__deepcopy__ = dummy_deepcopy #plug on deepcopy which may be called by django db "driver"

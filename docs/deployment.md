@@ -133,6 +133,12 @@ the journal (`journalctl -u osqa`); application and security logs go to
 `sudo certbot --nginx -d forum.example.org`):
 
 ```nginx
+# Skin media URLs carry a version (?v=<hash of the file>): those never change.
+map $arg_v $osqa_media_cache {
+    ""      "public, max-age=3600";
+    default "public, max-age=31536000, immutable";
+}
+
 server {
     listen 80;
     server_name forum.example.org;
@@ -146,9 +152,18 @@ server {
 
     client_max_body_size 5m;          # uploads are limited to 2.5 MB by default
 
-    # Optional: serve uploads and the default skin's files without Python.
-    location /upfiles/ { alias /srv/osqa/app/forum/upfiles/; }
-    location /m/default/media/ { alias /srv/osqa/app/forum/skins/default/media/; expires 7d; }
+    # Optional: serve uploads and the default skin's files without Python
+    # (caching rules: see "Caching and compression" below).
+    location /upfiles/ {
+        alias /srv/osqa/app/forum/upfiles/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+    location /m/default/media/ {
+        alias /srv/osqa/app/forum/skins/default/media/;
+        add_header Cache-Control $osqa_media_cache;
+        gzip on;
+        gzip_types text/css application/javascript text/javascript image/svg+xml application/json;
+    }
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -162,6 +177,40 @@ server {
 
 `TRUSTED_PROXY_COUNT = 1` must match: one proxy (nginx) appends the visitor's
 address to `X-Forwarded-For`. With a load balancer in front of nginx, use `2`.
+
+#### Caching and compression
+
+What OSQA sends by itself (when Django serves the files, e.g. without the
+optional `alias` locations, behind a CDN, or on a container platform):
+
+| Request | `Cache-Control` | Validation |
+|---|---|---|
+| Skin media with the current version, `/m/<skin>/media/...?v=<hash>` (every `{% media %}` URL) | `public, max-age=31536000, immutable` | ETag (the hash), Last-Modified |
+| Skin media without a version (images referenced from CSS) and Django's admin media (`/m/django_admin/`) | `public, max-age=3600` | ETag / Last-Modified, `304 Not Modified` |
+| Skin media with an old version (a page saved before a deploy) | `no-cache` (content of the current file) | ETag |
+| Uploads, `/upfiles/...` (a new upload always gets a new name) | `public, max-age=31536000, immutable` | ETag |
+| The default logo shipped in `forum/upfiles` | `public, max-age=3600` | ETag |
+| Question pages for anonymous visitors without a pending message (once their view is counted), and `/feeds/rss/` | `private, no-cache`, `Vary: Cookie, Accept-Language` | ETag, `304 Not Modified` while nothing on the site changed (at most an hour) |
+| Other pages | none | none |
+
+The version is a hash of the file's content, computed once per process, so
+a deploy that changes a file changes its URL and nothing stale is served; the
+service worker (`/sw.js`, never cached for long) names its cache after the
+same hashes. Requests for files skip the session and user middleware: they
+set no cookie and don't vary by cookie, so a CDN or proxy cache may keep them.
+
+Compression: OSQA gzips CSS, JavaScript, SVG and JSON files it serves (when
+the browser accepts gzip) and never HTML pages, which carry the CSRF token
+(BREACH). gunicorn compresses nothing. nginx compresses only `text/html` by
+default (`gzip on;` in the stock `nginx.conf`), proxied pages included: Django
+masks the CSRF token differently in every response, its defence against
+BREACH, but to keep pages uncompressed add `gzip off;` to `location /`. For
+the files nginx serves itself, the `gzip_types` line above compresses the
+text ones (`gzip_static on;` would use `.gz` files placed next to them).
+
+If several app servers are updated one at a time, leave `/m/` to OSQA (drop
+the `alias` for it): nginx can't tell whether `?v=` matches the file on its
+own disk, while OSQA only marks the current version immutable.
 
 ### 5. Scheduled jobs
 
@@ -193,7 +242,9 @@ sudo -u osqa /srv/osqa/venv/bin/python manage.py migrate
 sudo systemctl restart osqa
 ```
 
-Read the README's "Upgrading an existing installation" notes first. Take a
+Read the README's "Upgrading an existing installation" notes first. When an
+update adds the search index (migration `0013`), also run
+`manage.py rebuild_search_index` once after `migrate`. Take a
 database backup before `migrate`, and run `migrate` in a quiet period on large
 sites, since some migrations add indexes to big tables.
 
@@ -266,8 +317,8 @@ curl http://127.0.0.1:8000/healthz   # -> ok
 ```
 
 Put the nginx configuration from Option A in front of `127.0.0.1:8000`; drop
-the two optional `alias` locations, or point them at the mounted
-`forum/upfiles`. Caddy, Traefik or a cloud load balancer work the same way, as
+the two optional `alias` locations (OSQA then sends the caching headers
+described there itself), or point them at the mounted `forum/upfiles`. Caddy, Traefik or a cloud load balancer work the same way, as
 long as they set `X-Forwarded-For` and `X-Forwarded-Proto`.
 
 ### 4. Scheduled jobs

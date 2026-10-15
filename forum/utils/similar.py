@@ -49,12 +49,23 @@ def candidate_questions(title, limit=10):
     return [q for s, q in ranked if s > 0][:limit]
 
 
-# Better search engines (e.g. the AI module's semantic index) register a
-# function (query, limit) -> [Question] here; keyword matching is the fallback.
-SEARCH_PROVIDERS = []
+def full_text_questions(query, limit=10):
+    """The core full-text index (forum.search), ranked."""
+    from forum.search.engine import question_provider
+    return question_provider(query, limit)
+
+
+# Search engines register a function (query, limit) -> [Question] here: the
+# core full-text index first, then e.g. the AI module's semantic index. Their
+# results are blended (reciprocal rank fusion); keyword matching is the fallback.
+SEARCH_PROVIDERS = [full_text_questions]
+
+# Reciprocal rank fusion constant: a question ranked r by a provider scores 1 / (K + r).
+RRF_K = 60
 
 
 def search_questions(query, limit=10):
+    lists = []
     for provider in SEARCH_PROVIDERS:
         try:
             results = provider(query, limit)
@@ -63,5 +74,17 @@ def search_questions(query, limit=10):
             logging.exception("Question search provider failed, using keyword matching")
             continue
         if results:
-            return results
-    return candidate_questions(query, limit)
+            lists.append(list(results))
+    if not lists:
+        return candidate_questions(query, limit)
+    if len(lists) == 1:
+        return lists[0][:limit]
+
+    scores, questions, first_seen = {}, {}, {}
+    for results in lists:
+        for rank, question in enumerate(results):
+            scores[question.id] = scores.get(question.id, 0) + 1.0 / (RRF_K + rank + 1)
+            questions.setdefault(question.id, question)
+            first_seen.setdefault(question.id, len(first_seen))
+    order = sorted(scores, key=lambda qid: (-scores[qid], first_seen[qid]))
+    return [questions[qid] for qid in order[:limit]]

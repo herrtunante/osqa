@@ -44,6 +44,14 @@ class AccessibilityTest(E2ETestCase):
         self.create_comment(self.alice, self.answer, 'Thanks, @bob, that worked for me.')
         self.create_comment(self.bob, self.question, 'Which version of Collect do you use?')
         self.create_question(self.bob, 'Can SEPAL process Sentinel-2 time series?', tags='sepal')
+        # The question page with an accepted answer, and a question closed as a duplicate.
+        from forum.actions import AcceptAnswerAction, CloseAction
+        self._as_request(self.alice)
+        AcceptAnswerAction(user=self.alice, node=self.answer, ip='127.0.0.1').save()
+        self.closed = self.create_question(self.alice, 'Exporting Collect data as CSV files', tags='collect')
+        self._as_request(self.admin)
+        CloseAction(user=self.admin, node=self.closed, extra='duplicate', ip='127.0.0.1').save(
+            data=dict(duplicate_of=self.question))
 
     def public_pages(self):
         return ['/', '/questions/', self.question.get_absolute_url(), '/questions/ask/', '/tags/', '/users/',
@@ -91,13 +99,38 @@ class AccessibilityTest(E2ETestCase):
             for v in violations]
 
     def test_anonymous_pages(self):
-        self.check_pages(None, self.public_pages() + ['/account/signin/', '/account/local/register/'])
+        self.check_pages(None, self.public_pages() + ['/account/signin/', '/account/local/register/', self.closed_url()])
 
     def test_member_pages(self):
         self.check_pages(self.alice, self.public_pages() + [
             reverse('notifications'), self.alice.get_user_subscriptions_url(),
             (self.alice.get_profile_url(), '#user-menu'),
-            (self.question.get_absolute_url(), '#node-%d-menu-trigger' % self.answer.id)])
+            (self.question.get_absolute_url(), '#node-%d-menu-trigger' % self.answer.id),
+            (self.question.get_absolute_url(), '#comment-tools-%d .add-comment-link' % self.answer.id),
+            self.closed_url()])
+
+    def closed_url(self):
+        from forum.models import Question
+        return Question.objects.get(id=self.closed.id).get_absolute_url()
+
+    def test_search_suggestions_open(self):
+        """The header search box with its suggestions open, an option active."""
+        self.create_user('collector', reputation=20)
+        failures = []
+        for device, dark in VIEWS:
+            page = self.open(device=device, dark=dark)
+            self.visit(page, '/')
+            page.locator('#keywords').fill('coll')
+            page.wait_for_selector('#searchbox-listbox [role=option]')
+            page.locator('#keywords').press('ArrowDown')
+            self.assertEqual(page.locator('#searchbox-listbox [aria-selected=true]').count(), 1)
+            self.assertEqual(page.locator('#searchbox-listbox [role=group] .searchbox-group-label').all_inner_texts(),
+                             ['QUESTIONS', 'TAGS', 'PEOPLE'])
+            failures += ['/ with search suggestions (%s%s):\n%s' % (device, ', dark' if dark else '', violation)
+                         for violation in self.axe(page)]
+        if failures:
+            self.fail('%d accessibility violations (WCAG 2.1 A/AA, axe-core):\n\n%s' % (
+                len(failures), '\n'.join(failures)))
 
     def test_administrator_pages(self):
         self.check_pages(self.admin, [self.question.get_absolute_url(), reverse('admin_index'),

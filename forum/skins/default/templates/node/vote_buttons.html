@@ -1,12 +1,13 @@
 {% load i18n %}
-
 <a id="post-{{ post.id }}-upvote" title="{% trans "I like this post (click again to cancel)" %}"
-    class="ajax-command post-vote up {% if user_vote == "up" %} on{% endif %}"
-     href="{% url "vote_post" id=post.id vote_type='up' %}" rel="nofollow"> </a>
+    class="ajax-command post-vote up {% if user_vote == "up" %} on{% endif %}" role="button"
+    aria-label="{% trans "Vote up" %}" aria-pressed="{% if user_vote == "up" %}true{% else %}false{% endif %}"
+     href="{% url "vote_post" id=post.id vote_type='up' %}" rel="nofollow"></a>
 <div id="post-{{ post.id }}-score" class="post-score"
-    title="{% trans "current number of votes" %}">
+    title="{% trans "current number of votes" %}" aria-live="polite">
     {{ post.score }}
 </div>
 <a id="post-{{ post.id }}-downvote" title="{% trans "I dont like this post (click again to cancel)" %}"
-    class="ajax-command post-vote down{% if user_vote == "down" %} on{% endif %}"
-     href="{% url "vote_post" id=post.id vote_type='down' %}" rel="nofollow"> </a>
+    class="ajax-command post-vote down{% if user_vote == "down" %} on{% endif %}" role="button"
+    aria-label="{% trans "Vote down" %}" aria-pressed="{% if user_vote == "down" %}true{% else %}false{% endif %}"
+     href="{% url "vote_post" id=post.id vote_type='down' %}" rel="nofollow"></a>

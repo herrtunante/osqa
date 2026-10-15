@@ -18,6 +18,7 @@ from forum import settings
 from django.template.defaulttags import url as default_url
 from forum import skins
 from forum.utils import html
+from forum.utils import static_files
 from .extra_filters import decorated_int
 from django.urls import reverse
 
@@ -96,11 +97,13 @@ def get_accept_rate(user):
     else:
         freeze = False
 
-    # We get the number of all user's answers.
-    total_answers_count = Answer.objects.filter(author=user).count()
-
-    # We get the number of the user's accepted answers.
-    accepted_answers_count = Answer.objects.filter(author=user, state_string__contains="(accepted)").count()
+    # The number of all the user's answers and of the accepted ones, in one
+    # query kept in the query cache.
+    from django.db.models import Count, Q
+    counts = Answer.objects.filter(author=user).cached_aggregate(
+        total=Count('id'), accepted=Count('id', filter=Q(state_string__contains="(accepted)")))
+    total_answers_count = counts['total'] or 0
+    accepted_answers_count = counts['accepted'] or 0
 
     # In order to represent the accept rate in percentages we divide the number of the accepted answers to the
     # total answers count and make a hundred multiplication.
@@ -173,19 +176,25 @@ def diff_date(date, limen=2):
     else:
         return ngettext('%(sec)d ' + _("sec ago"), '%(sec)d ' + _("secs ago"), diff.seconds) % {'sec':diff.seconds}
 
+_media_urls = {}
+
+
 @register.simple_tag
 def media(url):
-    url = skins.find_media_source(url)
-    if url:
-        # Create the URL prefix.
-        url_prefix = settings.FORCE_SCRIPT_NAME + '/m/'
-
-        # Make sure any duplicate forward slashes are replaced with a single
-        # forward slash.
-        url_prefix = re.sub("/+", "/", url_prefix)
-
-        url = url_prefix + url
-        return url
+    """URL of a skin media file, with its version token (?v=<content hash>) so
+    it can be cached for a year (see forum.utils.static_files). Worked out
+    once per file and process (on every call with DEBUG on)."""
+    from django.conf import settings as django_settings
+    known = _media_urls.get(url)
+    if known is not None and not django_settings.DEBUG:
+        return known
+    source = skins.find_media_source(url)
+    if source:
+        # Create the URL prefix, with duplicate forward slashes replaced by one.
+        url_prefix = re.sub("/+", "/", settings.FORCE_SCRIPT_NAME + '/m/')
+        result = static_files.versioned(url_prefix + source, os.path.join(skins.SKINS_FOLDER, source))
+        _media_urls[url] = result
+        return result
 
 @register.simple_tag
 def get_tag_font_size(tag):
@@ -230,10 +239,10 @@ class BlockMediaUrlNode(template.Node):
         for item in self.items:
             url += item.render(context)
 
-        url = skins.find_media_source(url)
-        url = prefix + url
-        out = url
-        return out.replace(' ', '')
+        url = skins.find_media_source(url.replace(' ', ''))
+        if not url:
+            return ''
+        return static_files.versioned(prefix + url, os.path.join(skins.SKINS_FOLDER, url))
 
 @register.tag(name='blockmedia')
 def blockmedia(parser, token):

@@ -10,8 +10,9 @@
 {% endfor %}
 {% if menu|length %}
     <span class="action-link-separator">|</span>
-    <span id="node-{{ post.id }}-menu" class="context-menu">
-        <span id="node-{{ post.id }}-menu-trigger" class="action-link context-menu-trigger" role="button" tabindex="0" aria-haspopup="true">{% trans "more" %}</span>
+    <span id="node-{{ post.id }}-menu" class="context-menu post-menu">
+        <button type="button" id="node-{{ post.id }}-menu-trigger" class="action-link context-menu-trigger plain-button"
+            aria-expanded="false" aria-controls="node-{{ post.id }}-menu-dropdown">{% trans "more" %}</button>
         <ul id="node-{{ post.id }}-menu-dropdown" class="context-menu-dropdown">
             {% for item in menu %}
             <li class="item"><a rel="nofollow" class="{{ item.classes }}" href="{{ item.url }}" title="{{ item.title }}" >{{ item.text }}</a></li>

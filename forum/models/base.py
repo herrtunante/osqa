@@ -5,6 +5,7 @@ try:
 except:
     from md5 import new as md5
 from urllib.parse import quote_plus, urlencode
+from django.core.exceptions import EmptyResultSet
 from django.db import models, IntegrityError, connection, transaction
 from urllib.parse import quote as django_urlquote
 from django.utils.html import strip_tags
@@ -27,6 +28,29 @@ if not hasattr(cache, 'get_many'):
     pass
 
 class CachedQuerySet(models.query.QuerySet):
+
+    def prefetch_cached(self, fks=(), counts=()):
+        """When the rows are loaded, fill their foreign keys `fks` from the
+        object cache and their DenormalizedField `counts` in one grouped query
+        each (see prefetch_cached_fk / prefetch_denormalized). Kept by slicing,
+        so a paginated list loads them for the shown page only."""
+        clone = self._chain()
+        clone._osqa_prefetch = (tuple(fks), tuple(counts))
+        return clone
+
+    def _clone(self):
+        clone = super(CachedQuerySet, self)._clone()
+        clone._osqa_prefetch = getattr(self, '_osqa_prefetch', None)
+        return clone
+
+    def _fetch_all(self):
+        fetching = self._result_cache is None
+        super(CachedQuerySet, self)._fetch_all()
+        spec = getattr(self, '_osqa_prefetch', None)
+        if fetching and spec and self._result_cache and isinstance(self._result_cache[0], models.Model):
+            fks, counts = spec
+            prefetch_cached_fk(self._result_cache, *fks)
+            prefetch_denormalized(self._result_cache, *counts)
 
     def obj_from_datadict(self, datadict):
         obj = self.model()
@@ -91,13 +115,29 @@ class CachedQuerySet(models.query.QuerySet):
         return None
 
     def count(self):
-        cache_key = self.model._generate_cache_key("CNT:%s" % self._get_query_hash())
+        try:
+            cache_key = self.model._generate_cache_key("CNT:%s" % self._get_query_hash())
+        except EmptyResultSet:
+            return 0  # e.g. .none() or id__in=[]: the query can't even be written out
         result = self._fetch_from_query_cache(cache_key)
 
         if result is not None:
             return result
 
         result = super(CachedQuerySet, self).count()
+        cache.set(cache_key, (datetime.datetime.now(), result), 60 * 60)
+        return result
+
+    def cached_aggregate(self, **aggregates):
+        """aggregate(**aggregates), kept in the query cache like count()."""
+        signature = md5(repr(sorted(aggregates.items())).encode('utf-8')).hexdigest()
+        cache_key = self.model._generate_cache_key("AGG:%s:%s" % (self._get_query_hash(), signature))
+        result = self._fetch_from_query_cache(cache_key)
+
+        if result is not None:
+            return result
+
+        result = self.aggregate(**aggregates)
         cache.set(cache_key, (datetime.datetime.now(), result), 60 * 60)
         return result
 
@@ -155,6 +195,110 @@ class DenormalizedField(object):
 
         cls.add_to_class(name, property(getter))
         cls.add_to_class("reset_%s_cache" % name, reset_cache)
+        setattr(cls, '_denormalized_%s' % name, self)
+
+    def prefetch(self, instances, name):
+        """Give every instance its count with at most one grouped query.
+
+        Uses the same query cache entries as the getter (one key per
+        instance's count query, checked against the related model's
+        invalidation time stamp), so a warm cache needs no query at all and
+        what is computed here is what the getter would have stored.
+        """
+        dict_name = '_%s_dencache_' % name
+        todo = [i for i in instances if i.id and i.__dict__.get(dict_name, None) is None]
+        if not todo:
+            return
+
+        args, kwargs = self.filter
+        querysets = [(i, getattr(i, self.manager).filter(*args, **kwargs)) for i in todo]
+        model = querysets[0][1].model
+        keys = dict((i.id, model._generate_cache_key("CNT:%s" % qs._get_query_hash())) for i, qs in querysets)
+        invalidation_key = model._get_cache_query_invalidation_key()
+        cached = cache.get_many([invalidation_key] + list(keys.values()))
+
+        missing = []
+        if invalidation_key not in cached:
+            model._set_query_cache_invalidation_timestamp()
+            missing = todo
+        else:
+            for inst in todo:
+                hit = cached.get(keys[inst.id])
+                if hit and cached[invalidation_key] < hit[0]:
+                    inst.__dict__[dict_name] = hit[1]
+                else:
+                    missing.append(inst)
+
+        if missing:
+            relation = getattr(type(missing[0]), self.manager).field
+            counts = dict(relation.model._default_manager.filter(*args, **kwargs)
+                          .filter(**{'%s__in' % relation.name: [i.id for i in missing]})
+                          .order_by().values_list(relation.attname).annotate(n=models.Count('pk')))
+            now = datetime.datetime.now()
+            for inst in missing:
+                inst.__dict__[dict_name] = counts.get(inst.id, 0)
+            cache.set_many(dict((keys[i.id], (now, i.__dict__[dict_name])) for i in missing), 60 * 60)
+
+
+def prefetch_denormalized(instances, *names):
+    """Load the DenormalizedField counts `names` for a list of instances of one
+    model in one query per name (instead of one per instance and name)."""
+    instances = [i for i in instances if i is not None]
+    if not instances:
+        return
+    for name in names:
+        getattr(type(instances[0]), '_denormalized_%s' % name).prefetch(instances, name)
+
+
+def load_cached(model, pks):
+    """{pk: object} for the given primary keys, as model.objects.get(pk=...)
+    would return them one by one (from the object cache, else from the
+    database, then cached), with one cache round trip and at most one query.
+    Missing rows are left out."""
+    loaded = {}
+    pks = [pk for pk in pks if pk is not None]
+    if not pks:
+        return loaded
+    if issubclass(model, BaseModel):
+        keys = dict((model.infer_cache_key({'pk': pk}), pk) for pk in pks)
+        keys.pop(None, None)
+        queryset = model._base_manager.get_queryset()
+        for key, data in cache.get_many(list(keys)).items():
+            obj = queryset.obj_from_datadict(data)
+            obj.reset_original_state()
+            loaded[keys[key]] = getattr(obj, 'leaf', obj) if hasattr(obj, 'node_type') else obj
+    missing = [pk for pk in pks if pk not in loaded]
+    if missing:
+        for obj in model._base_manager.filter(pk__in=missing):
+            if isinstance(obj, BaseModel):
+                obj.cache()
+            loaded[obj.pk] = getattr(obj, 'leaf', obj) if hasattr(obj, 'node_type') else obj
+    return loaded
+
+
+def prefetch_cached_fk(instances, *field_names):
+    """Fill the foreign keys `field_names` of `instances` (e.g. 'author') from
+    the object cache in one round trip, loading the ones not in it with one
+    query and caching them, as `instance.<field>` would one by one."""
+    instances = [i for i in instances if i is not None]
+    if not instances:
+        return
+    for field_name in field_names:
+        field = instances[0]._meta.get_field(field_name)
+        model = field.related_model
+        pending = {}
+        for inst in instances:
+            pk = getattr(inst, field.attname)
+            if pk is not None and not field.is_cached(inst):
+                pending.setdefault(pk, []).append(inst)
+        if not pending:
+            continue
+
+        loaded = load_cached(model, pending)
+        for pk, objs in pending.items():
+            if pk in loaded:
+                for inst in objs:
+                    field.set_cached_value(inst, loaded[pk])
 
 
 class BaseMetaClass(type(models.Model)):

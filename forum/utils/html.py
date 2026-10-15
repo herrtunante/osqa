@@ -53,6 +53,18 @@ def sanitize_html(html):
     return nh3.clean(html, tags=set(ALLOWED_TAGS), attributes=ALLOWED_ATTRIBUTES,
                      attribute_filter=_filter_attribute, link_rel=None)
 
+IMG_TAG = re.compile(r'<img(?=[\s/>])', re.IGNORECASE)
+
+
+def lazy_images(html):
+    """Adds loading="lazy" decoding="async" to the images of sanitized HTML.
+
+    Only for HTML that went through sanitize_html, which never keeps a
+    loading or decoding attribute from user input, so these are the only ones.
+    """
+    return IMG_TAG.sub('<img loading="lazy" decoding="async"', html)
+
+
 def sanitize_profile_html(html, links=True):
     """Like sanitize_html, for a user's "about me": never images; links only
     when `links`, and then marked nofollow/ugc so they pass no search ranking."""

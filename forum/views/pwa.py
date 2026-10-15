@@ -3,9 +3,10 @@
 The service worker (template `pwa/sw.js`, caching rules documented there) is
 served from the site root so its scope covers every page; the browser checks
 it for updates on navigations, so it is never cached for long. Its static
-cache is named after a hash of the worker itself and of the skin media files,
-so each deploy that changes either gets a fresh cache and the old one is
-dropped when the new worker activates.
+cache is named after a hash of the worker itself and of the skin media files
+(the same content hashes as the ?v= tokens of media URLs), so each deploy that
+changes either gets a fresh cache and the old one is dropped when the new
+worker activates.
 """
 import hashlib
 import json
@@ -19,6 +20,7 @@ from django.views.decorators.cache import cache_control
 
 from forum import settings
 from forum.templatetags.extra_tags import media
+from forum.utils import static_files
 
 THEME_COLOR = '#2c5aa0'        # modern.css --brand
 THEME_COLOR_DARK = '#161b22'   # modern.css --surface in dark mode (the header)
@@ -111,7 +113,12 @@ def manifest(request):
 
 
 def version():
-    """Changes whenever the worker or any skin media file changes (computed once per process)."""
+    """Changes whenever the worker or any skin media file changes (computed once per process).
+
+    Made of the same content hashes as the ?v= tokens of {% media %} URLs
+    (forum.utils.static_files), so a deploy that changes a file changes both
+    its URL and the worker's cache name, and every server of a deploy agrees.
+    """
     global _version
     if _version is None:
         digest = hashlib.sha256(get_template('pwa/sw.js').template.source.encode())
@@ -120,9 +127,8 @@ def version():
             for name in sorted(files):
                 path = os.path.join(folder, name)
                 if os.sep + 'media' + os.sep in path:
-                    stat = os.stat(path)
-                    digest.update(('%s:%d:%d;' % (os.path.relpath(path, SKINS_ROOT), stat.st_size,
-                                                  int(stat.st_mtime))).encode())
+                    digest.update(('%s:%s;' % (os.path.relpath(path, SKINS_ROOT).replace(os.sep, '/'),
+                                               static_files.file_token(path))).encode())
         _version = digest.hexdigest()[:12]
     return _version
 
