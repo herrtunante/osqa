@@ -10,7 +10,6 @@ from forum.sitemap import OsqaSitemap, index as sitemap_index, sitemap_section_i
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.shortcuts import redirect
-from django.views.static import serve
 import logging
 
 # Django 1.7+: admin.autodiscover() is automatic, no longer needed
@@ -52,7 +51,7 @@ core_urls = [
     re_path(r'^m/django_admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_media'),
     re_path(r'^m/static/admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_static'),
     re_path(r'^m/(?P<skin>\w+)/media/(?P<path>.*)$', app.meta.media , name='osqa_media'),
-    re_path(r'^%s(?P<path>.*)$' % 'upfiles/', serve, {'document_root': os.path.join(APP_PATH, 'upfiles').replace('\\', '/')}, name='uploaded_file',),
+    re_path(r'^upfiles/(?P<path>.*)$', app.meta.uploaded_file, name='uploaded_file'),
     
     re_path(r'^%s$' % 'faq/', app.meta.static, {'content': settings.FAQ_PAGE_TEXT, 'title': _lazy('FAQ')}, name='faq'),
     re_path(r'^%s$' % 'about/', app.meta.static, {'content': settings.ABOUT_PAGE_TEXT, 'title': _lazy('About')}, name='about'),

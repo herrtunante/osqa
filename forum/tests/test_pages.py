@@ -69,7 +69,7 @@ class LayoutTest(OSQATestCase):
         self.assertContains(response, '/media/vendor/jquery-3.7.1.min.js')
         self.assertNotContains(response, 'ajax.googleapis.com')
         self.assertRegex(response.content.decode(), r'<meta name="csrf-token" content="\w{32,}" />')
-        for path in ('/m/default/media/vendor/jquery-3.7.1.min.js', '/m/default/media/js/osqa.compat.js',
+        for path in ('/m/default/media/vendor/jquery-3.7.1.min.js',
                      '/m/default/media/js/osqa.csrf.js', '/m/default/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js'):
             with self.subTest(path=path):
                 asset = self.client.get(path)

@@ -4,7 +4,7 @@ from itertools import groupby
 
 import django.contrib.admin
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.views.static import serve
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -45,6 +45,21 @@ def media(request, skin, path):
     response = serve(request, "%s/media/%s" % (skin, path),
                  document_root=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skins').replace('\\', '/'))
     return _with_charset(response)
+
+
+BUNDLED_UPFILES_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'upfiles')
+
+
+def uploaded_file(request, path):
+    """Files uploaded in the editor and the site logo, from the folder the
+    UPFILES_FOLDER setting names; files shipped with OSQA (the default logo)
+    come from forum/upfiles when that folder is somewhere else."""
+    try:
+        return serve(request, path, document_root=str(settings.UPFILES_FOLDER))
+    except Http404:
+        if os.path.realpath(str(settings.UPFILES_FOLDER)) == os.path.realpath(BUNDLED_UPFILES_ROOT):
+            raise
+        return serve(request, path, document_root=BUNDLED_UPFILES_ROOT)
 
 
 def django_admin_media(request, path):

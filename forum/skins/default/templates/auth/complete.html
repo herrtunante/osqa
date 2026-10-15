@@ -76,7 +76,7 @@
 
             {% if form1.password1 %}
                 <div class="form-row-vertical margin-bottom">
-                    <label for="password1_id">{{ form1.password1.label }}</label>
+                    <label for="{{ form1.password1.id_for_label }}">{{ form1.password1.label }}</label>
                     {% if form1.password1.errors %}
                         <p class="error">{{ form1.password1.errors|join:", " }}</p>
                     {% endif %}
@@ -84,7 +84,7 @@
                     <p class="form-help">{{ form1.password1.help_text }}</p>
                 </div>
                 <div class="form-row-vertical margin-bottom">
-                    <label for="password2_id">{{ form1.password2.label }}</label>
+                    <label for="{{ form1.password2.id_for_label }}">{{ form1.password2.label }}</label>
                     {% if form1.password2.errors %} 
                         <p class="error">{{ form1.password2.errors|join:", " }}</p>
                     {% endif %}
@@ -93,7 +93,7 @@
             {% endif %}
             {% if form1.recaptcha %}
                 <div class="form-row-vertical margin-bottom">
-                <label for="recaptcha_id">{{ form1.recaptcha.label }}</label>
+                <label for="{{ form1.recaptcha.id_for_label }}">{{ form1.recaptcha.label }}</label>
                 {% if form1.recaptcha.errors %} 
                     <p class="error">{{ form1.recaptcha.errors|join:", " }}</p>
                 {% endif %}

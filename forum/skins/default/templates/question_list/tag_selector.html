@@ -4,7 +4,7 @@
 {% if show_interesting_tags %}
 {% if user_authenticated %}
 <div id="tagSelector" class="boxC">
-	<h3 class="subtitle">{% trans "Interesting tags" %}</h3>
+	<h3 class="subtitle" id="interestingTagsHeading">{% trans "Interesting tags" %}</h3>
     <div class="tags interesting marked-tags">
     {% for tag_name in interesting_tag_names %}
         {% spaceless %}
@@ -20,9 +20,9 @@
         {% endspaceless %}
     {% endfor %}
     </div>
-    <input id="interestingTagInput" autocomplete="off" type="text"/>
+    <input id="interestingTagInput" autocomplete="off" type="text" aria-labelledby="interestingTagsHeading"/>
     <input id="interestingTagAdd" type="submit" value="{% trans "Add" %}"/>
-	<h3 class="subtitle">{% trans "Ignored tags" %}</h3>
+	<h3 class="subtitle" id="ignoredTagsHeading">{% trans "Ignored tags" %}</h3>
     <div class="tags ignored marked-tags">
     {% for tag_name in ignored_tag_names %}
         {% spaceless %}
@@ -38,7 +38,7 @@
         {% endspaceless %}
     {% endfor %}
     </div>
-    <input id="ignoredTagInput" autocomplete="off" type="text"/>
+    <input id="ignoredTagInput" autocomplete="off" type="text" aria-labelledby="ignoredTagsHeading"/>
     <input id="ignoredTagAdd" type="submit" value="{% trans "Add" %}"/>
     {% comment %}
     <p id="hideIgnoredTagsControl">

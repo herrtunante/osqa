@@ -125,7 +125,7 @@ When querying nodes, use the manager methods to get the correct subclass:
 - Template loaders check: filesystem → app directories → module templates → skins
 - Django template engine with custom tags in `forum/templatetags/`; a custom `Node.render()` must return a string
 - The default skin is responsive: `media/style/modern.css` (CSS variables, flex layout, phone breakpoint at 640px) overrides the fixed-width legacy `style.css`; check new UI at 390px width as well as desktop, and in dark mode (colours come from the variables, redefined under `prefers-color-scheme: dark`)
-- JavaScript runs on jQuery 3.7 (self-hosted in `media/vendor/`): use `.on()` delegation, `.prop()` for checked/disabled and `.val()` for values; `media/js/osqa.compat.js` only shims the bundled minified plugins; tag/user suggestions use `$.fn.osqaAutocomplete` (`osqa.autocomplete.js`, jQuery UI) and charts `osqaTimeChart()` (`osqa.charts.js`, Flot 4)
+- JavaScript runs on jQuery 3.7 (self-hosted in `media/vendor/`): use `.on()` delegation, `.prop()` for checked/disabled and `.val()` for values; there is no compatibility shim (old APIs such as `$.handleError`, `.live()` or `$.browser` are gone, and `.bind()`/`$.trim()` are deprecated); uploads use `fetch` + `FormData` with the `X-CSRFToken` header and the JSON reply of `upload` (`{url}` or `{error}` with 400/403/413), as in `wmd/wmd.js` and `osqa.paste.js`; tag/user suggestions use `$.fn.osqaAutocomplete` (`osqa.autocomplete.js`, jQuery UI) and charts `osqaTimeChart()` (`osqa.charts.js`, Flot 4)
 
 ### Content features
 

@@ -717,10 +717,10 @@ function pickedTags(){
     };
 
     var setupTagDeleteEvents = function(obj,tag_store,tagname,reason,send_ajax){
-        obj.unbind('mouseover').bind('mouseover', function(){
+        obj.off('mouseover').on('mouseover', function(){
             $(this).attr('src', mediaUrl('media/images/close-small-hover.png'));
         });
-        obj.unbind('mouseout').bind('mouseout', function(){
+        obj.off('mouseout').on('mouseout', function(){
             $(this).attr('src', mediaUrl('media/images/close-small-dark.png'));
         });
         obj.click( function(){
@@ -807,7 +807,7 @@ function pickedTags(){
     };
 
     var setupHideIgnoredQuestionsControl = function(){
-        $('#hideIgnoredTagsCb').unbind('click').click(function(){
+        $('#hideIgnoredTagsCb').off('click').on('click', function(){
             $.ajax({
                         type: 'POST',
                         dataType: 'json',
@@ -1156,7 +1156,7 @@ var notify = function() {
  * Dual licensed under the MIT and GPL licenses.
  * http://benalman.com/about/license/
  */
-(function($,c,b){$.map("click dblclick mousemove mousedown mouseup mouseover mouseout change select submit keydown keypress keyup".split(" "),function(d){a(d)});a("focusin","focus"+b);a("focusout","blur"+b);$.addOutsideEvent=a;function a(g,e){e=e||g+b;var d=$(),h=g+"."+e+"-special-event";$.event.special[e]={setup:function(){d=d.add(this);if(d.length===1){$(c).bind(h,f)}},teardown:function(){d=d.not(this);if(d.length===0){$(c).unbind(h)}},add:function(i){var j=i.handler;i.handler=function(l,k){l.target=k;j.apply(this,arguments)}}};function f(i){$(d).each(function(){var j=$(this);if(this!==i.target&&!j.has(i.target).length){j.triggerHandler(e,[i.target])}})}}})(jQuery,document,"outside");
+(function($,c,b){$.map("click dblclick mousemove mousedown mouseup mouseover mouseout change select submit keydown keypress keyup".split(" "),function(d){a(d)});a("focusin","focus"+b);a("focusout","blur"+b);$.addOutsideEvent=a;function a(g,e){e=e||g+b;var d=$(),h=g+"."+e+"-special-event";$.event.special[e]={setup:function(){d=d.add(this);if(d.length===1){$(c).on(h,f)}},teardown:function(){d=d.not(this);if(d.length===0){$(c).off(h)}},add:function(i){var j=i.handler;i.handler=function(l,k){l.target=k;j.apply(this,arguments)}}};function f(i){$(d).each(function(){var j=$(this);if(this!==i.target&&!j.has(i.target).length){j.triggerHandler(e,[i.target])}})}}})(jQuery,document,"outside");
 
 $(document).ready( function(){
     pickedTags().init();

@@ -6,6 +6,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Test-only third-party code (axe-core for the accessibility tests)
+e2e/vendor/
+
 # Git / CI / IDE
 .git/
 .github/

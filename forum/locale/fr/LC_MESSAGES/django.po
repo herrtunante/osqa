@@ -1007,6 +1007,9 @@ msgstr "contexte"
 msgid "default"
 msgstr "par défaut"
 
+msgid "Current image"
+msgstr "Image actuelle"
+
 msgid "Change this:"
 msgstr "Modifier ceci :"
 

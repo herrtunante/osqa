@@ -45,8 +45,8 @@
     {% endif %}
     {% if request.user.is_anonymous %}
         <div class="signin-validate-email">
-            <input type="checkbox" checked="checked" id="validate_email" />
-            {% trans "Validate my email after I login." %}
+            <label><input type="checkbox" checked="checked" id="validate_email" />
+            {% trans "Validate my email after I login." %}</label>
         </div>
     {% endif %}
     <div id="bigicon_providers">
@@ -55,7 +55,7 @@
                 <div class="inner">
                     {% if provider.type == "DIRECT" %}
                         <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
-                            <img src="{% media provider.icon %}" />
+                            <img src="{% media provider.icon %}" alt="{{ provider.human_name }}" />
                         </a>
                     {% endif %}
                     {% if provider.type == "CUSTOM" %}
@@ -74,7 +74,7 @@
                 <div class="inner">
                     {% if provider.type == "DIRECT" %}
                         <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
-                            <img src="{% media provider.icon %}" />
+                            <img src="{% media provider.icon %}" alt="{{ provider.human_name }}" />
                         </a>
                     {% endif %}
                     {% if provider.type == "CUSTOM" %}

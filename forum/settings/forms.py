@@ -2,6 +2,7 @@ import os
 from django import forms
 from forum.settings.base import Setting
 from django.utils.translation import gettext as _
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
@@ -83,11 +84,13 @@ class SettingsSetForm(forms.Form):
 
 class ImageFormWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
-        return """
-            <img src="%(value)s" /><br />
-            %(change)s: <input type="file" name="%(name)s" />
-            <input type="hidden" name="%(name)s_old" value="%(value)s" />
-            """ % {'name': name, 'value': value, 'change': _('Change this:')}
+        # The file input gets the field's id, so the setting's <label> names it.
+        return format_html("""
+            <img src="{value}" alt="{alt}" /><br />
+            {change} <input type="file" id="{id}" name="{name}" />
+            <input type="hidden" name="{name}_old" value="{value}" />
+            """, name=name, value=value or '', id=(attrs or {}).get('id') or 'id_%s' % name,
+                           alt=_('Current image'), change=_('Change this:'))
 
     def value_from_datadict(self, data, files, name):
         if name in files:

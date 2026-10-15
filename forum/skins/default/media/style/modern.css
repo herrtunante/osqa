@@ -2708,8 +2708,9 @@ h3.or_label::before, h3.or_label::after {
         --brand: #79b0ff;
         --brand-dark: #a8cbff;
         --brand-soft: #1a2a42;
-        --accent: #d9480f;
-        --accent-dark: #e8590c;
+        /* White text (the Ask button) needs 4.5:1 on these. */
+        --accent: #cf430c;
+        --accent-dark: #c2410c;
         --success: #3fb950;
         --success-soft: #11251a;
         --danger-soft: #3a1d1f;
@@ -3302,4 +3303,30 @@ ul.form-horizontal-rows .helptext { flex-basis: 100%; margin-left: 162px; color:
     ul.form-horizontal-rows label { flex-basis: 100%; }
     ul.form-horizontal-rows li input { max-width: none; }
     ul.form-horizontal-rows .helptext { margin-left: 0; }
+}
+
+/* ---- Accessibility (WCAG 2.1 AA, checked by e2e/test_accessibility.py) -- */
+
+/* Legacy style.css greys that are too light on white, or invisible in dark mode. */
+.paginator .text, .grey, .title-desc {
+    color: var(--muted);
+}
+
+.userinfo a, a.userinfo {
+    color: var(--brand);
+}
+
+.short-summary .votes, .short-summary .views {
+    color: var(--muted);
+}
+
+/* A name inside a line of grey text: bold, so it isn't told apart by colour alone. */
+.short-summary .userinfo a {
+    font-weight: 600;
+}
+
+/* Links inside sentences are underlined, so they don't rely on colour alone. */
+.tag-follow-help a, .email-settings-hint a, .email-settings-empty a, .email-help-link a, .inbox-note a,
+.subscription-settings-note a, .signin_form fieldset a, .notify a, .form-help a {
+    text-decoration: underline;
 }

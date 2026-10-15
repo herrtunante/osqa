@@ -139,29 +139,62 @@ class ImageUploadTest(OSQATestCase):
         settings.UPFILES_FOLDER.set_value(self.folder)
         self.addCleanup(setattr, settings.UPFILES_FOLDER, '_temp', None)
 
-    def upload(self, content, name):
+    def upload(self, content, name, status=200):
         from django.core.files.uploadedfile import SimpleUploadedFile
         response = self.client.post('/upload/', {'file-upload': SimpleUploadedFile(name, content)})
-        self.assertEqual(response['Content-Type'], 'application/xml')
-        return response.content.decode()
+        self.assertEqual(response.status_code, status)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        return response.json()
 
-    def test_image_is_stored(self):
+    def test_image_is_stored_and_served(self):
+        import os
         self.login(self.create_user('alice', reputation=500))
         reply = self.upload(self.PNG, 'screen shot.png')
-        self.assertIn('<file_url>/upfiles/screen_shot.png</file_url>', reply)
-        self.assertIn('<error><![CDATA[]]></error>', reply)
+        self.assertEqual(reply, {'url': '/upfiles/screen_shot.png'})
+        self.assertEqual(os.listdir(self.folder), ['screen_shot.png'])
+        # Served from the UPFILES_FOLDER setting, not a fixed folder.
+        served = self.client.get(reply['url'])
+        self.assertEqual(served.status_code, 200)
+        self.assertEqual(b''.join(served.streaming_content), self.PNG)
+
+    def test_bundled_logo_is_served_from_another_upload_folder(self):
+        served = self.client.get('/upfiles/logo.png')
+        self.assertEqual(served.status_code, 200)
+        served.close()
+        self.assertEqual(self.client.get('/upfiles/missing.png').status_code, 404)
 
     def test_content_must_be_an_image(self):
         self.login(self.create_user('alice', reputation=500))
-        reply = self.upload(b'<html><script>alert(1)</script></html>', 'evil.png')
-        self.assertIn('<file_url></file_url>', reply)
-        self.assertIn('allowed file types', reply)
+        reply = self.upload(b'<html><script>alert(1)</script></html>', 'evil.png', status=400)
+        self.assertNotIn('url', reply)
+        self.assertIn('allowed file types', reply['error'])
+
+    def test_extension_must_be_an_image_type(self):
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG, 'notes.html', status=400)
+        self.assertIn('allowed file types', reply['error'])
+
+    def test_too_big_is_refused(self):
+        import os
+        from forum import settings
+        settings.ALLOW_MAX_FILE_SIZE.set_value(0.0001)  # about 100 bytes
+        self.addCleanup(setattr, settings.ALLOW_MAX_FILE_SIZE, '_temp', None)
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG + b'\0' * 200, 'big.png', status=413)
+        self.assertIn('maximum upload file size', reply['error'])
+        self.assertEqual(os.listdir(self.folder), [])
 
     def test_low_reputation_is_refused(self):
         self.login(self.create_user('newbie', reputation=1))
-        reply = self.upload(self.PNG, 'a.png')
-        self.assertIn('<file_url></file_url>', reply)
-        self.assertIn('reputation', reply)
+        reply = self.upload(self.PNG, 'a.png', status=403)
+        self.assertNotIn('url', reply)
+        self.assertIn('reputation', reply['error'])
+
+    def test_anonymous_is_refused(self):
+        self.assertIn('reputation', self.upload(self.PNG, 'a.png', status=403)['error'])
+
+    def test_only_post(self):
+        self.assertEqual(self.client.get('/upload/').status_code, 405)
 
     def test_editor_knows_the_upload_url(self):
         self.assertContains(self.client.get('/questions/ask/'), 'upload_url: "/upload/"')

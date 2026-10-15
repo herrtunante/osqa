@@ -1,0 +1,1 @@
+`axe.min.js` is [axe-core](https://github.com/dequelabs/axe-core) 4.10.2 (`npm pack axe-core@4.10.2`), © Deque Systems, licensed under the Mozilla Public License 2.0 (`axe-core-LICENSE.txt`). Only the browser tests use it (`test_accessibility.py`); it is never served to visitors.
