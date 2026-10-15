@@ -5,153 +5,200 @@
 {% load extra_filters %}
 {% load humanize %}
 {% load question_list_tags %}
-		{% block usercontent %}
-    <div id="questionsBlock" class="userSection">
-        <a name="questions"></a>
-        {% spaceless %}
-            <h2>
-                {% blocktrans count questions.paginator.count as counter %}
-                <span class="count">{{counter}}</span> Question
-                {% plural %}
-                <span class="count">{{counter}}</span> Questions
-                {% endblocktrans %}
-                <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');"
-                    href="{{ view_user.get_asked_url }}?type=rss" title="{% trans "subscribe to question RSS feed" %}"></a>
-            </h2>
-        {% endspaceless %}
-        <div id="questionTabs">{{ questions.paginator.sort_tabs }}</div>
-		<div id="listA" class="user-stats-table">
-		    {% for question in questions.paginator.page %}
-		        {% question_list_item question favorite_count=yes signature_type=badges %}
-		    {% endfor %}
-		</div>
-		<br clear="all"/>
-		<div class="pager">{{ questions.paginator.page_numbers }}</div>
-		<br clear="all"/>
-    </div>
+{% load node_tags %}
+{% load user_tags %}
+{% block usercontent %}
+<div class="profile-overview">
+    <ul class="profile-stats" aria-label="{% trans "Statistics" %}">
+        <li class="profile-stat">
+            <a class="profile-stat-link" href="{% url "user_reputation" view_user.id view_user.username|slugify %}">
+                <span class="profile-stat-value">{{ view_user.reputation|intcomma }}</span>
+                <span class="profile-stat-label">{% trans "reputation" %}</span>
+            </a>
+        </li>
+        <li class="profile-stat">
+            <a class="profile-stat-link" href="#questionsBlock">
+                <span class="profile-stat-value">{{ questions.paginator.count|intcomma }}</span>
+                <span class="profile-stat-label">{% trans "questions" %}</span>
+            </a>
+        </li>
+        <li class="profile-stat">
+            <a class="profile-stat-link" href="#answersBlock">
+                <span class="profile-stat-value">{{ answers.paginator.count|intcomma }}</span>
+                <span class="profile-stat-label">{% trans "answers" %}</span>
+            </a>
+        </li>
+        <li class="profile-stat profile-stat-accepted">
+            <span class="profile-stat-value">{{ accepted_count|intcomma }}</span>
+            <span class="profile-stat-label">{% trans "accepted answers" %}</span>
+        </li>
+        <li class="profile-stat profile-stat-votes">
+            <span class="profile-stat-value">{{ total_votes|intcomma }}</span>
+            <span class="profile-stat-label">{% trans "votes cast" %}</span>
+            <span class="profile-stat-detail">
+                <span title="{% trans "user has voted up this many times" %}"><span aria-hidden="true">&#9650;</span><span class="visually-hidden">{% trans "upvote" %}</span> <span class="vote-count">{{ up_votes|intcomma }}</span></span>
+                <span title="{% trans "user voted down this many times" %}"><span aria-hidden="true">&#9660;</span><span class="visually-hidden">{% trans "downvote" %}</span> <span class="vote-count">{{ down_votes|intcomma }}</span></span>
+            </span>
+        </li>
+    </ul>
 
-    <div id="answersBlock" class="userSection">
-        <a name="answers"></a>
-        {% spaceless %}
-            <h2>
-                {% blocktrans count answers.paginator.count as counter %}
-                <span class="count">{{counter}}</span> Answer
-                {% plural %}
-                <span class="count">{{counter}}</span> Answers
-                {% endblocktrans %}
-            </h2>
-        {% endspaceless %}
-        <div id="answerTabs">{{ answers.paginator.sort_tabs }}</div>
-        <div class="user-stats-table">
-            {% for answer in answers.paginator.page %}
-            <div class="answer-summary">
-                <a title="{{answer.question.title}}"
-                    href="{{ answer.get_absolute_url }}">
-                    <span class="{% if answer.nis.accepted %}answered-accepted {% endif %} answer-votes" 
-						title="{% blocktrans with answer.score as vote_count %}the answer has been voted for {{ vote_count }} times{% endblocktrans %} {% if answer.nis.accepted %}{% trans "this answer has been selected as correct" %}{%endif%}">
-                        {{ answer.score }}
-                    </span>
-                </a>
-                <div class="answer-link">
+    <div class="profile-columns">
+        <div class="profile-main">
+            <section class="profile-section profile-activity" aria-labelledby="profile-activity-title">
+                <div class="profile-section-head">
+                    <h2 id="profile-activity-title">{% trans "Recent activity" %}</h2>
+                    {% if recent_activity %}
+                    <a class="profile-section-more" href="{% url "user_recent" view_user.id view_user.username|slugify %}">{% trans "All activity" %}</a>
+                    {% endif %}
+                </div>
+                {% if recent_activity %}
+                <ol class="activity-list">
+                    {% for act in recent_activity %}
+                    <li>{% activity_item act request.user %}</li>
+                    {% endfor %}
+                </ol>
+                {% else %}
+                <p class="profile-empty">{% trans "No activity yet." %}</p>
+                {% endif %}
+            </section>
+
+            <section id="questionsBlock" class="profile-section userSection" aria-labelledby="profile-questions-title">
+                <a name="questions"></a>
+                <div class="profile-section-head">
                     {% spaceless %}
-                    <a href="{{ answer.get_absolute_url }}">{{answer.headline}}</a>
+                    <h2 id="profile-questions-title">
+                        {% blocktrans count questions.paginator.count as counter %}
+                        <span class="count">{{counter}}</span> Question
+                        {% plural %}
+                        <span class="count">{{counter}}</span> Questions
+                        {% endblocktrans %}
+                    </h2>
+                    {% endspaceless %}
+                    <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');"
+                        href="{{ view_user.get_asked_url }}?type=rss" title="{% trans "subscribe to question RSS feed" %}"
+                        aria-label="{% trans "subscribe to question RSS feed" %}"></a>
+                </div>
+                {% if questions.paginator.count %}
+                <div id="questionTabs" class="profile-sort">{{ questions.paginator.sort_tabs }}</div>
+                <div id="listA" class="user-stats-table">
+                    {% for question in questions.paginator.page %}
+                        {% question_list_item question favorite_count=yes signature_type=badges %}
+                    {% endfor %}
+                </div>
+                <div class="pager">{{ questions.paginator.page_numbers }}</div>
+                {% else %}
+                <div class="profile-empty">
+                    {% if request.user == view_user %}
+                    <p>{% trans "You haven't asked any questions yet." %}</p>
+                    <a class="button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+                    {% else %}
+                    <p>{% trans "No questions yet." %}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </section>
+
+            <section id="answersBlock" class="profile-section userSection" aria-labelledby="profile-answers-title">
+                <a name="answers"></a>
+                <div class="profile-section-head">
+                    {% spaceless %}
+                    <h2 id="profile-answers-title">
+                        {% blocktrans count answers.paginator.count as counter %}
+                        <span class="count">{{counter}}</span> Answer
+                        {% plural %}
+                        <span class="count">{{counter}}</span> Answers
+                        {% endblocktrans %}
+                    </h2>
                     {% endspaceless %}
                 </div>
-            </div>
-            {% endfor %}
+                {% if answers.paginator.count %}
+                <div id="answerTabs" class="profile-sort">{{ answers.paginator.sort_tabs }}</div>
+                <ul class="user-stats-table profile-answers">
+                    {% for answer in answers.paginator.page %}
+                    <li class="answer-summary{% if answer.nis.accepted %} is-accepted{% endif %}">
+                        <span class="{% if answer.nis.accepted %}answered-accepted {% endif %}answer-votes"
+                            title="{% blocktrans with answer.score as vote_count %}the answer has been voted for {{ vote_count }} times{% endblocktrans %}{% if answer.nis.accepted %} {% trans "this answer has been selected as correct" %}{% endif %}">
+                            {{ answer.score }}<span class="visually-hidden"> {% trans "votes" %}{% if answer.nis.accepted %}, {% trans "accepted" %}{% endif %}</span>
+                        </span>
+                        <a class="answer-link" href="{{ answer.get_absolute_url }}">{{ answer.headline }}</a>
+                        <span class="answer-when">{% post_time answer.added_at %}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="pager">{{ answers.paginator.page_numbers }}</div>
+                {% else %}
+                <div class="profile-empty">
+                    {% if request.user == view_user %}
+                    <p>{% trans "You haven't answered any questions yet." %}</p>
+                    <a href="{% url "unanswered" %}">{% trans "Find unanswered questions" %}</a>
+                    {% else %}
+                    <p>{% trans "No answers yet." %}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </section>
         </div>
-        <br clear="all"/>
-		<div class="pager">{{ answers.paginator.page_numbers }}</div>
-        <br clear="all"/>
+
+        <aside class="profile-side">
+            <section class="profile-section profile-tags" aria-labelledby="profile-tags-title">
+                <a name="tags"></a>
+                <div class="profile-section-head">
+                    {% spaceless %}
+                    <h2 id="profile-tags-title">
+                        {% blocktrans count user_tags|length as counter %}
+                            <span class="count">{{counter}}</span> Tag
+                        {% plural %}
+                            <span class="count">{{counter}}</span> Tags
+                        {% endblocktrans %}
+                    </h2>
+                    {% endspaceless %}
+                </div>
+                {% if user_tags %}
+                <ul class="profile-tag-list tags">
+                    {% for tag in user_tags %}
+                    <li><a rel="tag" class="post-tag tag-link-{{ tag.name }}"
+                        title="{% blocktrans with tag.name as tag_name %}see other questions with {{view_user}}'s contributions tagged '{{ tag_name }}' {% endblocktrans %}"
+                        href="{% url "tag_questions" tag|urlencode %}?user={{view_user.username}}">{{ tag.name }}</a><span class="tag-number"><span aria-hidden="true">&#215;</span><span class="visually-hidden">,</span> {{ tag.user_tag_usage_count|intcomma }}</span></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="profile-empty">{% trans "No tags yet." %}</p>
+                {% endif %}
+            </section>
+
+            <section class="profile-section profile-badges" aria-labelledby="profile-badges-title">
+                <a name="badges"></a>
+                <div class="profile-section-head">
+                    {% spaceless %}
+                    <h2 id="profile-badges-title">
+                        {% blocktrans count total_awards as counter %}
+                        <span class="count">{{counter}}</span> Badge
+                        {% plural %}
+                        <span class="count">{{counter}}</span> Badges
+                        {% endblocktrans %}
+                    </h2>
+                    {% endspaceless %}
+                </div>
+                {% if awards %}
+                <ul class="profile-badge-grid">
+                    {% for award, count in awards %}
+                    <li>
+                        <a href="{% url "badges" %}{{award.id}}/{{award.name|slugify}}" title="{{ award.description }}" class="medal">
+                            <span class="badge{{ award.type }}" aria-hidden="true">&#9679;</span> {{ award.name }}
+                        </a>
+                        {% if count != 1 %}<span class="tag-number"><span aria-hidden="true">&#215;</span><span class="visually-hidden">,</span> {{ count|intcomma }}</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="profile-empty">
+                    <p>{% trans "No badges yet." %}</p>
+                    <a href="{% url "badges" %}">{% trans "See the badges you can earn" %}</a>
+                </div>
+                {% endif %}
+            </section>
+        </aside>
     </div>
-
-
-        <a name="votes"></a>
-        {% spaceless %}
-            <h2>
-                {% blocktrans count total_votes as cnt %}
-                    <span class="count">{{cnt}}</span> Vote
-                {% plural %}
-                    <span class="count">{{cnt}}</span> Votes
-                {% endblocktrans %}
-            </h2>
-        {% endspaceless %}
-        <div class="user-stats-table">
-            <table>
-                <tr>
-                    <td width="60">
-                        <img style="cursor: default;" src="{% media  "/media/images/vote-arrow-up-on.png" %}" alt="{% trans "thumb up" %}" />
-                            <span title="{% trans "user has voted up this many times" %}" class="vote-count">{{up_votes}}</span>
-
-                    </td>
-                    <td width="60">
-                        <img style="cursor: default;" src="{% media  "/media/images/vote-arrow-down-on.png" %}" alt="{% trans "thumb down" %}" />
-                            <span title="{% trans "user voted down this many times" %}" class="vote-count">{{down_votes}}</span>
-
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <a name="tags"></a>
-        {% spaceless %}
-            <h2>
-                {% blocktrans count user_tags|length as counter %}
-                    <span class="count">{{counter}}</span> Tag
-                {% plural %}
-                    <span class="count">{{counter}}</span> Tags
-                {% endblocktrans %}
-            </h2>
-        {% endspaceless %}
-        <div class="user-stats-table">
-            <table class="tags">
-                <tr style="vertical-align: top;">
-                    <td valign="top" style="padding-right: 20px;">
-                        {% for tag in user_tags%}
-                        <a rel="tag" 
-                            class="tag-link-{{ tag.name }}"
-							title="{% blocktrans with tag.name as tag_name %}see other questions with {{view_user}}'s contributions tagged '{{ tag_name }}' {% endblocktrans %}"
-							href="{% url "tag_questions" tag|urlencode %}?user={{view_user.username}}">{{tag.name}}</a>
-                        <span class="tag-number">&#215; {{ tag.user_tag_usage_count|intcomma }}</span><br/>
-                            {% if forloop.counter|divisibleby:"10" %}
-                                </td>
-                                <td width="180"  valign="top">
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <a name="badges"></a>
-        {% spaceless %}
-        <h2>
-            {% blocktrans count total_awards as counter %}
-            <span class="count">{{counter}}</span> Badge
-            {% plural %}
-            <span class="count">{{counter}}</span> Badges
-            {% endblocktrans %}
-        </h2>
-        {% endspaceless %}
-        <div class="user-stats-table">
-            <table>
-                <tr style="vertical-align: top;">
-                    <td style="line-height:35px; padding-right: 20px;">
-                        {% for award, count in awards %}
-                            {% spaceless %}
-                            <a href="{% url "badges" %}{{award.id}}/{{award.name|slugify}}" title="{{ award.description }}" class="medal">
-                                <span class="badge{{ award.type }}">&#9679;</span>&nbsp;{{ award.name }}
-                            </a>
-                            {% if count != 1 %}
-                                <span class="tag-number"> &#215; {{ count|intcomma }}</span>
-                            {% endif %}<br/>
-                            {% if forloop.counter|divisibleby:"6" %}
-                                </td>
-                                <td width="180" style="line-height:35px">
-                            {% endif %}
-                            {% endspaceless %}
-                        {% endfor %}
-                    </td>
-                </tr>
-            </table>
-        </div>
+</div>
 {% endblock %}
 <!-- end user_stats.html -->

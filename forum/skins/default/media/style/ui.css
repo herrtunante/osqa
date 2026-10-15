@@ -1,0 +1,146 @@
+/*
+ * Cross-cutting UI rules for the default skin: the "Skip to content" link,
+ * reduced motion, the command dialogs' focus, and the print style sheet.
+ * Loaded after modern.css and the page style sheets (e2e/test_ui_robustness.py
+ * checks these rules).
+ */
+
+/* ---- Skip link: the first thing Tab reaches, shown only while focused -- */
+
+.skip-link {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 10000;
+    padding: 10px 16px;
+    border-radius: var(--radius, 8px);
+    background: var(--surface, #fff);
+    color: var(--brand, #2c5aa0);
+    font-weight: 600;
+    text-decoration: underline;
+    box-shadow: var(--shadow);
+    transform: translateY(-200%);
+}
+
+.skip-link:focus, .skip-link:focus-visible {
+    transform: none;
+    outline: 2px solid var(--brand, #2c5aa0);
+    outline-offset: 2px;
+}
+
+/* The skip link's target takes focus without a ring around the whole page. */
+#wrapper:focus {
+    outline: none;
+}
+
+/* ---- Command dialogs (flag, close, delete…) ---------------------------- */
+
+div.dialog:focus {
+    outline: none;
+}
+
+div.dialog :focus-visible {
+    outline: 2px solid var(--brand, #2c5aa0);
+    outline-offset: 2px;
+}
+
+/* ---- Reduced motion ------------------------------------------------------ */
+
+/* Durations of 0s, not the usual 0.01ms: transition-property defaults to
+   "all", so a non-zero duration on every element would start transitions
+   that were never there (and keep a just-shown dialog hidden for a frame). */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---- Print: the post and its answers, without the site around them ----- */
+
+@media print {
+    /* Light colours even when the screen is in dark mode. */
+    :root, :root[data-color-scheme="auto"] {
+        color-scheme: light;
+        --text: #000;
+        --muted: #333;
+        --quote-text: #222;
+        --brand: #000;
+        --brand-dark: #000;
+        --surface: #fff;
+        --background: #fff;
+        --border: #999;
+        --border-subtle: #ccc;
+        --code-bg: #f6f8fa;
+        --code-inline-bg: #eff1f3;
+    }
+
+    .skip-link, #roof, #searchBar, #top, #nav, #announcement, #custom_header, #custom_footer, #ground,
+    #CARight, .offline-banner, .notify, #command-loader, div.dialog,
+    form, .post-votes, .vote-buttons, .post-controls, .comment-tools, .comment-form-container,
+    .answer-sort, .jump-to-accepted, .paginator, .paginator-container-left, .code-copy,
+    .context-menu-dropdown, .searchbox-panel, .ai-suggestion-actions, #fmanswer {
+        display: none !important;
+    }
+
+    html, body, .wrapper, #wrapper, #room, #CALeft, #CAFull, #main-body {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        float: none !important;
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    body {
+        font-size: 11pt;
+        line-height: 1.45;
+    }
+
+    #CALeft, #CAFull, .post, .answer-card, .question-post, .post-main, .boxC {
+        border-color: #999 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: underline;
+    }
+
+    /* Where outside links in posts go. */
+    .post-body a[href^="http"]::after {
+        content: " (" attr(href) ")";
+        font-size: 90%;
+        word-break: break-all;
+    }
+
+    pre, code, blockquote, table, img {
+        break-inside: avoid;
+    }
+
+    pre {
+        white-space: pre-wrap !important;
+        overflow-wrap: anywhere;
+        border: 1px solid #999;
+    }
+
+    h1, h2, h3 {
+        break-after: avoid;
+    }
+}
+
+/* Tag chips anywhere (lists, sidebar, posts): a long tag name wraps instead
+   of pushing the page sideways. */
+.tags a, span.tag, .post-tag, a.tag-link, a[class^="tag-link-"] {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}

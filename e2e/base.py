@@ -57,6 +57,18 @@ WIDER_THAN_SCREEN = '''() => {
         }
         if (!scrolls) found.push(el);
     }
+    // Text that overflows its own element (e.g. white-space: nowrap) leaves the element's box alone.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), range = document.createRange();
+    while (!found.length && walker.nextNode()) {
+        range.selectNodeContents(walker.currentNode);
+        const box = range.getBoundingClientRect(), el = walker.currentNode.parentElement;
+        if (box.right <= width + 1 || box.width === 0 || found.includes(el)) continue;
+        let parent = el, scrolls = false;
+        for (; parent && parent !== document.body; parent = parent.parentElement) {
+            if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(parent).overflowX)) { scrolls = true; break; }
+        }
+        if (!scrolls) found.push(el);
+    }
     return found.slice(0, 5).map(el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
         (typeof el.className === 'string' && el.className ? '.' + el.className.trim().split(/\\s+/).join('.') : '') +
         ' (' + Math.round(el.getBoundingClientRect().width) + 'px)');
@@ -197,9 +209,12 @@ class E2ETestCase(LiveServerTestCase):
     def url(self, path):
         return self.live_server_url + path
 
-    def open(self, user=None, device='desktop', dark=False, locale='en-US'):
-        """A new browser page, signed in as `user` (or anonymous)."""
-        context = self.browser.new_context(color_scheme='dark' if dark else 'light', locale=locale, **DEVICES[device])
+    def open(self, user=None, device='desktop', dark=False, locale='en-US', **options):
+        """A new browser page, signed in as `user` (or anonymous). Other
+        keyword arguments are browser context options (viewport,
+        reduced_motion...) that override the device's."""
+        context = self.browser.new_context(**dict(DEVICES[device], color_scheme='dark' if dark else 'light',
+                                                  locale=locale, **options))
         self._contexts.append(context)
         if user is not None:
             session = SessionStore()

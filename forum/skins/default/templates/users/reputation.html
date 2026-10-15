@@ -1,49 +1,42 @@
 {% extends "user.html" %}
 <!-- user_reputation.html -->
-{% load extra_tags %}
-{% load extra_filters %}
-{% load humanize %}
-{% load user_tags %}
+{% load i18n extra_tags extra_filters humanize user_tags %}
 {% block userjs %}
-       <script type="text/javascript" src="{% media "/media/vendor/flot-4.2.6/jquery.flot.min.js" %}"></script>
-       <script type="text/javascript" src="{% media "/media/js/osqa.charts.js" %}"></script>
-       <script type="text/javascript">
-        $(function(){
-            osqaTimeChart("#diagram", {{ graph_data }}, {series: {points: {show: true}}});
-        });
-
-        </script>
-
-        <style type="text/css">
-            div.positiveReputation {
-                float: left;
-                min-width: 20px;
-                color: green;
-                padding-right: 5px;
-            }
-            div.negativeReputation {
-                float: left;
-                min-width: 20px;
-                color: red;
-            }
-        </style>
+    <script defer src="{% media "/media/vendor/flot-4.2.6/jquery.flot.min.js" %}"></script>
+    <script defer src="{% media "/media/js/osqa.charts.js" %}"></script>
 {% endblock %}
 {% block usercontent %}
-        <div class="reputation-history">
-            <div id="diagram">
-
-            </div>
-            <div class="reputation-list">
-                {% for rep in reputation %}
-                <p style="clear:both">
-                    <div class="reputation-change">
-                        <div class="positiveReputation">{{ rep.positive }}</div>
-                        <div class="negativeReputation">{{ rep.negative }}</div>
-                        
-                    </div>
-                    {% activity_item rep.action request.user %}<br/>
-                </p>
-                {% endfor %}
-            </div>
+<div class="reputation-history">
+    <section class="profile-section reputation-graph" aria-labelledby="profile-graph-title">
+        <div class="profile-section-head">
+            <h2 id="profile-graph-title">{% trans "Reputation over time" %}</h2>
+            <p class="profile-section-note"><strong>{{ view_user.reputation|intcomma }}</strong> {% trans "reputation" %}</p>
         </div>
+        {% if has_graph %}
+        <div id="diagram" class="reputation-chart" role="img" aria-label="{% trans "Graph of reputation over time" %}" data-points="{{ graph_data }}"></div>
+        {% else %}
+        <p class="profile-empty">{% trans "No reputation changes yet." %}</p>
+        {% endif %}
+    </section>
+    <section class="profile-section" aria-labelledby="profile-repchanges-title">
+        <div class="profile-section-head">
+            <h2 id="profile-repchanges-title">{% trans "Latest changes" %}</h2>
+        </div>
+        {% if reputation %}
+        <ol class="reputation-list">
+            {% for rep in reputation %}
+            <li class="reputation-item">
+                <div class="reputation-change">
+                    {% if rep.positive %}<div class="positiveReputation">{{ rep.positive }}</div>{% endif %}
+                    {% if rep.negative %}<div class="negativeReputation">{{ rep.negative }}</div>{% endif %}
+                </div>
+                {% activity_item rep.leaf_action request.user %}
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="profile-empty">{% trans "Reputation comes from votes on your posts, accepted answers and badges." %}</p>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}<!-- end user_reputation.html -->

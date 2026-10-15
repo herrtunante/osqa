@@ -7,12 +7,14 @@
 {% block sidebar %}
     {% if not request.user.is_authenticated %}
         {% if settings.SHOW_WELCOME_BOX %}
-            <div class="boxA">
-                <h3>{% trans "welcome to " %}{{ settings.APP_SHORT_NAME }}</h3>
+            <div class="boxA welcome-box">
+                <h2 class="welcome-title">{% trans "welcome to " %}{{ settings.APP_SHORT_NAME }}</h2>
                 <div class="body">
-                  {{ settings.APP_INTRO|safe }}
-                  <div class="more"><a href="{% url "about" %}">{% trans "about" %} </a></div>
-                  <div class="more"><a href="{% url "faq" %}">{% trans "faq" %} </a></div>
+                  <div class="welcome-intro">{{ settings.APP_INTRO|safe }}</div>
+                  <p class="welcome-links">
+                    <a class="more" href="{% url "about" %}">{% trans "about" %}</a>
+                    <a class="more" href="{% url "faq" %}">{% trans "faq" %}</a>
+                  </p>
                 </div>
             </div>
         {% endif %}

@@ -1,0 +1,1 @@
+{% load i18n %}{% if field.errors %}<p class="compose-error" id="{{ field.auto_id }}-error"><span class="visually-hidden">{% trans "Error:" %} </span>{{ field.errors|join:" " }}</p>{% endif %}

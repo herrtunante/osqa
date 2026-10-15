@@ -48,6 +48,7 @@
                 store.removeItem(key);
                 fields.forEach(function(f) {
                     f.value = '';
+                    f.dispatchEvent(new Event('input', {bubbles: true}));
                     f.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true}));
                 });
             });
@@ -95,10 +96,13 @@
         var notice = document.createElement('div');
         notice.className = 'draft-notice';
         notice.setAttribute('role', 'status');
-        notice.textContent = (window.messages && messages.draft_restored) || 'Draft restored.';
+        var text = document.createElement('span');
+        text.className = 'draft-notice-text';
+        text.textContent = (window.messages && messages.draft_restored) || 'Draft restored.';
+        notice.appendChild(text);
         var discard = document.createElement('button');
         discard.type = 'button';
-        discard.className = 'draft-discard';
+        discard.className = 'draft-discard plain-button';
         discard.textContent = (window.messages && messages.discard) || 'Discard';
         discard.addEventListener('click', function() {
             onDiscard();
@@ -109,7 +113,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        setup(document.getElementById('fmask'), PREFIX + 'ask', ['id_title', 'editor', 'id_tags']);
+        // With the tag chips (osqa.tagchips.js) the tags are in a hidden input.
+        var tags = document.getElementById('id_tags_value') ? 'id_tags_value' : 'id_tags';
+        setup(document.getElementById('fmask'), PREFIX + 'ask', ['id_title', 'editor', tags]);
 
         var answer = document.getElementById('fmanswer');
         if (answer) {

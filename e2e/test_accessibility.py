@@ -132,6 +132,91 @@ class AccessibilityTest(E2ETestCase):
             self.fail('%d accessibility violations (WCAG 2.1 A/AA, axe-core):\n\n%s' % (
                 len(failures), '\n'.join(failures)))
 
+    def test_list_pages(self):
+        """Question lists with pagination, a tag page with the member's interesting
+        and ignored tags marked, an empty list, and the tags and users indexes
+        filtered, with and without results."""
+        from forum.models import MarkedTag, Question, Tag
+        for i in range(15):
+            Question(author=self.bob, title='Filler question number %d about plots' % i,
+                     body='Body of filler question %d, long enough.' % i, tagnames='plots').save()
+        member = self.create_user('carol', reputation=100)
+        MarkedTag.objects.create(user=member, tag=Tag.objects.get(name='collect'), reason='good')
+        MarkedTag.objects.create(user=member, tag=Tag.objects.get(name='export'), reason='bad')
+        # Ignores every tag: nothing left on the question list.
+        hermit = self.create_user('hermit', reputation=100)
+        for tag in Tag.objects.all():
+            MarkedTag.objects.create(user=hermit, tag=tag, reason='bad')
+        self.check_pages(member, ['/questions/?pagesize=15', '/questions/?sort=newest&page=2', '/tags/collect/',
+                                  '/tags/?q=col', '/tags/?q=nothing-matches', '/users/?q=ali', '/users/?q=nobody'])
+        self.check_pages(hermit, ['/questions/'])
+
+    def test_profile_pages(self):
+        """Profiles: her own (settings menu open), someone else's, the reputation
+        tab with its graph, the settings pages, and the empty profile of a newcomer."""
+        def tab(name, user):
+            return reverse(name, kwargs={'id': user.id, 'slug': user.username})
+        self.check_pages(self.alice, [
+            (self.alice.get_profile_url(), '#user-menu'), self.bob.get_profile_url(),
+            tab('user_reputation', self.alice), tab('user_recent', self.alice), tab('user_votes', self.alice),
+            tab('edit_user', self.alice), self.alice.get_user_subscriptions_url(),
+            self.alice.get_user_subscriptions_url() + '?tab=manage', tab('user_preferences', self.alice),
+            reverse('user_authsettings', kwargs={'id': self.alice.id}),
+            reverse('user_account_data', kwargs={'id': self.alice.id})])
+        dana = self.create_user('dana')
+        self.check_pages(dana, [dana.get_profile_url(), tab('user_favorites', dana), tab('user_reputation', dana)])
+
     def test_administrator_pages(self):
         self.check_pages(self.admin, [self.question.get_absolute_url(), reverse('admin_index'),
                                       '/admin/settings/basic/'])
+
+    def test_post_forms(self):
+        """The ask page with similar questions open, tags as chips and a preview,
+        the ask page with errors, the edit question page (someone else's post)
+        and the retag page."""
+        from forum import settings
+        self.set_setting(settings.REP_TO_RETAG, 500)
+        self.set_setting(settings.REP_TO_EDIT_OTHERS, 2000)
+        failures = []
+        for device, dark in VIEWS:
+            page = self.open(self.bob, device=device, dark=dark)
+            self.visit(page, '/questions/ask/')
+            page.locator('#id_title').press_sequentially('export Collect survey', delay=10)
+            page.wait_for_selector('#ask-related-questions .similar-item')
+            page.fill('#editor', 'Some **bold** text and `code`.')
+            page.wait_for_selector('#previewer strong', state='attached')  # behind the Preview tab on a phone
+            page.locator('#id_tags').press_sequentially('collect export ')
+            failures += self.axe_failures(page, '/questions/ask/ with similar questions and chips', device, dark)
+            if device == 'mobile':
+                page.get_by_role('tab', name='Preview').click()
+                failures += self.axe_failures(page, '/questions/ask/ preview tab', device, dark)
+
+            page.evaluate('localStorage.clear()')
+            self.visit(page, '/questions/ask/')
+            page.fill('#id_title', 'Help')
+            with page.expect_navigation():
+                page.click('#fmask input[name=ask]')
+            self.check_page(page)
+            failures += self.axe_failures(page, '/questions/ask/ with errors', device, dark)
+
+            path = reverse('edit_answer', kwargs={'id': self.answer.id})  # bob's own answer
+            self.visit(page, path)
+            failures += self.axe_failures(page, path, device, dark)
+
+            # an administrator editing alice's question ("you are editing a post by alice")
+            editor = self.open(self.admin, device=device, dark=dark)
+            path = reverse('edit_question', kwargs={'id': self.question.id})
+            self.visit(editor, path)
+            failures += self.axe_failures(editor, path, device, dark)
+
+            # retagging only (no rights to edit others' posts)
+            retagger = self.open(self.create_user('tagger-%s' % device, reputation=600), device=device, dark=dark)
+            self.visit(retagger, path)
+            retagger.wait_for_selector('#fmretag')
+            failures += self.axe_failures(retagger, path + ' (retag)', device, dark)
+        if failures:
+            self.fail('%d accessibility violations (WCAG 2.1 A/AA, axe-core):\n\n%s' % (
+                len(failures), '\n'.join(failures)))
+
+    def axe_failures(self, page, where, device, dark):
+        return ['%s (%s%s):\n%s' % (where, device, ', dark' if dark else '', violation) for violation in self.axe(page)]

@@ -34,7 +34,11 @@
 
         <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
         <link href="{% media  "/media/style/modern.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media "/media/style/profile.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media "/media/style/ask.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media "/media/style/lists.css" %}" rel="stylesheet" type="text/css" />
         <link href="{% media "/media/style/searchbox.css" %}" rel="stylesheet" type="text/css" />
+        <link href="{% media "/media/style/ui.css" %}" rel="stylesheet" type="text/css" />
         {% if settings.USE_CUSTOM_CSS|or_preview:request %}
         <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
         {% endif %}
@@ -95,6 +99,7 @@
         {% loadregistry head_content %}{% endloadregistry %}
     </head>
     <body>
+        <a class="skip-link" href="#wrapper">{% trans "Skip to content" %}</a>
         <div class="wrapper">
         <div id="offline-banner" class="offline-banner" role="status" hidden>{% trans "You are offline – showing a saved copy of this page." %}</div>
         {% if settings.USE_CUSTOM_HEADER|or_preview:request %}

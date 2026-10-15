@@ -190,7 +190,9 @@ class ContentTest(E2ETestCase):
         suggestion = page.locator('.osqa-autocomplete li:has-text("export")')
         suggestion.first.wait_for()
         suggestion.first.click()
-        self.assertEqual(page.input_value('#id_tags').strip(), 'export')
+        # the chosen tag becomes a chip (osqa.tagchips.js); the form sends the hidden value
+        self.assertEqual(page.locator('.tag-chip .tag-chip-name').all_inner_texts(), ['export'])
+        self.assertEqual(page.input_value('#id_tags_value'), 'export')
         self.check_page(page)
 
     def test_tag_preferences_in_the_sidebar(self):

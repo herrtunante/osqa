@@ -1,5 +1,8 @@
-{% load i18n humanize extra_filters extra_tags user_tags %}
-<div class="short-summary">
+{% load i18n humanize extra_filters extra_tags user_tags node_tags %}
+{% comment %}One question in a list (home, /questions/, tags, profiles). The counts come
+   from the page's prefetch (answer_count, accepted_count) and the author from
+   the object cache: nothing here may run a query per row.{% endcomment %}
+<div class="short-summary question-row{% if question.accepted_count %} is-accepted{% elif question.answer_count == 0 %} is-unanswered{% else %} is-answered{% endif %}">
     <div class="counts">{% if favorite_count %}
         <div class="favorites">
             <span class="favorite-mark{% if question.favourite_count %} on{% endif %}"></span>
@@ -7,34 +10,31 @@
         </div>
         {% endif %}
         <div class="votes">
-            <div class="item-count">{{question.score|intcomma}}</div>
-            <div>{% if question.score == 1 %}{% trans "vote" %}{% else %}{% trans "votes" %}{% endif %}</div>
-        </div >
-        <div {% if question.accepted_count %}title="{% trans "this question has an accepted answer" %}"{% endif %} class="status {% if question.accepted_count %}answered-accepted{% endif %} {% if question.answer_count == 0 %}unanswered{% endif %}{% if question.answer_count != 0 %}answered{% endif %}">
-            <div class="item-count">{{question.answer_count|intcomma}}</div>
-            <div>{% if question.answer_count == 1 %}{% trans "answer" %}{% else %}{% trans "answers" %}{% endif %}</div>
+            <span class="item-count">{{question.score|intcomma}}</span>
+            <span class="item-label">{% if question.score == 1 %}{% trans "vote" %}{% else %}{% trans "votes" %}{% endif %}</span>
+        </div>
+        <div class="status {% if question.accepted_count %}answered-accepted {% endif %}{% if question.answer_count == 0 %}unanswered{% else %}answered{% endif %}">
+            <span class="item-count">{{question.answer_count|intcomma}}</span>
+            <span class="item-label">{% if question.answer_count == 1 %}{% trans "answer" %}{% else %}{% trans "answers" %}{% endif %}</span>
+            {% if question.accepted_count %}<span class="visually-hidden">({% trans "this question has an accepted answer" %})</span>{% endif %}
         </div>
         <div class="views">
-             <div class="item-count">{{question.view_count|decorated_int|safe}}</div>
-             <div>{% if question.view_count == 1 %}{% trans "view" %}{% else %}{% trans "views" %}{% endif %}</div>
+            <span class="item-count">{{question.view_count|decorated_int|safe}}</span>
+            <span class="item-label">{% if question.view_count == 1 %}{% trans "view" %}{% else %}{% trans "views" %}{% endif %}</span>
         </div>
     </div>
 
     <div class="question-summary-wrapper">
-        <h2><a {% if not question_summary %}title="{{ question.summary }}"{% endif %} href="{{ question.get_absolute_url }}">{{question.headline}}</a></h2>
-        {% if question_summary %}
-        <div class="summary">
-          {{ question.summary }}
-        </div>
-        {% endif %}
-        <div class="userinfo">
-            <span class="relativetime" title="{{question.last_activity_at}}">{% diff_date question.last_activity_at %}</span>
-            {% if question.last_activity_by %}{% user_signature question.last_activity_by signature_type %}{% endif %}
-        </div>
-
+        <h2><a href="{{ question.get_absolute_url }}">{{question.headline}}</a></h2>
+        {% with excerpt=question.summary %}{% if excerpt %}
+        <p class="summary{% if not question_summary %} excerpt{% endif %}">{{ excerpt }}</p>
+        {% endif %}{% endwith %}
         <div class="tags">{% for tag in question.tagname_list %}
-            <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" title="{% trans "see questions tagged" %} '{{ tag }}'" rel="tag">{{ tag }}</a>{% endfor %}
+            <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" rel="tag">{{ tag }}</a>{% endfor %}
+        </div>
+        <div class="userinfo">
+            {% if question.last_activity_by %}<span class="userinfo-user">{% user_signature question.last_activity_by signature_type %}</span>{% endif %}
+            <span class="userinfo-when">{% if question.last_activity_at == question.added_at %}{% trans "asked" %}{% else %}{% trans "modified" context "question list" %}{% endif %} {% post_time question.last_activity_at %}</span>
         </div>
     </div>
-
 </div>

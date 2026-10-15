@@ -1,0 +1,9 @@
+{% load i18n %}{# Picking another revision reloads the form with it (osqa.compose.js presses "select revision"). #}
+<div class="compose-field compose-revision">
+    <label class="compose-label" for="id_revision">{% trans "Revision" %}</label>
+    <p class="compose-help">{% trans "Start from an earlier version of the post; saving it unchanged rolls the post back." %}</p>
+    <div class="compose-revision-row">
+        {{ revision_form.revision }}
+        <input type="submit" class="submit compose-secondary" id="select_revision" name="select_revision" value="{% trans "select revision" %}" />
+    </div>
+</div>

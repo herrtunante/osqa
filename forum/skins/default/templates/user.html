@@ -9,11 +9,6 @@
 {% block meta %}{% if not view_user|profile_links_trusted %}<meta name="robots" content="noindex, nofollow" />{% endif %}{% endblock %}
 
 {% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
-{% block forestyle%}
-    <style type="text/css">
- 		.history-table td { padding: 5px; }
-	</style>
-{% endblock %}
 {% block forejs %}
     {% if request.user.is_superuser or request.user == view_user %}
         <script type="text/javascript">
@@ -25,18 +20,18 @@
         </script>
         <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/user.css" %}"/>
     {% endif %}
-    <style type="text/css">
-        #room {
-            border: 0;
-        }
-    </style>
+    <script defer src="{% media "/media/js/osqa.profile.js" %}"></script>
     {% block userjs %}{% endblock %}
 {% endblock %}
 {% block content %}
-    <div id="mainbar-full">
+    <div id="mainbar-full" class="profile-page">
+        {% block profile_top %}
         {% include "users/info.html" %}
         {% include "users/tabs.html" %}
+        {% endblock %}
+        <div class="profile-content">
         {% block usercontent %}
         {% endblock %}
+        </div>
 	</div>
 {% endblock %}<!-- end user.html -->

@@ -5,59 +5,52 @@
 {% load humanize %}
 {% block title %}{% spaceless %}{% trans "Tag list" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-       <script type="text/javascript">
-       /*<![CDATA[*/
-        $().ready(function(){
-            $("#ipSearchTag").focus();
-
-            var orderby = "{{ tab_id }}";
-            if(orderby != "used" && orderby != "name")
-                orderby = "used";
-            $("#sort_" + orderby).attr('className',"on");
-
-            Hilite.exact = false;
-            Hilite.elementid = "searchtags";
-            Hilite.debug_referrer = location.href;
-        });
-        /*]]>*/
-        </script>
+    <script defer src="{% media "/media/js/osqa.lists.js" %}"></script>
 {% endblock %}
 {% block content %}
-<!-- Tabs -->
-<div class="tabBar">
-    <div class="headQuestions">{% trans "Tag list" %}</div>
+<div class="list-page tags-page">
+<div class="list-header">
+    <h1 class="headQuestions">{% trans "Tag list" %}</h1>
+    <a class="list-ask button plain-button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+</div>
+<div class="tabBar list-toolbar">
+    {# Typing filters the tags on this page; Enter searches all tags. #}
+    <form class="list-filter" action="{% url "tags" %}" method="get" role="search">
+        <label for="tag-filter" class="visually-hidden">{% trans "Filter tags" %}</label>
+        <input type="search" id="tag-filter" name="q" value="{{ stag }}" autocomplete="off"
+               placeholder="{% trans "Filter by tag name" %}" data-list-filter="#searchtags"
+               data-status="#tag-filter-status"
+               data-none="{% trans "No tag on this page matches. Press Enter to search all tags." %}" />
+        <button type="submit" class="list-filter-submit plain-button">{% trans "Search" %}</button>
+    </form>
     {{ tags.paginator.sort_tabs }}
 </div>
+<p class="list-status" id="tag-filter-status" role="status">{% if stag %}{% blocktrans count counter=tags.paginator.count %}{{ counter }} tag matches “{{ stag }}”{% plural %}{{ counter }} tags match “{{ stag }}”{% endblocktrans %}{% if tags.paginator.count %} <a href="{% url "tags" %}">{% trans "Show all tags" %}</a>{% endif %}{% endif %}</p>
 <div id="searchtags">
-<p>
-{% if stag %}
-    {% trans "All tags matching query" %} '<span class="darkred"><strong>{{ stag }}</strong></span>':
-{% endif %}
-{% if not tags.paginator.count %}
-    <span>{% trans "Nothing found" %}</span>
-{% endif %}
-</p>
 {% if tags.paginator.count %}
-<ul class="tagsList tags">
+<ul class="tagsList tags tag-grid">
 {% for tag in tags.paginator.page %}
-   <li>
-    <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" title="{% trans "see questions tagged" %}'{{ tag }}'{% trans "using tags" %}" rel="tag">
-        {{ tag }}
-    </a>&nbsp;
-    <span class="tag-number">&#215; {{ tag.used_count|intcomma }}</span>
-    {% if tag.description %}<span class="tag-excerpt">{{ tag.description_excerpt }}</span>{% endif %}
-    <br/>
-
+    <li class="tag-card" data-filter-text="{{ tag.name|lower }}">
+        <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" rel="tag">{{ tag }}</a>
+        <span class="tag-number">{% blocktrans count counter=tag.used_count %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}</span>
+        {% if tag.description %}<span class="tag-excerpt">{{ tag.description_excerpt }}</span>{% endif %}
     </li>
 {% endfor %}
 </ul>
+{% else %}
+<div class="list-empty">
+    <h2>{% if stag %}{% blocktrans %}No tags match “{{ stag }}”{% endblocktrans %}{% else %}{% trans "No tags yet" %}{% endif %}</h2>
+    <p>{% trans "Tags are added when questions are asked." %}</p>
+    <p class="list-empty-actions">
+        {% if stag %}<a class="list-empty-link" href="{% url "tags" %}">{% trans "Show all tags" %}</a>{% endif %}
+        <a class="button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+    </p>
+</div>
 {% endif %}
 </div>
-
-{% endblock %}
-{% block tail %}
-<div class="pager">
-    {{ tags.paginator.page_numbers }}
-</div>              
+{% if tags.paginator.page_numbers %}
+<div class="list-footer">{{ tags.paginator.page_numbers }}</div>
+{% endif %}
+</div>
 {% endblock %}
 <!-- end tags.html -->

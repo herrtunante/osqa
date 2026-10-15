@@ -3,7 +3,8 @@
 
 {% if show_interesting_tags %}
 {% if user_authenticated %}
-<div id="tagSelector" class="boxC">
+{# osqa.main.js (pickedTags) reads these ids; each "Add" button reads the input just before it. #}
+<div id="tagSelector" class="boxC tag-selector" data-remove-label="{% trans "Remove" %}">
 	<h3 class="subtitle" id="interestingTagsHeading">{% trans "Interesting tags" %}</h3>
     <div class="tags interesting marked-tags">
     {% for tag_name in interesting_tag_names %}
@@ -11,17 +12,19 @@
         <span class="deletable-tag" id="interesting-tag-{{tag_name}}">
             <a rel="tag" 
                 class="tag-link-{{ tag_name }}"
-                title="{% blocktrans with tag as tagname %}see questions tagged '{{ tag_name }}'{% endblocktrans %}"
                 href="{% url "tag_questions" tag_name|urlencode %}">{{tag_name}}</a>
-            <img class="delete-icon" 
+            <img class="delete-icon" role="button" tabindex="0"
                 src="{% media  "/media/images/close-small-dark.png" %}"
+                alt="{% blocktrans %}remove '{{tag_name}}' from the list of interesting tags{% endblocktrans %}"
                 title="{% blocktrans %}remove '{{tag_name}}' from the list of interesting tags{% endblocktrans %}"/>
         </span>
         {% endspaceless %}
     {% endfor %}
     </div>
-    <input id="interestingTagInput" autocomplete="off" type="text" aria-labelledby="interestingTagsHeading"/>
-    <input id="interestingTagAdd" type="submit" value="{% trans "Add" %}"/>
+    <div class="tag-picker">
+        <input id="interestingTagInput" autocomplete="off" type="text" aria-labelledby="interestingTagsHeading"/>
+        <input id="interestingTagAdd" class="plain-button" type="submit" value="{% trans "Add" %}"/>
+    </div>
 	<h3 class="subtitle" id="ignoredTagsHeading">{% trans "Ignored tags" %}</h3>
     <div class="tags ignored marked-tags">
     {% for tag_name in ignored_tag_names %}
@@ -29,23 +32,20 @@
         <span class="deletable-tag" id="ignored-tag-{{tag_name}}">
             <a rel="tag" 
                 class="tag-link-{{ tag_name }}"
-                title="{% blocktrans with tag as tagname %}see questions tagged '{{ tag_name }}'{% endblocktrans %}"
                 href="{% url "tag_questions" tag_name|urlencode %}">{{tag_name}}</a>
-            <img class="delete-icon" 
+            <img class="delete-icon" role="button" tabindex="0"
                 src="{% media  "/media/images/close-small-dark.png" %}"
+                alt="{% blocktrans %}remove '{{tag_name}}' from the list of ignored tags{% endblocktrans %}"
                 title="{% blocktrans %}remove '{{tag_name}}' from the list of ignored tags{% endblocktrans %}"/>
         </span>
         {% endspaceless %}
     {% endfor %}
     </div>
-    <input id="ignoredTagInput" autocomplete="off" type="text" aria-labelledby="ignoredTagsHeading"/>
-    <input id="ignoredTagAdd" type="submit" value="{% trans "Add" %}"/>
-    {% comment %}
-    <p id="hideIgnoredTagsControl">
-    <input id="hideIgnoredTagsCb" type="checkbox" {% if request.user.hide_ignored_questions %}checked="checked"{% endif %} />
-    <label id="hideIgnoredTagsLabel" for="hideIgnoredTagsCb">{% trans "keep ignored questions hidden" %}</label>
-    <p>
-    {% endcomment %}
+    <div class="tag-picker">
+        <input id="ignoredTagInput" autocomplete="off" type="text" aria-labelledby="ignoredTagsHeading"/>
+        <input id="ignoredTagAdd" class="plain-button" type="submit" value="{% trans "Add" %}"/>
+    </div>
+    <p class="tag-selector-help">{% trans "Questions with ignored tags are left out of the question lists." %}</p>
 </div>
 {% endif %}
 {% endif %}

@@ -1,25 +1,31 @@
 {% spaceless %}
 {% load i18n %}
-
-<p class="paginator">
+{# Shared by every paginated list. Classes prev/next/page/curr are kept for older skins and CSS. #}
+<nav class="paginator" aria-label="{% trans "Pages" %}">
     {% if has_previous %}
-        <span class="prev"><a href="{{ previous_url }}" title="{% trans "previous" %}">&laquo; {% trans "previous" %}</a></span>
+        <span class="prev"><a href="{{ previous_url }}" rel="prev">&laquo; {% trans "previous" %}</a></span>
+    {% else %}
+        <span class="prev disabled" aria-hidden="true">&laquo; {% trans "previous" %}</span>
     {% endif %}
+    <span class="page-numbers">
     {% for range in page_numbers %}
         {% if range %}
             {% for num, url in range %}
                 {% if num == current %}
-                    <span class="curr this_page">{{ num }}</span>
+                    <span class="curr this_page" aria-current="page">{{ num }}</span>
                 {% else %}
-                     <a class="page" href="{{ url }}" >{{ num }}</a>
+                    <a class="page" href="{{ url }}">{{ num }}</a>
                 {% endif %}
             {% endfor %}
         {% else %}
-          ...
+            <span class="gap" aria-hidden="true">&hellip;</span>
         {% endif %}
     {% endfor %}
+    </span>
     {% if has_next %}
-        <span class="next"><a href="{{ next_url }}" title="{% trans "next page" %}">{% trans "next" %} &raquo;</a></span>
+        <span class="next"><a href="{{ next_url }}" rel="next">{% trans "next" %} &raquo;</a></span>
+    {% else %}
+        <span class="next disabled" aria-hidden="true">{% trans "next" %} &raquo;</span>
     {% endif %}
-</p>
+</nav>
 {% endspaceless %}

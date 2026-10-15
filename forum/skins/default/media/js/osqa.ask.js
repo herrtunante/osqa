@@ -1,21 +1,4 @@
-var currentSideBar = 'div#title_side_bar';
-function changeSideBar(enabled_bar) {
-    if (enabled_bar != currentSideBar) {
-        $(currentSideBar).hide();
-        currentSideBar = enabled_bar;
-        $(currentSideBar).fadeIn('slow');
-    }
-
-}
-
-$(function () {
-    $('div#editor_side_bar').hide();
-    $('div#tags_side_bar').hide();
-
-    $('#id_title').focus(function(){changeSideBar('div#title_side_bar')});
-    $('#editor').focus(function(){changeSideBar('div#editor_side_bar')});
-    $('#id_tags').focus(function(){changeSideBar('div#tags_side_bar')});
-});
+// Ask and edit question pages (templates/ask.html, question_edit.html).
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, function(c) {
@@ -23,94 +6,84 @@ function escapeHtml(value) {
     });
 }
 
-$(function() {
-    var $input = $('#id_title');
+// Writing tips (question_edit_tips.html): the tip for the field being filled in opens.
+$(function () {
+    var tips = {'id_title': '#title_side_bar', 'editor': '#editor_side_bar_tip', 'id_tags': '#tags_side_bar'};
+    $.each(tips, function (field, tip) {
+        $('#' + field).on('focus', function () {
+            var details = $(tip)[0];
+            if (details && !details.open) details.open = true;
+        });
+    });
+});
+
+// "Similar questions" while the title is typed (the related_questions view):
+// a disclosure listing the matches, each marked accepted, answered or unanswered.
+$(function () {
+    var $title = $('#id_title');
     var $box = $('#ask-related-questions');
-    var template = $('#question-summary-template').html();
-    var $editor = $('#editor');
+    var url = window.related_questions_url;
+    if (!url || !$title.length || !$box.length) return;
 
-    var results_cache = {};
+    var cache = {}, timer = null, last = null, open = true;
+    var text = function (name) { return $box.attr('data-' + name) || ''; };
 
-    function reload_suggestions_box(e) {
-        var relatedQuestionsDiv = $('#ask-related-questions');
-        var q = $input.val().replace(/^\s+|\s+$/g,"");
-
-        if(q.length == 0) {
-            close_suggestions_box();
-            relatedQuestionsDiv.html('');
-            return false;
-        } else if(relatedQuestionsDiv[0].style.height == 0 || relatedQuestionsDiv[0].style.height == '0px') {
-            relatedQuestionsDiv.animate({'height':'150'}, 350);
+    function status(q) {
+        if (q.accepted) {
+            return '<span class="similar-status is-accepted">' + escapeHtml(text('accepted')) + '</span>';
         }
-
-        if (results_cache[q] && results_cache[q] != '') {
-            relatedQuestionsDiv.html(results_cache[q]);
-            return false;
+        if (q.answers) {
+            var label = q.answers == 1 ? text('answer') : text('answers').replace('%s', q.answers);
+            return '<span class="similar-status is-answered">' + escapeHtml(label) + '</span>';
         }
-
-        $.post(related_questions_url, {title: q}, function(data) {
-            if (data) {
-                var c = $input.val().replace(/^\s+|\s+$/g,"");
-
-                if (c != q) {
-                    return;
-                }
-
-                if(data.length == 0) {
-                    relatedQuestionsDiv.html('<br /><br /><div align="center">No questions like this have been found.</div>');
-                    return;
-                }
-
-                var html = '';
-                for (var i = 0; i < data.length; i++) {
-                    // Titles and summaries are user text: escape before templating.
-                    var item = template.replace(new RegExp('%URL%', 'g'), escapeHtml(data[i].url))
-                                       .replace(new RegExp('%SCORE%', 'g'), escapeHtml(data[i].score))
-                                       .replace(new RegExp('%TITLE%', 'g'), escapeHtml(data[i].title))
-                                       .replace(new RegExp('%SUMMARY%', 'g'), escapeHtml(data[i].summary));
-
-                    html += item;
-
-                }
-
-                results_cache[q] = html;
-
-                relatedQuestionsDiv.html(html);
-            }
-        }, 'json');
-
-        return false;
+        return '<span class="similar-status is-unanswered">' + escapeHtml(text('unanswered')) + '</span>';
     }
 
-    function close_suggestions_box() {
-        $('#ask-related-questions').animate({'height':'0'},350, function() {
-            $('#ask-related-questions').html('');
+    function render(questions) {
+        if (!questions || !questions.length) {
+            $box.prop('hidden', true).empty();
+            return;
+        }
+        var html = '<details class="similar-details"' + (open ? ' open' : '') + '><summary>' +
+            '<span class="similar-title">' + escapeHtml(text('title')) + '</span>' +
+            '<span class="similar-count">' + questions.length + '</span></summary>' +
+            '<p class="similar-hint">' + escapeHtml(text('hint')) + '</p><ul class="similar-list">';
+        $.each(questions, function (i, q) {
+            // Titles and summaries are user text: escaped.
+            html += '<li class="similar-item"><a class="similar-link" href="' + escapeHtml(q.url) +
+                '" target="_blank" rel="noopener"' + (q.summary ? ' title="' + escapeHtml(q.summary) + '"' : '') + '>' +
+                escapeHtml(q.title) + '</a>' + (q.answers === undefined ? '' : status(q)) + '</li>';
+        });
+        $box.html(html + '</ul></details>').prop('hidden', false);
+    }
+
+    // "toggle" doesn't bubble: listen in the capture phase.
+    $box[0].addEventListener('toggle', function (e) {
+        if (e.target.tagName === 'DETAILS') open = e.target.open;
+    }, true);
+
+    function reload() {
+        var q = $title.val().trim();
+        if (q === last) return;
+        last = q;
+        if (q.length < 3) {
+            render([]);
+            return;
+        }
+        if (cache[q]) {
+            render(cache[q]);
+            return;
+        }
+        $.post(url, {title: q}, null, 'json').done(function (data) {
+            cache[q] = data || [];
+            if ($title.val().trim() === q) render(cache[q]);
         });
     }
 
-    var suggestions_timer = null;
-    $input.on('keyup focus', function() {
-        clearTimeout(suggestions_timer);
-        suggestions_timer = setTimeout(reload_suggestions_box, 300);
+    $title.on('input keyup focus', function () {
+        clearTimeout(timer);
+        timer = setTimeout(reload, 300);
     });
-
-    $editor.change(function() {
-        if ($editor.html().length > 10) {
-            close_suggestions_box();
-        }
-    });
-
-
-
-    // for chrome
-    $input.keydown(focus_on_question);
-    function focus_on_question(e) {
-        var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-
-        if(e.keyCode == 9 && is_chrome) {
-            $('#editor')[0].focus();
-        }
-    }
 });
 
 // AI duplicate detection (forum_modules/ai): after a pause in typing the title,

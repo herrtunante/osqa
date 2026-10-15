@@ -1,12 +1,8 @@
 {% load i18n %}
 
-<table>
-    <tr>
-        <th>{% trans "Points" %}:</th>
-        <td><input type="text" id="points-to-award" name="points" value="1" /></td>
-    </tr>
-    <tr>
-        <th>{% trans "Message" %}:</th>
-        <td><textarea id="award-message" name="message"></textarea></td>
-    </tr>
-</table>
+<div class="profile-dialog">
+    <label for="points-to-award">{% trans "Points" %}</label>
+    <input type="number" id="points-to-award" name="points" value="1" step="1" />
+    <label for="award-message">{% trans "Message" %}</label>
+    <textarea id="award-message" name="message" rows="3"></textarea>
+</div>

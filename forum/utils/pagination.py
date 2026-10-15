@@ -101,7 +101,8 @@ class PaginatorContext(object):
                 request.session[key] = preferences
 
     def pagesize(self, request, session_prefs=None):
-        if not session_prefs:
+        # `is None`: an empty dict is the caller's, to be filled and saved.
+        if session_prefs is None:
             session_prefs = self.preferences(request)
 
 
@@ -136,7 +137,8 @@ class PaginatorContext(object):
             raise Http404()
 
     def sort(self, request, session_prefs=None):
-        if not session_prefs:
+        # `is None`: an empty dict is the caller's, to be filled and saved.
+        if session_prefs is None:
             session_prefs = self.preferences(request)
 
         sort = None

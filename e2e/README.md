@@ -53,6 +53,8 @@ Options (environment variables):
 | `E2E_ARTIFACTS=dir` | Where screenshots of failed tests go (default `tmp/e2e/`) |
 | `E2E_DB_NAME=name.db` | Test database file in `tmp/`, so several runs can work side by side |
 | `E2E_RECORD=file` | Append every forum URL the browser requests to this file (used by `coverage.py`) |
+| `E2E_UPDATE_BASELINES=1` | Visual tests: write the screenshots as the new baselines instead of comparing |
+| `E2E_VISUAL_STRICT=1` | Visual tests: compare even when the baselines were made on another environment |
 
 When a test fails, a full-page screenshot of every page it had open is saved
 in `tmp/e2e/`, named after the test.
@@ -68,6 +70,7 @@ in `tmp/e2e/`, named after the test.
 | `test_signin_pages.py` | anonymous | Sign-in, sign-up and forgotten-password pages on a desktop and a phone in dark mode (screenshots in `tmp/e2e/signin-pages-*.png`); show-password button; error summary and inline errors on a bad sign-up, values kept; links between the pages; signing in with an email address; Google/GitHub as labelled buttons when configured |
 | `test_posting.py` | askers, answerers, commenters | Asking with live preview; answering; commenting with an @mention (and the mention suggestions); voting; notifications bell and list; accepting an answer; favourites; following/unfollowing a question; editing a question; reporting a post; answering on a phone |
 | `test_question_page.py` | askers, members, moderators | The question page: Copy button on code blocks (clipboard, keyboard, "Copied" announced); accepted answer badge and "Jump to accepted answer"; the asker's accept toggle; answer sort tabs; `<time>` elements with exact dates; edited link to revisions; the post menu from the keyboard and as a sheet on a phone; vote pressed state; the comment form and its counter; a question closed as a duplicate (screenshots in `tmp/e2e/question-page-*.png`) |
+| `test_ask_page.py` | askers, editors | The ask and edit pages: tags as chips (Enter/comma/space, Backspace, remove buttons, suggestions, the submitted value); "Similar questions" with accepted/answered markers; Write/Preview tabs on a phone and the preview below the editor on a desktop; the draft restored and discarded; Ctrl+Enter and the leave warning (not after posting); the error summary with values kept; editing someone else's question (note, revision picker, edit summary) and one's own answer (screenshots in `tmp/e2e/ask-page-*.png`) |
 | `test_editing.py` | members | Ask form validation; image upload in the editor; editing an answer; deleting a comment |
 | `test_emails.py` | members, administrators | Every email a member can get, checked for recipients, content and unsubscribe links: new comment and @mention, answer accepted (only to those who asked for it), new member, new question, daily digest; turning each preference off stops it; unsubscribe and undo for every kind; auto-following viewed or all questions; the "questions you follow" tab; welcome email validation link; changing an email address and validating the new one |
 | `test_rules.py` | anonymous, newcomers, members, moderators | The rules behind the buttons, with the message shown and the score/reputation in the database: who may vote (sign-in prompt, reputation per direction), down votes and taking votes back, daily votes and the "votes left" warning, old votes; accepting and unaccepting; reporting (refusals, daily limit, the hide/delete counts); comment length, reputation and edit window; a moderator deleting a comment; award points refusals; retagging without edit rights |
@@ -78,7 +81,49 @@ in `tmp/e2e/`, named after the test.
 | `test_offline.py` | anonymous, members | Installable app: manifest, icons and service worker; a saved question read offline with the offline banner (desktop, phone in dark mode, axe-checked); the offline page listing saved pages; sign-out forgets them |
 | `test_moderation.py` | members, moderators, administrators | Suspending for a day with public and private messages (shown escaped), signing in while suspended, withdrawing the suspension, a suspension that has ended, an indefinite one; closing with a reason (and an empty one refused), owners closing and reopening their own question; deleting and undeleting; bulk close/delete/undelete in Admin > Tools; granting and revoking moderator rights; converting a comment, and one's own answer, into a question; @mentions in a question and in an edit on the bell; the contact form for members; badge pages; the profile avatar (phone, dark) |
 | `test_crawl.py` | every role | Every link reachable by anonymous visitors (desktop and phone), newcomers, members (phone), experts, moderators and administrators (desktop and phone) |
+| `test_ui_robustness.py` | anonymous, members, moderators | Reflow at 320px and at 1280px zoomed to 200% (no sideways scrolling, the main button on screen and not covered); tablet (768px) and wide (1920px) layouts (header parts don't overlap, sidebar beside or below the content); long content (200-character title without spaces, 60-character username, ten long tags, a huge table, an unbroken URL, long comments) stays inside its column on desktop and phone; keyboard only ("Skip to content" first, then the search box, the navigation and Ask, focus always visible; the close/delete/report dialogs keep focus inside, close on Escape and give it back); `prefers-reduced-motion` (no animation or transition, jQuery effects instant); the print style sheet of a question page |
+| `test_visual.py` | anonymous, members, administrators | Visual regression: screenshots compared with the baselines in `visual/baselines/` (see below) |
 | `test_admin.py` | moderators, administrators, and ordinary users | Closing as a duplicate, reopening, deleting; flagged posts and the support dashboard; ordinary users and moderators kept out of what isn't theirs; **every settings page loads and saves**; changing a setting; admin pages in both admin layouts and on a phone; creating users; granting moderator rights; suspending; maintenance mode (closed to visitors, open to the allowed address); Django's model admin |
+
+## Visual regression tests
+
+`test_visual.py` screenshots key pages and compares them with the PNGs in
+`e2e/visual/baselines/`: home, question page (accepted answer, code,
+comments), ask page, sign-in, sign-up with errors, search results with the
+suggestions open, a profile, the tags index and the admin dashboard, each on a
+desktop in light mode and on a phone in dark mode, plus a desktop in dark mode
+for the home, question and sign-in pages. A screenshot fails when more than
+0.2% of its pixels differ by more than 24 (of 255) in a colour channel; the
+failure writes `<name>-actual.png`, `-expected.png` and `-diff.png` (differing
+pixels in red) to `tmp/e2e/visual/`, which CI uploads with the other
+screenshots.
+
+The pages are made deterministic: fixed users and posts; every date in the
+database moved to fixed times in March 2021 and "now" frozen for the relative
+dates; question views not counted; animations, transitions, the caret and
+jQuery effects off; Gravatar images replaced by a local grey square (every
+other outside request is refused); screenshots wait for the network, fonts
+and animations and stop at 1500px (desktop) or 2200px (phone, at device
+scale 1 to keep the files small). Use `mask=` in `snapshot()` for anything
+that can't be fixed.
+
+**Updating the baselines.** After an intended visual change (a redesign, a new
+element on one of these pages), regenerate them and review the new images
+before committing:
+
+```bash
+E2E_UPDATE_BASELINES=1 OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e.test_visual
+git diff --stat e2e/visual/baselines/      # look at each changed image
+```
+
+A screenshot without a baseline is skipped with a message, not failed. The
+images depend on the machine that renders them (the fonts behind
+`system-ui`, the Chromium version): `visual/baselines/environment.json`
+records the environment that made them, and on a different one the
+comparisons are skipped with a message (set `E2E_VISUAL_STRICT=1` to compare
+anyway). To have CI compare them, generate the baselines in the same
+environment as CI (e.g. a run of the CI job with `E2E_UPDATE_BASELINES=1`
+that uploads `e2e/visual/baselines/` as an artifact) and commit those.
 
 ## Which URLs are covered
 

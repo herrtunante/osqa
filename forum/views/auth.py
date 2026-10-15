@@ -26,6 +26,7 @@ from forum.utils import html
 from forum.views.decorators import login_required
 from forum.modules import decorate
 from forum.forms import PublicRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
+from forum.forms.general import DescribedFieldsMixin
 from forum.forms.general import clean_next, username_for_signin
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils.mail import send_template_email
@@ -400,6 +401,9 @@ def auth_settings(request, id):
         'name': name,
         'id': k.id
         })
+
+    # Help texts and errors linked to their inputs, as on the sign-up page.
+    DescribedFieldsMixin.describe_fields(form)
 
     return render(request, 'auth/auth_settings.html', {
     'view_user': user_,

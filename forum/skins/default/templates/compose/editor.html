@@ -1,0 +1,32 @@
+{% load i18n %}{# The Markdown editor: toolbar, text, live preview (beside or below it; Write/Preview tabs on a phone). Needs `form` with `text` (and `wiki`). #}
+<div class="compose-field form-item{% if form.text.errors %} has-error{% endif %}" id="compose-body">
+    <div class="compose-label-row">
+        <label class="compose-label" for="editor">{{ label }}</label>
+        <div class="compose-tabs" role="tablist" aria-label="{{ label }}">
+            <button type="button" role="tab" id="compose-tab-write" class="compose-tab plain-button" aria-controls="compose-write" aria-selected="true">{% trans "Write" %}</button>
+            <button type="button" role="tab" id="compose-tab-preview" class="compose-tab plain-button" aria-controls="compose-preview" aria-selected="false" tabindex="-1">{% trans "Preview" %}</button>
+        </div>
+    </div>
+    {% if help %}<p class="compose-help">{{ help }}</p>{% endif %}
+    {% include "compose/field_error.html" with field=form.text %}
+    <div class="compose-editor">
+        <div class="compose-pane compose-write" id="compose-write">
+            <div id="wmd-button-bar" class="wmd-panel"></div>
+            {{ form.text }}
+        </div>
+        {% trans "hide preview" as hide_preview %}{% trans "show preview" as show_preview %}
+        <div class="compose-pane compose-preview" id="compose-preview">
+            <div class="compose-preview-head">
+                <span class="compose-preview-label" id="compose-preview-label">{% trans "Preview" %}</span>
+                <button type="button" id="pre-collapse" class="link-button plain-button" aria-controls="previewer" aria-expanded="true"
+                    data-hide="{{ hide_preview|capfirst }}" data-show="{{ show_preview|capfirst }}"
+                    title="{% trans "Toggle the real time Markdown editor preview" %}">{{ hide_preview|capfirst }}</button>
+            </div>
+            <div id="previewer" class="wmd-preview" role="region" aria-labelledby="compose-preview-label" data-preview-url="{% url "markdown_preview" %}"
+                data-empty="{% trans "Nothing to preview yet." %}"></div>
+        </div>
+    </div>
+    <div class="compose-editor-footer">
+        <span id="editor-metrics" class="editor-metrics" aria-live="off"></span>
+    </div>
+</div>

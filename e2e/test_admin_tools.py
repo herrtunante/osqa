@@ -320,7 +320,7 @@ class ExternalSignInTest(AdminTestCase):
         self.visit(page, reverse('user_authsettings', kwargs={'id': user.id}))
         self.assertIn('GitHub', page.locator('#main-body, body').first.inner_text())
         with page.expect_navigation():
-            page.click('input[value="Add new provider"]')
+            page.click('a[href="%s"]' % reverse('user_add_external_provider'))
         self.check_page(page)
         self.assertEqual(page.url, self.url(reverse('user_add_external_provider')))
         with page.expect_navigation(url='**%s' % reverse('user_authsettings', kwargs={'id': user.id})):

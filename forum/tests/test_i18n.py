@@ -3,6 +3,7 @@ import json
 from django.urls import reverse
 from django.utils import translation
 
+from forum import settings
 from forum.models import Question
 
 from .base import OSQATestCase
@@ -47,7 +48,10 @@ class InterfaceLanguageTest(OSQATestCase):
             # Form labels are translated per request, not when the form class is defined.
             page = self.client.get(reverse('ask'), HTTP_ACCEPT_LANGUAGE=lang)
             self.assertContains(page, '<html lang="%s"' % lang)
-            self.assertContains(page, tr(lang, 'please enter a descriptive title for your question'))
+            # (the title's help is written in ask.html; the tags' help comes from the form)
+            self.assertContains(page, tr(lang, 'Tags are short keywords, with no spaces within. At least %(min)s and up to '
+                                               '%(max)s tags can be used.') % {'min': settings.FORM_MIN_NUMBER_OF_TAGS,
+                                                                               'max': settings.FORM_MAX_NUMBER_OF_TAGS})
 
         self.client.post(reverse('ask'), {'title': 'How do I export survey data to CSV?',
                                           'text': 'Question body that is long enough.', 'tags': 'collect'},

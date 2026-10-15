@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _lazy
 from django.utils.functional import lazy
 
 from django.utils.encoding import smart_str
-from .general import NextUrlField, UserNameField
+from .general import DescribedFieldsMixin, NextUrlField, UserNameField
 
 from forum import settings, REQUEST_HOLDER
 
@@ -178,7 +178,7 @@ class FeedbackForm(forms.Form):
 
 
 
-class AskForm(forms.Form):
+class AskForm(DescribedFieldsMixin, forms.Form):
     title  = TitleField()
     text   = QuestionEditorField()
 
@@ -200,6 +200,7 @@ class AskForm(forms.Form):
 
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField()
+        self.describe_fields()
 
 class AnswerForm(forms.Form):
     text   = AnswerEditorField()
@@ -222,12 +223,13 @@ class AnswerForm(forms.Form):
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField()
 
-class RetagQuestionForm(forms.Form):
+class RetagQuestionForm(DescribedFieldsMixin, forms.Form):
     tags   = TagNamesField()
     # initialize the default values
     def __init__(self, question, *args, **kwargs):
         super(RetagQuestionForm, self).__init__(*args, **kwargs)
         self.fields['tags'].initial = question.tagnames
+        self.describe_fields()
 
 class RevisionForm(forms.Form):
     """
@@ -247,7 +249,7 @@ class RevisionForm(forms.Form):
 
         self.fields['revision'].initial = post.active_revision.revision
 
-class EditQuestionForm(forms.Form):
+class EditQuestionForm(DescribedFieldsMixin, forms.Form):
     title  = TitleField()
     text   = QuestionEditorField()
     summary = SummaryField()
@@ -277,8 +279,9 @@ class EditQuestionForm(forms.Form):
 
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField(disabled=(question.nis.wiki and not user.can_cancel_wiki(question)), initial=question.nis.wiki)
+        self.describe_fields()
 
-class EditAnswerForm(forms.Form):
+class EditAnswerForm(DescribedFieldsMixin, forms.Form):
     text = AnswerEditorField()
     summary = SummaryField()
 
@@ -303,8 +306,9 @@ class EditAnswerForm(forms.Form):
         
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField(disabled=(answer.nis.wiki and not user.can_cancel_wiki(answer)), initial=answer.nis.wiki)
+        self.describe_fields()
 
-class EditUserForm(forms.Form):
+class EditUserForm(DescribedFieldsMixin, forms.Form):
     email = forms.EmailField(label=u'Email', help_text=_lazy('this email does not have to be linked to gravatar'), required=True, max_length=75, widget=forms.TextInput(attrs={'size' : 35}))
     realname = forms.CharField(label=_lazy('Real name'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
     website = forms.URLField(label=_lazy('Website'), required=False, assume_scheme='http', max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
@@ -328,6 +332,8 @@ class EditUserForm(forms.Form):
 
         self.fields['about'].initial = user.about
         self.user = user
+        self.fields['email'].widget.attrs.update(autocomplete='email', autocapitalize='none', spellcheck='false')
+        self.describe_fields()
 
     def clean_email(self):
         if self.user.email != self.cleaned_data['email']:

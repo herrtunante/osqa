@@ -20,6 +20,7 @@ from forum.utils.antispam import posting_limit_reached, posting_limit_message
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
 from forum.utils.similar import candidate_questions
+from forum.models.base import prefetch_denormalized
 from forum.actions import *
 from forum.modules import decorate
 from forum import settings
@@ -654,8 +655,11 @@ def related_questions(request):
             # a full-text module that rarely finds anything, so match keywords.
             questions = candidate_questions(request.POST['title'])
 
+        # Answer counts for the "Similar questions" panel's markers, in one query each.
+        prefetch_denormalized(questions, 'answer_count', 'accepted_count')
         return HttpResponse(json.dumps(
-                [dict(title=q.title, url=q.get_absolute_url(), score=q.score, summary=q.summary)
+                [dict(title=q.title, url=q.get_absolute_url(), score=q.score, summary=q.summary,
+                      answers=q.answer_count, accepted=bool(q.accepted_count))
                  for q in questions]), content_type="application/json")
     else:
         raise Http404()

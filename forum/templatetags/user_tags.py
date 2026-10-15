@@ -53,7 +53,12 @@ class ActivityNode(template.Node):
 
     def render(self, context):
         try:
-            action = self.activity.resolve(context).leaf
+            action = self.activity.resolve(context)
+            # Already a leaf (forum.views.users.prefetch_activity): keep it, with
+            # the related objects loaded on it.
+            from forum.models.action import ActionProxyMetaClass
+            if type(action) is not ActionProxyMetaClass.types.get(action.action_type, type(action)):
+                action = action.leaf
             viewer = self.viewer.resolve(context)
             describe = mark_safe(action.describe(viewer))
             return self.template.render(dict(action=action, describe=describe))

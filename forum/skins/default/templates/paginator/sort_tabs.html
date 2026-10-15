@@ -1,13 +1,10 @@
 {% load i18n %}
 {% spaceless %}
+<nav class="sort-tabs" aria-label="{% trans "Sort by" %}">
 <div class="tabsA">
     {% for name, label, url, descr in sorts %}
-        <a href="{{ url }}"{% if current == name %} class="on"{% endif %} title="{{ descr }}">{{ label }}</a>
+        <a href="{{ url }}" data-sort="{{ name }}"{% if current == name %} class="on" aria-current="true"{% endif %} title="{{ descr }}">{{ label }}</a>
     {% endfor %}
-    {% comment %}
-    <span class="sticky-sort-tabs">
-        <input title="{% trans "Check to make the sort order sticky" %}" type="checkbox" checked="{% if sticky %}checked{% endif %}" />
-    </span>
-    {% endcomment %}
 </div>
+</nav>
 {% endspaceless %}

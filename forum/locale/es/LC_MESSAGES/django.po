@@ -1989,32 +1989,24 @@ msgstr "Asigne una nueva contraseña a su  cuenta."
 msgid "Edit answer"
 msgstr "Editar respuesta"
 
-msgid "hide preview"
-msgstr "ocultar vista previa"
+msgid "Your answer"
+msgstr "Su respuesta"
 
-msgid "show preview"
-msgstr "mostrar vista previa"
+msgid "Your edits aren't saved yet. Please check:"
+msgstr "Sus cambios aún no se han guardado. Revise lo siguiente:"
 
-msgid "back"
-msgstr "atrás"
+#, python-format
+msgid "You are editing a post by %(author)s. Your changes will be shown in its revision history."
+msgstr "Está editando una publicación de %(author)s. Sus cambios aparecerán en su historial de revisiones."
 
-msgid "revision"
-msgstr "revisión"
-
-msgid "select revision"
-msgstr "seleccionar revisión"
-
-msgid "Toggle the real time Markdown editor preview"
-msgstr "Activar o desactivar la vista previa en tiempo real del editor Markdown"
-
-msgid "toggle preview"
-msgstr "alternar vista previa"
-
-msgid "Save edit"
+msgid "Save edits"
 msgstr "Guardar cambios"
 
 msgid "Cancel"
 msgstr "Cancelar"
+
+msgid "Writing tips"
+msgstr "Consejos de redacción"
 
 msgid "answer tips"
 msgstr "consejos para responder"
@@ -2030,6 +2022,9 @@ msgstr "intente proporcionar detalles"
 
 msgid "be clear and concise"
 msgstr "sea claro y conciso"
+
+msgid "Markdown Basics"
+msgstr "Conceptos básicos de Markdown"
 
 msgid "see frequently asked questions"
 msgstr "ver las preguntas frecuentes"
@@ -2077,6 +2072,12 @@ msgstr "1 respuesta"
 msgid "%%s answers"
 msgstr "%%s respuestas"
 
+msgid "Body"
+msgstr "Cuerpo"
+
+msgid "Your question isn't posted yet. Please check:"
+msgstr "Su pregunta aún no se ha publicado. Revise lo siguiente:"
+
 msgid "You are welcome to start submitting your question anonymously."
 msgstr "Puede empezar a enviar su pregunta de forma anónima."
 
@@ -2100,23 +2101,38 @@ msgstr "Recuerde que su pregunta no se publicará hasta que valide su correo ele
 msgid "Send me a validation link."
 msgstr "Enviarme un enlace de validación."
 
+msgid "Be specific and imagine you're asking another person."
+msgstr "Sea concreto e imagine que se lo pregunta a otra persona."
+
+msgid "Similar questions"
+msgstr "Preguntas parecidas"
+
+msgid "One of these may already answer your question. They open in a new tab, so you won't lose what you wrote."
+msgstr "Puede que alguna de estas ya responda a su pregunta. Se abren en una pestaña nueva, así no perderá lo que ha escrito."
+
+msgid "unanswered"
+msgstr "sin respuesta"
+
+msgid "Include everything someone would need to answer: what you tried, what you expected and what happened."
+msgstr "Incluya todo lo necesario para responder: qué probó, qué esperaba y qué ocurrió."
+
 msgid "Ask the AI assistant first"
 msgstr "Consulte primero al asistente de IA"
 
 msgid "An answer from earlier forum threads and the documentation, before you post."
 msgstr "Una respuesta basada en conversaciones anteriores del foro y en la documentación, antes de publicar."
 
-msgid "(required)"
-msgstr "(obligatorio)"
-
 msgid "Login/signup to post your question"
 msgstr "Inicie sesión o regístrese para publicar su pregunta"
 
-msgid "Ask your question"
-msgstr "Formule su pregunta"
+msgid "Post your question"
+msgstr "Publicar la pregunta"
 
 msgid "Authentication settings"
 msgstr "Configuración de autenticación"
+
+msgid "Sign-in services"
+msgstr "Servicios de inicio de sesión"
 
 msgid "These are the external authentication providers currently associated with your account."
 msgstr "Estos son los proveedores de autenticación externos asociados actualmente a su cuenta."
@@ -2127,14 +2143,17 @@ msgstr "Actualmente no tiene ningún proveedor de autenticación externo asociad
 msgid "Add new provider"
 msgstr "Añadir un proveedor"
 
+msgid "Create password"
+msgstr "Crear contraseña"
+
 msgid "This is where you can change your password. Make sure you remember it!"
 msgstr "Aquí puede cambiar su contraseña. ¡Asegúrese de recordarla!"
 
 msgid "Set a password so you can sign in with your username or email and a password."
 msgstr "Establezca una contraseña para poder iniciar sesión con su nombre de usuario o correo y una contraseña."
 
-msgid "Create password"
-msgstr "Crear contraseña"
+msgid "Please correct the errors below."
+msgstr "Corrija los errores indicados abajo."
 
 msgid "Why sign in?"
 msgstr "¿Por qué iniciar sesión?"
@@ -2387,6 +2406,9 @@ msgstr "Subiendo"
 msgid "The image could not be uploaded."
 msgstr "No se ha podido subir la imagen."
 
+msgid "Skip to content"
+msgstr "Saltar al contenido"
+
 msgid "You are offline – showing a saved copy of this page."
 msgstr "Estás sin conexión: se muestra una copia guardada de esta página."
 
@@ -2401,6 +2423,57 @@ msgstr "Motivos"
 
 msgid "OK to close"
 msgstr "Confirmar el cierre"
+
+msgid "Write"
+msgstr "Escribir"
+
+msgid "Preview"
+msgstr "Vista previa"
+
+msgid "hide preview"
+msgstr "ocultar vista previa"
+
+msgid "show preview"
+msgstr "mostrar vista previa"
+
+msgid "Toggle the real time Markdown editor preview"
+msgstr "Activar o desactivar la vista previa en tiempo real del editor Markdown"
+
+msgid "Nothing to preview yet."
+msgstr "Aún no hay nada que previsualizar."
+
+msgid "Revision"
+msgstr "Revisión"
+
+msgid "Start from an earlier version of the post; saving it unchanged rolls the post back."
+msgstr "Parta de una versión anterior de la publicación; si la guarda sin cambios, la publicación vuelve a esa versión."
+
+msgid "select revision"
+msgstr "seleccionar revisión"
+
+msgid "Edit summary"
+msgstr "Resumen de la edición"
+
+msgid "Tags"
+msgstr "Etiquetas"
+
+msgid "Press Enter or comma after each tag."
+msgstr "Pulse Intro o escriba una coma después de cada etiqueta."
+
+#, python-format
+msgid "Remove tag %%s"
+msgstr "Quitar la etiqueta %%s"
+
+#, python-format
+msgid "Tag %%s added"
+msgstr "Etiqueta %%s añadida"
+
+#, python-format
+msgid "Tag %%s removed"
+msgstr "Etiqueta %%s quitada"
+
+msgid "Selected tags"
+msgstr "Etiquetas elegidas"
 
 msgid "Email notifications"
 msgstr "Notificaciones por correo electrónico"
@@ -2550,9 +2623,6 @@ msgstr "volver a la página de inicio"
 
 msgid "Questions"
 msgstr "Preguntas"
-
-msgid "Tags"
-msgstr "Etiquetas"
 
 msgid "People"
 msgstr "Personas"
@@ -3626,9 +3696,6 @@ msgstr "Gestión masiva de nodos"
 msgid "reset text filter"
 msgstr "restablecer filtro de texto"
 
-msgid "Body"
-msgstr "Cuerpo"
-
 msgid "Title and Body"
 msgstr "Título y cuerpo"
 
@@ -3739,9 +3806,6 @@ msgstr "Nombre del filtro..."
 
 msgid "Click to save the current filter"
 msgstr "Haga clic para guardar el filtro actual"
-
-msgid "Preview"
-msgstr "Vista previa"
 
 msgid "Reset Changes"
 msgstr "Restablecer cambios"
@@ -3857,34 +3921,28 @@ msgstr "Desde la primera respuesta"
 msgid "None."
 msgstr "Ninguna."
 
-msgid ""
-"\n"
-"        An attempt has been made to send email to\n"
-"    "
-msgstr ""
-"\n"
-"        Se ha intentado enviar un correo electrónico a\n"
-"    "
+#, python-format
+msgid "The test email to %(email)s could not be sent."
+msgstr "No se pudo enviar el correo de prueba a %(email)s."
+
+msgid "Error reported by the email server:"
+msgstr "Error indicado por el servidor de correo:"
+
+#, python-format
+msgid "The email server accepted the test message for %(email)s."
+msgstr "El servidor de correo aceptó el mensaje de prueba para %(email)s."
 
 msgid ""
 "\n"
-"        Please, check your inbox and if you see the new test message your email STMP settings are correct.\n"
+"        Check your inbox; if the message is not there after a minute or two, look in the spam folder.\n"
 "    "
 msgstr ""
 "\n"
-"        Revise su bandeja de entrada; si ve el nuevo mensaje de prueba, la configuración SMTP de su correo es correcta.\n"
+"        Revise su bandeja de entrada; si el mensaje no llega en uno o dos minutos, mire en la carpeta de correo no deseado.\n"
 "    "
 
-msgid ""
-"\n"
-"        If you do not see the new test message check your spam folder, and if you don't find it check your SMTP settings\n"
-"        again. It might be useful to take a look at the log file.\n"
-"    "
-msgstr ""
-"\n"
-"        Si no ve el nuevo mensaje de prueba, revise su carpeta de correo no deseado y, si no lo encuentra, vuelva a revisar\n"
-"        la configuración SMTP. Puede ser útil consultar el archivo de registro.\n"
-"    "
+msgid "The test uses the saved settings: save the form before testing changes."
+msgstr "La prueba usa la configuración guardada: guarde el formulario antes de probar los cambios."
 
 msgid "posts per page"
 msgstr "publicaciones por página"
@@ -3904,6 +3962,9 @@ msgstr "página siguiente"
 
 msgid "next"
 msgstr "siguiente"
+
+msgid "Sort by"
+msgstr "Ordenar por"
 
 msgid "Privacy policy"
 msgstr "Política de privacidad"
@@ -4033,11 +4094,11 @@ msgstr "Respuesta de %(name)s"
 msgid "Accepted answer"
 msgstr "Respuesta aceptada"
 
-msgid "Your answer"
-msgstr "Su respuesta"
-
 msgid "Be the first one to answer this question!"
 msgstr "¡Sea el primero en responder esta pregunta!"
+
+msgid "toggle preview"
+msgstr "alternar vista previa"
 
 msgid "Login/Signup to Post Your Answer"
 msgstr "Inicie sesión o regístrese para publicar su respuesta"
@@ -4090,12 +4151,12 @@ msgstr "visita"
 msgid "views"
 msgstr "visitas"
 
+msgctxt "question list"
+msgid "modified"
+msgstr "modificada"
+
 msgid "Related tags"
 msgstr "Etiquetas relacionadas"
-
-#, python-format
-msgid "see questions tagged '%(tag_name)s'"
-msgstr "ver las preguntas etiquetadas como '%(tag_name)s'"
 
 msgid "most recently updated questions"
 msgstr "preguntas actualizadas más recientemente"
@@ -4124,6 +4185,9 @@ msgstr "más votadas"
 msgid "Last checked"
 msgstr "Última comprobación"
 
+msgid "Remove"
+msgstr "Quitar"
+
 msgid "Interesting tags"
 msgstr "Etiquetas de interés"
 
@@ -4140,6 +4204,9 @@ msgstr "Etiquetas ignoradas"
 #, python-format
 msgid "remove '%(tag_name)s' from the list of ignored tags"
 msgstr "quitar '%(tag_name)s' de la lista de etiquetas ignoradas"
+
+msgid "Questions with ignored tags are left out of the question lists."
+msgstr "Las preguntas con etiquetas ignoradas no aparecen en las listas de preguntas."
 
 msgid "Found by tags"
 msgstr "Encontradas por etiquetas"
@@ -4171,6 +4238,13 @@ msgstr "los editores de etiquetas reciben reconocimientos especiales de la comun
 #, python-format
 msgid "Questions and answers about %(tag)s on %(app_title)s"
 msgstr "Preguntas y respuestas sobre %(tag)s en %(app_title)s"
+
+#, python-format
+msgid "%(counter)s question"
+msgid_plural "%(counter)s questions"
+msgstr[0] "%(counter)s pregunta"
+msgstr[1] "%(counter)s preguntas"
+msgstr[2] "%(counter)s preguntas"
 
 msgid "subscribe to question RSS feed"
 msgstr "suscribirse al canal RSS de la pregunta"
@@ -4215,6 +4289,25 @@ msgstr "editar etiqueta"
 msgid "Describe this tag"
 msgstr "Describa esta etiqueta"
 
+#, python-format
+msgid "No questions tagged %(tag_name)s yet"
+msgstr "Aún no hay preguntas con la etiqueta %(tag_name)s"
+
+msgid "Every question has an answer"
+msgstr "Todas las preguntas tienen respuesta"
+
+msgid "No questions here yet"
+msgstr "Aún no hay preguntas aquí"
+
+msgid "Can't find what you're looking for? Ask the community: someone may know the answer."
+msgstr "¿No encuentra lo que busca? Pregunte a la comunidad: puede que alguien sepa la respuesta."
+
+msgid "See all questions"
+msgstr "Ver todas las preguntas"
+
+msgid "Browse tags"
+msgstr "Ver etiquetas"
+
 msgid "Reopen question"
 msgstr "Reabrir pregunta"
 
@@ -4231,8 +4324,14 @@ msgstr "Reabrir esta pregunta"
 msgid "Revision history"
 msgstr "Historial de revisiones"
 
+msgid "back"
+msgstr "atrás"
+
 msgid "click to hide/show revision"
 msgstr "haga clic para ocultar o mostrar la revisión"
+
+msgid "revision"
+msgstr "revisión"
 
 msgid "Search questions"
 msgstr "Buscar preguntas"
@@ -4283,9 +4382,6 @@ msgstr "Prueba con otras palabras o con menos, o revisa la ortografía."
 
 msgid "and let the community answer it."
 msgstr "y deja que la comunidad la responda."
-
-msgid "Markdown Basics"
-msgstr "Conceptos básicos de Markdown"
 
 msgid "*italic* or _italic_"
 msgstr "*cursiva* o _cursiva_"
@@ -4415,11 +4511,34 @@ msgstr "Volver a las preguntas etiquetadas como %(name)s"
 msgid "Tag list"
 msgstr "Lista de etiquetas"
 
-msgid "All tags matching query"
-msgstr "Todas las etiquetas que coinciden con la consulta"
+msgid "Filter tags"
+msgstr "Filtrar etiquetas"
 
-msgid "Nothing found"
-msgstr "No se encontró nada"
+msgid "Filter by tag name"
+msgstr "Filtrar por nombre de etiqueta"
+
+msgid "No tag on this page matches. Press Enter to search all tags."
+msgstr "Ninguna etiqueta de esta página coincide. Pulse Intro para buscar en todas."
+
+#, python-format
+msgid "%(counter)s tag matches “%(stag)s”"
+msgid_plural "%(counter)s tags match “%(stag)s”"
+msgstr[0] "%(counter)s etiqueta coincide con «%(stag)s»"
+msgstr[1] "%(counter)s etiquetas coinciden con «%(stag)s»"
+msgstr[2] "%(counter)s etiquetas coinciden con «%(stag)s»"
+
+msgid "Show all tags"
+msgstr "Mostrar todas las etiquetas"
+
+#, python-format
+msgid "No tags match “%(stag)s”"
+msgstr "Ninguna etiqueta coincide con «%(stag)s»"
+
+msgid "No tags yet"
+msgstr "Aún no hay etiquetas"
+
+msgid "Tags are added when questions are asked."
+msgstr "Las etiquetas se añaden al hacer preguntas."
 
 msgid "Your data and account"
 msgstr "Sus datos y su cuenta"
@@ -4449,32 +4568,29 @@ msgstr "Escriba su nombre de usuario (<strong>%(name)s</strong>) para confirmar"
 msgid "Your password"
 msgstr "Su contraseña"
 
+msgid "This can't be undone."
+msgstr "Esto no se puede deshacer."
+
 msgid "Delete my account"
 msgstr "Eliminar mi cuenta"
 
 msgid "Edit user profile"
 msgstr "Editar perfil de usuario"
 
-msgid "image associated with your email address"
-msgstr "imagen asociada a su dirección de correo electrónico"
+msgid "Edit profile"
+msgstr "Editar perfil"
 
-msgid "gravatar"
-msgstr "gravatar"
+msgid "Your picture comes from Gravatar, the image linked to your email address."
+msgstr "Su imagen viene de Gravatar, la imagen vinculada a su dirección de correo."
 
-msgid "Registered user"
-msgstr "Usuario registrado"
+msgid "Change it on Gravatar"
+msgstr "Cámbiela en Gravatar"
 
 msgid "Screen Name"
 msgstr "Nombre visible"
 
-msgid "Update"
-msgstr "Actualizar"
-
-msgid "reputation"
-msgstr "reputación"
-
-msgid "Suspended"
-msgstr "Suspendido"
+msgid "Save profile"
+msgstr "Guardar perfil"
 
 msgid "Administrator"
 msgstr "Administrador"
@@ -4482,20 +4598,34 @@ msgstr "Administrador"
 msgid "Moderator"
 msgstr "Moderador"
 
-msgid "real name"
-msgstr "nombre real"
+msgid "Suspended"
+msgstr "Suspendido"
 
-msgid "member for"
-msgstr "miembro desde hace"
+msgid "reputation"
+msgstr "reputación"
 
-msgid "last seen"
-msgstr "visto por última vez"
+msgid "gold badges"
+msgstr "medallas de oro"
 
-msgid "user's website"
-msgstr "sitio web del usuario"
+msgid "silver badges"
+msgstr "medallas de plata"
+
+msgid "bronze badges"
+msgstr "medallas de bronce"
+
+#, python-format
+msgid "Member for <time datetime=\"%(joined_iso)s\" title=\"%(joined_full)s\">%(since)s</time>"
+msgstr "Miembro desde hace <time datetime=\"%(joined_iso)s\" title=\"%(joined_full)s\">%(since)s</time>"
+
+#, python-format
+msgid "Last seen %(seen_time)s"
+msgstr "Visto por última vez %(seen_time)s"
 
 msgid "location"
 msgstr "ubicación"
+
+msgid "user's website"
+msgstr "sitio web del usuario"
 
 msgid "age"
 msgstr "edad"
@@ -4506,14 +4636,14 @@ msgstr "años"
 msgid "not validated"
 msgstr "no validado"
 
-msgid "todays unused votes"
-msgstr "votos sin usar hoy"
-
-msgid "votes left"
-msgstr "votos restantes"
+msgid "Report user"
+msgstr "Denunciar usuario"
 
 msgid "Points"
 msgstr "Puntos"
+
+msgid "Settings"
+msgstr "Configuración"
 
 msgid "User tools"
 msgstr "Herramientas de usuario"
@@ -4534,17 +4664,29 @@ msgstr "Preferencias"
 msgid "Here you can set some personal preferences."
 msgstr "Aquí puede establecer algunas preferencias personales."
 
-msgid "Navigation:"
-msgstr "Navegación:"
+msgid "Navigation"
+msgstr "Navegación"
 
 msgid "Always remember the sort order I apply to the lists I view"
 msgstr "Recordar siempre el orden que aplico a las listas que consulto"
 
-msgid "No favorite questions to display."
-msgstr "No hay preguntas favoritas para mostrar."
+msgid "Favorite questions"
+msgstr "Preguntas favoritas"
 
-msgid "Report user"
-msgstr "Denunciar usuario"
+msgid "You haven't marked any questions as favorite yet."
+msgstr "Aún no ha marcado ninguna pregunta como favorita."
+
+msgid "Press the star next to a question to keep it here."
+msgstr "Pulse la estrella junto a una pregunta para guardarla aquí."
+
+msgid "Browse questions"
+msgstr "Ver preguntas"
+
+msgid "No favorite questions yet."
+msgstr "Aún no hay preguntas favoritas."
+
+msgid "No activity yet."
+msgstr "Aún no hay actividad."
 
 msgid "Public message"
 msgstr "Mensaje público"
@@ -4552,55 +4694,116 @@ msgstr "Mensaje público"
 msgid "This message will be visible through the user activity log."
 msgstr "Este mensaje será visible en el registro de actividad del usuario."
 
+msgid "Reputation over time"
+msgstr "Reputación a lo largo del tiempo"
+
+msgid "Graph of reputation over time"
+msgstr "Gráfico de la reputación a lo largo del tiempo"
+
+msgid "No reputation changes yet."
+msgstr "Aún no hay cambios de reputación."
+
+msgid "Latest changes"
+msgstr "Últimos cambios"
+
+msgid "Reputation comes from votes on your posts, accepted answers and badges."
+msgstr "La reputación se obtiene con los votos a sus publicaciones, las respuestas aceptadas y las medallas."
+
+msgid "Back to your profile"
+msgstr "Volver a su perfil"
+
+#, python-format
+msgid "You are changing the settings of %(name)s."
+msgstr "Está cambiando la configuración de %(name)s."
+
+msgid "Back to the profile"
+msgstr "Volver al perfil"
+
+msgid "Settings sections"
+msgstr "Secciones de la configuración"
+
+msgid "Sign-in and password"
+msgstr "Inicio de sesión y contraseña"
+
 msgid "badges"
 msgstr "insignias"
 
 msgid "(suspended)"
 msgstr "(suspendido)"
 
-#, python-format
-msgid ""
-"\n"
-"                <span class=\"count\">%(counter)s</span> Question\n"
-"                "
-msgid_plural ""
-"\n"
-"                <span class=\"count\">%(counter)s</span> Questions\n"
-"                "
-msgstr[0] ""
-"\n"
-"                <span class=\"count\">%(counter)s</span> pregunta\n"
-"                "
-msgstr[1] ""
-"\n"
-"                <span class=\"count\">%(counter)s</span> preguntas\n"
-"                "
-msgstr[2] ""
-"\n"
-"                <span class=\"count\">%(counter)s</span> preguntas\n"
-"                "
+msgid "questions"
+msgstr "preguntas"
+
+msgid "accepted answers"
+msgstr "respuestas aceptadas"
+
+msgid "votes cast"
+msgstr "votos emitidos"
+
+msgid "user has voted up this many times"
+msgstr "número de veces que el usuario ha votado a favor"
+
+msgid "upvote"
+msgstr "voto a favor"
+
+msgid "user voted down this many times"
+msgstr "número de veces que el usuario ha votado en contra"
+
+msgid "downvote"
+msgstr "voto en contra"
+
+msgid "All activity"
+msgstr "Toda la actividad"
 
 #, python-format
 msgid ""
 "\n"
-"                <span class=\"count\">%(counter)s</span> Answer\n"
-"                "
+"                        <span class=\"count\">%(counter)s</span> Question\n"
+"                        "
 msgid_plural ""
 "\n"
-"                <span class=\"count\">%(counter)s</span> Answers\n"
-"                "
+"                        <span class=\"count\">%(counter)s</span> Questions\n"
+"                        "
 msgstr[0] ""
 "\n"
-"                <span class=\"count\">%(counter)s</span> respuesta\n"
-"                "
+"                        <span class=\"count\">%(counter)s</span> Pregunta\n"
+"                        "
 msgstr[1] ""
 "\n"
-"                <span class=\"count\">%(counter)s</span> respuestas\n"
-"                "
+"                        <span class=\"count\">%(counter)s</span> Preguntas\n"
+"                        "
 msgstr[2] ""
 "\n"
-"                <span class=\"count\">%(counter)s</span> respuestas\n"
-"                "
+"                        <span class=\"count\">%(counter)s</span> Preguntas\n"
+"                        "
+
+msgid "You haven't asked any questions yet."
+msgstr "Aún no ha hecho ninguna pregunta."
+
+msgid "No questions yet."
+msgstr "Aún no hay preguntas."
+
+#, python-format
+msgid ""
+"\n"
+"                        <span class=\"count\">%(counter)s</span> Answer\n"
+"                        "
+msgid_plural ""
+"\n"
+"                        <span class=\"count\">%(counter)s</span> Answers\n"
+"                        "
+msgstr[0] ""
+"\n"
+"                        <span class=\"count\">%(counter)s</span> Respuesta\n"
+"                        "
+msgstr[1] ""
+"\n"
+"                        <span class=\"count\">%(counter)s</span> Respuestas\n"
+"                        "
+msgstr[2] ""
+"\n"
+"                        <span class=\"count\">%(counter)s</span> Respuestas\n"
+"                        "
 
 #, python-format
 msgid "the answer has been voted for %(vote_count)s times"
@@ -4609,87 +4812,74 @@ msgstr "la respuesta ha recibido %(vote_count)s votos"
 msgid "this answer has been selected as correct"
 msgstr "esta respuesta ha sido seleccionada como correcta"
 
-#, python-format
-msgid ""
-"\n"
-"                    <span class=\"count\">%(cnt)s</span> Vote\n"
-"                "
-msgid_plural ""
-"\n"
-"                    <span class=\"count\">%(cnt)s</span> Votes\n"
-"                "
-msgstr[0] ""
-"\n"
-"                    <span class=\"count\">%(cnt)s</span> voto\n"
-"                "
-msgstr[1] ""
-"\n"
-"                    <span class=\"count\">%(cnt)s</span> votos\n"
-"                "
-msgstr[2] ""
-"\n"
-"                    <span class=\"count\">%(cnt)s</span> votos\n"
-"                "
+msgid "accepted"
+msgstr "aceptada"
 
-msgid "thumb up"
-msgstr "pulgar arriba"
+msgid "You haven't answered any questions yet."
+msgstr "Aún no ha respondido ninguna pregunta."
 
-msgid "user has voted up this many times"
-msgstr "número de veces que el usuario ha votado a favor"
+msgid "Find unanswered questions"
+msgstr "Buscar preguntas sin respuesta"
 
-msgid "thumb down"
-msgstr "pulgar abajo"
-
-msgid "user voted down this many times"
-msgstr "número de veces que el usuario ha votado en contra"
+msgid "No answers yet."
+msgstr "Aún no hay respuestas."
 
 #, python-format
 msgid ""
 "\n"
-"                    <span class=\"count\">%(counter)s</span> Tag\n"
-"                "
+"                            <span class=\"count\">%(counter)s</span> Tag\n"
+"                        "
 msgid_plural ""
 "\n"
-"                    <span class=\"count\">%(counter)s</span> Tags\n"
-"                "
+"                            <span class=\"count\">%(counter)s</span> Tags\n"
+"                        "
 msgstr[0] ""
 "\n"
-"                    <span class=\"count\">%(counter)s</span> etiqueta\n"
-"                "
+"                            <span class=\"count\">%(counter)s</span> Etiqueta\n"
+"                        "
 msgstr[1] ""
 "\n"
-"                    <span class=\"count\">%(counter)s</span> etiquetas\n"
-"                "
+"                            <span class=\"count\">%(counter)s</span> Etiquetas\n"
+"                        "
 msgstr[2] ""
 "\n"
-"                    <span class=\"count\">%(counter)s</span> etiquetas\n"
-"                "
+"                            <span class=\"count\">%(counter)s</span> Etiquetas\n"
+"                        "
 
 #, python-format
 msgid "see other questions with %(view_user)s's contributions tagged '%(tag_name)s' "
 msgstr "ver otras preguntas con contribuciones de %(view_user)s etiquetadas como '%(tag_name)s' "
 
+msgid "No tags yet."
+msgstr "Aún no hay etiquetas."
+
 #, python-format
 msgid ""
 "\n"
-"            <span class=\"count\">%(counter)s</span> Badge\n"
-"            "
+"                        <span class=\"count\">%(counter)s</span> Badge\n"
+"                        "
 msgid_plural ""
 "\n"
-"            <span class=\"count\">%(counter)s</span> Badges\n"
-"            "
+"                        <span class=\"count\">%(counter)s</span> Badges\n"
+"                        "
 msgstr[0] ""
 "\n"
-"            <span class=\"count\">%(counter)s</span> insignia\n"
-"            "
+"                        <span class=\"count\">%(counter)s</span> Medalla\n"
+"                        "
 msgstr[1] ""
 "\n"
-"            <span class=\"count\">%(counter)s</span> insignias\n"
-"            "
+"                        <span class=\"count\">%(counter)s</span> Medallas\n"
+"                        "
 msgstr[2] ""
 "\n"
-"            <span class=\"count\">%(counter)s</span> insignias\n"
-"            "
+"                        <span class=\"count\">%(counter)s</span> Medallas\n"
+"                        "
+
+msgid "No badges yet."
+msgstr "Aún no hay medallas."
+
+msgid "See the badges you can earn"
+msgstr "Ver las medallas que puede ganar"
 
 msgid "Questions you follow"
 msgstr "Preguntas que sigue"
@@ -4702,6 +4892,16 @@ msgstr "no mostrar suscripciones automáticas"
 
 msgid "show auto-subscribe"
 msgstr "mostrar suscripciones automáticas"
+
+#, python-format
+msgid "Last checked %(checked)s"
+msgstr "Revisada por última vez %(checked)s"
+
+msgid "You don't follow any questions yet."
+msgstr "Aún no sigue ninguna pregunta."
+
+msgid "Questions you ask, answer or follow are listed here."
+msgstr "Aquí aparecen las preguntas que hace, responde o sigue."
 
 msgid "Email notifications are on."
 msgstr "Las notificaciones por correo electrónico están activadas."
@@ -4793,6 +4993,9 @@ msgstr "Guardar la configuración de correo electrónico"
 msgid "Suspend user"
 msgstr "Suspender usuario"
 
+msgid "Suspend"
+msgstr "Suspender"
+
 msgid "Indefinitely"
 msgstr "Indefinidamente"
 
@@ -4811,17 +5014,55 @@ msgstr "Mensaje privado"
 msgid "If set, only the suspended user will see this message."
 msgstr "Si se indica, solo el usuario suspendido verá este mensaje."
 
+msgid "Profile sections"
+msgstr "Secciones del perfil"
+
 msgid "Users"
 msgstr "Usuarios"
 
-msgid "upvote"
-msgstr "voto a favor"
+msgid "Search users"
+msgstr "Buscar usuarios"
 
-msgid "downvote"
-msgstr "voto en contra"
+msgid "Search by name"
+msgstr "Buscar por nombre"
 
-msgid "questions"
-msgstr "preguntas"
+msgid "Nobody on this page matches. Press Enter to search everyone."
+msgstr "Nadie de esta página coincide. Pulse Intro para buscar entre todos."
+
+#, python-format
+msgid "%(counter)s person matches “%(suser)s”"
+msgid_plural "%(counter)s people match “%(suser)s”"
+msgstr[0] "%(counter)s persona coincide con «%(suser)s»"
+msgstr[1] "%(counter)s personas coinciden con «%(suser)s»"
+msgstr[2] "%(counter)s personas coinciden con «%(suser)s»"
+
+msgid "Show everyone"
+msgstr "Mostrar a todos"
+
+#, python-format
+msgid "Nobody matches “%(suser)s”"
+msgstr "Nadie coincide con «%(suser)s»"
+
+msgid "Check the spelling, or search for part of the name."
+msgstr "Revise la ortografía o busque solo una parte del nombre."
+
+msgid "Your votes"
+msgstr "Sus votos"
+
+msgid "Only you can see this list."
+msgstr "Solo usted puede ver esta lista."
+
+msgid "Votes"
+msgstr "Votos"
+
+msgid "You haven't voted yet."
+msgstr "Aún no ha votado."
+
+msgid "Vote up the questions and answers that help you; they rise to the top for everyone."
+msgstr "Vote a favor de las preguntas y respuestas que le ayudan; así suben para todos."
+
+msgid "No votes yet."
+msgstr "Aún no hay votos."
 
 msgid "users"
 msgstr "usuarios"
@@ -5113,6 +5354,18 @@ msgstr "Las preguntas seleccionadas se cerraron"
 
 msgid "All selected nodes deleted"
 msgstr "Todos los nodos seleccionados se eliminaron"
+
+msgid "The server only accepts a sign-in over an encrypted connection: tick \"Use TLS\" (with port 587)."
+msgstr "El servidor solo acepta el inicio de sesión por una conexión cifrada: marque \"Use TLS\" (con el puerto 587)."
+
+msgid "The user name or password was refused. Gmail needs an App Password (myaccount.google.com/apppasswords), not the normal account password."
+msgstr "Se rechazó el usuario o la contraseña. Gmail necesita una contraseña de aplicación (myaccount.google.com/apppasswords), no la contraseña normal de la cuenta."
+
+msgid "Port 465 (SSL from the start) is not supported: use port 587 with \"Use TLS\" ticked."
+msgstr "El puerto 465 (SSL desde el inicio) no es compatible: use el puerto 587 con \"Use TLS\" marcado."
+
+msgid "The email server could not be reached: check the host name and port, and that the firewall allows outgoing connections to it."
+msgstr "No se pudo conectar con el servidor de correo: revise el nombre del servidor y el puerto, y que el cortafuegos permita conexiones salientes hacia él."
 
 #, python-format
 msgid "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your password?\" to get a sign-in link by email."
@@ -5428,9 +5681,6 @@ msgstr " - "
 msgid "latest questions"
 msgstr "últimas preguntas"
 
-msgid "unanswered"
-msgstr "sin respuesta"
-
 msgid "open questions without an accepted answer"
 msgstr "preguntas abiertas sin una respuesta aceptada"
 
@@ -5557,14 +5807,11 @@ msgstr "resumen"
 msgid "user overview"
 msgstr "resumen del usuario"
 
-msgid "recent activity"
-msgstr "actividad reciente"
+msgid "activity"
+msgstr "actividad"
 
 msgid "recent user activity"
 msgstr "actividad reciente del usuario"
-
-msgid "reputation history"
-msgstr "historial de reputación"
 
 msgid "graph of user karma"
 msgstr "gráfico de la reputación del usuario"
@@ -6242,9 +6489,6 @@ msgstr "Estados de nodos"
 
 msgid "Awards"
 msgstr "Insignias otorgadas"
-
-msgid "Settings"
-msgstr "Configuración"
 
 msgid "tar.gz"
 msgstr "tar.gz"

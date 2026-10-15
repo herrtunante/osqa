@@ -1,5 +1,6 @@
 from forum.models import User, MarkedTag
-from forum.models.base import load_cached
+from forum.models.base import load_cached, prefetch_cached_fk
+from forum.models.action import Action
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.template.defaultfilters import slugify
@@ -174,6 +175,8 @@ def edit_user(request, id, slug):
         form = EditUserForm(user)
     return render(request, 'users/edit.html', {
     'user': user,
+    'view_user': user,
+    'can_view_private': True,
     'form' : form,
     'gravatar_faq_url' : reverse('faq') + '#gravatar',
     })
@@ -291,6 +294,47 @@ def report_user(request, id):
 
 
 
+# Actions left out of the activity lists (votes are private, page edits are admin work).
+ACTIVITY_EXCLUDED_TYPES = ("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage")
+
+
+def _profile_tab_counts(user, can_view_private):
+    counts = {}
+    if can_view_private:
+        # Denormalized counters, kept in the object cache.
+        counts['votes'] = user.vote_up_count + user.vote_down_count
+    return counts
+
+
+def prefetch_activity(actions, user=None):
+    """The actions as their leaf classes, with what their describe() reads
+    (the post, its parent, their authors) loaded from the object cache in a
+    few grouped queries instead of a few queries per row."""
+    leaves = [action.leaf for action in actions]
+    if user is not None:
+        user_field = Action._meta.get_field('user')
+        for action in leaves:
+            if action.user_id == user.id:
+                user_field.set_cached_value(action, user)
+    prefetch_cached_fk(leaves, 'node')
+    node_field = Action._meta.get_field('node')
+    nodes = [action.node for action in leaves if action.node_id and node_field.is_cached(action)]
+    prefetch_cached_fk(nodes, 'parent', 'author')
+    parents = [node.parent for node in nodes if node.parent_id and node._meta.get_field('parent').is_cached(node)]
+    prefetch_cached_fk(parents, 'parent', 'author')
+    # Badge awards name their badge (action.award.badge).
+    awarded = [action for action in leaves if action.action_type == 'award']
+    if awarded:
+        from forum.models import Award
+        awards = dict((award.action_id, award) for award in
+                      Award.objects.filter(action__in=[action.id for action in awarded]).select_related('badge'))
+        award_field = Action._meta.get_field('award')
+        for action in awarded:
+            if action.id in awards:
+                award_field.set_cached_value(action, awards[action.id])
+    return leaves
+
+
 def user_view(template, tab_name, tab_title, tab_description, private=False, tabbed=True, render_to=None, weight=500):
     def decorator(fn):
         def params(request, id=None, slug=None):
@@ -327,12 +371,15 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
                 # ...if it is a context move forward, update it and render it to response
                 context = context_or_response
 
+            can_view_private = (user == request.user) or request.user.is_superuser
             context.update({
                 "tab": "users",
                 "active_tab" : tab_name,
                 "tab_description" : tab_description,
                 "page_title" : rev_page_title,
-                "can_view_private": (user == request.user) or request.user.is_superuser
+                "can_view_private": can_view_private,
+                # Counts shown in the profile tabs: only the cheap ones (cached counters).
+                "profile_tab_counts": _profile_tab_counts(user, can_view_private),
             })
             return render(request, template, context)
 
@@ -370,8 +417,9 @@ def user_profile(request, user, **kwargs):
 
     up_votes = user.vote_up_count
     down_votes = user.vote_down_count
-    votes_today = user.get_vote_count_today()
-    votes_total = user.can_vote_count_today()
+    accepted_count = Answer.objects.filter_state(deleted=False).filter(author=user, marked=True).count()
+    recent_activity = prefetch_activity(
+        user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES).order_by('-action_date')[:6], user)
 
     user_tags = Tag.objects.filter(Q(nodes__author=user) | Q(nodes__children__author=user)) \
         .annotate(user_tag_usage_count=Count('name')).order_by('-user_tag_usage_count')
@@ -389,23 +437,22 @@ def user_profile(request, user, **kwargs):
     "up_votes" : up_votes,
     "down_votes" : down_votes,
     "total_votes": up_votes + down_votes,
-    "votes_today_left": votes_total-votes_today,
-    "votes_total_per_day": votes_total,
-    "user_tags" : user_tags[:50],
+    "accepted_count": accepted_count,
+    "recent_activity": recent_activity,
+    "user_tags" : list(user_tags[:30]),
     "awards": awards,
     "total_awards" : len(awards),
     })
     
-@user_view('users/recent.html', 'recent', _lazy('recent activity'), _lazy('recent user activity'))
+@user_view('users/recent.html', 'recent', _lazy('activity'), _lazy('recent user activity'))
 def user_recent(request, user, **kwargs):
-    activities = user.actions.exclude(
-            action_type__in=("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage")).order_by(
-            '-action_date')[:USERS_PAGE_SIZE]
+    activities = prefetch_activity(user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES).order_by(
+            '-action_date')[:USERS_PAGE_SIZE], user)
 
     return {"view_user" : user, "activities" : activities}
 
 
-@user_view('users/reputation.html', 'reputation', _lazy('reputation history'), _lazy('graph of user karma'))
+@user_view('users/reputation.html', 'reputation', _lazy('reputation'), _lazy('graph of user karma'))
 def user_reputation(request, user, **kwargs):
     rep = list(user.reputes.order_by('date'))
     # Running total of reputation for the graph (reduce() is no longer a builtin).
@@ -416,14 +463,20 @@ def user_reputation(request, user, **kwargs):
     for r, total in zip(rep, totals)
     ])
 
-    rep = user.reputes.filter(action__canceled=False).order_by('-date')[0:20]
+    rep = list(user.reputes.filter(action__canceled=False).order_by('-date')[0:20])
+    prefetch_cached_fk(rep, 'action')
+    for repute, action in zip(rep, prefetch_activity([r.action for r in rep])):
+        repute.leaf_action = action
 
-    return {"view_user": user, "reputation": rep, "graph_data": graph_data}
+    return {"view_user": user, "reputation": rep, "graph_data": graph_data, "has_graph": len(graph_data) > 2}
 
 @user_view('users/votes.html', 'votes', _lazy('votes'), _lazy('user vote record'), True)
 def user_votes(request, user, **kwargs):
-    votes = user.votes.exclude(node__state_string__contains="(deleted").filter(
-            node__node_type__in=("question", "answer")).order_by('-voted_at')[:USERS_PAGE_SIZE]
+    votes = list(user.votes.exclude(node__state_string__contains="(deleted").filter(
+            node__node_type__in=("question", "answer")).order_by('-voted_at')[:USERS_PAGE_SIZE])
+    # The posts and, for answers, their questions: from the object cache, not one query per row.
+    prefetch_cached_fk(votes, 'node')
+    prefetch_cached_fk([vote.node for vote in votes if vote._meta.get_field('node').is_cached(vote)], 'parent')
 
     return {"view_user" : user, "votes" : votes}
 

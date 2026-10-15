@@ -6,7 +6,7 @@
 {% load general_sidebar_tags %}
 {% load subscription_tags %}
 
-{% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
+{% block title %}{% spaceless %}{{ page_title|striptags }}{% endspaceless %}{% endblock %}
 
 {% block metadescription %}{% spaceless %}
     {% if tag %}
@@ -18,12 +18,23 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ feed_url }}" />
 {% endblock %}
 
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.lists.js" %}"></script>
+{% endblock %}
+
 {% block content %}
 
-<div class="tabBar">
+<div class="list-page">
+<div class="list-header">
     {% include "question_list/title.html" %}
-    <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');" href="{{ feed_url }}" title="{% trans "subscribe to question RSS feed" %}"></a>
-    {{ questions.paginator.sort_tabs }}
+    <a class="list-ask button plain-button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+</div>
+<div class="tabBar list-toolbar">
+    <p class="list-count">{% blocktrans count counter=questions.paginator.count %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}</p>
+    <div class="list-toolbar-end">
+        {{ questions.paginator.sort_tabs }}
+        <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');" href="{{ feed_url }}" title="{% trans "subscribe to question RSS feed" %}"></a>
+    </div>
 </div>
 {% if tag %}
 {% tag_follow_state tag request.user as follow %}
@@ -70,12 +81,25 @@
     {% else %}
       {% question_list_item question %}
     {% endif %}
+{% empty %}
+    <div class="list-empty">
+        <svg class="list-empty-icon" aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.4"/><path d="M12 16.6h.01"/></svg>
+        <h2>{% if tag %}{% blocktrans with tag_name=tag.name %}No questions tagged {{ tag_name }} yet{% endblocktrans %}{% elif tab == "unanswered" %}{% trans "Every question has an answer" %}{% else %}{% trans "No questions here yet" %}{% endif %}</h2>
+        <p>{% trans "Can't find what you're looking for? Ask the community: someone may know the answer." %}</p>
+        <p class="list-empty-actions">
+            <a class="button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+            {% url "questions" as questions_url %}{% if request.path != questions_url %}<a class="list-empty-link" href="{{ questions_url }}">{% trans "See all questions" %}</a>{% endif %}
+            <a class="list-empty-link" href="{% url "tags" %}">{% trans "Browse tags" %}</a>
+        </p>
+    </div>
 {% endfor %}</div>
-{% endblock %}
-
-{% block tail %}
-    <div class="pager">{{ questions.paginator.page_numbers }}</div>
-    <div class="pagesize">{{ questions.paginator.page_sizes }}</div>
+{% if questions.paginator.page_numbers or questions.paginator.count > 15 %}
+<div class="list-footer">
+    {{ questions.paginator.page_numbers }}
+    {% if questions.paginator.count > 15 %}{{ questions.paginator.page_sizes }}{% endif %}
+</div>
+{% endif %}
+</div>
 {% endblock %}
 
 {% block sidebar %}

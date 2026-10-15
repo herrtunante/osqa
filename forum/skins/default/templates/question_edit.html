@@ -6,128 +6,59 @@
 {% block forejs %}
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
         <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
-        <script type="text/javascript">
-		//todo move javascript out        
-        $().ready(function(){
-            $("#nav_questions").attr('className',"on");
-            
-
-            //toggle preview of editor
-            var display = true;
-            var txt = "[{% trans "hide preview" %}]";
-            $('#pre-collapse').text(txt);
-            $('#pre-collapse').on('click', function(){
-                txt = display ? "[{% trans "show preview" %}]" : "[{% trans "hide preview" %}]";
-                display = !display;
-                $('#previewer').toggle();
-                $('#pre-collapse').text(txt);
-            });
-            
-            $("#id_tags").osqaAutocomplete("{% url "matching_tags" %}", {multiple: true, max: 20});
-
-            $('#id_revision').off().change(function(){
-                $("#select_revision").click();
-            });
-
-            init = $("textarea#editor")[0].value;
-
-            title = $("input#id_title")[0].value;
-            body = $("textarea#editor")[0].value;
-            tag = $("input#id_tags")[0].value;
-        });
-
-        function submitClicked(e, f) {
-            if(!(browserTester('chrome') || browserTester('safari'))) {
-                $("input.submit")[0].disabled=true;
-                $("input.submit")[1].disabled=true;
-            }
-            window.removeEventListener('beforeunload', beforeUnload, true);
-            if (f) {
-                f.submit();
-            }
-        }
-
-        function beforeUnload(e) {
-            if($("input#id_title")[0].value != title || $("textarea#editor")[0].value != body || $("input#id_tags")[0].value != tag) {
-                 return yourWorkWillBeLost(e);
-            }
-        }
-        window.addEventListener('beforeunload', beforeUnload, true);
-
-        var init = "";
-        var title = "";
-        var body = "";
-        var tag = "";
-        </script>
+        <script defer src="{% media "/media/js/osqa.ask.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
-        
+
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% block edittype %}{% trans "Edit question" %}{% endblock %} [<a href="{{ question.get_absolute_url }}">{% trans "back" %}</a>]
+<div id="main-bar" class="headNormal compose-header">
+    <h1>{% block edittype %}{% trans "Edit question" %}{% endblock %}</h1>
+    <p class="compose-lead"><a href="{{ question.get_absolute_url }}">{{ question.headline }}</a></p>
 </div>
-<div id="main-body" class="ask-body">
+<div id="main-body" class="ask-body compose-page">
     <div id="askform">
-        <form id="fmedit" action="" method="post">
+        <form id="fmedit" class="compose-form" novalidate data-guard="changed" action="" method="post">
             {% csrf_token %}
-            <label for="id_revision" ><strong>{% trans "revision" %}:</strong></label> <br/> 
-            {% if revision_form.revision.errors %}{{ revision_form.revision.errors.as_ul }}{% endif %}
-            <div style="vertical-align:middle">
-            {{ revision_form.revision }} <input type="submit" style="display:none" id="select_revision" name="select_revision" 
-											value="{% trans "select revision"%}">
-            </div> 
-            <div class="form-item">
-                <label for="id_title" ><strong>{{ form.title.label_tag }}:</strong></label> <span class="form-error"></span><br/> 
-                {{ form.title }} {{ form.title.errors }}  
-                <div class="title-desc">
-                    {{ form.title.help_text }}
-                </div>     
+            {% trans "Body" as body_label %}
+            {% trans "Your edits aren't saved yet. Please check:" as errors_title %}
+            {% include "compose/errors.html" with title=errors_title text_label=body_label %}
+            {% if question.author_id != request.user.id %}
+            <div class="compose-note" role="note">
+                {% blocktrans with author=question.author.username %}You are editing a post by {{ author }}. Your changes will be shown in its revision history.{% endblocktrans %}
             </div>
-            <div class="form-item">
-                <div id="wmd-button-bar" class="wmd-panel"></div>
-                {{ form.text }}
-                <span class="form-error"></span>
-                <div class="preview-toggle">
-                    <table width="100%">
-                        <tr>
-                            <td>
-                                <span id="pre-collapse" title="{% trans "Toggle the real time Markdown editor preview" %}">{% trans "toggle preview" %}</span>
-                            </td>
-                            <td style="text-align: right;" id="editor-metrics"></td>
-                            {% if settings.WIKI_ON %}
-                            <td style="text-align:right;">
-                                {{ form.wiki }} <span style="color:#000;cursor:help" title="{{form.wiki.help_text}}">{{ form.wiki.label_tag }} </span>
-                            </td>
-                            {% endif %}
-                        </tr>
-                    
-                    </table>   
-                </div>
-                <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
+            {% endif %}
+
+            {% include "compose/revision.html" %}
+
+            <div class="compose-field form-item{% if form.title.errors %} has-error{% endif %}" id="compose-title">
+                <label class="compose-label" for="id_title">{% trans "Title" %}</label>
+                <p class="compose-help" id="id_title-help">{% trans "Be specific and imagine you're asking another person." %}</p>
+                {% include "compose/field_error.html" with field=form.title %}
+                {{ form.title }}
             </div>
-            <div class="form-item">
-                <strong>{{ form.tags.label_tag }}:</strong> <span class="form-error"></span><br/>
-                {{ form.tags }}  {{ form.tags.errors }}
-                <div class="title-desc">
-                    {{ form.tags.help_text }}
-                </div>
-            </div>
-            <strong>{{ form.summary.label_tag }}</strong> <br/>
-            {{ form.summary }}  {{ form.summary.errors }}
-            <div class="title-desc">
-                {{ form.summary.help_text }}
-            </div>
+
             
+            {% include "compose/editor.html" with label=body_label %}
+
+            {% include "compose/tags.html" %}
+
+            {% include "compose/summary.html" %}
+
+            {% include "compose/wiki.html" %}
+
             {% if form.recaptcha %}
-            <div class="question-captcha" style="float: left">
+            <div class="question-captcha">
             	{{ form.recaptcha.errors }}
             	{{ form.recaptcha }}
             </div>
-            <div class="clear"></div>
             {% endif %}
-            
-            <div class="error" ></div>
-            <input type="button" value="{% trans "Save edit" %}" class="submit" onclick="submitClicked(event, this.form)" />
-            <input type="button" value="{% trans "Cancel" %}" class="submit" onclick="submitClicked(event, null); history.back(-1);" />
+
+            <div class="compose-actions">
+                <input type="submit" value="{% trans "Save edits" %}" class="submit compose-submit" />
+                <a class="compose-cancel" href="{{ question.get_absolute_url }}">{% trans "Cancel" %}</a>
+                <span class="compose-shortcut" aria-hidden="true"><kbd class="compose-mod">Ctrl</kbd>+<kbd>Enter</kbd></span>
+            </div>
         </form>
     </div>
 </div>

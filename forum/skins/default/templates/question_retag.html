@@ -4,49 +4,40 @@
 {% load i18n %}
 {% block title %}{% spaceless %}{% trans "Change tags" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type="text/javascript">
-        
-        $().ready(function(){
-            $("#id_tags").osqaAutocomplete("{% url "matching_tags" %}", {multiple: true, max: 20});
-
-        });
-        </script>
+        <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
-        
+
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "Change tags" %} [<a href="{{ question.get_absolute_url }}">{% trans "back" %}</a>]
+<div id="main-bar" class="headNormal compose-header">
+    <h1>{% trans "Change tags" %}</h1>
+    <p class="compose-lead"><a href="{{ question.get_absolute_url }}">{{ question.headline }}</a></p>
 </div>
-<div id="main-body" class="ask-body">
+<div id="main-body" class="ask-body compose-page">
     <div id="askform">
-        <form id="fmretag" action="{% url "edit_question" question.id %}" method="post">
+        <form id="fmretag" class="compose-form" novalidate data-guard="changed" action="{% url "edit_question" question.id %}" method="post">
             {% csrf_token %}
-            <h3>
-                {{ question.headline }}
-            </h3>
-            <div id="description" class="edit-content-html">
+            {% trans "Your edits aren't saved yet. Please check:" as errors_title %}
+            {% include "compose/errors.html" with title=errors_title %}
+            <div id="description" class="edit-content-html compose-quote">
                 {{ question.html|safe }}
             </div>
-           
-            
-            <div class="form-item">
-                <strong>{{ form.tags.label_tag }}:</strong> <span class="form-error"></span><br/>
-                {{ form.tags }}  {{ form.tags.errors }}
-                <div class="title-desc">
-                    {{ form.tags.help_text }}
-                </div>
+
+            {% include "compose/tags.html" %}
+
+            <div class="compose-actions">
+                <input type="submit" value="{% trans "Save edits" %}" class="submit compose-submit" />
+                <a class="compose-cancel" href="{{ question.get_absolute_url }}">{% trans "Cancel" %}</a>
+                <span class="compose-shortcut" aria-hidden="true"><kbd class="compose-mod">Ctrl</kbd>+<kbd>Enter</kbd></span>
             </div>
-            <div class="error" ></div>
-            <input type="submit" value="{% trans "Save edit" %}" class="submit" />
-            <input type="button" value="{% trans "Cancel" %}" class="submit" onclick="history.back(-1);" />
         </form>
     </div>
 </div>
 {% endblock %}
 
 {% block sidebar %}
-<div class="boxC">
-    <p class="subtitle">{% trans "Why use and modify tags?" %}</p>
+<div class="boxC compose-tips">
+    <h2 class="compose-tips-title">{% trans "Why use and modify tags?" %}</h2>
     <ul class="list-item">
         <li>
             {% trans "tags help us keep Questions organized" %}

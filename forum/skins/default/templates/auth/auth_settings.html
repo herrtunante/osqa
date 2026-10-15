@@ -1,42 +1,57 @@
-{% extends "user.html" %}
+{% extends "users/settings_base.html" %}
 <!-- changepw.html -->
-{% load i18n %}
+{% load i18n extra_tags %}
 {% block head %}{% endblock %}
 {% block title %}{% spaceless %}{% trans "Authentication settings" %}{% endspaceless %}{% endblock %}
-{% block usercontent %}
-<h2>{% trans "Authentication settings" %}</h2>
-{% if auth_keys %}
-    <p class="message">{% blocktrans %}These are the external authentication providers currently associated with your account.{% endblocktrans %}</p>
-    <div>
-        {% for key in auth_keys %}
-            <form method="post" action="{% url "user_remove_external_provider" id=key.id %}">
-                {% csrf_token %}
-                <p>{{ key.name }} (<button type="submit" class="link">{% trans "remove" %}</button>)</p>
-            </form>
-        {% endfor %}
-    </div>
-{% endif %}
-{% if not auth_keys %}
-    <p class="message">{% blocktrans %}You currently have no external authentication provider associated with your account.{% endblocktrans %}</p>
-{% endif %}
-{% if view_user == request.user %}
-    <input type="button" class="submit" value="{% trans "Add new provider" %}" onclick="window.location='{% url "user_add_external_provider" %}'" />
-{% endif %}
-{% if allow_local_auth %}
-{% if has_password %}
-    <p class="message">{% blocktrans %}This is where you can change your password. Make sure you remember it!{% endblocktrans %}</p>
-{% else %}
-    <p class="message">{% blocktrans %}Set a password so you can sign in with your username or email and a password.{% endblocktrans %}</p>
-{% endif %}
-<div class="aligned">
-	<form action="" method="post" accept-charset="utf-8">
-        {% csrf_token %}
-        <ul id="changepw-form" class="form-horizontal-rows">
-        {{form.as_ul}}
+{% block userjs %}
+    <script defer src="{% media "/media/js/osqa.password.js" %}"></script>
+{% endblock %}
+{% block settingscontent %}
+<section class="settings-card" aria-labelledby="auth-providers-title">
+    <h2 id="auth-providers-title">{% trans "Sign-in services" %}</h2>
+    {% if auth_keys %}
+        <p class="settings-lead">{% blocktrans %}These are the external authentication providers currently associated with your account.{% endblocktrans %}</p>
+        <ul class="settings-list">
+            {% for key in auth_keys %}
+            <li>
+                <span class="settings-list-text">{{ key.name }}</span>
+                <form method="post" action="{% url "user_remove_external_provider" id=key.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="plain-button danger-outline-button">{% trans "remove" %}</button>
+                </form>
+            </li>
+            {% endfor %}
         </ul>
-        <div class="submit-row"><input type="submit" class="submit" value="{% if has_password %}{% trans "Change password" %}{% endif %}{% if not has_password %}{% trans "Create password" %}{% endif %}" /></div>
-	</form>
-	</div>
+    {% else %}
+        <p class="settings-lead">{% blocktrans %}You currently have no external authentication provider associated with your account.{% endblocktrans %}</p>
+    {% endif %}
+    {% if view_user == request.user %}
+        <a class="button plain-button secondary-button" href="{% url "user_add_external_provider" %}">{% trans "Add new provider" %}</a>
+    {% endif %}
+</section>
+
+{% if allow_local_auth %}
+<section class="settings-card" aria-labelledby="auth-password-title">
+    <h2 id="auth-password-title">{% if has_password %}{% trans "Change password" %}{% else %}{% trans "Create password" %}{% endif %}</h2>
+    {% if has_password %}
+        <p class="settings-lead">{% blocktrans %}This is where you can change your password. Make sure you remember it!{% endblocktrans %}</p>
+    {% else %}
+        <p class="settings-lead">{% blocktrans %}Set a password so you can sign in with your username or email and a password.{% endblocktrans %}</p>
+    {% endif %}
+    {% if form.errors %}
+    <div class="auth-alert settings-alert" role="alert" id="settings-errors" tabindex="-1">
+        <p class="auth-alert-title">{% trans "Please correct the errors below." %}</p>
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    <form id="changepw-form" action="" method="post" accept-charset="utf-8" novalidate>
+        {% csrf_token %}
+        {% if form.oldpw %}{% include "auth/field.html" with field=form.oldpw %}{% endif %}
+        {% include "auth/field.html" with field=form.password1 %}
+        {% include "auth/field.html" with field=form.password2 %}
+        <div class="submit-row settings-actions"><input type="submit" class="submit" value="{% if has_password %}{% trans "Change password" %}{% else %}{% trans "Create password" %}{% endif %}" /></div>
+    </form>
+</section>
 {% endif %}
 {% endblock %}
 <!-- end changepw.html -->

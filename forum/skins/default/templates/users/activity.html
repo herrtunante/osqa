@@ -1,12 +1,10 @@
-{% load extra_tags %}
-{% load humanize %}
-{% load extra_tags %}
-
-<div class="action_container">
+{% load extra_tags node_tags %}
+<div class="action_container activity-item activity-{{ action.action_type }}">
+    <span class="activity-icon" aria-hidden="true"></span>
     <div class="action_body">
         {{ describe }}
     </div>
-    <div class="action_date" style="text-align: right;">
-        {% diff_date action.action_date  %}
+    <div class="action_date">
+        {% post_time action.action_date %}
     </div>
 </div>

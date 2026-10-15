@@ -2,47 +2,50 @@
 {% load extra_tags %}
 
 <div class="email-settings">
-<h2>{% trans "Email notifications" %}</h2>
-
-<div class="email-master {% if notifications_on %}is-on{% else %}is-off{% endif %}">
-    <form method="post">
-        {% csrf_token %}
-        {% if notifications_on %}
-        <p><strong>{% trans "Email notifications are on." %}</strong>
-            {% trans "You get the emails chosen below." %}</p>
-        <button type="submit" name="notifications" value="off" class="plain-button">{% trans "Stop all notification emails" %}</button>
-        {% else %}
-        <p><strong>{% trans "Email notifications are off." %}</strong>
-            {% trans "You only get emails about your account, such as sign-in links." %}</p>
-        <button type="submit" name="notifications" value="on" class="submit">{% trans "Turn email notifications on" %}</button>
-        {% endif %}
-    </form>
+<section class="settings-card" aria-labelledby="email-master-title">
+    <h2 id="email-master-title">{% trans "Email notifications" %}</h2>
+    <div class="email-master {% if notifications_on %}is-on{% else %}is-off{% endif %}">
+        <form method="post">
+            {% csrf_token %}
+            {% if notifications_on %}
+            <p><strong>{% trans "Email notifications are on." %}</strong>
+                {% trans "You get the emails chosen below." %}</p>
+            <button type="submit" name="notifications" value="off" class="plain-button">{% trans "Stop all notification emails" %}</button>
+            {% else %}
+            <p><strong>{% trans "Email notifications are off." %}</strong>
+                {% trans "You only get emails about your account, such as sign-in links." %}</p>
+            <button type="submit" name="notifications" value="on" class="submit">{% trans "Turn email notifications on" %}</button>
+            {% endif %}
+        </form>
+    </div>
     <p class="email-help-link"><a href="{% url "email_help" %}">{% trans "How email notifications work" %}</a>
         &middot; {% trans "Every email also has a link to stop it, no sign-in needed." %}</p>
-</div>
+</section>
 
-<h3>{% trans "Tags you follow" %}</h3>
-<p class="email-settings-hint">{% blocktrans %}You're told about new questions in these tags (see "New questions in tags I follow" below). To follow a tag, open it and press <em>Follow tag</em>.{% endblocktrans %}</p>
-{% if followed_tags %}
-<ul class="followed-tags">
-    {% for tag in followed_tags %}
-    <li><a class="post-tag" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a></li>
-    {% endfor %}
-</ul>
-{% else %}
-<p class="email-settings-empty">{% blocktrans %}You don't follow any tags yet. Browse the <a href="/tags/">tags</a> to find your topics.{% endblocktrans %}</p>
-{% endif %}
+<section class="settings-card" aria-labelledby="followed-tags-title">
+    <h2 id="followed-tags-title">{% trans "Tags you follow" %}</h2>
+    <p class="email-settings-hint">{% blocktrans %}You're told about new questions in these tags (see "New questions in tags I follow" below). To follow a tag, open it and press <em>Follow tag</em>.{% endblocktrans %}</p>
+    {% if followed_tags %}
+    <ul class="followed-tags">
+        {% for tag in followed_tags %}
+        <li><a class="post-tag" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="email-settings-empty">{% blocktrans %}You don't follow any tags yet. Browse the <a href="/tags/">tags</a> to find your topics.{% endblocktrans %}</p>
+    {% endif %}
+</section>
 
-<form method="post" class="email-settings-form">
+<form method="post" class="email-settings-form settings-card">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
     <fieldset>
         <legend>{% trans "Email me when" %}</legend>
-        <div class="email-choice"><span>{% trans "A new question is posted in a tag I follow" %}</span>{{ form.new_question_watched_tags }}</div>
-        <div class="email-choice"><span>{% trans "There's news on a question I follow (answers, comments)" %}</span>{{ form.subscribed_questions }}</div>
-        <div class="email-choice"><span>{% trans "Any new question is posted on the site" %}</span>{{ form.new_question }}</div>
-        <div class="email-choice"><span>{% trans "A new member joins" %}</span>{{ form.member_joins }}</div>
+        <fieldset class="email-choice"><legend>{% trans "A new question is posted in a tag I follow" %}</legend>{{ form.new_question_watched_tags }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "There's news on a question I follow (answers, comments)" %}</legend>{{ form.subscribed_questions }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "Any new question is posted on the site" %}</legend>{{ form.new_question }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "A new member joins" %}</legend>{{ form.member_joins }}</fieldset>
     </fieldset>
 
     <fieldset>
@@ -67,7 +70,7 @@
         <label>{{ form.send_digest }} {% trans "A daily digest of site activity" %}</label>
     </fieldset>
 
-    <div class="submit-row">
+    <div class="submit-row settings-actions">
         <input type="submit" class="submit" name="save" value="{% trans "Save email settings" %}"/>
     </div>
 </form>

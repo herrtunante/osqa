@@ -172,7 +172,7 @@ function show_dialog (extern) {
 
     if (options.event != undefined && options.event.pageX != undefined && options.event.pageY != undefined) {
         options.pos = {x: options.event.pageX, y: options.event.pageY};
-    } else if (options.event.currentTarget != undefined) {
+    } else if (options.event && options.event.currentTarget != undefined) {
         var el = jQuery("#" + options.event.currentTarget.id);
         var position = el.offset();
         options.pos = {
@@ -181,7 +181,12 @@ function show_dialog (extern) {
         }
     }
 
-    var html = '<div class="dialog ' + options.extra_class + '" style="display: none; z-index: 999;">'
+    // Keyboard users come back to what opened the dialog when it closes.
+    var trigger = options.event && options.event.currentTarget && options.event.currentTarget.nodeType === 1
+        ? options.event.currentTarget : document.activeElement;
+
+    var html = '<div class="dialog ' + options.extra_class + '" role="dialog" aria-modal="true" tabindex="-1"'
+             + ' style="display: none; z-index: 999;">'
              + '<div class="dialog-content">' + options.html + '</div><div class="dialog-buttons">';
 
     if (options.show_no) {
@@ -193,7 +198,7 @@ function show_dialog (extern) {
     var $dialog = $(html);
 
     $('body').append($dialog);
-    var message = $('.dialog-content')[0];
+    var message = $dialog.find('.dialog-content')[0];
     message.style.visibility = "hidden";
 
     if (options.dim === false) {
@@ -242,7 +247,10 @@ function show_dialog (extern) {
         height: options.dim.h
     }, 200, function() {
         message.style.visibility = "visible";
+        dialog_focus_first($dialog);
     });
+
+    dialog_keep_focus($dialog, trigger);
 
     $dialog.find('.dialog-yes').click(function() {
         options.yes_callback($dialog);
@@ -265,6 +273,55 @@ function show_dialog (extern) {
     }
 
     return $dialog;
+}
+
+var DIALOG_FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled):not([type=hidden]), ' +
+                       'select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+// Focus goes to the dialog's first field, or else its first button.
+function dialog_focus_first($dialog) {
+    if (!$dialog[0].isConnected || $dialog[0].contains(document.activeElement)) return;
+    var $field = $dialog.find('.dialog-content').find('input, select, textarea').filter(':visible').not(':disabled');
+    var $target = $field.length ? $field.first() : $dialog.find('.dialog-buttons button').first();
+    ($target.length ? $target : $dialog)[0].focus();  // native: jQuery's trigger skips it inside a click handler
+}
+
+// While a dialog is open, Tab and Shift+Tab stay inside it and Escape closes
+// it (as its No/Cancel button would, or OK when that is the only button).
+// When it is removed, focus returns to the element that opened it (or, if
+// that was in a post menu that has closed since, to the menu's button).
+function dialog_keep_focus($dialog, trigger) {
+    $dialog.on('keydown', function(evt) {
+        if (evt.key === 'Escape') {
+            evt.preventDefault();
+            evt.stopPropagation();
+            var $no = $dialog.find('.dialog-no');
+            ($no.length ? $no : $dialog.find('.dialog-yes')).first().trigger('click');
+        } else if (evt.key === 'Tab') {
+            var $items = $dialog.find(DIALOG_FOCUSABLE).filter(':visible');
+            if (!$items.length) { evt.preventDefault(); return; }
+            var first = $items[0], last = $items[$items.length - 1];
+            if (evt.shiftKey && (document.activeElement === first || document.activeElement === $dialog[0])) {
+                evt.preventDefault();
+                last.focus();
+            } else if (!evt.shiftKey && document.activeElement === last) {
+                evt.preventDefault();
+                first.focus();
+            }
+        }
+    });
+    if (!window.MutationObserver || !$dialog[0].parentNode) return;
+    var observer = new MutationObserver(function() {
+        if ($dialog[0].isConnected) return;
+        observer.disconnect();
+        var active = document.activeElement;
+        if (active && active !== document.body && active.isConnected) return;  // already elsewhere (another dialog)
+        var $back = $(trigger);
+        if (!$back.length || !trigger.isConnected) return;
+        if (!$back.is(':visible')) $back = $back.closest('.context-menu').find('.context-menu-trigger');
+        if ($back.length) $back[0].focus();
+    });
+    observer.observe($dialog[0].parentNode, {childList: true});
 }
 
 function show_message(evt, msg, callback) {
@@ -368,7 +425,21 @@ function canned_comment(post_id, comment) {
     textarea.val(textarea_start + comment + textarea_end);
 }
 
+// Reduced motion: jQuery effects (fades, slides) finish at once.
+if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    jQuery.fx.off = true;
+}
+
 $(function() {
+    // "Skip to content": focus the main content, so the next Tab goes on from there.
+    $(document).on('click', '.skip-link', function(evt) {
+        var target = document.getElementById((this.getAttribute('href') || '').slice(1));
+        if (!target) return;
+        evt.preventDefault();
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        target.focus();
+    });
+
     $(document).on('keydown keyup mousedown mouseup mousemove', 'textarea.commentBox', function(evt) {
         comment_box_cursor_position = this.selectionStart;
     });
@@ -493,10 +564,13 @@ $(function() {
             $dropdown.stop(true, true).slideToggle('fast', function() {
                 if ($dropdown.is(':visible')) {
                    if (from_keyboard) $dropdown.find('a').first().trigger('focus');
-                   $dropdown.one('clickoutside', function() {
-                       if ($dropdown.is(':visible'))
-                            close(false);
-                    });
+                   // After this click (the slide ends at once with reduced motion).
+                   setTimeout(function() {
+                       $dropdown.one('clickoutside', function() {
+                           if ($dropdown.is(':visible'))
+                                close(false);
+                       });
+                   }, 0);
                 }
             });
         });

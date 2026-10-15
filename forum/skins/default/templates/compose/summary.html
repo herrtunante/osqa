@@ -1,0 +1,7 @@
+{% load i18n %}{# Revision picker and edit summary (edit pages). #}
+<div class="compose-field form-item{% if form.summary.errors %} has-error{% endif %}">
+    <label class="compose-label" for="id_summary">{% trans "Edit summary" %}</label>
+    <p class="compose-help" id="id_summary-help">{{ form.summary.help_text|capfirst }}</p>
+    {% include "compose/field_error.html" with field=form.summary %}
+    {{ form.summary }}
+</div>
