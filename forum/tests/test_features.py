@@ -410,7 +410,8 @@ class AccountDataTest(OSQATestCase):
         self.question = Question(author=self.alice, title='How do I reproject a shapefile?', tagnames='gis',
                                  body='Question body text that is long enough.')
         self.question.save()
-        Answer(author=self.bob, parent=self.question, body='An answer by bob that is long enough.').save()
+        self.answer = Answer(author=self.bob, parent=self.question, body='An answer by bob that is long enough.')
+        self.answer.save()
         AuthKeyUserAssociation(user=self.alice, key='github:42', provider='github').save()
 
     def test_only_the_owner(self):
@@ -428,7 +429,11 @@ class AccountDataTest(OSQATestCase):
 
     def test_export(self):
         import json
+        self.alice.reputation = 1000
+        self.alice.save()
         self.login(self.alice)
+        # The first up vote awards Supporter, whose name is a lazy translation string.
+        self.assertTrue(self.command('/vote/%d/up/' % self.answer.id)['success'])
         response = self.client.get('/account/%d/data/export/' % self.alice.id)
         self.assertEqual(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertIn('attachment;', response['Content-Disposition'])
@@ -439,6 +444,8 @@ class AccountDataTest(OSQATestCase):
         self.assertEqual(data['questions'][0]['text'], 'Question body text that is long enough.')
         self.assertEqual(data['answers'], [])
         self.assertEqual(data['login_methods'], ['github'])
+        self.assertIn('Supporter', [b['badge'] for b in data['badges']])
+        self.assertEqual(data['votes'][0]['vote'], 'voteup')
 
     def delete(self, **data):
         self.login(self.alice)

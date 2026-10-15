@@ -87,7 +87,7 @@ def export_data(request, id):
             'reputation': user.reputation,
         },
         'login_methods': sorted(set(AuthKeyUserAssociation.objects.filter(user=user).values_list('provider', flat=True))),
-        'badges': [{'badge': a.badge.name, 'date': _date(a.awarded_at)}
+        'badges': [{'badge': str(a.badge.name), 'date': _date(a.awarded_at)}
                    for a in Award.objects.filter(user=user).select_related('badge')],
         'questions': [_post(q) for q in Question.objects.filter(author=user).order_by('added_at')],
         'answers': [_post(a) for a in Answer.objects.filter(author=user).order_by('added_at')],
