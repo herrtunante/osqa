@@ -1,0 +1,10 @@
+{% load i18n %}
+<section class="auth-benefits" aria-labelledby="auth-benefits-title">
+    <h2 id="auth-benefits-title">{{ title|default:_("Why sign in?") }}</h2>
+    <ul>
+        <li>{% trans "Ask questions and post answers" %}</li>
+        <li>{% trans "Vote, comment and mark favourite questions" %}</li>
+        <li>{% trans "Get notified by email when someone answers" %}</li>
+        <li>{% trans "Earn reputation and badges" %}</li>
+    </ul>
+</section>

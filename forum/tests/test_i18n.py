@@ -66,7 +66,7 @@ class InterfaceLanguageTest(OSQATestCase):
 
     def test_sign_up_page_translated(self):
         page = self.client.get('/account/local/register/', HTTP_ACCEPT_LANGUAGE='pt')
-        self.assertContains(page, tr('pt', 'choose password'))
+        self.assertContains(page, tr('pt', 'Confirm password'))
 
     def test_greeting_cookie_still_set(self):
         """request.COOKIES.set() (legacy cookie middleware) still reaches the response."""

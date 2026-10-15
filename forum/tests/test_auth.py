@@ -44,13 +44,71 @@ class LocalAuthTest(OSQATestCase):
 
         self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'wrong'})
         self.assertIsNone(self.logged_in_user_id())
-        self.assertContains(self.client.get('/account/signin/'), 'valid username and password')
+        page = self.client.get('/account/signin/')
+        self.assertContains(page, 'or email and password')
+        self.assertContains(page, 'value="carol"')  # what was typed is kept
 
         self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
         self.client.get('/account/signout/')
         self.assertIsNone(self.logged_in_user_id())
+
+    def test_sign_in_with_email_address(self):
+        user = self.create_user('carol', password='right-pass')
+        self.client.post('/account/local/signin/', {'username': 'Carol@Example.com', 'password': 'right-pass'})
+        self.assertEqual(self.logged_in_user_id(), str(user.id))
+
+    def test_email_shared_by_two_accounts_does_not_sign_in(self):
+        from forum import settings
+        settings.EMAIL_UNIQUE.set_value(False)
+        self.addCleanup(setattr, settings.EMAIL_UNIQUE, '_temp', None)
+        self.create_user('carol', password='right-pass')
+        other = self.create_user('carolyn', password='right-pass')
+        User.objects.filter(id=other.id).update(email='carol@example.com')
+        self.client.post('/account/local/signin/', {'username': 'carol@example.com', 'password': 'right-pass'})
+        self.assertIsNone(self.logged_in_user_id())
+        self.assertContains(self.client.get('/account/signin/'), 'or email and password')
+
+    def test_wrong_passwords_by_email_count_against_the_account(self):
+        from forum import settings
+        self.create_user('carol', password='right-pass')
+        for attempt in range(int(settings.LOGIN_FAILURES_LIMIT)):
+            username = 'carol@example.com' if attempt % 2 else 'carol'
+            self.client.post('/account/local/signin/', {'username': username, 'password': 'wrong'})
+        self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
+        self.assertIsNone(self.logged_in_user_id())
+        self.assertContains(self.client.get('/account/signin/'), 'Too many failed sign-in attempts')
+
+    def test_next_parameter_is_where_signing_in_leads(self):
+        user = self.create_user('carol', password='right-pass')
+        self.client.get('/account/signin/?next=/tags/collect/', HTTP_REFERER='http://testserver/questions/')
+        response = self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
+        self.assertTrue(response['Location'].startswith('/tags/collect/'))
+
+        self.client.logout()
+        self.client.get('/account/signin/?next=https://evil.example/')
+        response = self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
+        self.assertNotIn('evil.example', response['Location'])
+
+    def test_coming_back_from_the_sign_up_page_keeps_the_destination(self):
+        self.create_user('carol', password='right-pass')
+        self.client.get('/account/signin/', HTTP_REFERER='http://testserver/tags/')
+        self.client.get('/account/signin/', HTTP_REFERER='http://testserver/account/local/register/')
+        response = self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
+        self.assertTrue(response['Location'].startswith('http://testserver/tags/'))
+
+    def test_sign_up_errors_are_listed_and_linked_to_the_fields(self):
+        self.create_user('carol')
+        page = self.client.post('/account/local/register/', {
+            'username': 'carol', 'email': 'not-an-address', 'password1': 'short', 'password2': 'short',
+            'next': '/', 'form_token': self.signup_token()}).content.decode()
+        self.assertIn('role="alert"', page)
+        self.assertIn('href="#id_username"', page)
+        self.assertIn('id="id_username-error"', page)
+        self.assertRegex(page, r'<input[^>]*aria-invalid="true"[^>]*id="id_email"|<input[^>]*id="id_email"[^>]*aria-invalid="true"')
+        self.assertIn('value="not-an-address"', page)  # what was typed is kept
+        self.assertIn('That username is taken', page)
 
     def test_temporary_login_link(self):
         user = self.create_user('carol')

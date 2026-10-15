@@ -1,4 +1,6 @@
 from forum.forms import NextUrlField, UserNameField, UserEmailField, SetPasswordForm
+from forum.forms.auth import SignUpFieldsMixin
+from forum.forms.general import username_for_signin
 from forum.utils.antispam import BotTrapMixin
 from forum.models import Question
 from forum.modules import call_all_handlers
@@ -8,8 +10,10 @@ from django.contrib.auth import authenticate
 from django import forms
 import logging
 
-class ClassicRegisterForm(BotTrapMixin, SetPasswordForm):
+class ClassicRegisterForm(BotTrapMixin, SignUpFieldsMixin, SetPasswordForm):
     """ legacy registration form """
+    # The order of the page, also used by the error summary.
+    field_order = ['username', 'email', 'password1', 'password2']
 
     next = NextUrlField()
     username = UserNameField()
@@ -75,28 +79,25 @@ class ClassicLoginForm(forms.Form):
 
         self.user_cache = None
         if username and password:
-            user_ = authenticate(username=username, password=password)
+            user_ = authenticate(username=username_for_signin(username), password=password)
 
             if user_ is None:
                 del self.cleaned_data['username']
                 del self.cleaned_data['password']
-
-                error_list.insert(0, (_("Please enter valid username and password "
-                "(both are case-sensitive).")))
-
-            if len(error_list) > 0:
-                error_list.insert(0, _('Login failed.'))
-            try:
-                self.user_cache = user_.user
-            except:
-                error_list.append(_('This user is not a valid user'))
+                error_list.append(_("That username or email and password don't match. Check them and try again "
+                                    "(the password is case-sensitive)."))
+            else:
+                try:
+                    self.user_cache = user_.user
+                except Exception:
+                    error_list.append(_("This account can't sign in here. Please contact the site administrators."))
 
         elif password == None and username == None:
-            error_list.append(_('Please enter username and password'))
+            error_list.append(_('Enter your username or email and your password.'))
         elif password == None:
-            error_list.append(_('Please enter your password'))
+            error_list.append(_('Enter your password.'))
         elif username == None:
-            error_list.append(_('Please enter user name'))
+            error_list.append(_('Enter your username or email.'))
         if len(error_list) > 0:
             self._errors['__all__'] = forms.utils.ErrorList(error_list)
 

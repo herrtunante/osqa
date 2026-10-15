@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from .forms import ClassicRegisterForm
-from forum.views.auth import login_and_forward
+from forum.views.auth import login_and_forward, signin_providers
 from forum.actions import UserJoinsAction
 from forum.utils.antispam import signup_limit_reached, count_signup
 
@@ -29,10 +29,12 @@ def register(request):
             count_signup(request)
             UserJoinsAction(user=user_, ip=request.META['REMOTE_ADDR']).save()
 
-            return login_and_forward(request, user_, None, _("A welcome email has been sent to your email address. "))
+            return login_and_forward(request, user_, None, _("Welcome! We've emailed you a link to confirm your address."))
     else:
         form = ClassicRegisterForm(initial={'next':'/'})
 
     return render(request, 'auth/complete.html', {
-        'form1': form
+        'form1': form,
+        # "Continue with Google" also creates an account.
+        'button_providers': signin_providers(request)['button_providers'],
         })

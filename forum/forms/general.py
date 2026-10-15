@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 import re
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.utils.translation import gettext_lazy as _lazy
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
@@ -26,6 +27,17 @@ def get_next_url(request):
     next_url = request.GET.get('next') or request.POST.get('next')
     return clean_next(next_url)
 
+def username_for_signin(text):
+    """The username to sign in with, for what was typed in "Username or email":
+    the text itself, or the username of the one account with that email
+    address. Usernames can't contain "@" (username_re); an address shared by
+    several accounts is ambiguous and is left as typed, so the sign-in fails."""
+    if text and '@' in text and not User.objects.filter(username=text).exists():
+        usernames = list(User.objects.filter(email__iexact=text).values_list('username', flat=True)[:2])
+        if len(usernames) == 1:
+            return usernames[0]
+    return text
+
 class StrippedNonEmptyCharField(forms.CharField):
     def clean(self,value):
         value = value.strip()
@@ -43,18 +55,18 @@ login_form_widget_attrs = { 'class': 'required login' }
 username_re = re.compile(r'^[\-\w\s ]+$', re.UNICODE)
 
 class UserNameField(StrippedNonEmptyCharField):
-    def __init__(self,db_model=User, db_field='username', must_exist=False,skip_clean=False,label=_lazy('choose a username'),**kw):
+    def __init__(self,db_model=User, db_field='username', must_exist=False,skip_clean=False,label=_lazy('Username'),**kw):
         self.must_exist = must_exist
         self.skip_clean = skip_clean
         self.db_model = db_model 
         self.db_field = db_field
-        error_messages={'required':_lazy('user name is required'),
-                        'taken':_lazy('sorry, this name is taken, please choose another'),
-                        'forbidden':_lazy('sorry, this name is not allowed, please choose another'),
-                        'missing':_lazy('sorry, there is no user with this name'),
-                        'multiple-taken':_lazy('sorry, we have a serious error - user name is taken by several users'),
-                        'invalid':_lazy('user name can only consist of letters, empty space, hyphens and underscore'),
-                        'toshort':lazy(lambda: _('user name is to short, please use at least %d characters') % int(settings.MIN_USERNAME_LENGTH), str)()
+        error_messages={'required':_lazy('Choose a username.'),
+                        'taken':_lazy('That username is taken. Please choose another one.'),
+                        'forbidden':_lazy("That username isn't allowed. Please choose another one."),
+                        'missing':_lazy('There is no member with this username.'),
+                        'multiple-taken':_lazy('That username is taken. Please choose another one.'),
+                        'invalid':_lazy('Use only letters, numbers, spaces, hyphens (-) and underscores (_).'),
+                        'toshort':lazy(lambda: _('Use at least %(count)d characters.') % {'count': int(settings.MIN_USERNAME_LENGTH)}, str)()
                     }
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
@@ -103,11 +115,12 @@ class UserNameField(StrippedNonEmptyCharField):
 class UserEmailField(forms.EmailField):
     def __init__(self,skip_clean=False,**kw):
         self.skip_clean = skip_clean
-        super(UserEmailField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
-            maxlength=200)), label=mark_safe(_('your email address')),
-            error_messages={'required':_lazy('email address is required'),
-                            'invalid':_lazy('please enter a valid email address'),
-                            'taken':_lazy('this email is already used by someone else, please choose another'),
+        super(UserEmailField,self).__init__(widget=forms.EmailInput(attrs=dict(login_form_widget_attrs,
+            maxlength=200)), label=_lazy('Email address'),
+            error_messages={'required':_lazy('Enter your email address.'),
+                            'invalid':_lazy('Enter an email address like name@example.com.'),
+                            'taken':_lazy('There is already an account with this email address. Sign in instead, '
+                                          'or ask for a sign-in link if you forgot your password.'),
                             },
             **kw
             )
@@ -131,12 +144,12 @@ class UserEmailField(forms.EmailField):
             return email 
 
 class UserRealNameField(StrippedNonEmptyCharField):
-    def __init__(self, db_model=User, db_field='real_name', must_exist=True, skip_clean=False, label=_lazy('Your real name'),**kw):
+    def __init__(self, db_model=User, db_field='real_name', must_exist=True, skip_clean=False, label=_lazy('Your name'),**kw):
         self.must_exist = must_exist
         self.skip_clean = skip_clean
         self.db_model = db_model
         self.db_field = db_field
-        error_messages={'required':_lazy('Real name is required')
+        error_messages={'required':_lazy('Enter your name.')
                     }
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
@@ -167,7 +180,7 @@ class UserNameValidationField(StrippedNonEmptyCharField):
                 **kw
                 )
        super(UserNameValidationField,self).__init__(required=False, widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
-            maxlength=200)), label="Human test",
+            maxlength=200, tabindex='-1', autocomplete='off')), label="Human test",
             error_messages={
                             'invalid':_lazy('please probe you are not a robot by not filling this')
                             },
@@ -188,9 +201,10 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
     def __init__(self,**kw):
        
          super(UserNameValidationSumField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
-            maxlength=200)), label="What is seven plus seven?",
+            maxlength=200, inputmode='numeric', autocomplete='off')), label=_lazy('What is seven plus seven?'),
+            help_text=_lazy('A quick check that you are not a robot. Type the answer in digits.'),
             error_messages={
-                            'invalid':_lazy('please probe you are not a robot by filling this simple sum correctly')
+                            'invalid':_lazy('That is not the right answer. Type the result of seven plus seven in digits.')
                             },
             **kw
             )
@@ -204,22 +218,71 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
         return value
    
 
+def password_rules():
+    """The AUTH_PASSWORD_VALIDATORS rules in a few plain words each, for the
+    help text of new password fields (the length first)."""
+    from django.contrib.auth.password_validation import (
+        CommonPasswordValidator, MinimumLengthValidator, NumericPasswordValidator,
+        UserAttributeSimilarityValidator, get_default_password_validators)
+    rules = []
+    for validator in get_default_password_validators():
+        if isinstance(validator, MinimumLengthValidator):
+            rules.insert(0, ngettext('At least %(count)d character', 'At least %(count)d characters',
+                                     validator.min_length) % {'count': validator.min_length})
+        elif isinstance(validator, CommonPasswordValidator):
+            rules.append(_('Not a common password'))
+        elif isinstance(validator, NumericPasswordValidator):
+            rules.append(_('Not only numbers'))
+        elif isinstance(validator, UserAttributeSimilarityValidator):
+            rules.append(_('Not too close to your username or email'))
+        else:
+            rules.append(validator.get_help_text())
+    return rules
+
+
+class DescribedFieldsMixin:
+    """Links each input to its help text and error message (aria-describedby,
+    ids "<input id>-help" and "<input id>-error", as auth/field.html renders
+    them) and marks the inputs with errors (aria-invalid)."""
+
+    def describe_fields(self):
+        errors = self._errors or {}
+        for name, field in self.fields.items():
+            if errors:  # the error summary gets the focus instead
+                field.widget.attrs.pop('autofocus', None)
+            auto_id = self[name].auto_id
+            ids = []
+            if name in errors:
+                ids.append('%s-error' % auto_id)
+                field.widget.attrs['aria-invalid'] = 'true'
+            if field.help_text or getattr(field, 'rules', None):
+                ids.append('%s-help' % auto_id)
+            if ids:
+                field.widget.attrs['aria-describedby'] = ' '.join(ids)
+
+    def full_clean(self):
+        super().full_clean()
+        self.describe_fields()
+
+
 class SetPasswordForm(forms.Form):
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
-                                label=_lazy('choose password'),
-                                help_text=_lazy('At least 8 characters; not a common password and not similar to your '
-                                            'username or email.'),
-                                error_messages={'required':_lazy('password is required')},
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(login_form_widget_attrs, autocomplete='new-password')),
+                                label=_lazy('Password'),
+                                error_messages={'required':_lazy('Choose a password.')},
                                 )
-    password2 = forms.CharField(widget=forms.PasswordInput(attrs=login_form_widget_attrs),
-                                label=_lazy('retype password'),
-                                error_messages={'required':_lazy('please, retype your password'),
-                                                'nomatch':_lazy('sorry, entered passwords did not match, please try again')},
+    password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(login_form_widget_attrs, autocomplete='new-password')),
+                                label=_lazy('Confirm password'),
+                                error_messages={'required':_lazy('Type your password again.'),
+                                                'nomatch':_lazy("The passwords don't match. Type the same password in both boxes.")},
                                 )
 
     def __init__(self, data=None, user=None, *args, **kwargs):
         super(SetPasswordForm, self).__init__(data, *args, **kwargs)
         self.password_user = user
+        # The rules are listed on the sign-up page, and joined into the help text elsewhere.
+        rules = password_rules()
+        self.fields['password1'].rules = rules
+        self.fields['password1'].help_text = ''.join('%s. ' % rule.rstrip('.') for rule in rules).strip()
 
     def clean_password1(self):
         """Checks the password against AUTH_PASSWORD_VALIDATORS (length, common

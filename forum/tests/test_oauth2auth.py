@@ -63,9 +63,9 @@ class OAuth2LoginTest(OSQATestCase):
 
     def test_signin_page_lists_configured_providers_only(self):
         page = self.client.get('/account/signin/').content.decode()
-        self.assertIn('Sign in with Google', page)
-        self.assertIn('Sign in with GitHub', page)
-        self.assertNotIn('Sign in with Facebook', page)
+        self.assertIn('Continue with Google', page)
+        self.assertIn('Continue with GitHub', page)
+        self.assertNotIn('Continue with Facebook', page)
 
     def test_redirect_to_provider(self):
         location, query = self.start_login('google')

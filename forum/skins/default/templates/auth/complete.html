@@ -1,128 +1,82 @@
 {% extends "base_content.html" %}
-<!-- complete.html -->
-{% load i18n %}
-{% block head %}{% endblock %}
-{% block title %}{% spaceless %}{% trans "Connect your OpenID with this site" %}{% endspaceless %}{% endblock %}
-{% block content %}
-    <div id="main-bar" class="headNormal">
-		{% trans "Connect your OpenID with your account on this site" %}
-    </div>      
-	<div id="completetxt" >
-        <div class="message">
-            {# Only display the OpenID greeting if a provider is detected. #}
+<!-- complete.html: local sign-up, and the last step of signing up with an external account -->
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% if provider %}{% trans "Finish signing up" %}{% else %}{% trans "Create your account" %}{% endif %}{% endspaceless %}{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.password.js" %}"></script>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
             {% if provider %}
-                <p>
-                    <b>{% trans "You are here for the first time with " %}{{ provider }}</b>
-                </p>
+                <h1>{% trans "Finish signing up" %}</h1>
+                <p class="auth-lead">{% blocktrans with site=settings.APP_SHORT_NAME %}You're signing in with {{ provider }} for the first time. Check your details to create your account on {{ site }}.{% endblocktrans %}</p>
+            {% else %}
+                <h1>{% trans "Create your account" %}</h1>
             {% endif %}
-            <p>
-                {% trans "Please choose your screen name and confirm your email address. A valid email address is necessary to receive notifications about activity in the areas of this community you're most interested in, and will help you become an involved participant in this community." %}
-            </p>
+
+            {% if form1.errors %}
+                <div class="auth-alert" role="alert" id="form-errors" tabindex="-1">
+                    <p class="auth-alert-title">{% trans "Your account isn't created yet. Please check:" %}</p>
+                    <ul>
+                        {% for error in form1.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        {% for field in form1 %}
+                            {% if field.errors and not field.is_hidden and field.name != "username_validation" %}
+                                {% for error in field.errors %}
+                                    <li><a href="#{{ field.auto_id }}">{{ field.label }}: {{ error }}</a></li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <script type="text/javascript">document.getElementById('form-errors').focus();</script>
+            {% endif %}
+
+            {% if not provider and button_providers %}
+                {% include "auth/providers.html" %}
+                <div class="auth-divider"><span>{% trans "or" %}</span></div>
+            {% endif %}
+
+            <form name="fregister" class="auth-form" action="" method="POST" novalidate>
+                {% csrf_token %}
+                {{ form1.next }}
+                {{ form1.bot_traps }}
+                {% include "auth/field.html" with field=form1.username %}
+                {% include "auth/field.html" with field=form1.email %}
+                {% if form1.real_name %}
+                    {% include "auth/field.html" with field=form1.real_name %}
+                {% endif %}
+                {% if form1.username_validation_sum %}
+                    {% include "auth/field.html" with field=form1.username_validation_sum %}
+                    {# Bots fill in every field; people never see this one. #}
+                    <div class="form-trap" aria-hidden="true">
+                        <label for="id_username_validation">{% trans "Leave this field empty" %}</label>
+                        {{ form1.username_validation }}
+                    </div>
+                {% endif %}
+                {% if form1.password1 %}
+                    {% include "auth/field.html" with field=form1.password1 %}
+                    {% include "auth/field.html" with field=form1.password2 %}
+                {% endif %}
+                {% if form1.recaptcha %}
+                    {% include "auth/field.html" with field=form1.recaptcha %}
+                {% endif %}
+                {% if not provider %}
+                    <p class="auth-note">{% trans "Next, we'll email you a link to confirm your address." %}</p>
+                {% endif %}
+                <button type="submit" class="auth-submit" name="bnewaccount" id="bnewaccount" value="1">{% trans "Create account" %}</button>
+            </form>
+
+            <p class="auth-switch">{% trans "Already have an account?" %} <a href="{% url "auth_signin" %}">{% trans "Sign in" %}</a></p>
         </div>
-    	<p style="display:none">{% trans "This account already exists, please use another." %}</p>
-	</div>
-
-	{% if form1.errors %}
-        <ul class="errorlist">
-        {% if form1.non_field_errors %}
-            {% for error in form1.non_field_errors %}
-                <li>{{error}}</li>
-            {% endfor %}
-        {% endif %}
-        </ul>
-	{% endif %}
-
-	<div class="login">
-        <form name="fregister" action="" method="POST">
-            {% csrf_token %}
-            {{ form1.next }}
-            {{ form1.bot_traps }}
-            <div class="form-row-vertical margin-bottom">
-                <label for="id_username">{{ form1.username.label }}</label>
-                {% if form1.username.errors %} 
-                    <p class="error">{{ form1.username.errors|join:", " }}</p>
-                {% endif %}
-                {{ form1.username }}
-            </div>
-            <div class="form-row-vertical margin-bottom">
-                <label for="id_email">{{ form1.email.label }}</label>
-                {% if form1.email.errors %} 
-                    <p class="error">{{ form1.email.errors|join:", " }}</p>
-                {% endif %}
-                {{ form1.email }}
-            </div>
-            {% if form1.real_name %}
-            <div class="form-row-vertical margin-bottom">
-                <label for="id_real_name">{{ form1.real_name.label }}</label>
-                {% if form1.real_name.errors %}
-                    <p class="error">{{ form1.real_name.errors|join:", " }}</p>
-                {% endif %}
-                {{ form1.real_name }}
-            </div>
-            {% endif %}
-
-            <div class="form-row-vertical margin-bottom">
-                <label for="id_username_validation_sum">{{ form1.username_validation_sum.label }}</label>
-                {% if form1.username_validation_sum.errors %}
-                    <p class="error">{{ form1.username_validation_sum.errors|join:", " }}</p>
-                {% endif %}
-                {{ form1.username_validation_sum }}
-            </div>
-            <!-- In order to validate that the user is not a robot add a hidden field. If the robot attempts to register it will fill it. A normal user cannot see it so it will be empty -->
-            <div class="form-row-vertical margin-bottom" style="visibility: hidden;">
-                <label for="id_username_validation">DO NOT FILL ONLY ROBOTS FILL THIS, UINSEEN FOR REAL USERS</label>
-               {{ form1.username_validation }}
-            </div>
-
-            {% if form1.password1 %}
-                <div class="form-row-vertical margin-bottom">
-                    <label for="{{ form1.password1.id_for_label }}">{{ form1.password1.label }}</label>
-                    {% if form1.password1.errors %}
-                        <p class="error">{{ form1.password1.errors|join:", " }}</p>
-                    {% endif %}
-                    {{ form1.password1 }}
-                    <p class="form-help">{{ form1.password1.help_text }}</p>
-                </div>
-                <div class="form-row-vertical margin-bottom">
-                    <label for="{{ form1.password2.id_for_label }}">{{ form1.password2.label }}</label>
-                    {% if form1.password2.errors %} 
-                        <p class="error">{{ form1.password2.errors|join:", " }}</p>
-                    {% endif %}
-                    {{ form1.password2 }}
-                </div>
-            {% endif %}
-            {% if form1.recaptcha %}
-                <div class="form-row-vertical margin-bottom">
-                <label for="{{ form1.recaptcha.id_for_label }}">{{ form1.recaptcha.label }}</label>
-                {% if form1.recaptcha.errors %} 
-                    <p class="error">{{ form1.recaptcha.errors|join:", " }}</p>
-                {% endif %}
-                {{ form1.recaptcha }}
-                </div>
-            {% endif %}
-            <div class="submit-row"><input type="submit" class="submit" name="bnewaccount" id="bnewaccount" value="{% trans "create account" %}"/></div>
-		</form>
-	</div>
-    {% comment %}<!-- this form associates openID with an existing password-protected account, not yet functional -->
-    {% if form2 %}
-	<div class="login" style="display:none">
-        <form name="fverify" action="{% url "user_register" %}" method="POST">
-            {% csrf_token %}
-            {{ form2.next }}
-			<fieldset style="padding:10px">
-				<legend class="big">{% trans "Existing account" %}</legend>
-				<div class="form-row"><label for="id_username">{% trans "user name" %}</label><br/>{{ form2.username }}</div>
-				<div class="form-row"><label for="id_passwordl">{% trans "password" %}</label><br/>{{ form2.password }}</div>
-                <p><span class='big strong'>(Optional) receive updates by email</span> - only sent when there are any.</p>
-				<!--todo double check translation from chinese 确认 = "Register" -->
-				<div class="submit-row">
-					<input type="submit" class="submit" name="bverify" value="{% trans "Register" %}"/> 
-					<a href="{% url "user_sendpw" %}">{% trans "Forgot your password?" %}</a>
-				</div>
-			</fieldset>
-		</form>
-	</div>
-    {% endif %}
-    {% endcomment %}
+        {% include "auth/benefits.html" with title=_("Why create an account?") %}
+    </div>
+</div>
 {% endblock %}
 <!-- end complete.html -->

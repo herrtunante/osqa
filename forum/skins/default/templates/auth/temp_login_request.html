@@ -1,29 +1,28 @@
-{% extends "base.html" %}
+{% extends "base_content.html" %}
 
-{% load i18n %}
-{% block head %}{% endblock %}
-{% block title %}{% spaceless %}{% trans "Request temporary login key" %}{% endspaceless %}{% endblock %}
-{% block content %}
-<div class="headNormal">{% trans "Account: request temporary login key" %}</div>
-<p class="message">{% blocktrans %}
-    If you're experiencing problems accessing your account, or if you forgot your password,
-    here you can request a temporary login key. Fill out your account email and we'll send you a temporary access link that
-    will enable you to access your account. This token is valid only once and for a limited period of time.
- {% endblocktrans %}</p>
-<div class="aligned">
-    {% if form.errors %}
-        <ul class="errorlist">
-            {% for error in form.errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-	{% endif %}
-	<form action="" method="post" accept-charset="utf-8">
-        {% csrf_token %}
-        <ul id="changepw-form" class="form-horizontal-rows">
-        {{form.as_ul}}
-        </ul>
-        <div class="submit-row"><input type="submit" class="submit" value="{% trans "Send link" %}" /></div>
-	</form>
-	</div>
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Forgot your password?" %}{% endspaceless %}{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <h1>{% trans "Forgot your password?" %}</h1>
+            <p class="auth-lead">{% blocktrans %}Enter the email address of your account and we'll send you a link that signs you in. Then you can set a new password. The link works once, for 24 hours.{% endblocktrans %}</p>
+            {% if form.errors %}
+                <div class="auth-alert" role="alert">
+                    {% for field in form %}{% for error in field.errors %}<p><a href="#{{ field.auto_id }}">{{ error }}</a></p>{% endfor %}{% endfor %}
+                </div>
+            {% endif %}
+            <form class="auth-form" action="" method="post" accept-charset="utf-8" novalidate>
+                {% csrf_token %}
+                {% include "auth/field.html" with field=form.email %}
+                <button type="submit" class="auth-submit">{% trans "Email me a sign-in link" %}</button>
+            </form>
+            <p class="auth-switch">{% trans "Remembered it?" %} <a href="{% url "auth_signin" %}">{% trans "Back to sign in" %}</a></p>
+        </div>
+    </div>
+</div>
 {% endblock %}
