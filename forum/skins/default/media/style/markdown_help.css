@@ -1,45 +1,166 @@
-div.main-wrapper {
-    /*
-    margin: 30px auto;
-    overflow:hidden;
-    position:relative;
-    */
+/*
+ * Markdown help page (markdown_help.html): each example as the Markdown you
+ * type beside the result, stacked on phones. Colours come from the variables
+ * in modern.css, so dark mode follows them.
+ */
+
+.md-help {
+    max-width: 860px;
 }
 
-div.section {
-    padding-top:30px;
+.md-help .page-lead a {
+    text-decoration: underline;
 }
 
-h2.section-title {
-    padding-top:10px;
-    padding-left:10px;
-    width:100%;
-    background-color:#b6c4e2;
+.md-help-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
 }
 
-div.section-description {
-    padding-top:20px;
-    padding-bottom:10px;
+.md-help-toc li {
+    margin: 0;
+    list-style: none;
 }
 
-table.section-example {
-    padding-top:5px;
-    padding-bottom:10px;
-    width:100%;
+.md-help-toc a {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 13px;
+    text-decoration: none;
 }
 
-table.section-example tr {
+.md-help-toc a:hover {
+    border-color: var(--brand);
+    color: var(--brand);
 }
 
-table.section-example tr td {
-    background-color:#e5ebf8;
+.md-section {
+    margin: 0;
+    padding: 24px 0 0;
+    scroll-margin-top: 12px;
+}
 
-    padding:5px 5px 5px 5px;
-    width:50%;
+.md-section > h2 {
+    margin: 0 0 6px;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 650;
+}
 
-    text-align:left;
+.md-section > p {
+    margin: 10px 0;
+    color: var(--text);
+}
 
-    border: 1px solid #ccc;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
+.md-example {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.md-example > div {
+    min-width: 0;
+    padding: 12px 14px;
+}
+
+.md-source {
+    border-right: 1px solid var(--border);
+    background: var(--code-bg);
+}
+
+.md-pane-label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.md-source pre {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.md-result {
+    background: var(--surface);
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.md-result p, .md-result ol, .md-result ul, .md-result blockquote {
+    margin: 0 0 6px;
+}
+
+.md-result ol, .md-result ul {
+    padding-left: 22px;
+}
+
+.md-result ol li {
+    list-style: decimal;
+}
+
+.md-result ul li {
+    list-style: disc;
+}
+
+.md-result blockquote {
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--border-strong);
+    color: var(--quote-text);
+}
+
+.md-result a {
+    text-decoration: underline;
+}
+
+.md-result .md-h1, .md-result .md-h2, .md-result .md-h3 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.md-result .md-h1 { font-size: 24px; }
+.md-result .md-h2 { font-size: 20px; }
+.md-result .md-h3 { font-size: 17px; }
+
+@media (max-width: 640px) {
+    .md-example {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .md-source {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+/* style.css centres every div (margin: 0 auto). */
+.md-help div {
+    margin: 0;
+}
+
+.md-help .md-example {
+    margin: 10px 0;
 }

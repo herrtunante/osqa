@@ -1,8 +1,30 @@
+/* Standard administration layout (osqaadmin/base.html, inside the public
+   page layout). djstyle_admin.css is loaded after this file for the rules
+   both layouts share; it is written against Django admin's colour variable
+   names, so they are mapped onto the site's own (modern.css) here, and follow
+   its dark mode. */
+:root {
+    --body-fg: var(--text, #1f2328);
+    --body-bg: var(--surface, #fff);
+    --body-quiet-color: var(--muted, #5f6b7a);
+    --hairline-color: var(--border-subtle, #eef0f3);
+    --border-color: var(--border, #dfe3e8);
+    --darkened-bg: var(--background, #f5f7fa);
+    --selected-bg: var(--brand-soft, #eaf1fb);
+    --selected-row: var(--brand-soft, #eaf1fb);
+    --primary: var(--button-bg);
+    --header-link-color: #fff;
+    --button-fg: #fff;
+    --button-bg: #2c5aa0; /* modern.css redefines it for dark mode */
+    --button-hover-bg: var(--button-bg-hover, #1f4278);
+    --message-success-bg: var(--success-soft, #e6f6ea);
+}
+
 #admin_form {
     border-spacing: 10px;
 }
 
-#admin_form input[type="text"], #admin_form input[type="submit"], #admin_form textarea, .string_list_widget_button {
+#admin_form input[type="text"], #admin_form input[type="submit"], #admin_form textarea {
     line-height: 22px;
     font-size: 15px;
     font-family: inherit;
@@ -10,7 +32,7 @@
     color: var(--text, black);
 }
 
-#admin_form input[type="text"], #admin_form input[type="submit"], .string_list_widget_button {
+#admin_form input[type="text"], #admin_form input[type="submit"] {
     height: auto;
 }
 
@@ -29,62 +51,58 @@
     line-height: 100%;
 }
 
-#admin_form th {
-
-}
-
 #admin_form td {
     color: var(--muted, gray);
 }
 
 #admin_page_description {
-    color: gray;
+    color: var(--muted, gray);
     padding-bottom: 20px;
-}
-
-.string_list_widget input[type=text] {
-    width: 520px;
-    max-width: calc(100% - 40px);
-}
-
-.string_list_widget_button {
-    width: 28px;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.string_list_widget_button.add {
-    position: relative;
-    left: 554px;
 }
 
 table caption {
     font-size: 120%;
-	padding: 3px 0;
+    padding: 3px 0;
     text-align: left;
 }
 
-/* Phones: label above field instead of a two-column table. */
-@media (max-width: 640px) {
-    #admin_form, #admin_form tbody, #admin_form tr, #admin_form th, #admin_form td {
-        display: block;
-        width: 100%;
-    }
+/* Django's forms.css is not loaded here: a plain row of buttons. */
+.submit-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 0;
+}
 
-    #admin_form {
-        border-spacing: 0;
-    }
+.module {
+    margin-bottom: 20px;
+}
 
-    #admin_form th {
-        padding-top: 12px;
-        text-align: left;
-    }
+.module h2, .module caption {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: left;
+}
 
-    #admin_form input[type="text"], #admin_form textarea {
-        width: 100%;
-    }
+.node-list td, .node-list th, .module td, .module th {
+    padding: 6px 8px;
+    vertical-align: top;
+}
 
-    .string_list_widget_button.add {
-        left: 0;
-    }
+#changelist-filter {
+    margin-top: 16px;
+    padding: 8px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 8px);
+    background: var(--surface);
+}
+
+#changelist-filter h2, #changelist-filter h3 {
+    padding: 0 15px;
+}
+
+#changelist-filter ul {
+    padding: 0 15px 10px;
+    list-style: none;
 }

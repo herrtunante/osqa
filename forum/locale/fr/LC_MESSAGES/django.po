@@ -524,14 +524,11 @@ msgstr "résumé de la modification :"
 msgid "enter a brief summary of your revision (e.g. fixed spelling, grammar, improved style, this field is optional)"
 msgstr "saisissez un bref résumé de votre révision (par ex. orthographe corrigée, grammaire, style amélioré ; ce champ est facultatif)"
 
-msgid "Your message:"
-msgstr "Votre message :"
+msgid "Your message"
+msgstr "Votre message"
 
-msgid "Your name:"
-msgstr "Votre nom :"
-
-msgid "Email (not shared with anyone):"
-msgstr "E-mail (communiqué à personne) :"
+msgid "Email (not shared with anyone)"
+msgstr "E-mail (partagé avec personne)"
 
 msgid "this email does not have to be linked to gravatar"
 msgstr "cette adresse e-mail n'a pas besoin d'être associée à Gravatar"
@@ -1040,6 +1037,18 @@ msgstr "Image actuelle"
 
 msgid "Change this:"
 msgstr "Modifier ceci :"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Add another"
+msgstr "Ajouter un autre"
+
+msgid "Test"
+msgstr "Tester"
+
+msgid "Testing your current e-mail settings. Please, wait."
+msgstr "Test de vos paramètres e-mail actuels. Veuillez patienter."
 
 msgid "Minimum reputation config"
 msgstr "Configuration de la réputation minimale"
@@ -2252,6 +2261,12 @@ msgstr "Choisissez un service avec lequel vous voulez aussi vous connecter."
 msgid "Sign in to %(site)s"
 msgstr "Se connecter à %(site)s"
 
+msgid "No other sign-in services are set up on this forum."
+msgstr "Aucun autre service de connexion n'est configuré sur ce forum."
+
+msgid "Back to your sign-in settings"
+msgstr "Retour à vos paramètres de connexion"
+
 msgid "New here?"
 msgstr "Nouveau ici ?"
 
@@ -2308,14 +2323,35 @@ msgstr "Mot de passe : comme si nous allions vous envoyer votre mot de passe en 
 msgid "The following link will help us verify your email address:"
 msgstr "Le lien suivant nous aidera à vérifier votre adresse e-mail :"
 
-msgid "The users have been awarded with badges:"
-msgstr "Les utilisateurs suivants ont reçu des badges :"
+msgid "Badges"
+msgstr "Badges"
+
+msgid "gold"
+msgstr "or"
+
+msgid "silver"
+msgstr "argent"
+
+msgid "bronze"
+msgstr "bronze"
+
+#, python-format
+msgid "Awarded %(counter)s time"
+msgid_plural "Awarded %(counter)s times"
+msgstr[0] "Attribué %(counter)s fois"
+msgstr[1] "Attribué %(counter)s fois"
+
+msgid "Awarded to"
+msgstr "Attribué à"
+
+msgid "reputation"
+msgstr "réputation"
+
+msgid "Nobody has earned this badge yet."
+msgstr "Personne n'a encore obtenu ce badge."
 
 msgid "Badges summary"
 msgstr "Récapitulatif des badges"
-
-msgid "Badges"
-msgstr "Badges"
 
 msgid "Community gives you awards for your questions, answers and votes."
 msgstr "La communauté vous récompense pour vos questions, réponses et votes."
@@ -2327,14 +2363,14 @@ msgstr ""
 "Voici la liste des badges disponibles et le nombre de fois où chaque type de badge a été décerné.\n"
 "    "
 
+msgid "earned"
+msgstr "obtenu"
+
 msgid "Community badges"
 msgstr "Badges de la communauté"
 
 msgid "gold badge: the highest honor and is very rare"
 msgstr "badge d'or : la plus haute distinction, très rare"
-
-msgid "gold"
-msgstr "or"
 
 msgid "The highest award: it takes deep knowledge as well as active participation, and is rarely given."
 msgstr "La plus haute distinction : elle demande des connaissances approfondies en plus d'une participation active, et elle est rarement attribuée."
@@ -2342,17 +2378,11 @@ msgstr "La plus haute distinction : elle demande des connaissances approfondies 
 msgid "silver badge: occasionally awarded for the very high quality contributions"
 msgstr "badge d'argent : décerné occasionnellement pour des contributions de très grande qualité"
 
-msgid "silver"
-msgstr "argent"
-
 msgid "Earned with sustained effort: it shows a significant contribution to this community."
 msgstr "Obtenu par un effort soutenu : il témoigne d'une contribution importante à cette communauté."
 
 msgid "bronze badge: often given as a special honor"
 msgstr "badge de bronze : souvent accordé comme distinction particulière"
-
-msgid "bronze"
-msgstr "bronze"
 
 msgid "Given to active participants in this community."
 msgstr "Attribué aux participants actifs de cette communauté."
@@ -2564,37 +2594,14 @@ msgstr "Commentaires"
 msgid "Give us your feedback!"
 msgstr "Donnez-nous votre avis !"
 
-#, python-format
-msgid ""
-"\n"
-"            <span class='big strong'>Dear %(user_name)s</span>, we look forward to hearing your feedback. \n"
-"            Please type and send us your message below.\n"
-"            "
-msgstr ""
-"\n"
-"            <span class='big strong'>Cher/Chère %(user_name)s</span>, nous avons hâte de connaître votre avis. \n"
-"            Veuillez saisir et nous envoyer votre message ci-dessous.\n"
-"            "
-
-msgid ""
-"\n"
-"            <span class='big strong'>Dear visitor</span>, we look forward to hearing your feedback.\n"
-"            Please type and send us your message below.\n"
-"            "
-msgstr ""
-"\n"
-"            <span class='big strong'>Cher visiteur</span>, nous avons hâte de connaître votre avis.\n"
-"            Veuillez saisir et nous envoyer votre message ci-dessous.\n"
-"            "
-
-msgid "(this field is required)"
-msgstr "(ce champ est obligatoire)"
+msgid "Tell us what works, what doesn't, or what you would like to see. We read every message."
+msgstr "Dites-nous ce qui fonctionne, ce qui ne fonctionne pas ou ce que vous aimeriez voir. Nous lisons chaque message."
 
 msgid "(wrong captcha)"
 msgstr "(captcha incorrect)"
 
-msgid "Send Feedback"
-msgstr "Envoyer l'avis"
+msgid "Send feedback"
+msgstr "Envoyer"
 
 #, python-format
 msgid "Answer by %(author)s"
@@ -2730,11 +2737,29 @@ msgstr "Ce document décrit certaines des parties les plus importantes de Markdo
 msgid "Headers"
 msgstr "Titres"
 
+msgid "Paragraphs"
+msgstr "Paragraphes"
+
+msgid "Links"
+msgstr "Liens"
+
+msgid "Formatting"
+msgstr "Mise en forme"
+
+msgid "Blockquotes"
+msgstr "Citations"
+
+msgid "Lists"
+msgstr "Listes"
+
 msgid "For top-level headers underline the text with equal signs.  For second-level headers use dashes to underline."
 msgstr "Pour les titres de premier niveau, soulignez le texte avec des signes égal. Pour les titres de deuxième niveau, soulignez avec des tirets."
 
 msgid "This is an H1"
 msgstr "Ceci est un H1"
+
+msgid "Result"
+msgstr "Résultat"
 
 msgid "This is an H2"
 msgstr "Ceci est un H2"
@@ -2748,9 +2773,6 @@ msgstr "Ceci est un H3"
 msgid "Which you choose is a matter of style.  Whichever you thinks looks better in the text document.  In both cases, the final, fully formatted, document looks the same."
 msgstr "Le choix est une question de style : prenez ce qui vous semble le plus lisible dans le document texte. Dans les deux cas, le document final mis en forme a le même aspect."
 
-msgid "Paragraphs"
-msgstr "Paragraphes"
-
 msgid "Paragraphs are surrounded by blank lines."
 msgstr "Les paragraphes sont entourés de lignes vides."
 
@@ -2759,9 +2781,6 @@ msgstr "Ceci est le paragraphe un."
 
 msgid "This is paragraph two."
 msgstr "Ceci est le paragraphe deux."
-
-msgid "Links"
-msgstr "Liens"
 
 msgid ""
 "\n"
@@ -2781,9 +2800,6 @@ msgstr "texte du lien"
 
 msgid "http://example.com/"
 msgstr "http://example.com/"
-
-msgid "Formatting"
-msgstr "Mise en forme"
 
 msgid "To indicate bold text surround the text with two star (*) symbols or two underscore (_) symbols:"
 msgstr "Pour mettre du texte en gras, entourez-le de deux astérisques (*) ou de deux traits de soulignement (_) :"
@@ -2812,9 +2828,6 @@ msgstr "Ceci est en gras et en italique"
 msgid "This is also bold and italics"
 msgstr "Ceci est aussi en gras et en italique"
 
-msgid "Blockquotes"
-msgstr "Citations"
-
 msgid "To create an indented area use the right angle bracket (&gt;) character before each line to be included in the blockquote."
 msgstr "Pour créer une zone en retrait, placez le caractère chevron fermant (&gt;) devant chaque ligne à inclure dans la citation."
 
@@ -2832,9 +2845,6 @@ msgstr "Ceci prolonge la citation même s'il n'y a pas de chevron."
 
 msgid "The blank line ends the blockquote."
 msgstr "La ligne vide termine la citation."
-
-msgid "Lists"
-msgstr "Listes"
 
 msgid "To create a numbered list in Markdown, prefix each item in the list with a number followed by a period and space.  The number you use actually doesn't matter."
 msgstr "Pour créer une liste numérotée en Markdown, faites précéder chaque élément de la liste d'un nombre suivi d'un point et d'une espace. Le nombre utilisé n'a en fait aucune importance."
@@ -2869,6 +2879,9 @@ msgstr "marquer cette réponse comme réponse acceptée"
 
 msgid "Accept"
 msgstr "Accepter"
+
+msgid "Accepted"
+msgstr "Acceptées"
 
 msgid "AI"
 msgstr "IA"
@@ -3393,6 +3406,9 @@ msgstr "Espace d'administration d'OSQA"
 msgid "Switch to django style interface"
 msgstr "Passer à l'interface de style Django"
 
+msgid "Admin menu"
+msgstr "Menu d'administration"
+
 msgid "Administration menu"
 msgstr "Menu d'administration"
 
@@ -3461,6 +3477,9 @@ msgstr "Voulez-vous vraiment passer en mode démarrage ?"
 
 msgid "go bootstrap"
 msgstr "passer en mode démarrage"
+
+msgid "\"Bootstrap mode\" relaxes the minimum required reputation to perform actions like voting and commenting. This is useful to help new communities get started."
+msgstr "Le « mode démarrage » abaisse la réputation minimale requise pour des actions comme voter ou commenter. C'est utile pour aider les nouvelles communautés à démarrer."
 
 msgid "Recalculate the scores of posts and the reputation of users from their votes and reputation history."
 msgstr "Recalcule le score des messages et la réputation des utilisateurs à partir de leurs votes et de leur historique de réputation."
@@ -3605,7 +3624,7 @@ msgstr "Le mode maintenance vous permet de fermer votre site pour maintenance, e
 msgid "Your site is currently running on maintenance mode."
 msgstr "Votre site est actuellement en mode maintenance."
 
-msgid "You can adjust the settings bellow"
+msgid "You can adjust the settings below"
 msgstr "Vous pouvez ajuster les paramètres ci-dessous"
 
 msgid "Adjust settings"
@@ -3734,8 +3753,14 @@ msgstr "Dernière activité par"
 msgid "Last activity at"
 msgstr "Dernière activité le"
 
+msgid "Select"
+msgstr "Sélectionner"
+
 msgid "by"
 msgstr "par"
+
+msgid "No posts match these filters."
+msgstr "Aucun message ne correspond à ces filtres."
 
 msgid "Filter"
 msgstr "Filtrer"
@@ -3776,8 +3801,8 @@ msgstr "Correspond à tous les éléments sélectionnés"
 msgid "By author(s)"
 msgstr "Par auteur(s)"
 
-msgid "No users selected, use the box bellow to add users to the filter."
-msgstr "Aucun utilisateur sélectionné, utilisez le champ ci-dessous pour ajouter des utilisateurs au filtre."
+msgid "No users selected, use the box below to add users to the filter."
+msgstr "Aucun utilisateur sélectionné ; utilisez la case ci-dessous pour en ajouter au filtre."
 
 msgid "Click on the cross next to a user name to remove it from the filter."
 msgstr "Cliquez sur la croix à côté d'un nom d'utilisateur pour le retirer du filtre."
@@ -3785,8 +3810,8 @@ msgstr "Cliquez sur la croix à côté d'un nom d'utilisateur pour le retirer du
 msgid "By tag(s)"
 msgstr "Par étiquette(s)"
 
-msgid "No tags selected, use the box bellow to add tags to the filter."
-msgstr "Aucune étiquette sélectionnée, utilisez le champ ci-dessous pour ajouter des étiquettes au filtre."
+msgid "No tags selected, use the box below to add tags to the filter."
+msgstr "Aucune étiquette sélectionnée ; utilisez la case ci-dessous pour en ajouter au filtre."
 
 msgid "Click on the cross next to a tag name to remove it from the filter."
 msgstr "Cliquez sur la croix à côté d'un nom d'étiquette pour la retirer du filtre."
@@ -3794,8 +3819,8 @@ msgstr "Cliquez sur la croix à côté d'un nom d'étiquette pour la retirer du 
 msgid "Pre defined"
 msgstr "Prédéfinis"
 
-msgid "There are no saved filters. Click bellow to add."
-msgstr "Il n'y a aucun filtre enregistré. Cliquez ci-dessous pour en ajouter."
+msgid "There are no saved filters. Click below to add."
+msgstr "Aucun filtre enregistré. Cliquez ci-dessous pour en ajouter."
 
 msgid "Filter name..."
 msgstr "Nom du filtre..."
@@ -3823,6 +3848,12 @@ msgstr "Voulez-vous vraiment supprimer cette page ?"
 
 msgid "Delete"
 msgstr "Supprimer"
+
+msgid "There are no custom pages yet."
+msgstr "Il n'y a pas encore de pages personnalisées."
+
+msgid "Create the first page"
+msgstr "Créer la première page"
 
 msgid "Some simple graphics to help you get a notion of whats going on in your site."
 msgstr "Quelques graphiques simples pour vous aider à vous faire une idée de ce qui se passe sur votre site."
@@ -3876,9 +3907,6 @@ msgstr "Répondues"
 msgid "Median first answer"
 msgstr "Première réponse (médiane)"
 
-msgid "Accepted"
-msgstr "Acceptées"
-
 msgid "No tags yet. Choose the product tags under Settings > Support and reminders."
 msgstr "Aucune étiquette pour l'instant. Choisissez les étiquettes de produit sous Paramètres > Support et rappels."
 
@@ -3917,6 +3945,28 @@ msgstr "Depuis la première réponse"
 msgid "None."
 msgstr "Aucune."
 
+msgid "Test email settings"
+msgstr "Tester les paramètres e-mail"
+
+msgid "Check that this site can send email with the saved settings."
+msgstr "Vérifiez que ce site peut envoyer des e-mails avec les paramètres enregistrés."
+
+#, python-format
+msgid "Pressing the button sends a test email to your address, %(email)s, using the email server set under Email settings."
+msgstr "Le bouton envoie un e-mail de test à votre adresse, %(email)s, avec le serveur indiqué dans les paramètres e-mail."
+
+msgid "The test uses the saved settings: save the form before testing changes."
+msgstr "Le test utilise les paramètres enregistrés : enregistrez le formulaire avant de tester vos changements."
+
+msgid "Send another test email"
+msgstr "Envoyer un autre e-mail de test"
+
+msgid "Send a test email"
+msgstr "Envoyer un e-mail de test"
+
+msgid "Back to email settings"
+msgstr "Retour aux paramètres e-mail"
+
 #, python-format
 msgid "The test email to %(email)s could not be sent."
 msgstr "L'e-mail de test à %(email)s n'a pas pu être envoyé."
@@ -3936,9 +3986,6 @@ msgstr ""
 "\n"
 "        Vérifiez votre boîte de réception ; si le message n'arrive pas d'ici une ou deux minutes, regardez dans les indésirables.\n"
 "    "
-
-msgid "The test uses the saved settings: save the form before testing changes."
-msgstr "Le test utilise les paramètres enregistrés : enregistrez le formulaire avant de tester vos changements."
 
 msgid "posts per page"
 msgstr "publications par page"
@@ -3965,35 +4012,38 @@ msgstr "Trier par"
 msgid "Privacy policy"
 msgstr "Politique de confidentialité"
 
-msgid "general message about privacy"
-msgstr ""
+msgid "This page explains what information this site collects when you visit it or take part in it, and how that information is used. We collect only what is needed to run the community."
+msgstr "Cette page explique quelles informations ce site recueille quand vous le visitez ou y participez, et comment elles sont utilisées. Nous ne recueillons que ce qui est nécessaire au fonctionnement de la communauté."
 
 msgid "Site Visitors"
 msgstr "Visiteurs du site"
 
-msgid "what technical information is collected about visitors"
-msgstr ""
+msgid "Like most web sites, this site records technical information about each request, such as your IP address, the pages you visit and your browser type. It is used to keep the site running, to prevent abuse and spam, and to understand how the site is used."
+msgstr "Comme la plupart des sites web, ce site enregistre des informations techniques sur chaque requête, comme votre adresse IP, les pages consultées et votre navigateur. Elles servent à faire fonctionner le site, à prévenir les abus et le spam et à comprendre comment le site est utilisé."
 
 msgid "Personal Information"
 msgstr "Informations personnelles"
 
-msgid "details on personal information policies"
-msgstr ""
+msgid "When you create an account we keep your username, your email address and any profile details you choose to add. Your email address is never shown to other members; it is used to send you the notifications you ask for and to help you get back into your account. Questions, answers, comments and votes you post are public."
+msgstr "Quand vous créez un compte, nous conservons votre nom d'utilisateur, votre adresse e-mail et les informations de profil que vous ajoutez. Votre adresse n'est jamais montrée aux autres membres ; elle sert à vous envoyer les notifications demandées et à vous aider à récupérer votre compte. Les questions, réponses, commentaires et votes que vous publiez sont publics."
 
 msgid "Other Services"
 msgstr "Autres services"
 
-msgid "details on sharing data with third parties"
-msgstr ""
+msgid "We do not sell or rent your personal information. Avatars are loaded from Gravatar, which receives a hash of your email address; if you sign in with another service, that service tells us who you are. We share information otherwise only when the law requires it."
+msgstr "Nous ne vendons ni ne louons vos informations personnelles. Les avatars sont chargés depuis Gravatar, qui reçoit une empreinte de votre adresse e-mail ; si vous vous connectez avec un autre service, ce service nous indique qui vous êtes. Sinon, nous ne partageons des informations que lorsque la loi l'exige."
 
-msgid "cookie policy details"
-msgstr ""
+msgid "Cookies"
+msgstr "Cookies"
+
+msgid "This site uses cookies to keep you signed in, to protect forms against forgery and to remember preferences such as your language. They are not used for advertising."
+msgstr "Ce site utilise des cookies pour vous garder connecté, protéger les formulaires contre la falsification et mémoriser des préférences comme la langue. Ils ne servent pas à la publicité."
 
 msgid "Policy Changes"
 msgstr "Modifications de la politique"
 
-msgid "how privacy policies can be changed"
-msgstr ""
+msgid "This policy may change from time to time. Changes are published on this page."
+msgstr "Cette politique peut évoluer. Les changements sont publiés sur cette page."
 
 msgid "You are offline"
 msgstr "Vous êtes hors ligne"
@@ -4177,9 +4227,6 @@ msgstr "plus votées"
 msgid "Last checked"
 msgstr "Dernière consultation"
 
-msgid "Remove"
-msgstr "Retirer"
-
 msgid "Interesting tags"
 msgstr "Étiquettes intéressantes"
 
@@ -4317,9 +4364,6 @@ msgstr "Historique des révisions"
 msgid "back"
 msgstr "retour"
 
-msgid "click to hide/show revision"
-msgstr "cliquez pour masquer/afficher la révision"
-
 msgid "revision"
 msgstr "révision"
 
@@ -4431,16 +4475,6 @@ msgstr "me désabonner"
 
 msgid "subscribe me"
 msgstr "m'abonner"
-
-#, python-format
-msgid ""
-"\n"
-"            (you can adjust your notification settings on your <a href=\"%(subscriptions_url)s\">profile</a>)\n"
-"        "
-msgstr ""
-"\n"
-"            (vous pouvez ajuster vos paramètres de notification dans votre <a href=\"%(subscriptions_url)s\">profil</a>)\n"
-"        "
 
 msgid "Once you sign in you will be able to subscribe for any updates here"
 msgstr "Une fois connecté, vous pourrez vous abonner ici à toutes les mises à jour"
@@ -4588,9 +4622,6 @@ msgstr "Modérateur"
 
 msgid "Suspended"
 msgstr "Suspendu"
-
-msgid "reputation"
-msgstr "réputation"
 
 msgid "gold badges"
 msgstr "badges d'or"
@@ -6525,6 +6556,9 @@ msgstr "Exporter la base de données au format XML"
 msgid "Available backups"
 msgstr "Sauvegardes disponibles"
 
+msgid "No backups yet. Start one below; finished backups are listed here for download."
+msgstr "Pas encore de sauvegarde. Lancez-en une ci-dessous ; les sauvegardes terminées apparaîtront ici pour le téléchargement."
+
 msgid "Start new backup"
 msgstr "Lancer une nouvelle sauvegarde"
 
@@ -6764,11 +6798,17 @@ msgstr "Importateur SX"
 msgid "Welcome to Stack Exchange dump importer."
 msgstr "Bienvenue dans l'importateur de fichiers de vidage Stack Exchange."
 
+msgid "Stack Exchange dump (zip file)"
+msgstr "Export Stack Exchange (fichier zip)"
+
 msgid "Your user id in stack exchange"
 msgstr "Votre identifiant d'utilisateur sur Stack Exchange"
 
 msgid "Merge users with same user name and email"
 msgstr "Fusionner les utilisateurs ayant le même nom d'utilisateur et la même adresse e-mail"
+
+msgid "Import"
+msgstr "Importer"
 
 #, python-format
 msgid "The dump contains an invalid file name: %s"

@@ -2,7 +2,7 @@ import os
 from django import forms
 from forum.settings.base import Setting
 from django.utils.translation import gettext as _
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
@@ -120,21 +120,21 @@ class ImageFormWidget(forms.Widget):
 
 class StringListWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
-        ret = ""
-        for s in value:
-            ret += """
+        remove, add = _('Remove'), _('Add another')
+        rows = format_html_join('', """
             <div class="string-list-input">
-                <input type="text" name="%(name)s" value="%(value)s" />
-                <button class="string_list_widget_button">-</button>
+                <input type="text" name="{0}" value="{1}" />
+                <button type="button" class="string_list_widget_button remove" aria-label="{2}" title="{2}">&minus;</button>
             </div>
-            """  % {'name': name, 'value': s}
+            """, ((name, s, remove) for s in value or ()))
 
-        return """
+        return format_html("""
             <div class="string_list_widgets">
-                %(ret)s
-                <div><button name="%(name)s" class="string_list_widget_button add">+</button></div>
+                {rows}
+                <div class="string-list-add"><button type="button" name="{name}" class="string_list_widget_button add"
+                    aria-label="{add}" title="{add}" data-remove-label="{remove}">+</button></div>
             </div>
-            """ % dict(name=name, ret=ret)
+            """, name=name, rows=rows, add=add, remove=remove)
 
     def value_from_datadict(self, data, files, name):
         if 'submit' in data:
@@ -158,15 +158,14 @@ class TestEmailSettingsWidget(forms.TextInput):
         if not value:
             value = ''
 
-        return """
+        return format_html("""
             <div id="test_email_settings">
-                <a href="%s" onclick="return false;" class="button test_button" href="/">Test</a>
+                <a href="{url}" onclick="return false;" class="button test_button" role="button">{label}</a>
 
-                <div style="margin-top: 7px">
-                <div style="display: none" class="ajax_indicator">
-                    Testing your current e-mail settings. Please, wait.
-                </div>
-                <div class="test_status"></div>
+                <div class="test_email_status_box">
+                <div style="display: none" class="ajax_indicator">{wait}</div>
+                <div class="test_status" aria-live="polite"></div>
                 </div>
             </div>
-            """ % reverse("test_email_settings")
+            """, url=reverse("test_email_settings"), label=_('Test'),
+            wait=_('Testing your current e-mail settings. Please, wait.'))

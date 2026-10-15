@@ -143,6 +143,7 @@ def badge(request, id, slug):
                     key=lambda c: c['count'], reverse=True)
 
     return render(request, 'badge.html', {
+    'tab': 'badges',
     'award_count': award_count,
     'awards' : awards,
     'badge' : badge,

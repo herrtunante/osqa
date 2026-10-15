@@ -15,11 +15,10 @@
 {% block admincontent %}
     <form action="" method="post" accept-charset="utf-8">
         {% csrf_token %}
-        <table style="width: 100%">
+        <table class="admin-form-table" style="width: 100%">
         {{ form.as_table }}
-        <tr>
-            <th></th>
-            <td>
+        </table>
+        <div class="submit-row">
                 {% if page %}
                     <input id="submit" name="submit" type="submit" value="{% trans "Edit" %}" />
                 {% else %}
@@ -30,8 +29,6 @@
                 {% else %}
                     <input id="publish" name="publish" type="submit" value="{% trans "Publish" %}" />
                 {% endif %}
-            </td>
-        </tr>
-        </table>
+        </div>
     </form>
 {% endblock %}

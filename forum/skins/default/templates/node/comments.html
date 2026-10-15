@@ -13,6 +13,8 @@
                 {% if show_gravatar %}{% gravatar comment.user 18 %}{% endif %}
                 <a class="comment-user userinfo" href="{{comment.user.get_profile_url}}">{{comment.user.decorated_name}}</a>
                 <span class="comment-age">{% post_time comment.added_at %}</span>
+                {# The action icons stay together on one line. #}
+                <span class="comment-actions">
                 {% if comment.can_like %}
                     <a id="post-{{ comment.id }}-upvote" href="{% url "like_comment" id=comment.id %}" role="button"
                      aria-pressed="{% if comment.likes %}true{% else %}false{% endif %}" aria-label="{% trans "Like" %}"
@@ -37,6 +39,7 @@
                 {% if comment.additional_controls %}
                     {{ comment.additional_controls }}
                 {% endif %}
+                </span>
             </div>
         </div>
     {% endfor %}

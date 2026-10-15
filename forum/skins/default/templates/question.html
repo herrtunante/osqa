@@ -235,7 +235,7 @@
                         {% if settings.WIKI_ON %}
                         <span class="editor-wiki">
                             {{ answer.wiki }}
-                            <span title="{{answer.wiki.help_text}}">{{ answer.wiki.label_tag }}</span>
+                            <label for="{{ answer.wiki.id_for_label }}" title="{{ answer.wiki.help_text }}">{{ answer.wiki.label }}</label>
                         </span>
                         {% endif %}
                     </div>
@@ -250,7 +250,7 @@
                 </div>
                 {% endif %}
 
-                <p><span class="form-error"></span></p>
+                <p class="answer-form-error"><span class="form-error"></span></p>
                 <input type="button"
                     {% if user.is_anonymous %}
                         value="{% trans "Login/Signup to Post Your Answer" %}"
@@ -273,7 +273,8 @@
     {% include "subscription_status.html" %}
 </div>
 
-{% markdown_help %}
+{# Markdown basics are for people writing an answer here. #}
+{% if user.is_authenticated and not question.closed %}{% markdown_help %}{% endif %}
 
 {% sidebar_upper %}
 

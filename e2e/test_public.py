@@ -32,6 +32,37 @@ class PublicPagesTest(E2ETestCase):
                 with self.subTest(device=device, path=path):
                     self.visit(page, path)
 
+    def test_phone_header_tabs_and_avatar_fallback(self):
+        page = self.open(device='mobile', dark=True)
+        page.route('**gravatar.com/**', lambda route: route.fulfill(status=404, body=''))
+        for path in ('/', '/badges/', '/users/'):
+            with self.subTest(path=path):
+                self.visit(page, path)
+                tabs, ask = page.locator('#nav .nav-tabs'), page.locator('#nav_ask')
+                row, button = tabs.bounding_box(), ask.bounding_box()
+                # "ask a question" sits beside the tabs, never over them.
+                self.assertLessEqual(row['x'] + row['width'], button['x'] + 1, (row, button))
+                self.assertLessEqual(button['x'] + button['width'], 390)
+                # The current tab is scrolled into view; every tab can be.
+                current = page.locator('#nav a.on').bounding_box()
+                self.assertGreaterEqual(current['x'], row['x'] - 1)
+                self.assertLessEqual(current['x'] + current['width'], row['x'] + row['width'] + 1)
+                for link in page.locator('#nav .nav-tabs a').all():
+                    link.scroll_into_view_if_needed()
+                    box = link.bounding_box()
+                    self.assertGreaterEqual(box['x'], row['x'] - 1, link.inner_text())
+                    self.assertLessEqual(box['x'] + box['width'], button['x'] + 1, link.inner_text())
+                # A row that scrolls says so with a fade on the hidden side.
+                if tabs.evaluate('el => el.scrollWidth > el.clientWidth + 1'):
+                    self.assertTrue(tabs.evaluate("el => el.matches('.fade-start, .fade-end')"))
+        # Avatars that can't be loaded show the initial, not a broken image.
+        self.visit(page, self.question.get_absolute_url())
+        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        page.wait_for_function("() => [...document.querySelectorAll('img.gravatar')].every("
+                               "img => img.classList.contains('gravatar-fallback') && img.complete && img.naturalWidth > 0)")
+        self.assertGreater(page.locator('img.gravatar.gravatar-fallback').count(), 0)
+        self.check_page(page)
+
     def test_question_page_content(self):
         page = self.open()
         self.visit(page, self.question.get_absolute_url())

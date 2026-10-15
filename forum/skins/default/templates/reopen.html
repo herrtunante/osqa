@@ -12,9 +12,7 @@
         </script>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-	{% trans "Reopen question" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "Reopen question" %}</h1></div>
 <div id="main-body" style="width:100%">
     <p>{% trans "Open the previously closed question" %}: <a href="{{ question.get_absolute_url }}"><span class="big">{{ question.headline }}</span></a>
     

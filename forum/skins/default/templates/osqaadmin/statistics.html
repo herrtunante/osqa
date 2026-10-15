@@ -15,12 +15,14 @@
 </script>
 {% endblock %}
 
-{% block subtitle %}{% trans "Dashboard" %}{% endblock %}
-{% block pagename %}{% trans "Dashboard" %}{% endblock %}
+{% block subtitle %}{% trans "Statistics" %}{% endblock %}
+{% block pagename %}{% trans "Statistics" %}{% endblock %}
 {% block description %}{% trans "Some simple graphics to help you get a notion of whats going on in your site." %}{% endblock %}
 
 {% block admincontent %}
+<div class="stats-grid">
 {% for graph in graphs %}
     {% include "osqaadmin/graph.html" %}
 {% endfor %}
+</div>
 {% endblock %}

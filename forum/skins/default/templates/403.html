@@ -7,12 +7,10 @@
 	</style>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "Forbidden" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "Forbidden" %}</h1></div>
 <div id="main-body" class="">
     <div style="padding:5px 0px 10px 0;line-height:25px;">
-        <h3>{% trans "Sorry, you don't have permissions to access this page." %}</h3>
+        <h2 class="error-lead">{% trans "Sorry, you don't have permissions to access this page." %}</h2>
         <div style="margin-top:5px">
         {% trans "This might have happened for the following reasons:" %}<br/>
             <ul>

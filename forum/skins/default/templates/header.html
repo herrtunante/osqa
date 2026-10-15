@@ -42,9 +42,12 @@
 		</div>
 
     <div id="nav">
+        {# The tabs scroll by themselves on a phone (osqa.scrolltabs.js fades the hidden edge); Ask stays beside them. #}
+        <div class="nav-tabs">
         {% loopregistry page_top_tabs %}{% spaceless %}
-            <a id="nav_{{ tab_name }}"{% if tab == tab_name %} class="on"{% endif %} href="{{ tab_url }}" >{{ tab_title }}</a>
+            <a id="nav_{{ tab_name }}"{% if tab == tab_name %} class="on" aria-current="true"{% endif %} href="{{ tab_url }}" >{{ tab_title }}</a>
         {% endspaceless %}{% endloopregistry %}
+        </div>
         <a id="nav_ask" href="{% url "ask" %}" class="special">{% trans "ask a question" %}</a>
     </div>
   </div>

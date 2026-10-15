@@ -12,9 +12,7 @@
         </script>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-	{% trans "Close question" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "Close question" %}</h1></div>
 <div id="main-body" style="width:100%;margin-bottom:10px">
     <p>{% trans "Close the question" %}: <a href="{{ question.get_absolute_url }}">
     <strong>{{ question.get_question_title }}</strong></a>

@@ -16,12 +16,10 @@
         </script>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "404 Not Found" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "404 Not Found" %}</h1></div>
 <div id="main-body" class="">
     <div style="padding:5px 0px 10px 0;line-height:25px;">
-        <h3>{% trans "Sorry, could not find the page you requested." %}</h3>
+        <h2 class="error-lead">{% trans "Sorry, could not find the page you requested." %}</h2>
         <div style="margin-top:5px">
         {% trans "This might have happened for the following reasons:" %}<br/>
             <ul>

@@ -3,8 +3,8 @@
 {% block title %}{% spaceless %}{{ title }}{% endspaceless %}{% endblock %}
 
 {% block content %}
-<div class="headNormal">{{ title }}</div>
-<div class="content">
+<div class="page-header"><h1 class="page-title">{{ title }}</h1></div>
+<div class="content static-content">
 {{ content|static_content:"markdown" }}
 </div>
 {% endblock %}

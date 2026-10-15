@@ -1,15 +1,37 @@
+/* The admin menu is a <details> disclosure: open on wide screens, folded on
+   phones (called right after the element, so it never flashes open). */
+function osqaAdminMenu(details) {
+    if (!details || !window.matchMedia) {
+        return;
+    }
+    var wide = window.matchMedia('(min-width: 768px)');
+    function update() {
+        details.open = wide.matches;
+    }
+    update();
+    if (wide.addEventListener) {
+        wide.addEventListener('change', update);
+    }
+}
+
 $(function() {
     $(document).on('click', '.string_list_widget_button', function() {
-        $but = $(this);
+        var $but = $(this);
 
         if ($but.is('.add')) {
-            $new = $("<div style=\"display: none;\">" +
-                    "<input style=\"width: 600px;\" type=\"text\" name=\"" + $but.attr('name') + "\" value=\"\" />" +
-                    "<button class=\"string_list_widget_button\">-</button>" +
-                    "</div>");
+            var $remove = $('<button type="button" class="string_list_widget_button remove">\u2212</button>')
+                .attr('aria-label', $but.attr('data-remove-label') || 'Remove')
+                .attr('title', $but.attr('data-remove-label') || 'Remove');
+            var $new = $('<div class="string-list-input" style="display: none;"></div>')
+                .append($('<input type="text" value="" />').attr('name', $but.attr('name'))
+                    .attr('aria-label', $but.attr('data-item-label') || ''))
+                .append($remove);
 
-            $but.before($new);
-            $new.slideDown('fast');
+            $but.parent().before($new);
+            $new.slideDown('fast', function() {
+                $new.css('display', '');
+                $new.find('input').trigger('focus');
+            });
         } else {
             $but.parent().slideUp('fast', function() {
                 $but.parent().remove();
@@ -59,14 +81,16 @@ $(function() {
         rewrite_anchor();        
     });
 
-    $('#test_email_settings a.test_button').click(function() {
+    $('#test_email_settings a.test_button').on('click', function() {
         $('div.test_status').hide('slow')
         $('div.ajax_indicator').show('fast')
         $.post($(this).attr('href'), function(data) {
-            $('div.ajax_indicator').hide('fast')
             $('div.test_status').html(data)
+        }).fail(function(xhr) {
+            $('div.test_status').text('HTTP ' + xhr.status + ' ' + (xhr.statusText || ''))
+        }).always(function() {
+            $('div.ajax_indicator').hide('fast')
             $('div.test_status').show('slow')
         })
     })
 });
-

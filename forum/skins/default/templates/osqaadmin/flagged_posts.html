@@ -9,7 +9,7 @@
 
 {% block admincontent %}
     {% if moderation_reports %}
-    <div class="module moderation-reports" style="width:98%; display: inline-block;">
+    <div class="module moderation-reports">
         <table width="100%">
         <caption>{% trans "Reported by automated checks" %}</caption>
         {% for report in moderation_reports %}
@@ -59,7 +59,7 @@
         </table>
     </div>
     {% endif %}
-    <div class="module" style="width:98%; display: inline-block;">
+    <div class="module">
         <table width="100%">
         <caption>{% trans "Flagged Posts" %}</caption>
             <tr>

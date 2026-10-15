@@ -82,6 +82,8 @@
         <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.mentions.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.searchbox.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.avatars.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.scrolltabs.js" %}"></script>
         {% if user_messages %}
         <script type="text/javascript">
             $(document).ready(function() {
@@ -165,7 +167,7 @@
         </div>
 
         <!-- Put all elements with fixed position here, IE6 fixed position fix: http://ryanfait.com/position-fixed-ie6/ -->
-        <div class="notify" style="display:none">
+        <div class="notify" role="status" style="display:none">
             {% autoescape off %}
                 {% if user_messages %}
                     {% for message in user_messages %}
@@ -173,7 +175,7 @@
                     {% endfor %}
                 {% endif %}
             {% endautoescape %}
-            <a id="close-notify" onclick="notify.close(true)">&#215;</a>
+            <button type="button" id="close-notify" class="plain-button" onclick="notify.close(true)" aria-label="{% trans "Close" %}" title="{% trans "Close" %}">&#215;</button>
         </div>
     </body>
 </html>

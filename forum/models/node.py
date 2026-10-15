@@ -2,6 +2,7 @@
 
 from .base import *
 import re
+from html import unescape as html_unescape
 from .tag import Tag
 
 import markdown
@@ -360,7 +361,9 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
     @property
     def summary(self):
-        content = strip_tags(self.html)
+        # Plain text: the HTML's entities (&gt;, &amp;...) are decoded, so
+        # templates escape it once. Never mark it safe.
+        content = html_unescape(strip_tags(self.html))
 
         # Remove multiple spaces.
         content = re.sub(' +',' ', content)

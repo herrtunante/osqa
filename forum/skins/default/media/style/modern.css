@@ -292,12 +292,21 @@ hr {
     display: flex;
     align-items: flex-end;
     gap: 4px;
+}
+
+/* The tabs scroll by themselves when they don't fit; "ask a question" stays beside them. */
+#nav .nav-tabs {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
 
-#nav::-webkit-scrollbar {
+#nav .nav-tabs::-webkit-scrollbar {
     display: none;
 }
 
@@ -331,6 +340,7 @@ hr {
 
 #nav a#nav_ask, #nav a#nav_ask.on {
     float: none;
+    flex: none;
     margin: 0 0 6px auto;
     padding: 8px 16px;
     border: 0;
@@ -1782,20 +1792,30 @@ div.comment-tools a:hover {
         width: calc(100% + 24px);
     }
 
+    #nav {
+        gap: 8px;
+    }
+
+    #nav .nav-tabs {
+        gap: 0;
+    }
+
     #nav a, #nav a.on {
-        padding: 10px 10px;
+        padding: 10px 7px;
         font-size: 14px;
     }
 
-    /* Keep "ask a question" in view while the tabs scroll underneath it. */
+    #nav .nav-tabs a:first-child {
+        padding-left: 2px;
+    }
+
+    /* Beside the tabs, never over them: the tabs scroll in the space left
+       (with a fade on the hidden side, osqa.scrolltabs.js). */
     #nav a#nav_ask, #nav a#nav_ask.on {
-        position: sticky;
-        right: 12px;
-        padding: 7px 12px;
+        margin: 0 0 6px;
+        padding: 7px 10px;
         font-size: 13px;
-        /* Covers the tabs scrolling underneath: a fade on the left and the
-           header colour up to the screen edge on the right. */
-        box-shadow: 40px 0 0 var(--surface), -24px 0 16px -2px var(--surface);
+        white-space: nowrap;
     }
 
     #wrapper {
@@ -4565,5 +4585,1057 @@ ol.search-results {
 
     .search-tips dd {
         margin-bottom: 6px;
+    }
+}
+
+/* ---- Phone and dark-mode polish -------------------------------------- */
+
+/* Tab rows that scroll sideways: a fade on each edge where tabs are hidden
+   (classes set by osqa.scrolltabs.js), so the clipping reads as "more". */
+.scroll-row {
+    --fade-left: 0px;
+    --fade-right: 0px;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent 100%);
+}
+
+.scroll-row.fade-start {
+    --fade-left: 36px;
+}
+
+.scroll-row.fade-end {
+    --fade-right: 36px;
+}
+
+.scroll-row a:focus-visible {
+    outline-offset: -2px;
+}
+
+/* Avatars that couldn't load show the initial (osqa.avatars.js), not a broken image. */
+img.gravatar.gravatar-fallback {
+    background: var(--muted);
+}
+
+/* Page titles: one size for every page (h1, as on the list and sign-in pages). */
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 16px;
+    margin: 0 0 16px;
+}
+
+h1.page-title, h1.headNormal, .page-header h1 {
+    float: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    overflow-wrap: anywhere;
+}
+
+h1.headNormal {
+    margin-bottom: 16px;
+}
+
+.page-lead {
+    margin: 0 0 16px;
+    color: var(--muted);
+}
+
+h1.page-title + .page-lead {
+    margin-top: 8px;
+}
+
+/* style.css centres every div (margin: 0 auto); these lay out with flex/grid. */
+.page-header, .badge-detail div, #revisions div, .feedback-actions, .auth-empty {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.page-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 32px;
+    padding: 4px 10px 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.page-back:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    text-decoration: none;
+}
+
+h2.error-lead {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.static-content h2, .static-content h3 {
+    margin: 22px 0 6px;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.static-content h2.subtitle {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.static-content p, .static-content li {
+    max-width: 72ch;
+}
+
+/* ---- Footer ---- */
+
+#ground .footer-meta {
+    overflow: hidden;
+}
+
+/* The dot before each item; at the start of a line it falls outside
+   .footer-meta and is clipped. */
+.footer-meta-items {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -16px;
+}
+
+.footer-meta-item {
+    position: relative;
+    margin-left: 16px;
+}
+
+.footer-meta-item::before {
+    content: "\00b7";
+    position: absolute;
+    left: -11px;
+    width: 6px;
+    text-align: center;
+}
+
+.language-switch label {
+    color: var(--muted);
+}
+
+.language-switch select, .language-switch select:focus {
+    width: auto;
+    min-height: 36px;
+    padding: 6px 34px 6px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.3;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.language-switch select:hover {
+    border-color: var(--brand);
+}
+
+.language-switch select:focus-visible {
+    border-color: var(--brand);
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+}
+
+/* ---- Messages ("First time here?") ---- */
+
+#close-notify, #close-notify:hover {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: none;
+    color: var(--warn-text);
+    font-weight: 400;
+}
+
+#close-notify:hover {
+    background: var(--hover-overlay);
+}
+
+#close-notify:focus-visible {
+    outline: 2px solid var(--warn-text);
+    outline-offset: -2px;
+}
+
+.notify a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+/* ---- Votes and accepting: idle, pressed and accepted look different ---- */
+
+a.post-vote.up, a.post-vote.down {
+    border-color: var(--border-strong);
+    background-color: var(--surface);
+}
+
+a.post-vote.up {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d4752' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
+
+a.post-vote.down {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d4752' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+a.post-vote.up:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c5aa0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
+
+a.post-vote.down:hover {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c2410c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* style.css sets these states with the background shorthand (size: auto). */
+a.post-vote.up:hover, a.post-vote.down:hover, a.post-vote.up.on, a.post-vote.down.on {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+}
+
+/* Pressed: filled, with a white arrow. */
+a.post-vote.up.on, a.post-vote.up.on:hover {
+    border-color: var(--brand);
+    background-color: var(--brand);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
+
+a.post-vote.down.on, a.post-vote.down.on:hover {
+    border-color: var(--accent);
+    background-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* The asker's accept toggle: an outlined button until pressed, then green. */
+.question-page a.accept-answer, .question-page a.accept-answer:hover {
+    width: auto;
+    min-width: 52px;
+    padding-right: 5px;
+    padding-left: 5px;
+    background-repeat: no-repeat;
+    background-size: 26px;
+    opacity: 1;
+}
+
+.question-page a.accept-answer:not(.on) {
+    border-color: var(--border-strong);
+    background-color: var(--surface);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d4752' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+    color: var(--text);
+}
+
+.question-page a.accept-answer:not(.on):hover {
+    border-color: var(--success);
+    background-color: var(--success-soft);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a7f37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+    color: var(--success);
+}
+
+.question-page a.accept-answer.on, .question-page a.accept-answer.on:hover {
+    border-color: var(--success);
+    background-color: var(--success-soft);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%231a7f37'/%3E%3Cpath d='M7.5 12.5l3 3L16.5 9.5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    color: var(--success);
+}
+
+.accept-label-on {
+    display: none;
+}
+
+.question-page a.accept-answer.on .accept-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.question-page a.accept-answer.on .accept-label-on {
+    display: block;
+}
+
+/* ---- Question page bits ---- */
+
+/* Comment actions as one group: they wrap together, never one by one. */
+.comment-actions {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 2px;
+}
+
+.question-page .comment-info .comment-actions a {
+    flex: none;
+}
+
+/* "accept rate: 100%" stays on one line. */
+.accept-rate-pair {
+    white-space: nowrap;
+}
+
+.question-page .editor-wiki label {
+    margin: 0;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.question-page .editor-wiki input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.question-page .answer-form-error {
+    margin: 0;
+}
+
+.question-page .answer-form-error:has(.form-error:empty) {
+    display: none;
+}
+
+.question-page #fmanswer .answer-submit {
+    margin-top: 12px;
+}
+
+/* Follow this question (sidebar) */
+.follow-section + .follow-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.follow-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.follow-label svg {
+    flex: none;
+    color: var(--muted);
+}
+
+.follow-section p {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.follow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.follow-actions a.subscription-settings-note {
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+ul.follow-feeds {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+ul.follow-feeds li {
+    margin: 0;
+    list-style: none;
+}
+
+a.follow-feed {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    color: var(--text);
+    font-size: 14px;
+    text-decoration: none;
+}
+
+a.follow-feed::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f26522'/%3E%3Cpath d='M6.5 11a6.5 6.5 0 016.5 6.5M6.5 6.5a11 11 0 0111 11' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='7.3' cy='16.7' r='1.6' fill='white'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+a.follow-feed:hover {
+    color: var(--brand);
+    text-decoration: underline;
+}
+
+/* Markdown basics (question page sidebar, while writing an answer) */
+.markdown-basics h3.subtitle {
+    color: var(--muted);
+}
+
+ul.markdown-basics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 0;
+    list-style: none;
+}
+
+ul.markdown-basics-list li {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    list-style: none;
+}
+
+ul.markdown-basics-list li.md-syntax, ul.markdown-basics-list code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+}
+
+ul.markdown-basics-list code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--code-inline-bg);
+    overflow-wrap: anywhere;
+}
+
+.markdown-basics .info-box-follow-up-links {
+    margin: 0;
+    text-align: left;
+}
+
+.markdown-basics .info-box-follow-up-links a {
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ---- Revision history ---- */
+
+#revisions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+details.revision {
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: inherit;
+}
+
+details.revision.by-author {
+    border-left: 3px solid var(--brand);
+}
+
+summary.revision-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    list-style: none;
+}
+
+summary.revision-header::-webkit-details-marker {
+    display: none;
+}
+
+summary.revision-header:hover {
+    background: var(--hover-overlay);
+}
+
+summary.revision-header:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+details.revision[open] > summary.revision-header {
+    border-bottom: 1px solid var(--border-subtle);
+    border-radius: 10px 10px 0 0;
+}
+
+.revision-header .revision-number {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.revision-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.revision-summary {
+    color: var(--text);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.revision-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.revision-meta img.gravatar {
+    width: 20px;
+    height: 20px;
+}
+
+.revision-chevron {
+    flex: none;
+    color: var(--muted);
+    transition: transform .15s;
+}
+
+details.revision[open] .revision-chevron {
+    transform: rotate(180deg);
+}
+
+.revision-body {
+    padding: 14px 16px 16px;
+}
+
+.revision-body .revision-mark {
+    display: block;
+    width: auto;
+    margin: 0 0 12px;
+    font-size: inherit;
+    overflow: visible;
+}
+
+/* The author card (the date is already in the header). */
+.revision-body .revision-mark .post-update-info {
+    display: inline-flex;
+    float: none;
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 6px 12px 6px 6px;
+    border: 1px solid var(--info-border);
+    border-radius: 999px;
+    background: var(--brand-soft);
+}
+
+.revision-body .revision-mark .post-update-info-when {
+    display: none;
+}
+
+.revision-body .revision-mark .post-update-info-who p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    font-size: 14px;
+}
+
+.revision-body .revision-mark .post-update-info-who br {
+    display: none;
+}
+
+.revision-body .revision-mark .post-update-info-who a {
+    font-weight: 600;
+}
+
+.revision-body .revision-mark p {
+    margin: 0;
+}
+
+.revision-body .revision-mark .post-update-info-who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.revision-body .rev-body {
+    margin: 0;
+    padding: 0;
+    overflow-wrap: anywhere;
+}
+
+.revision-body .rev-body pre {
+    overflow-x: auto;
+}
+
+.revision-body h2.revision-title {
+    margin: 0 0 8px;
+    padding: 0;
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 650;
+}
+
+.revision-body .tags {
+    margin-top: 8px;
+}
+
+ins {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: var(--success-soft);
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--success);
+}
+
+del {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    text-decoration: line-through;
+}
+
+/* ---- Badges ---- */
+
+ul.badge-index {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#medalList > li.badge-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 16px;
+    margin: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    list-style: none;
+    line-height: 1.4;
+}
+
+#medalList > li.badge-row:last-child {
+    border-bottom: 0;
+}
+
+#medalList .badgeListItem {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    float: none;
+    width: auto;
+    margin: 0;
+}
+
+#medalList .badgeListDescription {
+    float: none;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    color: var(--muted);
+}
+
+.badge-count {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-mine {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--success-soft);
+    color: var(--success);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin: 0 0 24px;
+    padding: 0 0 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.badge-hero-icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--warn-border);
+    border-radius: 50%;
+    background: var(--warn-bg);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.badge-hero-text {
+    min-width: 0;
+}
+
+.badge-hero-kicker {
+    margin: 0 0 2px;
+    font-size: 13px;
+}
+
+.badge-hero-kicker a {
+    color: var(--muted);
+}
+
+.badge-hero-description {
+    margin: 6px 0 10px;
+    color: var(--text);
+    font-size: 16px;
+}
+
+.badge-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.badge-class {
+    padding: 1px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--text);
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+h2.badge-awardees-title {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+ul.badge-awardees {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+ul.badge-awardees li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    list-style: none;
+}
+
+a.badge-awardee {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: var(--text);
+    text-decoration: none;
+}
+
+a.badge-awardee:hover .badge-awardee-name {
+    color: var(--brand);
+    text-decoration: underline;
+}
+
+a.badge-awardee img.gravatar {
+    flex: none;
+    width: 40px;
+    height: 40px;
+}
+
+.badge-awardee-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--brand);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.badge-awardee-rep {
+    flex: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-awardee-count {
+    flex: none;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-awardees-empty {
+    color: var(--muted);
+}
+
+/* ---- Contact form ---- */
+
+.feedback-card {
+    max-width: 560px;
+}
+
+.feedback-card textarea {
+    display: block;
+    width: 100%;
+    min-height: 160px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.feedback-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.auth-card .feedback-cancel, .auth-card .feedback-cancel:hover {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.auth-card .feedback-cancel:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+/* Connect another account, with no sign-in services set up */
+.auth-empty {
+    padding: 18px 16px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 10px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.auth-empty p {
+    margin: 0;
+}
+
+.auth-empty p + p {
+    margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+    h1.page-title, h1.headNormal, .page-header h1 {
+        font-size: 21px;
+    }
+
+    #medalList > li.badge-row {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 12px 0;
+    }
+
+    .badge-hero {
+        gap: 12px;
+    }
+
+    .badge-hero-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+
+    ul.badge-awardees {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    summary.revision-header {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .revision-body {
+        padding: 12px;
+    }
+
+    .language-switch select, .language-switch select:focus {
+        width: auto;
+        font-size: 16px;
+    }
+
+    /* Messages: a compact bar at the bottom that stops above the footer
+       instead of covering the end of the page. */
+    .notify {
+        position: sticky;
+        top: auto;
+        right: auto;
+        bottom: 0;
+        left: auto;
+        z-index: 60;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 10px 52px 10px 16px;
+        border-width: 1px 0 0;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -6px 20px rgba(16, 24, 40, .14);
+    }
+
+    .notify p {
+        margin: 2px 0;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    #close-notify, #close-notify:hover {
+        top: 50%;
+        right: 6px;
+        width: 44px;
+        height: 44px;
+        margin-top: -22px;
+    }
+
+    .question-page a.accept-answer {
+        width: auto;
+        min-width: 48px;
+        font-size: 10px;
+    }
+
+    .question-page .comment-info .comment-actions a.comment-like, .question-page .comment-info .comment-actions a.comment-edit,
+    .question-page .comment-info .comment-actions a.comment-delete, .question-page .comment-info .comment-actions a.comment-convert,
+    .question-page .comment-info .comment-actions a.comment-convert-to-question {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    /* A light pill behind the logo, so dark lettering stays readable. */
+    :root[data-color-scheme="auto"] #logo img {
+        padding: 3px 8px;
+        border-radius: 10px;
+        background: #eef2f7;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.up {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.down {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.up:hover {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2379b0ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.down:hover {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff9a6b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.up.on, :root[data-color-scheme="auto"] a.post-vote.up.on:hover {
+        border-color: var(--button-bg);
+        background-color: var(--button-bg);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] a.post-vote.down.on, :root[data-color-scheme="auto"] a.post-vote.down.on:hover {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] .question-page a.accept-answer:not(.on) {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] .question-page a.accept-answer:not(.on):hover {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233fb950' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] .language-switch select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ba7b4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    :root[data-color-scheme="auto"] .badge-hero-icon {
+        border-color: var(--warn-border);
     }
 }

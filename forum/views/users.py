@@ -452,16 +452,41 @@ def user_recent(request, user, **kwargs):
     return {"view_user" : user, "activities" : activities}
 
 
+def reputation_graph_points(user, now=None):
+    """[(epoch ms, reputation)] for the reputation graph: the running total
+    after each change, ending at the user's current reputation.  Reputation
+    that no change accounts for (set by an administrator, imported from an old
+    forum) is the starting value, so the curve ends where the profile header
+    does; a last point at `now` carries the line up to today.  Empty when the
+    user has no reputation changes."""
+    changes = list(user.reputes.order_by('date', 'id').values_list('date', 'value'))
+    if not changes:
+        return []
+    current = user.reputation
+    if not isinstance(current, int):
+        current = type(user).objects.filter(pk=user.pk).values_list('reputation', flat=True).first() or 0
+    start = current - sum(value for _date, value in changes)
+
+    def ms(d):
+        return int(time.mktime(d.timetuple()) * 1000)
+
+    points = []
+    joined = user.date_joined
+    if joined and joined < changes[0][0]:
+        points.append((ms(joined), start))
+    total = start
+    for d, value in changes:
+        total += value
+        points.append((ms(d), total))
+    now = now or datetime.datetime.now()
+    if now > changes[-1][0]:
+        points.append((ms(now), total))
+    return points
+
+
 @user_view('users/reputation.html', 'reputation', _lazy('reputation'), _lazy('graph of user karma'))
 def user_reputation(request, user, **kwargs):
-    rep = list(user.reputes.order_by('date'))
-    # Running total of reputation for the graph (reduce() is no longer a builtin).
-    totals = itertools.accumulate(r.value for r in rep)
-
-    graph_data = json.dumps([
-    (time.mktime(r.date.timetuple()) * 1000, total)
-    for r, total in zip(rep, totals)
-    ])
+    graph_data = json.dumps(reputation_graph_points(user))
 
     rep = list(user.reputes.filter(action__canceled=False).order_by('-date')[0:20])
     prefetch_cached_fk(rep, 'action')

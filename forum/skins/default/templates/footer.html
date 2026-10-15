@@ -15,12 +15,12 @@
         <noscript><button type="submit">{% trans "Change" %}</button></noscript>
     </form>
     {% endif %}
-    <p class="footer-meta">
-        <span title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>
-        <span class="footer-dot">&middot;</span>
-        {% trans "Content licensed under" %}
-        <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>
-    </p>
+    {# The separator dot is drawn before each item and clipped at the start of a line, so none dangles when they wrap. #}
+    <p class="footer-meta"><span class="footer-meta-items">
+        <span class="footer-meta-item" title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>
+        <span class="footer-meta-item">{% trans "Content licensed under" %}
+        <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></span>
+    </span></p>
     <p class="footer-osqa">
         {% blocktrans %}This Q&amp;A software is free and open source (GPL). Any organisation can run it for its own community: get the code and instructions at <a href="https://github.com/openforis/osqa">github.com/openforis/osqa</a>.{% endblocktrans %}
     </p>

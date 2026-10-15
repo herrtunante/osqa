@@ -1,7 +1,7 @@
 {% load extra_tags extra_filters i18n sentry_tags %}
 
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE }}"{% if settings.DARK_MODE %} data-color-scheme="auto"{% endif %}>
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{% url "django_admin_media" "css/forms.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/changelists.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/responsive.css" %}" type="text/css"/>
+    {% if settings.DARK_MODE %}<link rel="stylesheet" href="{% url "django_admin_media" "css/dark_mode.css" %}" type="text/css"/>{% endif %}
     <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/djstyle_admin.css" %}"/>
     <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
     <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
@@ -38,13 +39,13 @@
             </div>
         </div>
         <div class="breadcrumbs">
-            <a href="{% url "index" %}">{% trans "Home" %}</a> &gt;
-            {% if user.is_superuser %}<a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a> &gt;{% endif %}
-            {% block pagename %}{% endblock %} - 
-            {% block description %}{% endblock %}
+            <a href="{% url "index" %}">{% trans "Home" %}</a>
+            {% if user.is_superuser %}&gt; <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a>{% endif %}
+            <span class="breadcrumb-current">{% block pagename %}{% endblock %}</span>
         </div>
         <div id="content" class="{% if hide_navigation %}flex{% else %}colMS{% endif %}">
             <div id="content-main">
+                <p class="admin-page-description">{% block description %}{% endblock %}</p>
             {% autoescape off %}
                 {% for message in user_messages %}
                     <p class="admin_message">{{ message }}</p>
@@ -65,6 +66,8 @@
                     </p>
                 </div>
                 {% endif %}
+                <details id="admin-menu" class="admin-menu" open>
+                <summary>{% trans "Admin menu" %}</summary>
                 <div id="basic-sets-menu" class="module">
                     <h2>{% trans "Basic settings" %}</h2>
                     <ul>
@@ -138,6 +141,8 @@
                         {% endfor %}
                     </ul>
                 </div>
+                </details>
+                <script>osqaAdminMenu(document.getElementById('admin-menu'));</script>
             </div>
             {% endif %}
         </div>

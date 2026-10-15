@@ -32,7 +32,7 @@
     </div>
 
     <div class="module support-module">
-        <table>
+        <table class="support-wide">
             <caption>{% trans "By product tag" %}</caption>
             <thead><tr>
                 <th scope="col">{% trans "Tag" %}</th>
@@ -68,7 +68,7 @@
             <tr{% if q.overdue %} class="support-overdue"{% endif %}>
                 <td><a href="{{ q.get_absolute_url }}">{{ q.title }}</a>
                     <div class="support-tags">{% for name in q.tagname_list %}<span>{{ name }}</span> {% endfor %}</div></td>
-                <td>{{ q.author.username }}</td>
+                <td class="support-user">{{ q.author.username }}</td>
                 <td class="num">{{ q.waiting_hours|hours }}</td>
             </tr>
             {% empty %}
@@ -86,7 +86,7 @@
             {% for q in unaccepted %}
             <tr>
                 <td><a href="{{ q.get_absolute_url }}">{{ q.title }}</a></td>
-                <td>{{ q.author.username }}</td>
+                <td class="support-user">{{ q.author.username }}</td>
                 <td class="num">{{ q.waiting_hours|hours }}</td>
             </tr>
             {% empty %}

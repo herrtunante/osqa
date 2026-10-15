@@ -5,7 +5,7 @@ PAGES_SET = SettingSet('about', 'About page', "Define the text in the about page
 
 ABOUT_PAGE_TEXT = Setting('ABOUT_PAGE_TEXT',
 u"""
-**Please customize this text in the administration area**
+*Please customize this text in the administration area.*
 
 Here you can **ask** and **answer** questions, **comment**
 and **vote** for the questions of others and their answers. Both questions and answers
@@ -19,7 +19,7 @@ These points (very) roughly reflect the level of trust of the community.
 
 No points are necessary to ask or answer the questions - so please - join us!
 
-If you would like to find out more about this site - please see the **frequently asked questions** page.
+If you would like to find out more about this site - please see the [frequently asked questions](/faq/ "FAQ") page.
 """, PAGES_SET, dict(
 label = "About page text",
 help_text = """

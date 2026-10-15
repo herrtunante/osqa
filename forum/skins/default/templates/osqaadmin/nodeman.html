@@ -104,19 +104,8 @@
                 }
             });
 
-            $('#filter-name-box').one('focus', function() {
-                $(this).val('');
-                $(this).css('color', 'black');
-            });
-
-            $('#filter-name-box').keyup(function() {
-                if ($(this).val().trim().length > 0) {
-                    $('#save-filter-button').prop('disabled', false);
-                    $('#save-filter-button').css('color', 'black');
-                } else {
-                    $('#save-filter-button').css('color', '#AAA');
-                    $('#save-filter-button').prop('disabled', true);
-                }
+            $('#filter-name-box').on('input keyup', function() {
+                $('#save-filter-button').prop('disabled', $(this).val().trim().length == 0);
             });
 
             var resize_data = null;
@@ -169,13 +158,11 @@
         }
 
         #result_list tr td.deleted {
-            background-color: #FDD;
-            border-bottom: 1px solid #a9a9a9;
+            background-color: var(--osqa-deleted-bg, #fdd);
         }
 
         #result_list tr td.accepted {
-            background-color: #DFD;
-            border-bottom: 1px solid #a9a9a9;
+            background-color: var(--osqa-accepted-bg, #dfd);
         }
 
         span.question-deleted {
@@ -261,6 +248,7 @@
 {% block subtitle %}
     {% trans "Node manager" %}
 {% endblock %}
+{% block pagename %}{% trans "Node manager" %}{% endblock %}
 {% block description %}
     {% trans "Nodes bulk management" %}
 {% endblock %}
@@ -272,7 +260,7 @@
                 <form method="get" action="" id="changelist-search">
                 <div>
                     <div>
-                        <label><img alt="Search" src="{% url "django_admin_media" "img/search.svg" %}"></label>
+                        <label for="text-filter-input"><img alt="{% trans "Search" %}" src="{% url "django_admin_media" "img/search.svg" %}"></label>
                         <input type="text" size="40" name="text" id="text-filter-input" value="{{ text }}">
                         <input type="submit" value="{% trans "Search" %}">
                         {% if text %}
@@ -338,7 +326,7 @@
                     <button value="0" name="execute" title="{% trans "Run the selected action" %}" class="button" type="submit">{% trans "Go" %}</button>
                 </div>
                 <div class="results">
-                    <table id="result_list" cellspacing="0">
+                    <table id="result_list" class="node-list" cellspacing="0">
                         <thead>
                             <tr>
                                 {% declare %}
@@ -387,8 +375,8 @@
                         {% with filter_form.state_type.data as state_type %}
                         {% for node in nodes.paginator.page %}
                             <tr class="{% cycle 'row1' 'row2' %}">
-                                <td><input type="checkbox" name="_selected_node" value="{{ node.id }}" class="action-select"></td>
-                                <td>{{ node.friendly_name }}</td>
+                                <td class="node-select"><input type="checkbox" name="_selected_node" value="{{ node.id }}" class="action-select" aria-label="{% trans "Select" %}"></td>
+                                <td class="node-type" data-label="{% trans "Type" %}">{{ node.friendly_name }}</td>
                                 {% declare %}
                                     is_root = node.abs_parent == None
                                     title = is_root and node.title or node.abs_parent.title
@@ -402,28 +390,23 @@
                                     td_class = node.nis.accepted and "accepted" or td_class
                                     td_class = node.nis.deleted and "deleted" or td_class
                                 {% enddeclare %}
-                                <td class="{{ td_class }}" colspan="2">
+                                <td class="node-summary {{ td_class }}" colspan="2">
                                     {{ anchor }}<br />
                                     {{ node.summary }}
                                 </td>
-                                <td>
-                                    {% for state in node.states.all %}
+                                <td class="node-states" data-label="{% trans "State" %}">{% for state in node.states.all %}
                                     <b>{{ state.state_type }}</b> {% diff_date state.action.at %} {% trans "by" %}
                                     <a target="_blank" href="{{ state.action.by.get_absolute_url }}">{{ state.action.by.decorated_name }}</a><br />
-                                    {% endfor %}
-                                </td>
-                                <td><a href="{{ node.author.get_absolute_url  }}">{{ node.author.decorated_name }}</a></td>
-                                <td>{% diff_date node.added_at %}</td>
-                                <!--<td>{{ node.score }}</td>-->
-                                <td><a href="{{ node.last_activity_by.get_absolute_url  }}">{{ node.last_activity_by.decorated_name }}</a></td>
-                                <td>{% diff_date node.last_activity_at %}</td>
-                                <td>
-                                    {% for t in node.tags.all %}
-                                        {% if t|contained_in:tags %}<b>{{ t.name }}</b>
-                                        {% else %}{{ t.name }}{% endif %}
-                                    {% endfor %}
-                                </td>
+                                    {% endfor %}</td>
+                                <td class="node-short" data-label="{% trans "Author" %}"><a href="{{ node.author.get_absolute_url  }}">{{ node.author.decorated_name }}</a></td>
+                                <td class="node-short" data-label="{% trans "Added at" %}">{% diff_date node.added_at %}</td>
+                                <td class="node-short" data-label="{% trans "Last activity by" %}"><a href="{{ node.last_activity_by.get_absolute_url  }}">{{ node.last_activity_by.decorated_name }}</a></td>
+                                <td class="node-short" data-label="{% trans "Last activity at" %}">{% diff_date node.last_activity_at %}</td>
+                                <td class="node-tags" data-label="{% trans "Tags" %}">{% for t in node.tags.all %}{% if t|contained_in:tags %}<b>{{ t.name }}</b>
+                                        {% else %}{{ t.name }}{% endif %} {% endfor %}</td>
                             </tr>
+                        {% empty %}
+                            <tr><td class="admin-empty" colspan="10">{% trans "No posts match these filters." %}</td></tr>
                         {% endfor %}
                         {% endwith %}
                         </tbody>
@@ -465,7 +448,7 @@
             </ul>
             <h3>{% trans "By author(s)" %}</h3>
             {% if not authors.count %}
-                <small>{% trans "No users selected, use the box bellow to add users to the filter." %}</small>
+                <small>{% trans "No users selected, use the box below to add users to the filter." %}</small>
             {% else %}
                 <ul>
                     {% for u in authors %}
@@ -477,11 +460,11 @@
                 </ul>
                 <small>{% trans "Click on the cross next to a user name to remove it from the filter." %}</small>
             {% endif %}
-            <input type="text" size="20" autocomplete="off" id="author-selector" />
+            <input type="text" size="20" autocomplete="off" id="author-selector" aria-label="{% trans "By author(s)" %}" />
 
             <h3>{% trans "By tag(s)" %}</h3>
             {% if not tags.count %}
-                <small>{% trans "No tags selected, use the box bellow to add tags to the filter." %}</small>
+                <small>{% trans "No tags selected, use the box below to add tags to the filter." %}</small>
             {% else %}
                 <ul>
                     {% for t in tags %}
@@ -493,11 +476,11 @@
                 </ul>
                 <small>{% trans "Click on the cross next to a tag name to remove it from the filter." %}</small>
             {% endif %}
-            <input type="text" size="20" autocomplete="off" id="tag-selector" />
+            <input type="text" size="20" autocomplete="off" id="tag-selector" aria-label="{% trans "By tag(s)" %}" />
 
             <h3>{% trans "Pre defined" %}</h3>
             {% if not settings.NODE_MAN_FILTERS %}
-                <small>{% trans "There are no saved filters. Click bellow to add." %}</small>
+                <small>{% trans "There are no saved filters. Click below to add." %}</small>
             {% endif %}
             <ul id="pre-filter-container">
                 {% for name, uri in settings.NODE_MAN_FILTERS %}
@@ -506,8 +489,8 @@
             </ul>
             <form action="" method="POST">
                 {% csrf_token %}
-                <input name="filter_name" type="text" size="20" id="filter-name-box" style="color: #AAA;" value="{% trans "Filter name..." %}" />
-                <button name="save_filter" value="0" style="color: #AAA;" title="{% trans "Click to save the current filter" %}" id="save-filter-button" disabled="disabled" class="button">{% trans "Save" %}</button>
+                <input name="filter_name" type="text" size="20" id="filter-name-box" placeholder="{% trans "Filter name..." %}" aria-label="{% trans "Filter name..." %}" />
+                <button name="save_filter" value="0" title="{% trans "Click to save the current filter" %}" id="save-filter-button" disabled="disabled" class="button">{% trans "Save" %}</button>
             </form>
 
             {% comment %}<h3>{% trans "Show" %}</h3>

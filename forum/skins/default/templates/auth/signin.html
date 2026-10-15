@@ -29,7 +29,9 @@
             {% endfor %}
             {% if request.user.is_authenticated %}
                 <h1>{% trans "Connect another account" %}</h1>
+                {% if top_stackitem_providers or button_providers or stackitem_providers %}
                 <p class="auth-lead">{% trans "Choose a service you also want to sign in with." %}</p>
+                {% endif %}
             {% else %}
                 <h1>{% blocktrans with site=settings.APP_SHORT_NAME %}Sign in to {{ site }}{% endblocktrans %}</h1>
             {% endif %}
@@ -58,6 +60,13 @@
                     {% include provider.stack_item_template %}
                 </form>
             {% endfor %}
+
+            {% if request.user.is_authenticated and not top_stackitem_providers and not button_providers and not stackitem_providers %}
+                <div class="auth-empty">
+                    <p>{% trans "No other sign-in services are set up on this forum." %}</p>
+                    <p><a href="{% url "user_authsettings" request.user.id %}">{% trans "Back to your sign-in settings" %}</a></p>
+                </div>
+            {% endif %}
 
             {% if can_register %}
                 <p class="auth-switch">{% trans "New here?" %} <a href="{% url "auth_local_register" %}">{% trans "Create an account" %}</a></p>

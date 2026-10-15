@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 import json
 import time
 
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -127,7 +126,7 @@ def statistics(request):
 
     last_month_n_questions = Question.objects.filter_state(deleted=False).filter(added_at__lt=last_month).count()
     qgraph_data = json.dumps([
-    (time.mktime(d.timetuple()) * 1000, i + last_month_n_questions)
+    (time.mktime(d.timetuple()) * 1000, i + 1 + last_month_n_questions)
     for i, d in enumerate(last_month_questions)
     ])
 
@@ -137,7 +136,7 @@ def statistics(request):
     last_month_n_users = User.objects.filter(date_joined__lt=last_month).count()
 
     ugraph_data = json.dumps([
-    (time.mktime(d.timetuple()) * 1000, i + last_month_n_users)
+    (time.mktime(d.timetuple()) * 1000, i + 1 + last_month_n_users)
     for i, d in enumerate(last_month_users)
     ])
 
@@ -646,18 +645,24 @@ def node_management(request):
     'hide_navigation': True
     }))
 
-@csrf_exempt
 @super_user_required
+@require_http_methods(['GET', 'HEAD', 'POST'])
 def test_email_settings(request):
+    """Sends a test email to the administrator, only on a POST (CSRF-protected).
+
+    The email settings page posts here with AJAX and shows the returned
+    fragment; a direct visit gets a page that explains the test and offers the
+    button instead of sending anything."""
     user = request.user
+    context = {'user': user, 'tested': False}
 
-    errors = send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
+    if request.method == 'POST':
+        errors = send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
+        context.update(tested=True, errors=errors, hints=_email_error_hints(errors))
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return render(request, 'osqaadmin/test_email_settings.html', context)
 
-    return render(
-        request,
-        'osqaadmin/test_email_settings.html',
-        { 'user': user, 'errors': errors, 'hints': _email_error_hints(errors) }
-    )
+    return admin_page_wrapper(lambda request: ('osqaadmin/test_email_page.html', context), request)
 
 
 def _email_error_hints(errors):

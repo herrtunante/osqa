@@ -1,0 +1,23 @@
+{% extends basetemplate %}
+
+{% load i18n %}
+
+{% block subtitle %}{% trans "Test email settings" %}{% endblock %}
+{% block pagename %}<a href="{% url "admin_set" "email" %}">{% trans "Email settings" %}</a> &gt; {% trans "Test email settings" %}{% endblock %}
+{% block description %}{% trans "Check that this site can send email with the saved settings." %}{% endblock %}
+
+{% block admincontent %}
+    {% if tested %}
+        <div class="module admin-panel email-test-result" role="status">
+            {% include "osqaadmin/test_email_settings.html" %}
+        </div>
+    {% else %}
+        <p>{% blocktrans with email=user.email %}Pressing the button sends a test email to your address, {{ email }}, using the email server set under Email settings.{% endblocktrans %}</p>
+        <p><small>{% trans "The test uses the saved settings: save the form before testing changes." %}</small></p>
+    {% endif %}
+    <form method="post" action="{% url "test_email_settings" %}" class="admin-actions">
+        {% csrf_token %}
+        <input type="submit" id="send-test-email" value="{% if tested %}{% trans "Send another test email" %}{% else %}{% trans "Send a test email" %}{% endif %}" />
+        <a href="{% url "admin_set" "email" %}">{% trans "Back to email settings" %}</a>
+    </form>
+{% endblock %}

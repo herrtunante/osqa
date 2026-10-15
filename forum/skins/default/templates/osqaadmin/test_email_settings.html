@@ -1,13 +1,13 @@
 {% load i18n %}
 
 {% if errors %}
-<div class="email-test-error" style="color:#b00020">
+<div class="email-test-error">
     <p><strong>{% blocktrans with email=user.email %}The test email to {{ email }} could not be sent.{% endblocktrans %}</strong></p>
     <ul>
         {% for hint in hints %}<li>{{ hint }}</li>{% endfor %}
     </ul>
     <p>{% trans "Error reported by the email server:" %}</p>
-    <pre style="white-space:pre-wrap;overflow-wrap:anywhere">{% for error in errors %}{{ error }}
+    <pre class="email-test-log">{% for error in errors %}{{ error }}
 {% endfor %}</pre>
 </div>
 {% else %}

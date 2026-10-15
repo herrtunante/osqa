@@ -5,6 +5,7 @@
 {% block subtitle %}
     {% if mode == "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endif %}
 {% endblock %}
+{% block pagename %}{% if mode == "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endif %}{% endblock %}
 {% block description %}
     {% if mode == "exporter" %}{% trans "Export database to XML format" %}{% else %}{% trans "Restore data from a previous export" %}{% endif %}
 {% endblock %}
@@ -14,10 +15,12 @@
         .state_bar {
             width:100%;
             height: 20px;
-            border: 1px solid black;
+            border: 1px solid var(--border-color, #ccc);
+            border-radius: 4px;
+            overflow: hidden;
             margin-bottom: 15px;
             position: relative;
-            background: #FDF;
+            background: var(--darkened-bg, #f8f8f8);
         }
 
         .state_label {
@@ -38,7 +41,7 @@
             top: 0px;
             width: 0%;
             height: 100%;
-            background: #DFF;
+            background: var(--message-success-bg, #dfd);
             z-index: 0;
         }
 
@@ -155,7 +158,7 @@
             <td>{{ s.name }}:</td>
             <td width="100%">
                 <div class="state_bar" id="state_{{ s.id }}">
-                    <div class="state_label"><span class="state_status"></span> - </span><span class="state_parsed">0</span> {% trans " of " %} <span class="state_count">{% trans "unknown" %}</span> (<span class="state_percentage">0%</span>)</div>
+                    <div class="state_label"><span class="state_status"></span> - <span><span class="state_parsed">0</span> {% trans " of " %} <span class="state_count">{% trans "unknown" %}</span> (<span class="state_percentage">0%</span>)</div>
                     <div class="progress"></div>
                 </div>
             </td>

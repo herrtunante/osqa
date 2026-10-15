@@ -31,13 +31,20 @@ class EmailSettingsTestButtonTest(SettingMixin, OSQATestCase):
         self.login(self.create_user('admin', is_superuser=True, is_staff=True))
 
     def press_test(self):
-        return self.client.post('/admin/test_email_settings/')
+        # The Test button on the email settings page posts with AJAX and shows the fragment.
+        return self.client.post('/admin/test_email_settings/', **self.AJAX)
 
     def test_success(self):
         response = self.press_test()
         self.assertContains(response, 'The email server accepted the test message for admin@example.com')
         self.assertNotContains(response, 'could not be sent')
+        self.assertNotContains(response, '<html')
         self.assertEqual(self.smtp.sendmail.call_args[0][1], ['admin@example.com'])
+
+    def test_visiting_the_url_sends_nothing(self):
+        response = self.client.get('/admin/test_email_settings/')
+        self.assertContains(response, 'Send a test email')
+        mail.SMTP.assert_not_called()
 
     def test_sign_in_without_tls(self):
         self.set(settings.EMAIL_USE_TLS, False)

@@ -5,6 +5,7 @@
 {% block subtitle %}
     {% trans "XML data importer" %}
 {% endblock %}
+{% block pagename %}{% trans "XML data importer" %}{% endblock %}
 {% block description %}
     {% trans "Import data from dump file" %}
 {% endblock %}
@@ -18,9 +19,11 @@
 {% endif %}
 <form method="POST" action="" enctype="multipart/form-data">
     {% csrf_token %}
-    <table>
+    <table class="admin-form-table">
     {{ form.as_table }}
     </table>
-    <input type="submit" name="start" value="{% trans "Start" %}" />
+    <div class="submit-row">
+        <input type="submit" name="start" value="{% trans "Start" %}" />
+    </div>
 </form>
 {% endblock %}

@@ -130,6 +130,34 @@ class AdministrationTest(E2ETestCase):
             with self.subTest(device='mobile', path=path):
                 self.visit(phone, path)
 
+    def test_admin_on_a_phone_in_dark_mode(self):
+        for layout in ('djstyle', 'default'):
+            self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, layout == 'djstyle')
+            phone = self.open(self.admin, device='mobile', dark=True)
+            with self.subTest(layout=layout):
+                self.visit(phone, '/admin/tools/createuser/')
+                # Dark background, from Django's dark_mode.css or the site's colours.
+                background = phone.evaluate('getComputedStyle(document.body).backgroundColor')
+                rgb = [int(n) for n in background[background.index('(') + 1:-1].split(',')[:3]]
+                self.assertLess(sum(rgb) / 3, 60, 'admin background is not dark: %s' % background)
+                # Labels sit above their fields instead of breaking letter by letter.
+                for label in phone.locator('.admin-form-table th label').all():
+                    box = label.bounding_box()
+                    self.assertGreater(box['width'], 60, label.inner_text())
+                    self.assertLess(box['height'], 40, '%s wraps' % label.inner_text())
+                    self.assertGreater(label.evaluate('l => l.closest("th").getBoundingClientRect().width'), 250)
+                self.assertFalse(phone.locator('#admin-menu').evaluate('details => details.open'))
+
+        self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, True)
+        self.create_question(self.alice, 'How do I export Collect survey data to CSV?')
+        phone = self.open(self.admin, device='mobile')
+        self.visit(phone, '/admin/tools/nodeman/')
+        # Node manager: one card per post, the column headers hidden.
+        self.assertFalse(phone.locator('#result_list thead').is_visible())
+        row = phone.locator('#result_list tbody tr').first
+        self.assertEqual(row.evaluate('tr => getComputedStyle(tr).display'), 'grid')
+        self.assertGreater(row.locator('td.node-summary').bounding_box()['width'], 250)
+
     def test_create_user(self):
         page = self.open(self.admin)
         self.visit(page, '/admin/tools/createuser/')

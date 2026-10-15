@@ -35,8 +35,12 @@ class AdminToolsTest(AdminTestCase):
         self.question = self.create_question(self.alice, 'How do I export Collect survey data to CSV?')
 
     def menu(self, page, name):
-        """Follows a link of the administration menu on the dashboard."""
+        """Follows a link of the administration menu on the dashboard (folded
+        into an "Admin menu" disclosure on a phone, so it is opened first)."""
         self.visit(page, '/admin/')
+        menu = page.locator('#admin-menu')
+        if not menu.evaluate('details => details.open'):
+            page.click('#admin-menu > summary')
         with page.expect_navigation():
             page.get_by_role('link', name=name, exact=True).click()
         self.check_page(page)
@@ -75,6 +79,10 @@ class AdminToolsTest(AdminTestCase):
 
     def test_statistics_on_a_phone(self):
         page = self.open(self.admin, device='mobile', dark=True)
+        self.visit(page, '/admin/')
+        # The menu starts folded on a phone, links hidden but kept.
+        self.assertFalse(page.locator('#admin-menu').evaluate('details => details.open'))
+        self.assertFalse(page.get_by_role('link', name='Statistics', exact=True).is_visible())
         self.menu(page, 'Statistics')
         self.assertEqual(page.url, self.url(reverse('admin_statistics')))
         # Flot draws each graph on a canvas.
@@ -145,6 +153,14 @@ class AdminToolsTest(AdminTestCase):
         page.wait_for_selector('#test_email_settings .test_status:has-text("admin@example.com")')
         self.check_page(page)
         self.assertEqual(len(self.mail_to(self.admin)), 1)
+
+        # Visiting the URL explains the test and sends nothing until the button is pressed.
+        phone = self.open(self.admin, device='mobile', dark=True)
+        self.visit(phone, reverse('test_email_settings'))
+        self.assertEqual(len(self.mail_to(self.admin)), 1)
+        self.submit(phone, '#send-test-email')
+        self.assertIn('The email server accepted the test message', phone.content())
+        self.assertEqual(len(self.mail_to(self.admin)), 2)
 
 
 class ModerationReportTest(AdminTestCase):
