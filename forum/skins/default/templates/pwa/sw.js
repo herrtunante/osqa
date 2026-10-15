@@ -1,0 +1,154 @@
+/* OSQA service worker (served by forum.views.pwa.service_worker at /sw.js).
+
+   Caching rules
+   -------------
+   Only GET requests to this site are looked at; everything else (posts,
+   votes, AJAX commands, uploads, other sites) goes straight to the network.
+
+   Never intercepted at all (personal, mutating or not pages):
+     /admin/, /nimda/, /account/ (sign-in, sign-out, settings), /notifications/,
+     /users/ (profiles and their tabs), /upfiles/, /mcp, /export/, /pending-data/,
+     /upload/, /preview/, /logout/, /i18n/, /csp-report/, /sw.js, the manifest.
+
+   Skin media (/m/<skin>/media/...): stale-while-revalidate in a cache named
+   after VERSION, a hash of this file and of the media files, so each deploy
+   gets a new cache and `activate` deletes the old ones.
+
+   Pages (navigations): network first. Successful (200) pages of the home
+   page, question lists, questions and tags are stored in PAGES, newest last,
+   trimmed to the last PAGE_CACHE_SIZE pages. Without a network the saved copy
+   is served, marked with <meta name="osqa-offline-copy"> so the page shows
+   the "you are offline" banner; any other page falls back to /offline/,
+   which lists the saved pages. /offline/ is fetched without cookies when the
+   worker installs, so it never shows who was signed in.
+
+   Privacy: saved pages of a signed-in member show their name. The page cache
+   is emptied when the browser navigates to the sign-out URL, and by
+   osqa.pwa.js whenever the signed-in user differs from the one who was
+   signed in when the pages were saved (session expired, another account).
+*/
+'use strict';
+
+const VERSION = '{{ version }}';
+const PREFIX = {{ prefix|safe }};
+const STATIC = 'osqa-static-' + VERSION;
+const PAGES = 'osqa-pages-v1';
+const PAGE_CACHE_SIZE = {{ page_cache_size }};
+const OFFLINE_URL = PREFIX + '/offline/';
+
+const NEVER = /^\/(admin|nimda|account|notifications|users|upfiles|mcp|export|pending-data|upload|preview|logout|i18n|csp-report)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
+const SIGN_OUT = /^\/account\/signout\/$/;
+const MEDIA = /^\/m\/(?!django_admin\/|static\/)\w+\/media\//;
+const SAVED_PAGES = [
+    /^\/$/,
+    /^\/questions\/$/,
+    /^\/questions\/unanswered\/$/,
+    /^\/questions\/\d+(\/[^\/]*)?$/,
+    /^\/tags\/$/,
+    /^\/tags\/[^\/]+\/$/,
+];
+
+function sitePath(url) {
+    const path = url.pathname;
+    return PREFIX && path.startsWith(PREFIX) ? path.slice(PREFIX.length) || '/' : path;
+}
+
+self.addEventListener('install', event => {
+    event.waitUntil((async () => {
+        const cache = await caches.open(STATIC);
+        // The offline page as an anonymous visitor sees it, and the files it uses.
+        const response = await fetch(OFFLINE_URL, {credentials: 'omit'});
+        if (response.ok) {
+            const html = await response.clone().text();
+            await cache.put(OFFLINE_URL, response);
+            const assets = new Set();
+            for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+                const url = new URL(match[1].replace(/&amp;/g, '&'), self.location.href);
+                if (url.origin === self.location.origin && MEDIA.test(sitePath(url))) assets.add(url.href);
+            }
+            await Promise.all([...assets].map(url => cache.add(url).catch(() => null)));
+        }
+        await self.skipWaiting();
+    })());
+});
+
+self.addEventListener('activate', event => {
+    event.waitUntil((async () => {
+        for (const name of await caches.keys()) {
+            if (name.startsWith('osqa-') && name !== STATIC && name !== PAGES) await caches.delete(name);
+        }
+        await self.clients.claim();
+    })());
+});
+
+self.addEventListener('fetch', event => {
+    const request = event.request;
+    if (request.method !== 'GET') return;
+    const url = new URL(request.url);
+    if (url.origin !== self.location.origin) return;
+    const path = sitePath(url);
+    if (request.mode === 'navigate' && SIGN_OUT.test(path)) {
+        event.waitUntil(caches.delete(PAGES));
+        return;
+    }
+    if (NEVER.test(path)) return;
+    if (MEDIA.test(path) && !request.headers.has('range')) {
+        event.respondWith(staleWhileRevalidate(event, request));
+    } else if (request.mode === 'navigate') {
+        event.respondWith(networkFirst(event, request, SAVED_PAGES.some(pattern => pattern.test(path))));
+    }
+});
+
+async function staleWhileRevalidate(event, request) {
+    const cache = await caches.open(STATIC);
+    const cached = await cache.match(request);
+    const fresh = fetch(request).then(response => {
+        if (response.ok && response.type === 'basic') {
+            event.waitUntil(cache.put(request, response.clone()));
+        }
+        return response;
+    });
+    if (cached) {
+        event.waitUntil(fresh.catch(() => null));
+        return cached;
+    }
+    return fresh;
+}
+
+async function networkFirst(event, request, save) {
+    try {
+        const response = await fetch(request);
+        const cacheControl = response.headers.get('Cache-Control') || '';
+        if (save && response.status === 200 && response.type === 'basic' && !cacheControl.includes('no-store') &&
+                (response.headers.get('Content-Type') || '').startsWith('text/html')) {
+            event.waitUntil(savePage(request, response.clone()));
+        }
+        return response;
+    } catch (error) {
+        const cached = await caches.match(request.url, {cacheName: PAGES, ignoreVary: true});
+        if (cached) return markedCopy(cached);
+        const offline = await caches.match(OFFLINE_URL, {cacheName: STATIC, ignoreVary: true});
+        if (offline) return markedCopy(offline);
+        throw error;
+    }
+}
+
+async function savePage(request, response) {
+    const headers = new Headers(response.headers);
+    headers.set('X-OSQA-Saved-At', new Date().toISOString());
+    const copy = new Response(await response.blob(), {status: 200, statusText: response.statusText, headers: headers});
+    const cache = await caches.open(PAGES);
+    await cache.delete(request.url, {ignoreVary: true});  // re-added last: the cache keeps the order pages were saved
+    await cache.put(request.url, copy);
+    const keys = await cache.keys();
+    for (const old of keys.slice(0, Math.max(0, keys.length - PAGE_CACHE_SIZE))) await cache.delete(old);
+}
+
+async function markedCopy(response) {
+    const saved = response.headers.get('X-OSQA-Saved-At') || '';
+    const html = (await response.text()).replace(/<head(\s[^>]*)?>/i,
+        match => match + '<meta name="osqa-offline-copy" content="' + saved + '">');
+    const headers = new Headers(response.headers);
+    headers.delete('Content-Length');
+    return new Response(html, {status: 200, headers: headers});
+}

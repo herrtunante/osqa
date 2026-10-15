@@ -150,11 +150,9 @@ def edit_user(request, id, slug):
                 user.email = new_email
                 user.email_isvalid = False
 
-                try:
-                    hash = ValidationHash.objects.get(user=request.user, type='email')
-                    hash.delete()
-                except:
-                    pass
+                # A pending validation link for the old address must stop
+                # working; it belongs to the edited user, not to whoever edits.
+                ValidationHash.objects.filter(user=user, type='email').delete()
 
             if settings.EDITABLE_SCREEN_NAME:
                 user.username = sanitize_html(form.cleaned_data['username'])
@@ -271,6 +269,11 @@ def suspend(request, id):
 @decorators.prompt
 def report_user(request, id):
     user = get_object_or_404(User, id=id)
+
+    if not request.user.is_authenticated:
+        raise decorators.CommandException(_("Please sign in to report a user."))
+    if request.user == user:
+        raise decorators.CommandException(_("You can't report yourself."))
 
     if request.method != 'POST' or not request.POST.get('publicmsg', None):
         return render(request, 'users/report_user.html')

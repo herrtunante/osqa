@@ -46,6 +46,14 @@ def exporter(request):
         form = ExporterForm(request.POST)
 
         if form.is_valid():
+            # The running page redirects here while there is no state yet;
+            # the export thread replaces this one as soon as it starts.
+            now = datetime.datetime.now()
+            steps = [s for s in EXPORT_STEPS if not (form.cleaned_data.get('anon_data') and s['fn'].is_user_data())]
+            counts = dict((s['id'], s['fn'].count(now)) for s in steps)
+            cache.set(CACHE_KEY, dict(running=True, time_started='', state=dict(
+                [(id, {'status': _('Queued'), 'count': count, 'parsed': 0}) for id, count in counts.items()] +
+                [('overall', {'status': _('Starting'), 'count': sum(counts.values()), 'parsed': 0})])))
             run_in_thread(export, form.cleaned_data, request.user)
 
             return HttpResponseRedirect(reverse('exporter_running', kwargs=dict(mode='exporter')))

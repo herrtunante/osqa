@@ -8,12 +8,14 @@
     height: 1em;
     font-size: 120%;
     font-weight: bold;
-    color: #3060A8;
+    color: var(--brand, #3060A8);
 }
 
 #user-menu-dropdown {
     position: absolute;
-    background-color: #EEEEEE;
+    background-color: var(--surface, #EEEEEE);
+    color: var(--text, #333333);
+    border: 1px solid var(--border, #DDDDDD);
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     -moz-box-shadow: 2px 2px 5px #3060A8;

@@ -37,7 +37,8 @@ class EditorField(forms.CharField):
     def __init__(self, *args, **kwargs):
         super(EditorField, self).__init__(*args, **kwargs)
 
-        self.widget = forms.Textarea(attrs={'id':'editor'})
+        # The editor sits under the toolbar without a visible <label>.
+        self.widget = forms.Textarea(attrs={'id': 'editor', 'aria-label': _lazy('content')})
         self.label  = _lazy('content')
         self.help_text = u''
         self.initial = ''

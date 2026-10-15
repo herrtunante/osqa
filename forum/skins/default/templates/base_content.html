@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!-- base_content.html -->
-{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags %}
+{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags pwa_tags %}
 <html lang="{{ LANGUAGE_CODE }}"{% if settings.DARK_MODE %} data-color-scheme="auto"{% endif %}>
     <head>{% block after_head_js %}{% endblock %}
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#2c5aa0" />{% if settings.DARK_MODE %}
+        {% pwa_head %}{% if settings.DARK_MODE %}
         <meta name="color-scheme" content="light dark" />{% endif %}
         <meta name="csrf-token" content="{{ csrf_token }}" />
         {% sentry_browser %}
@@ -26,7 +26,6 @@
         <meta name="google-site-verification" content="{{ settings.GOOGLE_SITEMAP_CODE }}" />
         {% endif %}
         <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
-        <script type="text/javascript" src="{% media "/media/js/osqa.compat.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
@@ -94,6 +93,7 @@
     </head>
     <body>
         <div class="wrapper">
+        <div id="offline-banner" class="offline-banner" role="status" hidden>{% trans "You are offline – showing a saved copy of this page." %}</div>
         {% if settings.USE_CUSTOM_HEADER|or_preview:request %}
             <div id="custom_header">
                 {{ settings.CUSTOM_HEADER|or_preview:request|static_content:settings.CUSTOM_HEADER_RENDER_MODE }}

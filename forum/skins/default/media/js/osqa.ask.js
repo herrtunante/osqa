@@ -142,7 +142,7 @@ $(function() {
     }
 
     function check() {
-        var title = $.trim($title.val());
+        var title = $title.val().trim();
         if (title === last) return;
         last = title;
         var id = ++request;
@@ -178,7 +178,7 @@ $(function() {
     }
 
     $button.on('click', function() {
-        var title = $.trim($('#id_title').val());
+        var title = $('#id_title').val().trim();
         if (title.length < 15) {
             show('<p class="ask-assistant-status">' + escapeHtml(messages.ai_assistant_title) + '</p>');
             $('#id_title').focus();

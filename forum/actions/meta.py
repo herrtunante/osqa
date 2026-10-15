@@ -45,7 +45,17 @@ class VoteAction(ActionProxy):
 
 class VoteUpAction(VoteAction):
     def repute_users(self):
-        self.repute(self.node.author, int(settings.REP_GAIN_BY_UPVOTED))
+        # MAX_REP_BY_UPVOTE_DAY caps what an author gains from up votes in 24
+        # hours: past it, an up vote still counts in the score but gives no
+        # (or only the remaining) reputation. Only what was given is recorded,
+        # so cancelling such a vote takes back nothing more.
+        author = self.node.author
+        gain = int(settings.REP_GAIN_BY_UPVOTED)
+        cap = int(settings.MAX_REP_BY_UPVOTE_DAY)
+        if cap > 0:
+            gain = min(gain, max(0, cap - author.get_reputation_by_upvoted_today()))
+        if gain:
+            self.repute(author, gain)
 
     def process_action(self):
         self.process_vote_action(1)
@@ -98,10 +108,12 @@ class FlagAction(ActionProxy):
         flag.save()
         self.node.reset_flag_count_cache()
 
-        if self.node.flag_count >= int(settings.FLAG_COUNT_TO_HIDE_POST):
+        # Each threshold costs the author once, when the flag that reaches it
+        # is cast; later flags only cost REP_LOST_BY_FLAGGED.
+        if self.node.flag_count == int(settings.FLAG_COUNT_TO_HIDE_POST):
             self.repute(self.node.author, -int(settings.REP_LOST_BY_FLAGGED_3_TIMES))
 
-        if self.node.flag_count >= int(settings.FLAG_COUNT_TO_DELETE_POST):
+        if self.node.flag_count == int(settings.FLAG_COUNT_TO_DELETE_POST):
             self.repute(self.node.author, -int(settings.REP_LOST_BY_FLAGGED_5_TIMES))
             if not self.node.nis.deleted:
                 DeleteAction(node=self.node, user=self.user, extra="BYFLAGGED").save()

@@ -5,6 +5,8 @@ from forum.settings import MAINTAINANCE_MODE, APP_LOGO, APP_TITLE
 
 from forum.http_responses import HttpResponseServiceUnavailable
 
+ALWAYS_SERVED = ('/sw.js', '/manifest.webmanifest')
+
 
 
 class RequestUtils(object):
@@ -22,7 +24,10 @@ class RequestUtils(object):
         return response
 
     def process_request(self, request):
-        if MAINTAINANCE_MODE.value is not None and isinstance(MAINTAINANCE_MODE.value.get('allow_ips', None), list):
+        # The service worker and the manifest are static and must stay reachable,
+        # or the browser reports a failed service worker update on the maintenance page.
+        if MAINTAINANCE_MODE.value is not None and isinstance(MAINTAINANCE_MODE.value.get('allow_ips', None), list) \
+                and request.path_info not in ALWAYS_SERVED:
             ip = request.META['REMOTE_ADDR']
 
             if not ip in MAINTAINANCE_MODE.value['allow_ips']:

@@ -4,7 +4,7 @@ import logging
 
 from datetime import datetime
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import render as django_render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -75,6 +75,8 @@ def command(func, request, *args, **kwargs):
         import traceback
         #traceback.print_exc()
 
+        if isinstance(e, Http404):
+            raise  # a missing post is a 404, not an "unknown error"
         if isinstance(e, CommandException):
             response = {
             'success': False,

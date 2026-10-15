@@ -9,6 +9,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
 from django.http import HttpResponseRedirect, Http404
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.utils.encoding import smart_str
@@ -145,6 +146,10 @@ def process_provider_signin(request, provider):
         try:
             assoc_key = provider_class.process_authentication_request(request)
         except InvalidAuthentication as e:
+            suspended = username and suspended_account(username, request.POST.get('password', ''))
+            if suspended:
+                throttle.reset('login-user', username)
+                return login_and_forward(request, suspended)
             if username:
                 count_login_failure(request, username)
                 security_log.event('login_failed', request, logging.WARNING, provider=provider, username=username)
@@ -321,7 +326,8 @@ def temp_signin(request, user, code):
 
 def send_validation_email(request):
     if not request.user.is_authenticated:
-        return HttpResponseUnauthorized(request)
+        # Linked from the FAQ: sign in first, then come back here.
+        return HttpResponseRedirect('%s?next=%s' % (reverse('auth_signin'), urllib.parse.quote(request.path)))
     else:
         # We check if there are some old validation hashes. If there are -- we delete them.
         try:
@@ -468,6 +474,23 @@ def login_and_forward(request, user, forward=None, message=None):
 
     return HttpResponseRedirect(forward_url)
 
+def suspended_account(username, password):
+    """The suspended account `username` if `password` is its password, else None.
+
+    Django refuses to authenticate inactive (suspended) accounts, so without
+    this the person would only read "invalid password": they get the
+    suspension message instead, and are signed in if the suspension has ended.
+    """
+    try:
+        user = User.objects.get(username=username, is_active=False)
+    except User.DoesNotExist:
+        return None
+    if user.suspension is None or not user.check_password(password):
+        return None
+    if not user.is_suspended():  # the suspension has just been lifted
+        user = User.objects.filter(id=user.id).first()
+    return user
+
 def forward_suspended_user(request, user, show_private_msg=True):
     message = _("Sorry, but this account is suspended")
     if show_private_msg:
@@ -477,7 +500,7 @@ def forward_suspended_user(request, user, show_private_msg=True):
 
     suspension = user.suspension
     if suspension:
-        message += (":<br />" + suspension.extra.get(msg_type, ''))
+        message += (":<br />" + escape(suspension.extra.get(msg_type, '')))
 
     messages.info(request, message)
     return HttpResponseRedirect(reverse('index'))

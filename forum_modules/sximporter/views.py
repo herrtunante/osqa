@@ -6,7 +6,8 @@ import tempfile
 from zipfile import ZipFile, BadZipFile
 
 from django.utils.translation import gettext as _
-from forum.views.admin import admin_page
+from django.utils.translation import gettext_lazy as _lazy
+from forum.views.admin import admin_page, TOOL_LINKS
 from . import importer
 
 
@@ -70,3 +71,6 @@ def sximporter(request):
     return ('modules/sximporter/page.html', {
         'names': messages
     })
+
+
+TOOL_LINKS.append(('sximporter', _lazy('Stack Exchange import')))

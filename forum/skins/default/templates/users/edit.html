@@ -19,7 +19,7 @@
                 });
 
                 $("#nav_profile").attr('className',"on");
-                $("#cancel").bind('click', function(){history.go(-1);})
+                $("#cancel").on('click', function(){history.go(-1);})
             });
         </script>
         {% block userjs %}

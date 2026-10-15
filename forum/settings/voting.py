@@ -21,7 +21,7 @@ help_text = _("The maximum number of times an can flag a post per day.")))
 
 FLAG_COUNT_TO_HIDE_POST = Setting('FLAG_COUNT_TO_HIDE_POST', 3, VOTE_RULES_SET, dict(
 label = _("Flag count to hide post"),
-help_text = _("How many times a post needs to be flagged to be hidden from the main page.")))
+help_text = _("How many flags a post can get before its author loses the reputation set in \"Rep lost by post flagged and hidden\". The post is not hidden: moderators review it under Flagged posts.")))
 
 FLAG_COUNT_TO_DELETE_POST = Setting('FLAG_COUNT_TO_DELETE_POST', 5, VOTE_RULES_SET, dict(
 label = _("Flag count to delete post"),

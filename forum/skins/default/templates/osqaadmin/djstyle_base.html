@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="{% url "django_admin_media" "css/responsive.css" %}" type="text/css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/djstyle_admin.css" %}"/>
     <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
-    <script type="text/javascript" src="{% media "/media/js/osqa.compat.js" %}"></script>
     <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
     <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
     <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}"/>
@@ -33,14 +32,14 @@
             <div id="user-tools">
                 {% trans "Welcome," %}
                 <strong>{{ request.user.username }}</strong>.
-                <a href="{% url "admin_switch_interface" %}?to=default">{% trans "To standard interface" %}</a>
-                / <a href="{% url "index" %}">{% trans "Back to home page" %}</a>
+                {% if user.is_superuser %}<a href="{% url "admin_switch_interface" %}?to=default">{% trans "To standard interface" %}</a>
+                / {% endif %}<a href="{% url "index" %}">{% trans "Back to home page" %}</a>
                 / <a href="{% url "logout" %}">{% trans "Log out" %}</a>
             </div>
         </div>
         <div class="breadcrumbs">
             <a href="{% url "index" %}">{% trans "Home" %}</a> &gt;
-            <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a> &gt;
+            {% if user.is_superuser %}<a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a> &gt;{% endif %}
             {% block pagename %}{% endblock %} - 
             {% block description %}{% endblock %}
         </div>
@@ -61,7 +60,7 @@
                 <div id="changes-box" class="module">
                     <h2>{% trans "Unpublished changes" %}</h2>
                     <p>
-                        <img src="{% url "django_admin_media" "img/icon-alert.svg" %}" />
+                        <img src="{% url "django_admin_media" "img/icon-alert.svg" %}" alt="" />
                         {% trans "Items marked with this icon have unpublished changes." %}
                     </p>
                 </div>
@@ -133,8 +132,9 @@
                         <li><a href="{% url "admin_maintenance" %}">{% trans "Maintenance mode" %}</a></li>
                         <li><a href="{% url "admin_flagged_posts" %}">{% trans "Flagged Posts" %}</a></li>
                         <li><a href="{% url "admin_support" %}">{% trans "Support dashboard" %}</a></li>
-                        {% for name,tool in tools %}
-                            <li><a href="{% url "admin_tools" name %}">{{ tool }}</a></li>
+                        <li><a href="{% url "admin_statistics" %}">{% trans "Statistics" %}</a></li>
+                        {% for url,tool in tools %}
+                            <li><a href="{{ url }}">{{ tool }}</a></li>
                         {% endfor %}
                     </ul>
                 </div>

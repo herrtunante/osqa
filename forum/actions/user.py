@@ -75,17 +75,13 @@ class BonusRepAction(ActionProxy):
     def repute_users(self):
         self.repute(self._affected, self._value)
 
-        if self._value > 0:
-            self._affected.message_set.create(
-                    message=_("Congratulations, you have been awarded an extra %s reputation points.") % self._value +
-                    '<br />%s' % self.extra.get('message', _('Thank you')))
-        else:
+        if self._value < 0:
             messages.info(REQUEST_HOLDER.request, _("You have penalized %s in %s reputation points.") % (self._affected, self._value) +
-                    '<br />%s' % self.extra.get('message', ''))
+                    '<br />%s' % escape(self.extra.get('message', '')))
 
     def describe(self, viewer=None):
         value = self.extra.get('value', _('unknown'))
-        message = self.extra.get('message', '')
+        message = escape(self.extra.get('message', ''))
 
         try:
             if int(value) > 0:
@@ -112,13 +108,8 @@ class AwardPointsAction(ActionProxy):
     def repute_users(self):
         self.repute(self._affected, self._value)
         self.repute(self.user, -self._value)
-
-        self._affected.message_set.create(
-                message=_("Congratulations, you have been awarded an extra %(points)s reputation %(points_label)s on <a href=\"%(answer_url)s\">this</a> answer.") % {
-                        'points': self._value,
-                        'points_label': ngettext('point', 'points', self._value),
-                        'answer_url': self.node.get_absolute_url()
-                    })
+        # (Django's per-user message_set is gone; the award shows in the
+        # awarded user's reputation history.)
 
     def describe(self, viewer=None):
         value = self.extra.get('value', _('unknown'))
@@ -252,7 +243,6 @@ class SuspendAction(ActionProxy):
             u.is_active = True
             u._pop_suspension_cache()
             u.save()
-            u.message_set.create(message=_("Your suspension has been removed."))
 
     def describe(self, viewer=None):
         if self.extra.get('bantype', 'indefinitely') == 'forxdays' and self.extra.get('forxdays', None):
@@ -262,5 +252,6 @@ class SuspendAction(ActionProxy):
 
         return _("%(user)s suspended %(users)s %(suspension)s: %(msg)s") % {
         'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
-        'users': self.affected_links(viewer), 'suspension': suspension, 'msg': self.extra.get('publicmsg', _('Bad behaviour'))
+        'users': self.affected_links(viewer), 'suspension': suspension,
+        'msg': escape(self.extra.get('publicmsg', _('Bad behaviour')))
         }

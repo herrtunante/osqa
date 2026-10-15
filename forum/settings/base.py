@@ -1,4 +1,5 @@
 import django.dispatch
+from django.db import IntegrityError, transaction
 from django.utils.encoding import force_str, smart_str
 from datetime import datetime, timedelta
 import logging
@@ -90,7 +91,12 @@ class BaseSetting(object):
             return v
         except KeyValue.DoesNotExist:
             self._temp = (self.default, datetime.now() + timedelta(seconds=TMP_MINICACHE_SECONDS))
-            self.save(self.default)
+            # Store the default; a concurrent request may be storing it too.
+            try:
+                with transaction.atomic():
+                    KeyValue.objects.get_or_create(key=self.name, defaults={'value': self.default})
+            except IntegrityError:
+                pass
         except Exception as e:
             logging.error("Error retrieving setting from database (%s): %s" % (self.name, str(e)))
             

@@ -1,4 +1,6 @@
 """What anonymous visitors (and search engines, agents) can see."""
+import re
+
 from .base import E2ETestCase
 
 
@@ -69,6 +71,25 @@ class PublicPagesTest(E2ETestCase):
                 response = page.request.get(self.url(path))
                 self.assertEqual(response.status, 200, path)
                 self.assertIn(expected, response.text())
+
+    def test_sitemap_leads_to_every_question(self):
+        # As a search engine reads it: the index, each section, its pages.
+        page = self.open()
+        self.visit(page, '/')
+        fetch = '''async path => { const r = await fetch(path); return [r.status, await r.text()]; }'''
+
+        def locations(path):
+            status, text = page.evaluate(fetch, path)
+            self.assertEqual(status, 200, path)
+            return [loc.split('://', 1)[-1].split('/', 1)[-1] for loc in re.findall(r'<loc>([^<]+)</loc>', text)]
+
+        questions = []
+        for section in locations('/sitemap.xml'):
+            for sitemap_page in locations('/' + section):
+                questions += locations('/' + sitemap_page)
+        for question in (self.question, self.unanswered):
+            self.assertIn(question.get_absolute_url().lstrip('/'), questions)
+        self.check_page(page)
 
     def test_not_found_page(self):
         page = self.open()

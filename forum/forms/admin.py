@@ -1,5 +1,6 @@
 import socket
 from django import forms
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
@@ -57,10 +58,11 @@ class UrlFieldWidget(forms.TextInput):
         if not value:
             value = ''
 
-        return """
-                <input class="url_field" type="text" name="%(name)s" value="%(value)s" />
-                <a class="url_field_anchor" target="_blank" href="%(app_url)s"></a>
-            """  % {'name': name, 'value': value, 'app_url': settings.APP_URL}
+        # format_html: the markup is rendered as HTML, the values escaped.
+        return format_html("""
+                <input class="url_field" type="text" name="{name}" id="id_{name}" value="{value}" />
+                <a class="url_field_anchor" target="_blank" href="{app_url}"></a>
+            """, name=name, value=value, app_url=str(settings.APP_URL))
 
 
 class PageForm(forms.Form):

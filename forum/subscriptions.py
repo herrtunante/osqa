@@ -165,11 +165,15 @@ def answer_accepted(action, new):
     if not question.is_notifiable:
         return
 
+    # Followers who asked for it ("An answer being accepted" in the email
+    # settings), and the author of the answer, for whom it's news about their own post.
+    answer = action.node
     subscribers = question.subscribers.filter(
+            Q(subscription_settings__notify_accepted=True) | Q(id=answer.author.id),
             subscription_settings__enable_notifications=True,
             subscription_settings__subscribed_questions='i'
-    ).exclude(id=action.node.nstate.accepted.by.id).distinct()
-    
+    ).exclude(id=answer.nstate.accepted.by.id).distinct()
+
     subscribers = filter_subscribers(subscribers)
 
     send_template_email(subscribers, "notifications/answeraccepted.html",

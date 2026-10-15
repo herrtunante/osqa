@@ -7,9 +7,10 @@ import datetime
 
 from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
+from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404, JsonResponse
 from django.utils.html import *
 from django.utils.translation import gettext as _
 
@@ -21,27 +22,10 @@ from forum.forms import *
 from forum.models import *
 from forum.models.node import render_markdown
 from forum.utils import html
+from forum.utils.images import process_image, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
-
-IMAGE_SIGNATURES = (
-    b'\x89PNG\r\n\x1a\n',       # PNG
-    b'\xff\xd8\xff',              # JPEG
-    b'GIF87a', b'GIF89a',
-    b'BM',                         # BMP
-    b'II*\x00', b'MM\x00*',        # TIFF
-    b'\x00\x00\x01\x00',          # ICO
-)
-
-
-def looks_like_image(f):
-    head = f.read(16)
-    f.seek(0)
-    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
-        return True
-    return any(head.startswith(signature) for signature in IMAGE_SIGNATURES)
-
 
 # Longer than any post body the forms accept; the preview refuses anything bigger.
 MAX_PREVIEW_LENGTH = 100000
@@ -57,54 +41,51 @@ def markdown_preview(request):
     return HttpResponse(render_markdown(text) if text.strip() else '', content_type='text/html; charset=utf-8')
 
 
-def upload(request):#ajax upload file to a question or answer
-    class FileTypeNotAllow(Exception):
-        pass
-    class FileSizeNotAllow(Exception):
-        pass
-    class UploadPermissionNotAuthorized(Exception):
-        pass
+def upload(request):
+    """Image upload from the editor (image dialog, paste and drop).
 
-    xml_template = "<result><msg><![CDATA[%s]]></msg><error><![CDATA[%s]]></error><file_url>%s</file_url></result>"
+    Answers JSON: {"url": "/upfiles/name.png"} on success, otherwise
+    {"error": "message for the user"} with status 403 (not allowed), 400
+    (not an image, or too many pixels), 413 (too big) or 500.
+    """
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    def refused(message, status):
+        return JsonResponse({'error': message}, status=status)
+
+    if not request.user.can_upload_files():
+        return refused(_('uploading images is limited to users with >60 reputation points'), 403)
+
+    f = request.FILES.get('file-upload')
+    file_types = _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff', 'webp'")
+    if f is None:
+        return refused(file_types, 400)
+
+    if os.path.splitext(f.name)[1].lower() not in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
+        return refused(file_types, 400)
+
+    # check file size (in bytes) before writing anything to disk
+    if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
+        return refused(_("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, 413)
+
+    # The extension is chosen by the client: Pillow decodes the content, and
+    # only the re-encoded image (no metadata, downscaled) is written to disk.
+    try:
+        data, name = process_image(f, "_".join(f.name.split()), max_side=int(settings.UPLOAD_MAX_IMAGE_SIDE))
+    except ImageTooLarge:
+        return refused(_('This image has too many pixels. Please upload a smaller image.'), 400)
+    except NotAnImage:
+        return refused(file_types, 400)
 
     try:
-        f = request.FILES['file-upload']
-        # check upload permission
-        if not request.user.can_upload_files():
-            raise UploadPermissionNotAuthorized()
-
-        # check file type
-        try:
-            file_name_suffix = os.path.splitext(f.name)[1].lower()
-        except KeyError:
-            raise FileTypeNotAllow()
-
-        if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
-            raise FileTypeNotAllow()
-
-        # The extension is chosen by the client; check the content too.
-        if not looks_like_image(f):
-            raise FileTypeNotAllow()
-
-        # check file size (in bytes) before writing anything to disk
-        if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
-            raise FileSizeNotAllow()
-
         storage = FileSystemStorage(str(settings.UPFILES_FOLDER), str(settings.UPFILES_ALIAS))
-        new_file_name = storage.save("_".join(f.name.split()), f)
-
-        result = xml_template % ('Good', '', str(settings.UPFILES_ALIAS) + new_file_name)
-    except UploadPermissionNotAuthorized:
-        result = xml_template % ('', _('uploading images is limited to users with >60 reputation points'), '')
-    except FileTypeNotAllow:
-        result = xml_template % ('', _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff', 'webp'"), '')
-    except FileSizeNotAllow:
-        result = xml_template % ('', _("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, '')
+        new_file_name = storage.save(name, ContentFile(data))
     except Exception:
         logging.exception('File upload failed')
-        result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you.'), '')
+        return refused(_('Error uploading file. Please contact the site administrator. Thank you.'), 500)
 
-    return HttpResponse(result, content_type="application/xml")
+    return JsonResponse({'url': str(settings.UPFILES_ALIAS) + new_file_name})
 
 def ask(request):
     form = None

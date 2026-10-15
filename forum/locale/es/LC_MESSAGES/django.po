@@ -199,13 +199,6 @@ msgid "gave bonus"
 msgstr "otorgó una bonificación"
 
 #, python-format
-msgid "Congratulations, you have been awarded an extra %s reputation points."
-msgstr "Enhorabuena, se le han otorgado %s puntos de reputación adicionales."
-
-msgid "Thank you"
-msgstr "Gracias"
-
-#, python-format
 msgid "You have penalized %s in %s reputation points."
 msgstr "Ha penalizado a %s con %s puntos de reputación."
 
@@ -222,16 +215,6 @@ msgstr "%(user)s penalizó a %(users)s con %(value)s puntos de reputación: %(me
 
 msgid "gave reputation points"
 msgstr "otorgó puntos de reputación"
-
-#, python-format
-msgid "Congratulations, you have been awarded an extra %(points)s reputation %(points_label)s on <a href=\"%(answer_url)s\">this</a> answer."
-msgstr "Enhorabuena, se le han otorgado %(points)s %(points_label)s de reputación adicionales por <a href=\"%(answer_url)s\">esta</a> respuesta."
-
-msgid "point"
-msgid_plural "points"
-msgstr[0] "punto"
-msgstr[1] "puntos"
-msgstr[2] "puntos"
 
 #, python-format
 msgid "%(user)s awarded an extra %(value)s reputation points to %(users)s"
@@ -267,9 +250,6 @@ msgstr "%(user)s denunció a %(reported)s : %(msg)s"
 
 msgid "N/A"
 msgstr "N/D"
-
-msgid "Your suspension has been removed."
-msgstr "Se ha levantado su suspensión."
 
 #, python-format
 msgid "for %s days"
@@ -1027,6 +1007,9 @@ msgstr "contexto"
 msgid "default"
 msgstr "predeterminado"
 
+msgid "Current image"
+msgstr "Imagen actual"
+
 msgid "Change this:"
 msgstr "Cambiar esto:"
 
@@ -1224,8 +1207,11 @@ msgstr "Reputación inicial"
 msgid "The initial reputation an user gets when he first signs in."
 msgstr "La reputación inicial que obtiene un usuario cuando inicia sesión por primera vez."
 
-msgid "Maximum reputation a user can gain in one day for being upvoted."
-msgstr "Reputación máxima que un usuario puede ganar en un día por recibir votos a favor."
+msgid "Max rep by up votes / day"
+msgstr "Reputación máxima por votos positivos al día"
+
+msgid "Maximum reputation a user can gain in 24 hours from up votes on their posts. Up votes past it still count in the score. 0 for no limit."
+msgstr "Reputación máxima que un usuario puede ganar en 24 horas con los votos positivos a sus publicaciones. Los votos por encima del límite siguen contando en la puntuación. 0 para no limitar."
 
 msgid "Rep gain by e-mail validation"
 msgstr "Reputación ganada por validar el correo electrónico"
@@ -1272,8 +1258,8 @@ msgstr "Reputación que pierde un usuario cuando una de sus publicaciones es mar
 msgid "Rep lost by post flagged and hidden"
 msgstr "Reputación perdida por publicación marcada y ocultada"
 
-msgid "Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to hide the post."
-msgstr "Reputación que pierde un usuario cuando la última revisión de una de sus publicaciones es marcada suficientes veces como para ocultar la publicación."
+msgid "Reputation a user loses once when one of his posts reaches the \"Flag count to hide post\" number of flags."
+msgstr "Reputación que un usuario pierde una sola vez cuando una de sus publicaciones alcanza el número de denuncias de \"Denuncias para ocultar una publicación\"."
 
 msgid "Rep lost by post flagged and deleted"
 msgstr "Reputación perdida por publicación marcada y eliminada"
@@ -1511,6 +1497,12 @@ msgstr "Tamaño máximo de archivo"
 
 msgid "The maximum allowed file size for uploads in mb."
 msgstr "El tamaño máximo permitido para los archivos subidos, en MB."
+
+msgid "Max image size in pixels"
+msgstr "Tamaño máximo de imagen en píxeles"
+
+msgid "Uploaded images are reduced so that their longest side is at most this many pixels. Location and other metadata are always removed."
+msgstr "Las imágenes subidas se reducen para que su lado más largo tenga como máximo este número de píxeles. La ubicación y los demás metadatos se eliminan siempre."
 
 msgid "URL settings"
 msgstr "Configuración de URL"
@@ -1854,8 +1846,8 @@ msgstr "El número máximo de veces que un usuario puede marcar una publicación
 msgid "Flag count to hide post"
 msgstr "Número de marcas para ocultar una publicación"
 
-msgid "How many times a post needs to be flagged to be hidden from the main page."
-msgstr "Cuántas veces debe marcarse una publicación para ocultarla de la página principal."
+msgid "How many flags a post can get before its author loses the reputation set in \"Rep lost by post flagged and hidden\". The post is not hidden: moderators review it under Flagged posts."
+msgstr "Cuántas denuncias puede recibir una publicación antes de que su autor pierda la reputación indicada en \"Reputación perdida por publicación denunciada y oculta\". La publicación no se oculta: los moderadores la revisan en Publicaciones denunciadas."
 
 msgid "Flag count to delete post"
 msgstr "Número de marcas para eliminar una publicación"
@@ -2353,6 +2345,9 @@ msgstr "Subiendo"
 
 msgid "The image could not be uploaded."
 msgstr "No se ha podido subir la imagen."
+
+msgid "You are offline – showing a saved copy of this page."
+msgstr "Estás sin conexión: se muestra una copia guardada de esta página."
 
 msgid "Close question"
 msgstr "Cerrar pregunta"
@@ -2966,8 +2961,8 @@ msgid "P.S. You can always fine-tune which notifications you receive here:"
 msgstr "P. D.: Siempre puede ajustar qué notificaciones recibe aquí:"
 
 #, python-format
-msgid "%(prefix)s Weekly digest"
-msgstr "%(prefix)s Resumen semanal"
+msgid "%(prefix)s Daily digest"
+msgstr "%(prefix)s Resumen diario"
 
 #, python-format
 msgid ""
@@ -3256,6 +3251,12 @@ msgstr "Publicaciones marcadas"
 msgid "Support dashboard"
 msgstr "Panel de soporte"
 
+msgid "Statistics"
+msgstr "Estadísticas"
+
+msgid "Custom Pages"
+msgstr "Páginas personalizadas"
+
 msgid "Create User"
 msgstr "Crear usuario"
 
@@ -3307,6 +3308,15 @@ msgstr "¿Está seguro de que desea ejecutar el modo de arranque?"
 msgid "go bootstrap"
 msgstr "pasar al modo de arranque"
 
+msgid "Recalculate the scores of posts and the reputation of users from their votes and reputation history."
+msgstr "Recalcula la puntuación de las publicaciones y la reputación de los usuarios a partir de sus votos y su historial de reputación."
+
+msgid "This is a heavy operation, are you sure?"
+msgstr "Esta es una operación pesada, ¿está seguro?"
+
+msgid "Recalculate"
+msgstr "Recalcular"
+
 msgid "Recent activity"
 msgstr "Actividad reciente"
 
@@ -3342,9 +3352,6 @@ msgstr "Configuración del foro"
 
 msgid "Static content"
 msgstr "Contenido estático"
-
-msgid "Custom Pages"
-msgstr "Páginas personalizadas"
 
 msgid "Unsaved changes"
 msgstr "Cambios sin guardar"
@@ -3430,12 +3437,6 @@ msgstr "Estadísticas del sitio"
 
 msgid "Recalculate scores and reputation"
 msgstr "Recalcular puntuaciones y reputación"
-
-msgid "This is a heavy operation, are you sure?"
-msgstr "Esta es una operación pesada, ¿está seguro?"
-
-msgid "Recalculate"
-msgstr "Recalcular"
 
 #, python-format
 msgid "%(prefix)s Your email settings are correct: %(app_name)s"
@@ -3851,6 +3852,15 @@ msgstr "Cambios en la política"
 
 msgid "how privacy policies can be changed"
 msgstr ""
+
+msgid "You are offline"
+msgstr "Estás sin conexión"
+
+msgid "This page could not be loaded because there is no connection. These pages were saved on this device when you read them, and can be read offline:"
+msgstr "No se pudo cargar esta página porque no hay conexión. Estas páginas se guardaron en este dispositivo cuando las leíste y se pueden leer sin conexión:"
+
+msgid "No pages have been saved on this device yet. Questions you read while online are kept here for offline reading."
+msgstr "Todavía no se ha guardado ninguna página en este dispositivo. Las preguntas que leas con conexión se guardan aquí para leerlas sin conexión."
 
 #, python-format
 msgid "see questions tagged '%(tagname)s'"
@@ -5092,6 +5102,9 @@ msgstr "El comentario debe tener al menos %d caracteres."
 msgid "No more than %d characters on comment body."
 msgstr "El comentario no puede tener más de %d caracteres."
 
+msgid "Sorry, a comment can only be edited during the first 60 minutes after it was posted."
+msgstr "Lo sentimos, un comentario solo se puede editar durante los primeros 60 minutos después de publicarlo."
+
 msgid "edit comments"
 msgstr "editar comentarios"
 
@@ -5348,6 +5361,12 @@ msgstr "Solo los superusuarios pueden suspender a otros usuarios"
 msgid "Invalid numeric argument for the number of days."
 msgstr "Argumento numérico no válido para el número de días."
 
+msgid "Please sign in to report a user."
+msgstr "Inicia sesión para denunciar a un usuario."
+
+msgid "You can't report yourself."
+msgstr "No puedes denunciarte a ti mismo."
+
 msgid "overview"
 msgstr "resumen"
 
@@ -5402,6 +5421,9 @@ msgstr "los tipos de archivo permitidos son 'jpg', 'jpeg', 'gif', 'bmp', 'png', 
 #, python-format
 msgid "maximum upload file size is %sM"
 msgstr "el tamaño máximo de archivo es de %sM"
+
+msgid "This image has too many pixels. Please upload a smaller image."
+msgstr "Esta imagen tiene demasiados píxeles. Sube una imagen más pequeña."
 
 msgid "Error uploading file. Please contact the site administrator. Thank you."
 msgstr "Error al subir el archivo. Póngase en contacto con el administrador del sitio. Gracias."
@@ -6393,3 +6415,6 @@ msgstr "El volcado no es un archivo zip."
 #, python-format
 msgid "The import failed: %s"
 msgstr "La importación falló: %s"
+
+msgid "Stack Exchange import"
+msgstr "Importación de Stack Exchange"

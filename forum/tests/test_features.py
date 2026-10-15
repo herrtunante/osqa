@@ -127,8 +127,9 @@ class SearchMetadataTest(OSQATestCase):
 
 
 class ImageUploadTest(OSQATestCase):
+    # A valid 1x1 PNG: uploads are decoded by Pillow.
     PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4'
-           b'\x89\x00\x00\x00\rIDATx\xdac\xfc\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99=\x1d\x00\x00\x00\x00IEND\xaeB`\x82')
+           b'\x89\x00\x00\x00\rIDATx\x9cc\xf8\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99=\x1d\x00\x00\x00\x00IEND\xaeB`\x82')
 
     def setUp(self):
         super().setUp()
@@ -139,29 +140,184 @@ class ImageUploadTest(OSQATestCase):
         settings.UPFILES_FOLDER.set_value(self.folder)
         self.addCleanup(setattr, settings.UPFILES_FOLDER, '_temp', None)
 
-    def upload(self, content, name):
+    def upload(self, content, name, status=200):
         from django.core.files.uploadedfile import SimpleUploadedFile
         response = self.client.post('/upload/', {'file-upload': SimpleUploadedFile(name, content)})
-        self.assertEqual(response['Content-Type'], 'application/xml')
-        return response.content.decode()
+        self.assertEqual(response.status_code, status)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        return response.json()
 
-    def test_image_is_stored(self):
+    def test_image_is_stored_and_served(self):
+        import os
         self.login(self.create_user('alice', reputation=500))
         reply = self.upload(self.PNG, 'screen shot.png')
-        self.assertIn('<file_url>/upfiles/screen_shot.png</file_url>', reply)
-        self.assertIn('<error><![CDATA[]]></error>', reply)
+        self.assertEqual(reply, {'url': '/upfiles/screen_shot.png'})
+        self.assertEqual(os.listdir(self.folder), ['screen_shot.png'])
+        # Served from the UPFILES_FOLDER setting, not a fixed folder.
+        served = self.client.get(reply['url'])
+        self.assertEqual(served.status_code, 200)
+        stored = open(os.path.join(self.folder, 'screen_shot.png'), 'rb').read()
+        self.assertEqual(b''.join(served.streaming_content), stored)
+        self.assertEqual(self.open_stored('screen_shot.png').size, (1, 1))
+
+    def open_stored(self, name):
+        import os
+        from PIL import Image
+        img = Image.open(os.path.join(self.folder, name))
+        img.load()
+        return img
+
+    def encode(self, img, fmt, **options):
+        import io
+        out = io.BytesIO()
+        img.save(out, fmt, **options)
+        return out.getvalue()
+
+    def test_photo_loses_location_and_is_turned_upright(self):
+        from PIL import Image
+        self.login(self.create_user('alice', reputation=500))
+        # Taken sideways: 300x100, blue on the left; EXIF says "rotate 90 degrees clockwise".
+        photo = Image.new('RGB', (300, 100), (255, 0, 0))
+        photo.paste((0, 0, 255), (0, 0, 60, 100))
+        exif = Image.Exif()
+        exif[0x0112] = 6
+        exif[0x010F] = 'PhoneMaker'
+        exif[0x8825] = {1: 'N', 2: (51.0, 30.0, 12.0), 3: 'W', 4: (0.0, 7.0, 39.0)}
+        content = self.encode(photo, 'JPEG', exif=exif.tobytes(), comment=b'home address')
+        self.assertIn(b'PhoneMaker', content)
+
+        reply = self.upload(content, 'holiday photo.jpeg')
+        self.assertEqual(reply, {'url': '/upfiles/holiday_photo.jpeg'})
+        stored = self.open_stored('holiday_photo.jpeg')
+        self.assertEqual(stored.format, 'JPEG')
+        self.assertEqual(stored.size, (100, 300))
+        r, g, b = stored.getpixel((50, 20))   # the blue part is now at the top
+        self.assertTrue(b > 200 and r < 60, (r, g, b))
+        self.assertEqual(dict(stored.getexif()), {})
+        for key in ('exif', 'xmp', 'comment', 'XML:com.adobe.xmp'):
+            self.assertNotIn(key, stored.info)
+        raw = open(stored.filename, 'rb').read()
+        self.assertNotIn(b'Exif', raw)
+        self.assertNotIn(b'PhoneMaker', raw)
+        self.assertNotIn(b'home address', raw)
+
+    def test_large_image_is_downscaled(self):
+        from PIL import Image
+        from forum import settings
+        settings.UPLOAD_MAX_IMAGE_SIDE.set_value(500)
+        self.addCleanup(setattr, settings.UPLOAD_MAX_IMAGE_SIDE, '_temp', None)
+        self.login(self.create_user('alice', reputation=500))
+        self.upload(self.encode(Image.new('RGB', (2000, 1000), (0, 128, 0)), 'PNG'), 'wide.png')
+        self.assertEqual(self.open_stored('wide.png').size, (500, 250))
+        # Smaller images keep their size.
+        self.upload(self.encode(Image.new('RGB', (400, 300)), 'WEBP'), 'small.webp')
+        self.assertEqual(self.open_stored('small.webp').size, (400, 300))
+
+    def test_bmp_and_tiff_become_png(self):
+        from PIL import Image
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.encode(Image.new('RGB', (40, 30), (1, 2, 3)), 'BMP'), 'scan.bmp')
+        self.assertEqual(reply, {'url': '/upfiles/scan.png'})
+        stored = self.open_stored('scan.png')
+        self.assertEqual((stored.format, stored.size, stored.convert('RGB').getpixel((0, 0))), ('PNG', (40, 30), (1, 2, 3)))
+        reply = self.upload(self.encode(Image.new('RGB', (40, 30)), 'TIFF'), 'fax.tiff')
+        self.assertEqual(reply, {'url': '/upfiles/fax.png'})
+        self.assertEqual(self.open_stored('fax.png').format, 'PNG')
+
+    def test_extension_follows_the_content(self):
+        from PIL import Image
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.encode(Image.new('RGB', (10, 10)), 'JPEG'), 'actually-a-jpeg.png')
+        self.assertEqual(reply, {'url': '/upfiles/actually-a-jpeg.jpg'})
+
+    def test_animated_gif_keeps_its_frames(self):
+        from PIL import Image
+        from forum import settings
+        settings.UPLOAD_MAX_IMAGE_SIDE.set_value(100)
+        self.addCleanup(setattr, settings.UPLOAD_MAX_IMAGE_SIDE, '_temp', None)
+        self.login(self.create_user('alice', reputation=500))
+        colours = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+        frames = [Image.new('RGB', (200, 50), c) for c in colours]
+        content = self.encode(frames[0], 'GIF', save_all=True, append_images=frames[1:],
+                              duration=[100, 200, 300], loop=0, comment=b'made by someone')
+        self.upload(content, 'spinner.gif')
+        stored = self.open_stored('spinner.gif')
+        self.assertEqual((stored.size, stored.n_frames, stored.info.get('loop')), ((100, 25), 3, 0))
+        self.assertNotIn('comment', stored.info)
+        for i, colour in enumerate(colours):
+            stored.seek(i)
+            self.assertEqual(stored.convert('RGB').getpixel((10, 10)), colour)
+            self.assertEqual(stored.info['duration'], (i + 1) * 100)
+
+    def test_decompression_bomb_is_refused(self):
+        import os, struct, zlib
+        def chunk(kind, data):
+            return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+        # A few hundred bytes claiming to be 60000x60000 pixels.
+        bomb = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 60000, 60000, 8, 0, 0, 0, 0)) +
+                chunk(b'IDAT', zlib.compress(b'\0' * 100000)) + chunk(b'IEND', b''))
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(bomb, 'bomb.png', status=400)
+        self.assertIn('too many pixels', reply['error'])
+        self.assertEqual(os.listdir(self.folder), [])
+
+    def test_corrupt_image_is_refused(self):
+        import os
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG[:40], 'broken.png', status=400)
+        self.assertIn('allowed file types', reply['error'])
+        self.assertEqual(os.listdir(self.folder), [])
+
+    def test_admin_logo_upload_is_stripped(self):
+        from PIL import Image
+        from forum import settings
+        from forum.settings.forms import ImageFormWidget
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        exif = Image.Exif()
+        exif[0x010F] = 'PhoneMaker'
+        logo = SimpleUploadedFile('my logo.jpg', self.encode(Image.new('RGB', (20, 20)), 'JPEG', exif=exif.tobytes()))
+        value = ImageFormWidget().value_from_datadict({}, {'APP_LOGO': logo}, 'APP_LOGO')
+        self.assertEqual(value, '/upfiles/my_logo.jpg')
+        self.assertEqual(dict(self.open_stored('my_logo.jpg').getexif()), {})
+
+    def test_bundled_logo_is_served_from_another_upload_folder(self):
+        served = self.client.get('/upfiles/logo.png')
+        self.assertEqual(served.status_code, 200)
+        served.close()
+        self.assertEqual(self.client.get('/upfiles/missing.png').status_code, 404)
 
     def test_content_must_be_an_image(self):
         self.login(self.create_user('alice', reputation=500))
-        reply = self.upload(b'<html><script>alert(1)</script></html>', 'evil.png')
-        self.assertIn('<file_url></file_url>', reply)
-        self.assertIn('allowed file types', reply)
+        reply = self.upload(b'<html><script>alert(1)</script></html>', 'evil.png', status=400)
+        self.assertNotIn('url', reply)
+        self.assertIn('allowed file types', reply['error'])
+
+    def test_extension_must_be_an_image_type(self):
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG, 'notes.html', status=400)
+        self.assertIn('allowed file types', reply['error'])
+
+    def test_too_big_is_refused(self):
+        import os
+        from forum import settings
+        settings.ALLOW_MAX_FILE_SIZE.set_value(0.0001)  # about 100 bytes
+        self.addCleanup(setattr, settings.ALLOW_MAX_FILE_SIZE, '_temp', None)
+        self.login(self.create_user('alice', reputation=500))
+        reply = self.upload(self.PNG + b'\0' * 200, 'big.png', status=413)
+        self.assertIn('maximum upload file size', reply['error'])
+        self.assertEqual(os.listdir(self.folder), [])
 
     def test_low_reputation_is_refused(self):
         self.login(self.create_user('newbie', reputation=1))
-        reply = self.upload(self.PNG, 'a.png')
-        self.assertIn('<file_url></file_url>', reply)
-        self.assertIn('reputation', reply)
+        reply = self.upload(self.PNG, 'a.png', status=403)
+        self.assertNotIn('url', reply)
+        self.assertIn('reputation', reply['error'])
+
+    def test_anonymous_is_refused(self):
+        self.assertIn('reputation', self.upload(self.PNG, 'a.png', status=403)['error'])
+
+    def test_only_post(self):
+        self.assertEqual(self.client.get('/upload/').status_code, 405)
 
     def test_editor_knows_the_upload_url(self):
         self.assertContains(self.client.get('/questions/ask/'), 'upload_url: "/upload/"')

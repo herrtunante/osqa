@@ -10,7 +10,7 @@
 {% block forejs %}
        <script type="text/javascript">
         $().ready(function(){
-            $("#linkPrevious").bind("click", back=function(){history.go(-1);})            
+            $("#linkPrevious").on("click", back=function(){history.go(-1);})            
         });
          
         </script>

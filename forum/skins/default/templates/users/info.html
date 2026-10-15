@@ -99,6 +99,8 @@
                         {% endif %}
                     </td>
                 </tr>
+                {% endif %}
+                {% if request.user.is_authenticated and request.user != view_user %}
                 <tr>
                     <td colspan="2" style="text-align:right">
                         <a href="{% url "user_report" view_user.id %}" class="ajax-command withprompt">
@@ -106,7 +108,6 @@
                         </a>
                     </td>
                 </tr>
-
                 {% endif %}
 
 

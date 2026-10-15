@@ -317,19 +317,24 @@ class ActionRepute(models.Model):
         if self.value < 0: return self.value
         return 0
 
-    def _add_to_rep(self, value):
-        if int(self.user.reputation + value) < 1 and not settings.ALLOW_NEGATIVE_REPUTATION:
-            return 0
-        else:
-            return models.F('reputation') + value
+    def _applicable(self, value):
+        """The part of `value` that applies: without negative reputation a
+        user stops at 0."""
+        if settings.ALLOW_NEGATIVE_REPUTATION:
+            return value
+        current = type(self.user).objects.filter(pk=self.user_id).values_list('reputation', flat=True).first() or 0
+        return max(value, -max(current, 0))
 
     def save(self, *args, **kwargs):
+        if self.pk is None:
+            # Record what was applied, so cancelling gives back exactly that.
+            self.value = self._applicable(self.value)
         super(ActionRepute, self).save(*args, **kwargs)
-        self.user.reputation = self._add_to_rep(self.value)
+        self.user.reputation = models.F('reputation') + self.value
         self.user.save()
 
     def delete(self):
-        self.user.reputation = self._add_to_rep(-self.value)
+        self.user.reputation = models.F('reputation') + self._applicable(-self.value)
         self.user.save()
         super(ActionRepute, self).delete()
 

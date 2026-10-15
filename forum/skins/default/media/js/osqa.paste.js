@@ -66,11 +66,9 @@
             credentials: 'same-origin',
             headers: {'X-CSRFToken': csrfToken()}
         }).then(function(response) {
-            return response.text();
-        }).then(function(body) {
-            var xml = new DOMParser().parseFromString(body, 'application/xml');
-            var url = (xml.querySelector('file_url') || {}).textContent;
-            var error = (xml.querySelector('error') || {}).textContent;
+            return response.json().catch(function() { return {}; });
+        }).then(function(reply) {
+            var url = reply.url, error = reply.error;
             if (url && !error) {
                 replacePlaceholder(editor, placeholder, '![' + alt + '](' + url + ')');
             } else {
