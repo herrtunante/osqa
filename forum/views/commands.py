@@ -20,6 +20,7 @@ from forum.utils.antispam import posting_limit_reached, posting_limit_message
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
 from forum.utils.similar import candidate_questions
+from forum.utils import review
 from forum.models.base import prefetch_denormalized
 from forum.actions import *
 from forum.modules import decorate
@@ -88,6 +89,9 @@ def vote_post(request, id, vote_type):
     post = get_object_or_404(Node, id=id).leaf
     user = request.user
 
+    if not review.can_view(post, user):
+        raise Http404()
+
     if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('vote'))
 
@@ -151,6 +155,9 @@ def flag_post(request, id):
 
     post = get_object_or_404(Node, id=id)
     user = request.user
+
+    if not review.can_view(post, user):
+        raise Http404()
 
     if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('flag posts'))
@@ -257,6 +264,9 @@ def comment(request, id):
     post = get_object_or_404(Node, id=id)
     user = request.user
 
+    if not review.can_view(post, user):
+        raise Http404()
+
     if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('comment'))
 
@@ -296,6 +306,7 @@ def comment(request, id):
 
     if comment.active_revision.revision == 1:
         return {
+        **({'message': review.held_notice()} if review.is_held(comment) else {}),
         'commands': {
         'insert_comment': [
                 id, comment.id, comment.comment, user.decorated_name, user.get_profile_url(),
@@ -324,7 +335,7 @@ def node_markdown(request, id):
 
     node = get_object_or_404(Node, id=id)
 
-    if node.nis.deleted and not user.can_view_deleted_post(node):
+    if (node.nis.deleted and not user.can_view_deleted_post(node)) or not review.can_view(node, user):
         raise Http404()
 
     return HttpResponse(node.active_revision.body, content_type="text/plain")
@@ -420,7 +431,7 @@ def find_original_question(question, value):
         raise CommandException(_("Enter the number of the original question or a link to it."))
 
     try:
-        original = Question.objects.filter_state(deleted=False).get(id=int(match.group(1)))
+        original = Question.objects.public().get(id=int(match.group(1)))
     except Question.DoesNotExist:
         raise CommandException(_("The original question was not found."))
 
@@ -649,7 +660,7 @@ def related_questions(request):
         if can_rank and isinstance(can_rank, str):
             questions = questions.order_by(can_rank)
 
-        questions = list(questions.filter_state(deleted=False)[0:10])
+        questions = list(questions.public()[0:10])
         if not questions:
             # The default search matches the whole title as one phrase; without
             # a full-text module that rarely finds anything, so match keywords.

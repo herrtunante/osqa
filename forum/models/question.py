@@ -10,8 +10,11 @@ class Question(Node):
     class Meta(Node.Meta):
         proxy = True
 
-    answer_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"), node_type="answer")
-    accepted_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"), node_type="answer", marked=True)
+    # Answers held for review (forum/utils/review.py) aren't counted, like deleted ones.
+    answer_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"),
+                                     ~models.Q(state_string__contains="(pending_review)"), node_type="answer")
+    accepted_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"),
+                                       ~models.Q(state_string__contains="(pending_review)"), node_type="answer", marked=True)
     favorite_count = DenormalizedField("actions", action_type="favorite", canceled=False)
 
     friendly_name = _lazy("question")
@@ -52,13 +55,14 @@ class Question(Node):
         if not self.duplicate_of_id:
             return None
         try:
-            return Question.objects.filter_state(deleted=False).get(id=self.duplicate_of_id)
+            return Question.objects.public().get(id=self.duplicate_of_id)
         except Question.DoesNotExist:
             return None
 
     @property
     def accepted_answers(self):
-        return self.answers.filter(~models.Q(state_string__contains="(deleted)"), marked=True)
+        return self.answers.filter(~models.Q(state_string__contains="(deleted)"),
+                                   ~models.Q(state_string__contains="(pending_review)"), marked=True)
     def get_absolute_url(self):
         return reverse('question', kwargs={'id': self.id, 'slug': django_urlquote(slugify(self.title))})
 
@@ -70,7 +74,7 @@ class Question(Node):
         related_list = cache.get(cache_key)
 
         if related_list is None:
-            related_list = Question.objects.filter_state(deleted=False).values('id').filter(tags__id__in=[t.id for t in self.tags.all()]
+            related_list = Question.objects.public().values('id').filter(tags__id__in=[t.id for t in self.tags.all()]
             ).exclude(id=self.id).annotate(frequency=models.Count('id')).order_by('-frequency')[:count]
             cache.set(cache_key, related_list, 60 * 60)
 

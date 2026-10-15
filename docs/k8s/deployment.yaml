@@ -1,0 +1,66 @@
+# The web pods: gunicorn on port 8000. Probes: /healthz (process and database
+# up) for liveness, /readyz (database and cache) for readiness; both answer on
+# any Host header and without authentication, with "ok" or a bare failure.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osqa-web
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: web}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: web}
+  strategy:
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: web}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999          # the image's osqa user
+        runAsGroup: 999
+        fsGroup: 999            # makes the volumes writable for it
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: web
+          image: osqa
+          args: ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3",
+                 "--worker-tmp-dir", "/dev/shm", "--access-logfile", "-", "--graceful-timeout", "25"]
+          ports:
+            - {name: http, containerPort: 8000}
+          envFrom:
+            - configMapRef: {name: osqa-config}
+            - secretRef: {name: osqa-secrets}
+          startupProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: uploads, mountPath: /app/forum/upfiles}
+            - {name: tmp, mountPath: /app/tmp}        # upload temp files
+            - {name: tmp, mountPath: /tmp, subPath: system}
+            - {name: tmp, mountPath: /app/cache, subPath: cache}
+            - {name: tmp, mountPath: /app/log, subPath: log}
+      volumes:
+        - name: uploads
+          persistentVolumeClaim: {claimName: osqa-uploads}
+        - name: tmp
+          emptyDir: {sizeLimit: 512Mi}

@@ -5,6 +5,8 @@ forum.utils.similar.search_questions) all use it.
 """
 from django.db.models import Case, Exists, IntegerField, OuterRef, Value, When
 
+from forum.utils.review import hidden_q
+
 from . import backends
 from .query import parse
 
@@ -18,8 +20,7 @@ def index_ready():
 
 def _answers(**kwargs):
     from forum.models import Node
-    return Node.objects.filter(parent=OuterRef('pk'), node_type='answer', **kwargs).exclude(
-        state_string__contains='(deleted)')
+    return Node.objects.filter(parent=OuterRef('pk'), node_type='answer', **kwargs).exclude(hidden_q())
 
 
 def apply_filters(questions, query):
@@ -47,7 +48,7 @@ def _legacy_ids(query, limit):
     match = Q()
     for word in query.terms + query.phrases:
         match |= Q(title__icontains=word) | Q(body__icontains=word)
-    questions = Question.objects.filter_state(deleted=False).filter(match)
+    questions = Question.objects.public().filter(match)
     for word in query.excludes:
         questions = questions.exclude(Q(title__icontains=word) | Q(body__icontains=word))
     return list(questions.order_by('-added_at').values_list('id', flat=True)[:limit])
@@ -60,7 +61,7 @@ def search(query, limit=backends.MAX_RESULTS):
     from forum.models import Question
     if isinstance(query, str):
         query = parse(query)
-    questions = apply_filters(Question.objects.filter_state(deleted=False), query)
+    questions = apply_filters(Question.objects.public(), query)
     ready = index_ready()
 
     if query.has_text:

@@ -11,7 +11,7 @@ from .utils import KeyValue
 from .page import Page
 from .moderation import ModerationReport
 from .knowledge import KnowledgeChunk, AISuggestion
-from .notification import Notification, QuestionReminder
+from .notification import Notification, QuestionReminder, PendingEmail
 from .search import SearchDocument
 
 from .base import *
@@ -23,7 +23,7 @@ __all__ = [
         'Tag', 'TagSynonym', 'Comment', 'MarkedTag', 'Badge', 'Award',
         'ValidationHash', 'AuthKeyUserAssociation', 'SubscriptionSettings', 'KeyValue', 'User',
         'Action', 'ActionRepute', 'Vote', 'Flag', 'Page', 'ModerationReport', 'KnowledgeChunk', 'AISuggestion',
-        'Notification', 'QuestionReminder', 'SearchDocument'
+        'Notification', 'QuestionReminder', 'PendingEmail', 'SearchDocument'
         ]
 
 

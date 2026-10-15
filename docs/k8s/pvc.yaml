@@ -1,0 +1,24 @@
+# Uploaded images (UPFILES_FOLDER): shared by every web pod, so ReadWriteMany
+# (NFS, Filestore, EFS, Azure Files, CephFS). Pick your storageClassName.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: osqa-uploads
+spec:
+  accessModes: [ReadWriteMany]
+  # storageClassName: nfs
+  resources:
+    requests:
+      storage: 10Gi
+---
+# backup_site archives (the backup CronJob). Copy them off the cluster too,
+# e.g. with a sidecar or a second CronJob that uploads to object storage.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: osqa-backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi

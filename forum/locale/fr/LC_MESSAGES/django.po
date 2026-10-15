@@ -140,6 +140,20 @@ msgstr "passé en wiki"
 msgid "%(user)s marked %(node)s as community wiki."
 msgstr "%(user)s a passé %(node)s en wiki communautaire."
 
+msgid "waiting for review"
+msgstr "en attente de vérification"
+
+#, python-format
+msgid "%(post_desc)s is waiting for review"
+msgstr "%(post_desc)s est en attente de vérification"
+
+msgid "approved"
+msgstr "a approuvé"
+
+#, python-format
+msgid "%(user)s approved %(post_desc)s"
+msgstr "%(user)s a approuvé %(post_desc)s"
+
 msgid "created"
 msgstr "a créé"
 
@@ -629,6 +643,18 @@ msgstr "Badge"
 msgid "Accept an answer"
 msgstr "Accepter une réponse"
 
+msgid "Post approved"
+msgstr "Message approuvé"
+
+msgid "Post removed"
+msgstr "Message retiré"
+
+msgid "New question"
+msgstr "Nouvelle question"
+
+msgid "New member"
+msgstr "Nouveau membre"
+
 msgid "page"
 msgstr "page"
 
@@ -905,6 +931,33 @@ msgstr "Envoyer le résumé uniquement aux utilisateurs validés"
 
 msgid "If checked the daily digest won't be sent to users that haven't validated their emails."
 msgstr "Si cette case est cochée, le résumé quotidien ne sera pas envoyé aux utilisateurs qui n'ont pas validé leur adresse e-mail."
+
+msgid "Monday"
+msgstr "Lundi"
+
+msgid "Tuesday"
+msgstr "Mardi"
+
+msgid "Wednesday"
+msgstr "Mercredi"
+
+msgid "Thursday"
+msgstr "Jeudi"
+
+msgid "Friday"
+msgstr "Vendredi"
+
+msgid "Saturday"
+msgstr "Samedi"
+
+msgid "Sunday"
+msgstr "Dimanche"
+
+msgid "Weekly summary day"
+msgstr "Jour du résumé hebdomadaire"
+
+msgid "The day send_email_alerts sends the weekly summary to members who chose one (run it daily)."
+msgstr "Le jour où send_email_alerts envoie le résumé hebdomadaire aux membres qui l'ont choisi (à lancer chaque jour)."
 
 msgid "External Keys"
 msgstr "Clés externes"
@@ -1231,6 +1284,33 @@ msgstr "Position de la commande de signalement"
 
 msgid "Choose the position of the \"report (0)\" control of nodes."
 msgstr "Choisissez la position de la commande « signaler (0) » des publications."
+
+msgid "Off: new members' posts are published without review"
+msgstr "Désactivé : les messages des nouveaux membres sont publiés sans vérification"
+
+msgid "Review after publishing: posts appear at once and are listed in the moderation inbox"
+msgstr "Vérifier après publication : les messages apparaissent tout de suite et sont listés dans la boîte de modération"
+
+msgid "Review before publishing: posts stay hidden (except to their author and moderators) until a moderator approves them"
+msgstr "Vérifier avant publication : les messages restent cachés (sauf pour leur auteur et les modérateurs) jusqu'à leur approbation"
+
+msgid "Review new members' first posts"
+msgstr "Vérifier les premiers messages des nouveaux membres"
+
+msgid "Questions, answers and comments by new members go to the moderation inbox (shown to moderators in the header). Moderators and administrators are never reviewed. With \"before\", other people only see a post once it is approved, and followers are notified then; the author sees it marked \"Waiting for review\" and gets an email and a notification when it is approved or removed."
+msgstr "Les questions, réponses et commentaires des nouveaux membres vont dans la boîte de modération (visible par les modérateurs dans l'en-tête). Les modérateurs et administrateurs ne sont jamais vérifiés. Avec « avant », les autres ne voient un message qu'une fois approuvé, et les abonnés sont prévenus à ce moment-là ; l'auteur le voit marqué « En attente de vérification » et reçoit un e-mail et une notification quand il est approuvé ou retiré."
+
+msgid "Posts to review per member"
+msgstr "Messages à vérifier par membre"
+
+msgid "A member's posts are reviewed until a moderator has approved this many of them (deleted posts don't count). 1 reviews only the first post. 0 reviews no one by count (see the reputation below)."
+msgstr "Les messages d'un membre sont vérifiés jusqu'à ce qu'un modérateur en ait approuvé ce nombre (les messages supprimés ne comptent pas). 1 ne vérifie que le premier message. 0 ne vérifie personne selon ce nombre (voir la réputation ci-dessous)."
+
+msgid "Also review posts by members below this reputation"
+msgstr "Vérifier aussi les messages des membres sous cette réputation"
+
+msgid "Every post by a member with less reputation than this is reviewed, however many posts they have. 0 turns this off."
+msgstr "Tous les messages d'un membre ayant moins de réputation que cela sont vérifiés, quel que soit leur nombre. 0 désactive cette option."
 
 msgid "Reputation gains and losses config"
 msgstr "Configuration des gains et pertes de réputation"
@@ -2557,6 +2637,51 @@ msgstr "Ce lien ne fonctionne pas"
 msgid "The unsubscribe link is incomplete or was changed. Copy the whole link from the email, or sign in and change your email settings on your profile."
 msgstr "Le lien de désabonnement est incomplet ou a été modifié. Copiez le lien complet depuis l'e-mail, ou connectez-vous et modifiez vos paramètres e-mail dans votre profil."
 
+msgid "You'll get a weekly summary"
+msgstr "Vous recevrez un résumé hebdomadaire"
+
+msgid "You'll get a daily summary"
+msgstr "Vous recevrez un résumé quotidien"
+
+#, python-format
+msgid "Instead of a separate email for each update, you'll get one summary every %(weekday)s, and none when there's nothing new."
+msgstr "Au lieu d'un e-mail par nouveauté, vous recevrez un résumé chaque %(weekday)s, et aucun s'il n'y a rien de nouveau."
+
+msgid "Instead of a separate email for each update, you'll get one summary a day, and none when there's nothing new."
+msgstr "Au lieu d'un e-mail par nouveauté, vous recevrez un résumé par jour, et aucun s'il n'y a rien de nouveau."
+
+msgid "Mentions still arrive right away. You can change that in your email settings."
+msgstr "Les mentions arrivent toujours immédiatement. Vous pouvez changer cela dans vos paramètres e-mail."
+
+msgid "Undo: keep separate emails"
+msgstr "Annuler : garder des e-mails séparés"
+
+msgid "Back to separate emails"
+msgstr "Retour aux e-mails séparés"
+
+msgid "You'll get your emails as things happen again."
+msgstr "Vous recevrez de nouveau vos e-mails au fil de l'eau."
+
+msgid "Get a weekly summary instead"
+msgstr "Recevoir plutôt un résumé hebdomadaire"
+
+msgid "Get a daily summary instead"
+msgstr "Recevoir plutôt un résumé quotidien"
+
+#, python-format
+msgid "Send <strong>%(name)s</strong> one summary email every %(weekday)s instead of a separate email for each update?"
+msgstr "Envoyer à <strong>%(name)s</strong> un e-mail de résumé chaque %(weekday)s au lieu d'un e-mail par nouveauté ?"
+
+#, python-format
+msgid "Send <strong>%(name)s</strong> one summary email a day instead of a separate email for each update?"
+msgstr "Envoyer à <strong>%(name)s</strong> un e-mail de résumé par jour au lieu d'un e-mail par nouveauté ?"
+
+msgid "Yes, send a weekly summary"
+msgstr "Oui, envoyer un résumé hebdomadaire"
+
+msgid "Yes, send a daily summary"
+msgstr "Oui, envoyer un résumé quotidien"
+
 msgid "You're unsubscribed"
 msgstr "Vous êtes désabonné"
 
@@ -2583,6 +2708,16 @@ msgstr "Arrêter d'envoyer %(what)s à <strong>%(name)s</strong> ?"
 
 msgid "Yes, unsubscribe"
 msgstr "Oui, me désabonner"
+
+msgid "Too many emails?"
+msgstr "Trop d'e-mails ?"
+
+#, python-format
+msgid "Get one summary every %(weekday)s with everything new instead of separate emails. You can undo it right after."
+msgstr "Recevez un résumé chaque %(weekday)s avec toutes les nouveautés au lieu d'e-mails séparés. Vous pouvez annuler juste après."
+
+msgid "Switch to a weekly summary instead"
+msgstr "Passer plutôt à un résumé hebdomadaire"
 
 msgid "Unsubscribe from all emails instead"
 msgstr "Se désabonner plutôt de tous les e-mails"
@@ -2712,6 +2847,14 @@ msgstr "<strong>%(actor)s</strong> a accepté votre réponse à <em>%(title)s</e
 #, python-format
 msgid "You earned the <strong>%(badge)s</strong> badge"
 msgstr "Vous avez obtenu le badge <strong>%(badge)s</strong>"
+
+#, python-format
+msgid "A moderator approved your post in <em>%(title)s</em>: it is published now"
+msgstr "Un modérateur a approuvé votre message dans <em>%(title)s</em> : il est publié"
+
+#, python-format
+msgid "A moderator removed your post in <em>%(title)s</em>"
+msgstr "Un modérateur a retiré votre message dans <em>%(title)s</em>"
 
 #, python-format
 msgid "Your question <em>%(title)s</em> has answers. If one solved it, accept it so others know."
@@ -2882,6 +3025,18 @@ msgid "There's a lot more to the Markdown syntax than is mentioned here.  But fo
 msgstr "La syntaxe Markdown va bien au-delà de ce qui est mentionné ici. Mais pour les rédacteurs, ceci couvre une bonne partie de l'essentiel. Pour en savoir plus sur Markdown que vous ne l'auriez jamais souhaité, <a href=\"http://daringfireball.net/projects/markdown/syntax\" target=\"_blank\" rel=\"nofollow\">consultez la page Markdown où tout a commencé</a>."
 
 #, python-format
+msgid "Moderation inbox: %(counter)s waiting"
+msgid_plural "Moderation inbox: %(counter)s waiting"
+msgstr[0] "Boîte de modération : %(counter)s en attente"
+msgstr[1] "Boîte de modération : %(counter)s en attente"
+
+msgid "Moderation inbox"
+msgstr "Boîte de modération"
+
+msgid "moderation"
+msgstr "modération"
+
+#, python-format
 msgid "%(who)s has selected this answer as the correct answer"
 msgstr "%(who)s a choisi cette réponse comme réponse correcte"
 
@@ -2995,6 +3150,9 @@ msgstr "Convertir le commentaire en réponse"
 msgid "likes"
 msgstr "j'aime"
 
+msgid "Waiting for review"
+msgstr "En attente de vérification"
+
 msgid "Like"
 msgstr "J'aime"
 
@@ -3045,6 +3203,18 @@ msgstr "Lien permanent"
 
 msgid "more"
 msgstr "plus"
+
+msgid "Only its author and moderators can see this post until it is approved."
+msgstr "Seuls son auteur et les modérateurs voient ce message jusqu'à son approbation."
+
+msgid "This post is published and waiting for a moderator to review it."
+msgstr "Ce message est publié et attend la vérification d'un modérateur."
+
+msgid "Review it in the moderation inbox"
+msgstr "La vérifier dans la boîte de modération"
+
+msgid "Your post will appear once a moderator has reviewed it. Until then only you and the moderators can see it."
+msgstr "Votre message apparaîtra après la vérification d'un modérateur. D'ici là, seuls vous et les modérateurs pouvez le voir."
 
 msgid "I like this post (click again to cancel)"
 msgstr "J'aime cette publication (cliquez à nouveau pour annuler)"
@@ -3105,6 +3275,37 @@ msgstr "%(author_name)s vous a mentionné dans une réponse à %(question_link)s
 #, python-format
 msgid "%(author_name)s mentioned you in the question %(question_link)s:"
 msgstr "%(author_name)s vous a mentionné dans la question %(question_link)s :"
+
+msgid "joined the site"
+msgstr "a rejoint le site"
+
+#, python-format
+msgid "%(actor)s answered:"
+msgstr "%(actor)s a répondu :"
+
+#, python-format
+msgid "%(actor)s commented:"
+msgstr "%(actor)s a commenté :"
+
+#, python-format
+msgid "%(actor)s mentioned you:"
+msgstr "%(actor)s vous a mentionné :"
+
+#, python-format
+msgid "%(actor)s accepted your answer."
+msgstr "%(actor)s a accepté votre réponse."
+
+#, python-format
+msgid "%(actor)s accepted %(author)s's answer."
+msgstr "%(actor)s a accepté la réponse de %(author)s."
+
+#, python-format
+msgid "Asked by %(actor)s, tagged %(tags)s"
+msgstr "Posée par %(actor)s, étiquettes %(tags)s"
+
+#, python-format
+msgid "Asked by %(actor)s"
+msgstr "Posée par %(actor)s"
 
 #, python-format
 msgid "%(prefix)s Did an answer solve \"%(question_title)s\"?"
@@ -3324,6 +3525,70 @@ msgid "Know the answer? Share it, or vote for the question if you'd like to know
 msgstr "Vous connaissez la réponse ? Partagez-la, ou votez pour la question si vous aimeriez aussi la connaître."
 
 #, python-format
+msgid "%(prefix)s Your post is published: %(question_title)s"
+msgstr "%(prefix)s Votre message est publié : %(question_title)s"
+
+msgid "A moderator approved your post. Everyone can see it now."
+msgstr "Un modérateur a approuvé votre message. Tout le monde peut le voir maintenant."
+
+#, python-format
+msgid "%(prefix)s Your post was not published: %(question_title)s"
+msgstr "%(prefix)s Votre message n'a pas été publié : %(question_title)s"
+
+msgid "A moderator reviewed your post and removed it."
+msgstr "Un modérateur a vérifié votre message et l'a retiré."
+
+#, python-format
+msgid "You receive this email because you posted on %(app_name)s."
+msgstr "Vous recevez cet e-mail car vous avez publié sur %(app_name)s."
+
+msgid "community guidelines"
+msgstr "règles de la communauté"
+
+#, python-format
+msgid "Good news: a moderator approved your post in %(question_link)s. It is now published, and the people following the question have been told."
+msgstr "Bonne nouvelle : un modérateur a approuvé votre message dans %(question_link)s. Il est publié et les personnes qui suivent la question ont été prévenues."
+
+msgid "View your post"
+msgstr "Voir votre message"
+
+#, python-format
+msgid "A moderator reviewed your post in \"%(question_title)s\" and removed it, so it won't be published. Please read the %(rules_link)s before posting again."
+msgstr "Un modérateur a vérifié votre message dans « %(question_title)s » et l'a retiré : il ne sera pas publié. Veuillez lire les %(rules_link)s avant de publier à nouveau."
+
+#, python-format
+msgid "%(prefix)s Your weekly summary: %(counter)s update"
+msgid_plural "%(prefix)s Your weekly summary: %(counter)s updates"
+msgstr[0] "%(prefix)s Votre résumé hebdomadaire : %(counter)s nouveauté"
+msgstr[1] "%(prefix)s Votre résumé hebdomadaire : %(counter)s nouveautés"
+
+#, python-format
+msgid "%(prefix)s Your daily summary: %(counter)s update"
+msgid_plural "%(prefix)s Your daily summary: %(counter)s updates"
+msgstr[0] "%(prefix)s Votre résumé quotidien : %(counter)s nouveauté"
+msgstr[1] "%(prefix)s Votre résumé quotidien : %(counter)s nouveautés"
+
+#, python-format
+msgid "Here's what happened on %(app_name)s this week in the questions and tags you follow."
+msgstr "Voici ce qui s'est passé cette semaine sur %(app_name)s dans les questions et étiquettes que vous suivez."
+
+#, python-format
+msgid "Here's what happened on %(app_name)s since your last summary."
+msgstr "Voici ce qui s'est passé sur %(app_name)s depuis votre dernier résumé."
+
+#, python-format
+msgid "And %(counter)s more."
+msgid_plural "And %(counter)s more."
+msgstr[0] "Et %(counter)s de plus."
+msgstr[1] "Et %(counter)s de plus."
+
+msgid "See all your notifications"
+msgstr "Voir toutes vos notifications"
+
+msgid "You get this summary instead of a separate email for each update. Nothing new means no email."
+msgstr "Vous recevez ce résumé au lieu d'un e-mail par nouveauté. Rien de nouveau, pas d'e-mail."
+
+#, python-format
 msgid "%(prefix)s User reported: %(reported)s by %(reporter_author)s"
 msgstr "%(prefix)s Utilisateur signalé : %(reported)s par %(reporter_author)s"
 
@@ -3358,9 +3623,6 @@ msgstr "Menu d'administration"
 
 msgid "Maintenance mode"
 msgstr "Mode maintenance"
-
-msgid "Flagged Posts"
-msgstr "Publications signalées"
 
 msgid "Support dashboard"
 msgstr "Tableau de bord du support"
@@ -3548,49 +3810,6 @@ msgstr "Tous les e-mails envoyés par le site, avec des messages et des personne
 msgid "Plain text"
 msgstr "Texte brut"
 
-msgid "Posts flagged by users, and posts and accounts reported by automated checks."
-msgstr "Publications signalées par les utilisateurs, et publications et comptes signalés par les contrôles automatiques."
-
-msgid "Reported by automated checks"
-msgstr "Signalé par les contrôles automatiques"
-
-msgid "AI review: blocked by the safety filters"
-msgstr "Examen par l'IA : bloqué par les filtres de sécurité"
-
-#, python-format
-msgid "AI review, %(percent)s%% sure"
-msgstr "Examen par l'IA, certitude de %(percent)s%%"
-
-#, python-format
-msgid "%(source)s, %(percent)s%% sure"
-msgstr "%(source)s, certitude de %(percent)s%%"
-
-#, python-format
-msgid "by %(author)s"
-msgstr "par %(author)s"
-
-msgid "already deleted"
-msgstr "déjà supprimé"
-
-msgid "Not a problem"
-msgstr "Pas de problème"
-
-msgid "Delete post"
-msgstr "Supprimer la publication"
-
-msgid "Account"
-msgstr "Compte"
-
-#, python-format
-msgid "joined %(joined)s"
-msgstr "inscrit %(joined)s"
-
-msgid "Suspend account"
-msgstr "Suspendre le compte"
-
-msgid "Delete account"
-msgstr "Supprimer le compte"
-
 msgid "Site statistics"
 msgstr "Statistiques du site"
 
@@ -3678,6 +3897,156 @@ msgstr "Faux comptes potentiels"
 
 msgid "out of"
 msgstr "sur"
+
+#, python-format
+msgid "%(rep)s reputation"
+msgstr "%(rep)s de réputation"
+
+#, python-format
+msgid "joined %(joined)s"
+msgstr "inscrit %(joined)s"
+
+#, python-format
+msgid "%(counter)s post"
+msgid_plural "%(counter)s posts"
+msgstr[0] "%(counter)s message"
+msgstr[1] "%(counter)s messages"
+
+msgid "moderator"
+msgstr "modérateur"
+
+msgid "Everything waiting for a moderator: new members' first posts, posts and accounts reported by members, and reports from automated checks."
+msgstr "Tout ce qui attend un modérateur : premiers messages des nouveaux membres, messages et comptes signalés par des membres, et rapports des vérifications automatiques."
+
+msgid "Changed your mind?"
+msgstr "Vous avez changé d'avis ?"
+
+msgid "Undo the last action"
+msgstr "Annuler la dernière action"
+
+msgid "Show"
+msgstr "Afficher"
+
+msgid "Keyboard: j and k move to the next and previous item; Tab reaches its buttons."
+msgstr "Clavier : j et k passent à l'élément suivant et précédent ; Tab atteint ses boutons."
+
+msgid "Reviewing new members' first posts is off."
+msgstr "La vérification des premiers messages des nouveaux membres est désactivée."
+
+msgid "Turn it on in the moderation settings"
+msgstr "L'activer dans les paramètres de modération"
+
+msgid "First posts to review"
+msgstr "Premiers messages à vérifier"
+
+msgid "Hidden until approved"
+msgstr "Caché jusqu'à approbation"
+
+msgid "Why it's here:"
+msgstr "Pourquoi il est ici :"
+
+msgid "Approve"
+msgstr "Approuver"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+#, python-format
+msgid "Showing the oldest of %(counter)s posts."
+msgid_plural "Showing the oldest of %(counter)s posts."
+msgstr[0] "Affichage des plus anciens parmi %(counter)s messages."
+msgstr[1] "Affichage des plus anciens parmi %(counter)s messages."
+
+msgid "Flagged posts"
+msgstr "Messages signalés"
+
+#, python-format
+msgid "%(counter)s flag"
+msgid_plural "%(counter)s flags"
+msgstr[0] "%(counter)s signalement"
+msgstr[1] "%(counter)s signalements"
+
+#, python-format
+msgid "%(name)s: %(reason)s"
+msgstr "%(name)s : %(reason)s"
+
+msgid "Dismiss"
+msgstr "Ignorer"
+
+msgid "Reported users"
+msgstr "Utilisateurs signalés"
+
+msgid "Account"
+msgstr "Compte"
+
+#, python-format
+msgid "%(counter)s report"
+msgid_plural "%(counter)s reports"
+msgstr[0] "%(counter)s signalement"
+msgstr[1] "%(counter)s signalements"
+
+msgid "Suspend"
+msgstr "Suspendre"
+
+msgid "Reported by automated checks"
+msgstr "Signalé par les contrôles automatiques"
+
+msgid "AI review: blocked by the safety filters"
+msgstr "Examen par l'IA : bloqué par les filtres de sécurité"
+
+#, python-format
+msgid "AI review, %(percent)s%% sure"
+msgstr "Examen par l'IA, certitude de %(percent)s%%"
+
+#, python-format
+msgid "%(source)s, %(percent)s%% sure"
+msgstr "%(source)s, certitude de %(percent)s%%"
+
+msgid "already deleted"
+msgstr "déjà supprimé"
+
+msgid "Not a problem"
+msgstr "Pas de problème"
+
+msgid "Delete post"
+msgstr "Supprimer la publication"
+
+msgid "Suspend account"
+msgstr "Suspendre le compte"
+
+msgid "Delete account"
+msgstr "Supprimer le compte"
+
+msgid "Nothing is waiting for a moderator. Well done!"
+msgstr "Rien n'attend de modérateur. Bravo !"
+
+msgid "Nothing is waiting in this list."
+msgstr "Rien n'attend dans cette liste."
+
+msgid "Delete as spam"
+msgstr "Supprimer comme spam"
+
+msgid "Delete as spam?"
+msgstr "Supprimer comme spam ?"
+
+#, python-format
+msgid "%(name)s will be suspended and their post deleted."
+msgid_plural "%(name)s will be suspended and their %(counter)s posts deleted."
+msgstr[0] "%(name)s sera suspendu et son message supprimé."
+msgstr[1] "%(name)s sera suspendu et ses %(counter)s messages supprimés."
+
+msgid "The post will be deleted. You can also:"
+msgstr "Le message sera supprimé. Vous pouvez aussi :"
+
+#, python-format
+msgid "Suspend %(name)s"
+msgstr "Suspendre %(name)s"
+
+#, python-format
+msgid "Delete their other post (%(counter)s)"
+msgid_plural "Delete their other posts (%(counter)s)"
+msgstr[0] "Supprimer son autre message (%(counter)s)"
+msgstr[1] "Supprimer ses autres messages (%(counter)s)"
 
 msgid "rep"
 msgstr "rép."
@@ -3829,9 +4198,6 @@ msgstr "Pages"
 msgid "Are you sure you want to delete this page?"
 msgstr "Voulez-vous vraiment supprimer cette page ?"
 
-msgid "Delete"
-msgstr "Supprimer"
-
 msgid "There are no custom pages yet."
 msgstr "Il n'y a pas encore de pages personnalisées."
 
@@ -3859,9 +4225,6 @@ msgstr "Étiquette"
 
 msgid "All questions"
 msgstr "Toutes les questions"
-
-msgid "Show"
-msgstr "Afficher"
 
 msgid "questions asked"
 msgstr "questions posées"
@@ -4913,6 +5276,15 @@ msgstr "Activer les notifications par e-mail"
 msgid "Every email also has a link to stop it, no sign-in needed."
 msgstr "Chaque e-mail contient aussi un lien pour l'arrêter, sans besoin de se connecter."
 
+msgid "How often should we email you?"
+msgstr "À quelle fréquence voulez-vous recevoir des e-mails ?"
+
+msgid "For answers, comments, mentions and new questions. Too many emails? Choose a summary instead of unsubscribing."
+msgstr "Pour les réponses, commentaires, mentions et nouvelles questions. Trop d'e-mails ? Choisissez un résumé plutôt que de vous désabonner."
+
+msgid "Email notifications are off, so this applies once you turn them on."
+msgstr "Les notifications par e-mail sont désactivées ; ce choix s'appliquera quand vous les réactiverez."
+
 msgid "Tags you follow"
 msgstr "Étiquettes que vous suivez"
 
@@ -4973,6 +5345,9 @@ msgstr "Autres e-mails"
 msgid "Someone mentions me with <code>@username</code>"
 msgstr "Quelqu'un me mentionne avec <code>@username</code>"
 
+msgid "Send mentions right away, even with a daily or weekly summary"
+msgstr "Envoyer les mentions immédiatement, même avec un résumé quotidien ou hebdomadaire"
+
 msgid "A daily digest of site activity"
 msgstr "Un résumé quotidien de l'activité du site"
 
@@ -4981,9 +5356,6 @@ msgstr "Enregistrer les paramètres d'e-mail"
 
 msgid "Suspend user"
 msgstr "Suspendre l'utilisateur"
-
-msgid "Suspend"
-msgstr "Suspendre"
 
 msgid "Indefinitely"
 msgstr "Indéfiniment"
@@ -5185,6 +5557,49 @@ msgstr "Vous avez publié le nombre maximal de réponses pour une heure. Veuille
 msgid "You have posted the maximum number of comments for one hour. Please wait a while."
 msgstr "Vous avez publié le nombre maximal de commentaires pour une heure. Veuillez patienter un moment."
 
+msgid "As it happens"
+msgstr "Au fil de l'eau"
+
+msgid "Daily summary"
+msgstr "Résumé quotidien"
+
+msgid "Weekly summary"
+msgstr "Résumé hebdomadaire"
+
+msgid "Never"
+msgstr "Jamais"
+
+msgid "Mentions"
+msgstr "Mentions"
+
+msgid "Answers to your questions"
+msgstr "Réponses à vos questions"
+
+msgid "New answers on questions you follow"
+msgstr "Nouvelles réponses aux questions que vous suivez"
+
+msgid "New comments"
+msgstr "Nouveaux commentaires"
+
+msgid "Accepted answers"
+msgstr "Réponses acceptées"
+
+msgid "New questions"
+msgstr "Nouvelles questions"
+
+msgid "A separate email for each answer, comment or new question, as soon as it's posted."
+msgstr "Un e-mail par réponse, commentaire ou nouvelle question, dès sa publication."
+
+msgid "One email a day with everything new. No news, no email."
+msgstr "Un e-mail par jour avec toutes les nouveautés. Rien de neuf, pas d'e-mail."
+
+#, python-format
+msgid "One email every %(day)s with everything new. No news, no email."
+msgstr "Un e-mail chaque %(day)s avec toutes les nouveautés. Rien de neuf, pas d'e-mail."
+
+msgid "No activity emails. Emails about your account, such as sign-in links, still arrive."
+msgstr "Aucun e-mail d'activité. Les e-mails liés à votre compte, comme les liens de connexion, arrivent toujours."
+
 msgid "People who follow a question, when someone answers it."
 msgstr "Les personnes qui suivent une question, quand quelqu'un y répond."
 
@@ -5197,14 +5612,8 @@ msgstr "L'auteur de la réponse et les abonnés qui l'ont demandé."
 msgid "Someone mentioned with @username in a post or comment."
 msgstr "Une personne mentionnée avec @utilisateur dans un message ou un commentaire."
 
-msgid "New question"
-msgstr "Nouvelle question"
-
 msgid "People who want new questions, or new questions in tags they follow."
 msgstr "Les personnes qui veulent les nouvelles questions, ou celles des étiquettes qu'elles suivent."
-
-msgid "New member"
-msgstr "Nouveau membre"
 
 msgid "People who asked to hear about new members."
 msgstr "Les personnes qui ont demandé à être prévenues des nouveaux membres."
@@ -5214,6 +5623,18 @@ msgstr "Résumé quotidien"
 
 msgid "People subscribed to the daily digest."
 msgstr "Les personnes abonnées au résumé quotidien."
+
+msgid "Daily or weekly summary"
+msgstr "Résumé quotidien ou hebdomadaire"
+
+msgid "Members who chose a daily or weekly summary instead of separate activity emails."
+msgstr "Les membres qui ont choisi un résumé quotidien ou hebdomadaire au lieu d'e-mails d'activité séparés."
+
+msgid "Post reviewed"
+msgstr "Message vérifié"
+
+msgid "New members whose post waited for review, when a moderator approves or removes it."
+msgstr "Les nouveaux membres dont le message attendait une vérification, quand un modérateur l'approuve ou le retire."
 
 msgid "Accept reminder"
 msgstr "Rappel d'acceptation"
@@ -5263,6 +5684,9 @@ msgstr "sel"
 msgid "hash"
 msgstr "hachage"
 
+msgid "Thanks! Your post will appear once a moderator has reviewed it."
+msgstr "Merci ! Votre message apparaîtra après la vérification d'un modérateur."
+
 msgid "all emails from this site"
 msgstr "tous les e-mails de ce site"
 
@@ -5296,6 +5720,18 @@ msgstr "le résumé quotidien"
 msgid "Stop the daily digest"
 msgstr "Arrêter le résumé quotidien"
 
+msgid "the daily or weekly summary of activity"
+msgstr "le résumé quotidien ou hebdomadaire de l'activité"
+
+msgid "Stop these summaries"
+msgstr "Arrêter ces résumés"
+
+msgid "a daily summary"
+msgstr "un résumé quotidien"
+
+msgid "a weekly summary"
+msgstr "un résumé hebdomadaire"
+
 msgid "you follow this question"
 msgstr "vous suivez cette question"
 
@@ -5310,6 +5746,12 @@ msgstr "vous avez demandé à être informé de l'arrivée de nouveaux membres"
 
 msgid "you are subscribed to the daily digest"
 msgstr "vous êtes abonné au résumé quotidien"
+
+msgid "you chose a daily summary of the activity you follow"
+msgstr "vous avez choisi un résumé quotidien de l'activité que vous suivez"
+
+msgid "you chose a weekly summary of the activity you follow"
+msgstr "vous avez choisi un résumé hebdomadaire de l'activité que vous suivez"
 
 msgid "You are the only administrator. Make someone else an administrator first."
 msgstr "Vous êtes le seul administrateur. Nommez d'abord quelqu'un d'autre administrateur."
@@ -5354,19 +5796,16 @@ msgstr "Site actuellement en maintenance. Nous serons bientôt de retour"
 msgid "The post has been deleted."
 msgstr "La publication a été supprimée."
 
+#, python-format
+msgid "The account %s has been suspended."
+msgstr "Le compte %s a été suspendu."
+
 msgid "This account has posts; suspend it instead."
 msgstr "Ce compte a des publications ; suspendez-le plutôt."
 
 #, python-format
 msgid "The account %s has been deleted."
 msgstr "Le compte %s a été supprimé."
-
-msgid "Spam account"
-msgstr "Compte de spam"
-
-#, python-format
-msgid "The account %s has been suspended."
-msgstr "Le compte %s a été suspendu."
 
 msgid "The report has been dismissed."
 msgstr "Le signalement a été rejeté."
@@ -5686,6 +6125,59 @@ msgstr "Merci pour votre avis !"
 
 msgid "We look forward to hearing your feedback! Please, give it next time :)"
 msgstr "Nous avons hâte de connaître votre avis ! N'hésitez pas à nous le donner la prochaine fois :)"
+
+msgid "Posted under a post that is waiting for review"
+msgstr "Publié sous un message en attente de vérification"
+
+msgid "One of the first posts of a new member"
+msgstr "L'un des premiers messages d'un nouveau membre"
+
+#, python-format
+msgid "The author has less than %(rep)d reputation"
+msgstr "L'auteur a moins de %(rep)d de réputation"
+
+msgid "Everything"
+msgstr "Tout"
+
+msgid "First posts"
+msgstr "Premiers messages"
+
+msgid "AI moderation reports"
+msgstr "Rapports de modération de l'IA"
+
+msgid "Spam account"
+msgstr "Compte de spam"
+
+msgid "The post is approved."
+msgstr "Le message est approuvé."
+
+#, python-format
+msgid "%(count)d post deleted as spam."
+msgid_plural "%(count)d posts deleted as spam."
+msgstr[0] "%(count)d message supprimé comme spam."
+msgstr[1] "%(count)d messages supprimés comme spam."
+
+#, python-format
+msgid "%(count)d flag dismissed; the post stays."
+msgid_plural "%(count)d flags dismissed; the post stays."
+msgstr[0] "%(count)d signalement ignoré ; le message reste."
+msgstr[1] "%(count)d signalements ignorés ; le message reste."
+
+msgid "Unknown action."
+msgstr "Action inconnue."
+
+msgid "Moderators and administrators can't be suspended from here."
+msgstr "Les modérateurs et administrateurs ne peuvent pas être suspendus d'ici."
+
+msgid "Reported by members"
+msgstr "Signalé par des membres"
+
+#, python-format
+msgid "The reports about %s have been dismissed."
+msgstr "Les signalements concernant %s ont été ignorés."
+
+msgid "Undone."
+msgstr "Annulé."
 
 msgid "Most <strong>recently updated</strong> questions"
 msgstr "Questions <strong>mises à jour le plus récemment</strong>"
@@ -6610,6 +7102,10 @@ msgstr "Exporter la base de données au format XML"
 
 msgid "Available backups"
 msgstr "Sauvegardes disponibles"
+
+#, python-format
+msgid "by %(author)s"
+msgstr "par %(author)s"
 
 msgid "No backups yet. Start one below; finished backups are listed here for download."
 msgstr "Pas encore de sauvegarde. Lancez-en une ci-dessous ; les sauvegardes terminées apparaîtront ici pour le téléchargement."

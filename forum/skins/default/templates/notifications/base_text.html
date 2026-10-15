@@ -16,7 +16,8 @@ It is rendered without HTML escaping, and lines are stripped of template indenta
 
 {% if unsubscribe %}
 {% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}
-{% if unsubscribe.specific_url %}{{ unsubscribe.specific_label }}: {{ unsubscribe.specific_url }}
+{% if unsubscribe.summary_url %}{% trans "Too many emails?" %} {{ unsubscribe.summary_label }}: {{ unsubscribe.summary_url }}
+{% endif %}{% if unsubscribe.specific_url %}{{ unsubscribe.specific_label }}: {{ unsubscribe.specific_url }}
 {% endif %}{% trans "Choose which emails you get" %}: {{ unsubscribe.manage_url }}
 {% trans "Unsubscribe from all emails" %}: {{ unsubscribe.all_url }}
 {% trans "How email notifications work" %}: {{ unsubscribe.help_url }}

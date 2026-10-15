@@ -39,7 +39,7 @@ def candidate_questions(title, limit=10):
     match = Q()
     for word in words:
         match |= Q(title__icontains=word) | Q(tagnames__icontains=word)
-    pool = Question.objects.filter_state(deleted=False).filter(match).order_by('-added_at')[:300]
+    pool = Question.objects.public().filter(match).order_by('-added_at')[:300]
 
     def score(question):
         title, tags = question.title.lower(), question.tagnames.lower()

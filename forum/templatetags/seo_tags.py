@@ -57,7 +57,7 @@ def _answer(answer):
 @register.simple_tag
 def question_structured_data(question):
     """schema.org QAPage markup (https://developers.google.com/search/docs/appearance/structured-data/qapage)."""
-    answers = list(question.answers.filter_state(deleted=False).order_by('-score', 'added_at')[:50])
+    answers = list(question.answers.public().order_by('-score', 'added_at')[:50])
     accepted = [a for a in answers if a.nis.accepted]
     others = [a for a in answers if not a.nis.accepted][:MAX_SUGGESTED_ANSWERS]
 

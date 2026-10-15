@@ -22,6 +22,25 @@
         &middot; {% trans "Every email also has a link to stop it, no sign-in needed." %}</p>
 </section>
 
+<section class="settings-card email-frequency" aria-labelledby="email-frequency-title">
+    <h2 id="email-frequency-title">{% trans "How often should we email you?" %}</h2>
+    <p class="email-settings-hint" id="email-frequency-hint">{% trans "For answers, comments, mentions and new questions. Too many emails? Choose a summary instead of unsubscribing." %}</p>
+    {% if not notifications_on %}<p class="email-settings-hint">{% trans "Email notifications are off, so this applies once you turn them on." %}</p>{% endif %}
+    {# The radios belong to the settings form below (form="email-settings-form"). #}
+    <fieldset class="frequency-options" aria-labelledby="email-frequency-title" aria-describedby="email-frequency-hint">
+        {% for radio, hint in frequency_options %}
+        <label class="frequency-option" for="{{ radio.id_for_label }}">
+            {{ radio.tag }}
+            <span class="frequency-text"><span class="frequency-name">{{ radio.choice_label }}</span>
+                <span class="frequency-hint">{{ hint }}</span></span>
+        </label>
+        {% endfor %}
+    </fieldset>
+    <div class="settings-actions">
+        <button type="submit" form="email-settings-form" class="submit" name="save">{% trans "Save" %}</button>
+    </div>
+</section>
+
 <section class="settings-card" aria-labelledby="followed-tags-title">
     <h2 id="followed-tags-title">{% trans "Tags you follow" %}</h2>
     <p class="email-settings-hint">{% blocktrans %}You're told about new questions in these tags (see "New questions in tags I follow" below). To follow a tag, open it and press <em>Follow tag</em>.{% endblocktrans %}</p>
@@ -36,7 +55,7 @@
     {% endif %}
 </section>
 
-<form method="post" class="email-settings-form settings-card">
+<form method="post" class="email-settings-form settings-card" id="email-settings-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
@@ -67,6 +86,7 @@
     <fieldset>
         <legend>{% trans "Other emails" %}</legend>
         <label>{{ form.notify_reply_to_comments }} {% blocktrans %}Someone mentions me with <code>@username</code>{% endblocktrans %}</label>
+        <label class="email-sub-option">{{ form.mentions_immediate }} {% trans "Send mentions right away, even with a daily or weekly summary" %}</label>
         <label>{{ form.send_digest }} {% trans "A daily digest of site activity" %}</label>
     </fieldset>
 

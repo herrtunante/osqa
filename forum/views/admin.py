@@ -18,10 +18,11 @@ from forum.forms import MaintenanceModeForm, PageForm, CreateUserForm
 from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
 from forum.utils import security_log
+from forum.utils import review
 from forum.utils.mail import send_template_email
 from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
-from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction, SuspendAction
+from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction
 from forum import settings
 
 TOOLS = {}
@@ -366,29 +367,34 @@ def maintenance(request):
                                            })
 
 
-@moderation_page
-def flagged_posts(request):
-    return ('osqaadmin/flagged_posts.html', {
-    'flagged_posts': get_flagged_posts(),
-    'moderation_reports': ModerationReport.open_reports()[:50],
-    })
-
-
 @require_POST
 @staff_user_required
 def resolve_moderation_report(request, id):
-    """Dismiss an automated report, or act on it: delete the reported post,
-    or suspend / delete the reported account."""
+    """Dismiss an automated report, or act on it: delete the reported post
+    (also as spam: suspend the author and delete their other posts), suspend
+    its author, or suspend / delete the reported account. Used by the AI
+    reports in the moderation inbox (forum/views/moderation.py)."""
+    from forum.views import moderation
     report = get_object_or_404(ModerationReport, id=id)
     resolution = request.POST.get('resolution')
+    done_url = moderation._next_url(request)
+    done = []
 
     if report.node_id:
         node = report.node.leaf
         if resolution == 'delete':
-            if not node.nis.deleted:
-                DeleteAction(user=request.user, node=node, ip=request.META['REMOTE_ADDR']).save()
+            done.append(moderation.delete_post(request, node))
             messages.info(request, _("The post has been deleted."))
             resolution = 'deleted'
+        elif resolution == 'spam':
+            suspend, purge = bool(request.POST.get('suspend_author')), bool(request.POST.get('delete_other_posts'))
+            done, count = moderation.delete_as_spam(request, node, node.author, suspend=suspend, purge=purge)
+            messages.info(request, _("The post has been deleted."))
+            resolution = 'deleted'
+        elif resolution == 'suspend':
+            done.append(moderation.suspend_author(request, node.author))
+            messages.info(request, _("The account %s has been suspended.") % node.author.username)
+            resolution = 'suspended'
         else:
             resolution = 'dismissed'
         reports = ModerationReport.objects.filter(node=report.node, resolved_at=None)
@@ -399,15 +405,14 @@ def resolve_moderation_report(request, id):
         if resolution == 'delete_account':
             if Node.objects.filter(author=target).exists():
                 messages.error(request, _("This account has posts; suspend it instead."))
-                return HttpResponseRedirect(reverse('admin_flagged_posts'))
+                return HttpResponseRedirect(done_url)
             messages.info(request, _("The account %s has been deleted.") % target.username)
             security_log.event('account_deleted', request, account=target, via='moderation report')
             target.delete()  # also removes its reports
-            return HttpResponseRedirect(reverse('admin_flagged_posts'))
+            review.invalidate_counts()
+            return HttpResponseRedirect(done_url)
         if resolution == 'suspend':
-            if not target.is_suspended():
-                SuspendAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data={
-                    'bantype': 'indefinitely', 'publicmsg': _('Spam account'), 'suspended': target})
+            done.append(moderation.suspend_author(request, target))
             messages.info(request, _("The account %s has been suspended.") % target.username)
             resolution = 'suspended'
         else:
@@ -419,7 +424,9 @@ def resolve_moderation_report(request, id):
     for open_report in reports:
         open_report.resolve(request.user, resolution)
 
-    return HttpResponseRedirect(reverse('admin_flagged_posts'))
+    moderation._remember(request, done, resolution)
+    review.invalidate_counts()
+    return HttpResponseRedirect(done_url)
 
 @admin_page
 def static_pages(request):

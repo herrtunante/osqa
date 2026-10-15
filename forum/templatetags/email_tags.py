@@ -36,7 +36,8 @@ class MultiUserMailMessage(template.Node):
         for recipient in recipients:
             context['embeddedmedia'] = {}
             context['recipient'] = recipient
-            links = unsubscribe.links(recipient, kind, context.get('email_question')) if kind else None
+            links = unsubscribe.links(recipient, kind, context.get('email_question'),
+                                      offer_summary=context.get('email_summary_offer', True)) if kind else None
             context['unsubscribe'] = links
             self.nodelist.render(context)
             headers = {}

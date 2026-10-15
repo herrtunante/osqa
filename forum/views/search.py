@@ -22,6 +22,7 @@ from forum.search import engine
 from forum.search.query import parse, words
 from forum.search.text import highlighter, html_to_text, snippet, stem
 from forum.utils import pagination
+from forum.utils.review import hidden_q
 
 from . import decorators
 
@@ -54,7 +55,7 @@ def _page_details(questions, query):
     """For each question on the page: answer counts and a snippet."""
     ids = [q.id for q in questions]
     counts = {row['parent_id']: row for row in Node.objects.filter(parent_id__in=ids, node_type='answer').exclude(
-        state_string__contains='(deleted)').values('parent_id').annotate(
+        hidden_q()).values('parent_id').annotate(
         answers=Count('id'), accepted=Count('id', filter=Q(marked=True)))}
     documents = SearchDocument.objects.in_bulk(ids)
     regex = highlighter(query.highlight_terms())
@@ -144,7 +145,7 @@ def _suggested_questions(query, kind, word):
         # word starting with it.
         # Titles starting with it first.
         partial = words(word)[-1]
-        questions = engine.apply_filters(Question.objects.filter_state(deleted=False), query)
+        questions = engine.apply_filters(Question.objects.public(), query)
         for match in (Q(title__istartswith=partial), Q(title__icontains=' ' + partial)):
             if len(found) < limit:
                 found += list(questions.filter(match).exclude(id__in=[q.id for q in found]).order_by(
@@ -152,7 +153,7 @@ def _suggested_questions(query, kind, word):
 
     counts = {row['parent_id']: row for row in Node.objects.filter(
         parent_id__in=[q.id for q in found], node_type='answer').exclude(
-        state_string__contains='(deleted)').values('parent_id').annotate(
+        hidden_q()).values('parent_id').annotate(
         answers=Count('id'), accepted=Count('id', filter=Q(marked=True)))}
     results = []
     for question in found:

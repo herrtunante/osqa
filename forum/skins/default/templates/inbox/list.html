@@ -26,6 +26,8 @@
                 {% elif item.kind == "mention" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> mentioned you in <em>{{ title }}</em>{% endblocktrans %}
                 {% elif item.kind == "accepted" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> accepted your answer to <em>{{ title }}</em>{% endblocktrans %}
                 {% elif item.kind == "badge" %}{% blocktrans with badge=item.text %}You earned the <strong>{{ badge }}</strong> badge{% endblocktrans %}
+                {% elif item.kind == "approved" %}{% blocktrans with title=question.title %}A moderator approved your post in <em>{{ title }}</em>: it is published now{% endblocktrans %}
+                {% elif item.kind == "removed" %}{% blocktrans with title=question.title %}A moderator removed your post in <em>{{ title }}</em>{% endblocktrans %}
                 {% elif item.kind == "reminder" %}{% blocktrans with title=question.title %}Your question <em>{{ title }}</em> has answers. If one solved it, accept it so others know.{% endblocktrans %}
                 {% endif %}
                 </span>

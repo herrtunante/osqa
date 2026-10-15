@@ -21,6 +21,7 @@ from smtplib import SMTPRecipientsRefused
 from forum import settings
 from django.template import loader, Context, Template
 from forum.utils.html import sanitize_html
+from forum.utils import metrics
 from forum.context import application_settings
 from threading import Thread
 
@@ -67,6 +68,7 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
     def error(text):
         logging.error(text)
         errors.append(text)
+        metrics.count('osqa_emails_failed_total')
 
     if not settings.EMAIL_HOST:
         errors.append('No email server is set (Email host is empty), so no email was sent.')
@@ -130,6 +132,7 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
 
             try:
                 connection.sendmail(sender, [recipient.email], msgRoot.as_string())
+                metrics.count('osqa_emails_sent_total')
             except SMTPRecipientsRefused as e:
                 error("Email address not accepted.  Exception: %s" % e)
             except Exception as e:

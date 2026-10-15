@@ -97,6 +97,42 @@ def digest(recipient):
             'new_member_count': 3, 'show_all_users': False, 'flagged_count': 2, 'email_kind': 'digest'}
 
 
+def summary(recipient):
+    """A weekly summary with one or more items in each section."""
+    from forum.utils.email_frequency import Summary
+    bob, carol, question, answer = _people()
+    own = _question(30, 'Why does my map not load offline?', recipient, '<p>…</p>', tags='maps offline')
+    own_answer = Answer(id=SAMPLE_ID + 31, node_type='answer', parent=own, abs_parent=own, author=bob,
+                        body='<p>Download the map area first under <em>Settings &gt; Offline maps</em>.</p>',
+                        added_at=datetime.datetime.now())
+    comment = Comment(id=SAMPLE_ID + 32, node_type='comment', parent=answer, abs_parent=question, author=carol,
+                      body='<p>Thanks! Does the merged file keep the GPS columns too?</p>',
+                      added_at=datetime.datetime.now())
+    mention = Comment(id=SAMPLE_ID + 33, node_type='comment', parent=answer, abs_parent=question, author=carol,
+                      body='<p>@%s have you seen this with older surveys?</p>' % recipient.username,
+                      added_at=datetime.datetime.now())
+    new = _question(34, 'Can I translate a survey into Swahili?', carol, '<p>…</p>', tags='translation')
+
+    def item(section, kind, node, actor, question, own=False):
+        return {'section': section, 'kind': kind, 'node': node, 'actor': actor, 'question': question,
+                'url': node.get_absolute_url(), 'own': own}
+    items = [
+        item('mention', 'mention', mention, carol, question),
+        item('answer_own', 'answer', own_answer, bob, own),
+        item('answer', 'answer', answer, bob, question),
+        item('comment', 'comment', comment, carol, question),
+        item('accepted', 'accepted', answer, carol, question),
+        item('new_question', 'new_question', new, carol, new),
+        {'section': 'member', 'kind': 'member', 'actor': _user(3, 'dana'), 'url': _user(3, 'dana').get_profile_url()},
+    ]
+    return {'summaries': {recipient.id: Summary(items, 'w')}, 'period': 'w', 'email_kind': 'summary_weekly'}
+
+
+def post_reviewed(recipient):
+    bob, carol, question, answer = _people()
+    return {'node': answer, 'outcome': 'approved'}
+
+
 def accept_reminder(recipient):
     bob, carol, question, answer = _people()
     return {'question': question, 'email_kind': 'question', 'email_question': question}
@@ -144,6 +180,12 @@ KINDS = {
                    'notifications/newmember.html', new_member),
     'digest': (_lazy("Daily digest"), _lazy("People subscribed to the daily digest."),
                'notifications/digest.html', digest),
+    'summary': (_lazy("Daily or weekly summary"),
+                _lazy("Members who chose a daily or weekly summary instead of separate activity emails."),
+                'notifications/summary.html', summary),
+    'post-reviewed': (_lazy("Post reviewed"),
+                      _lazy("New members whose post waited for review, when a moderator approves or removes it."),
+                      'notifications/post_reviewed.html', post_reviewed),
     'accept-reminder': (_lazy("Accept reminder"), _lazy("Askers whose question has answers but none accepted."),
                         'notifications/acceptreminder.html', accept_reminder),
     'feedback': (_lazy("Feedback"), _lazy("Administrators, when someone sends the feedback form."),

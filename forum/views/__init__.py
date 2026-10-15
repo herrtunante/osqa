@@ -11,6 +11,7 @@ from . import email_prefs
 from . import inbox
 from . import pwa
 from . import search
+from . import moderation
 
 #from forum.modules.decorators import decorate_all
 

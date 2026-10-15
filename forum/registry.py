@@ -43,6 +43,8 @@ ui.register(ui.HEADER_LINKS,
                     weight=100, name='ACCOUNT'),
             ui.Include('inbox/bell.html', visibility=ui.Visibility.AUTHENTICATED, weight=150, name='NOTIFICATIONS'),
 
+            # The moderation inbox, with the number of items waiting.
+            ui.Include('moderation/header_link.html', visibility=ui.Visibility.STAFF, weight=60, name='MODERATION'),
             ui.Link(
                     visibility=ui.Visibility.STAFF,
                     text=_lazy('support queue'),

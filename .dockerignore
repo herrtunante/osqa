@@ -18,6 +18,7 @@ e2e/vendor/
 
 # Local configuration and data: mounted at runtime, never baked into the image
 settings_local.py
+settings_local_extra.py
 .env
 importData/
 *.sql
@@ -31,6 +32,7 @@ forum/upfiles/*
 cache/
 log/
 tmp/
+backups/
 *.log
 
 # OS files

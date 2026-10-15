@@ -92,6 +92,9 @@ def post_classes(post):
     if post.nis.deleted:
         classes.append('deleted')
 
+    if post.nis.pending_review:
+        classes.append('pending-review')
+
     if post.node_type == "answer":
         if (not settings.DISABLE_ACCEPTING_FEATURE) and post.nis.accepted:
             classes.append('accepted-answer')
@@ -217,7 +220,8 @@ def post_controls(post, user):
     return {'controls': controls, 'menu': menu, 'post': post, 'user': user}
 
 def _visible_comments(post):
-    """The post's comments (not deleted), in display order.
+    """The post's comments (not deleted; held for review only for their
+    author and moderators), in display order.
 
     A question page shows the comments of the question and of every answer:
     load all of them in one query (comments whose parent is the question or
@@ -230,13 +234,14 @@ def _visible_comments(post):
     order = '-added_at' if settings.SHOW_LATEST_COMMENTS_FIRST else 'added_at'
     request = REQUEST_HOLDER.request
     if request is None:
-        return list(post.comments.filter_state(deleted=False).order_by(order))
+        return list(post.comments.public().order_by(order))
+    viewer = getattr(request, 'user', None)
 
     root_id = post.abs_parent_id or post.id
     memo = request.__dict__.setdefault('_osqa_comments', {})
     if root_id not in memo:
         comments = list(Comment.objects.filter(Q(parent_id=root_id) | Q(parent__parent_id=root_id))
-                        .filter_state(deleted=False).order_by(order))
+                        .visible_to(viewer).order_by(order))
         prefetch_cached_fk(comments, 'author', 'parent')
         grouped = {}
         for comment in comments:
@@ -245,7 +250,7 @@ def _visible_comments(post):
     grouped = memo[root_id]
     if post.id not in grouped and post.id != root_id and post.parent_id != root_id:
         # Not a direct child of the question (abs_parent out of date): ask directly.
-        grouped[post.id] = list(post.comments.filter_state(deleted=False).order_by(order))
+        grouped[post.id] = list(post.comments.visible_to(viewer).order_by(order))
     return grouped.get(post.id, [])
 
 
@@ -276,6 +281,7 @@ def _comments(post, user):
 
         context['user'] = c.user
         context['comment'] = c.comment
+        context['held'] = bool(c.nis.pending_review)
         context.update(dict(c.__dict__))
         comments.append(context)
 
@@ -343,3 +349,15 @@ def accepted_answer(question):
     if settings.DISABLE_ACCEPTING_FEATURE:
         return None
     return question.accepted_answers.order_by('id').first()
+
+
+@register.inclusion_tag('node/review_notice.html')
+def review_notice(post, user):
+    """"Waiting for review" on a post in the first posts review queue: for its
+    author while it is held, and for moderators (with a link to the inbox)."""
+    from forum.utils import review
+    held = bool(post.nis.pending_review)
+    moderator = review.is_moderator(user)
+    show = (held and (moderator or (user.is_authenticated and user.id == post.author_id))) or \
+        (moderator and bool(post.nis.unreviewed))
+    return {'show': show, 'held': held, 'moderator': moderator, 'post': post}

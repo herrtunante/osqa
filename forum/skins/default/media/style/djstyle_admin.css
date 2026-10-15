@@ -516,7 +516,266 @@ input[type="file"]::file-selector-button:hover {
     color: var(--body-fg, #333);
 }
 
-/* ---- Admin > Flagged posts: automated reports ---------------------------- */
+/* ---- Moderation inbox (osqaadmin/moderation_inbox.html) ------------------ */
+
+.mod-inbox {
+    max-width: 960px;
+}
+
+.mod-filters ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+.mod-filters li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mod-filters a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--osqa-tap);
+    padding: 4px 12px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 999px;
+    color: var(--body-fg, #333);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.mod-filters a.on {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+.mod-count {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--darkened-bg, #f3f3f3);
+    color: var(--body-fg, #333);
+    font-size: 0.85em;
+    font-weight: 600;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.mod-keys, .mod-more, .mod-empty, .mod-note {
+    color: var(--body-quiet-color, #666);
+}
+
+.mod-undo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--osqa-notice-border);
+    border-radius: 6px;
+    background: var(--osqa-notice-bg);
+    color: var(--osqa-notice-fg);
+}
+
+.mod-section {
+    margin: 20px 0 8px;
+}
+
+.mod-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg, #333);
+    font-size: 1.1em;
+    text-transform: none;
+}
+
+.mod-card {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+}
+
+.mod-card:focus {
+    outline: 3px solid var(--button-bg);
+    outline-offset: 2px;
+}
+
+.mod-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+}
+
+.mod-type {
+    color: var(--body-quiet-color, #666);
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.mod-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--darkened-bg, #f3f3f3);
+    color: var(--body-fg, #333);
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.mod-tag-held, .mod-tag-flag {
+    background: var(--osqa-notice-bg);
+    color: var(--osqa-notice-fg);
+}
+
+.mod-title {
+    flex-basis: 100%;
+    margin: 4px 0 0;
+    padding: 0;
+    color: var(--body-fg, #333);
+    font-size: 1em;
+    overflow-wrap: anywhere;
+}
+
+.mod-title a {
+    text-decoration: underline;
+}
+
+/* The post itself, kept short: it scrolls inside its box. */
+.mod-content {
+    max-height: 14em;
+    margin: 8px 0;
+    padding: 8px 10px;
+    overflow: auto;
+    border-left: 3px solid var(--hairline-color, #ccc);
+    background: var(--darkened-bg, #f8f8f8);
+    overflow-wrap: anywhere;
+}
+
+.mod-content > :first-child {
+    margin-top: 0;
+}
+
+.mod-content > :last-child {
+    margin-bottom: 0;
+}
+
+.mod-content img, .mod-content pre, .mod-content table {
+    max-width: 100%;
+}
+
+.mod-author {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin: 6px 0;
+    color: var(--body-quiet-color, #666);
+}
+
+.mod-author a {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.mod-why {
+    margin: 6px 0;
+}
+
+.mod-reasons {
+    margin: 4px 0 0;
+    padding-left: 20px;
+}
+
+.mod-reasons li {
+    list-style: disc;
+    overflow-wrap: anywhere;
+}
+
+.mod-actions, .mod-dialog-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+#moderation-inbox .mod-actions button, #moderation-inbox .mod-dialog button {
+    min-height: var(--osqa-tap);
+    padding: 6px 14px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    font: inherit;
+    cursor: pointer;
+}
+
+#moderation-inbox .mod-actions button[type="submit"].mod-approve {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+#moderation-inbox .mod-actions button[type="submit"].mod-danger,
+#moderation-inbox .mod-dialog button[type="submit"].mod-danger {
+    border-color: var(--osqa-verdict-fg);
+    background: var(--osqa-verdict-bg);
+    color: var(--osqa-verdict-fg);
+    font-weight: 600;
+}
+
+#moderation-inbox .mod-actions button:hover, #moderation-inbox .mod-actions button:focus-visible,
+#moderation-inbox .mod-dialog button:hover, #moderation-inbox .mod-dialog button:focus-visible {
+    outline: 2px solid var(--button-bg);
+    outline-offset: 1px;
+}
+
+.mod-dialog {
+    width: min(440px, calc(100vw - 32px));
+    padding: 16px 18px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 8px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    box-sizing: border-box;
+}
+
+.mod-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.mod-dialog h3 {
+    margin: 0 0 8px;
+    padding: 0;
+    color: var(--body-fg, #333);
+    font-size: 1.1em;
+}
+
+.mod-dialog label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--osqa-tap);
+    color: var(--body-fg, #333);
+}
+
+/* ---- Moderation inbox: automated reports ------------------------------------ */
 
 .moderation-verdict {
     display: inline-block;

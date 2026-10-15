@@ -76,7 +76,8 @@ a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !im
 </td></tr>
 <tr><td class="em-footer" style="padding:20px 4px 8px 4px;text-align:left;">
 {% if unsubscribe %}<p class="em-small" style="{{ small_style }}">{% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}</p>
-<p class="em-small" style="{{ small_style }}">{% if unsubscribe.specific_url %}<a href="{{ unsubscribe.specific_url }}" style="{{ small_a_style }}">{{ unsubscribe.specific_label }}</a> &middot;
+{% if unsubscribe.summary_url %}<p class="em-small" style="{{ small_style }}">{% trans "Too many emails?" %} <a href="{{ unsubscribe.summary_url }}" style="{{ small_a_style }}">{{ unsubscribe.summary_label }}</a></p>
+{% endif %}<p class="em-small" style="{{ small_style }}">{% if unsubscribe.specific_url %}<a href="{{ unsubscribe.specific_url }}" style="{{ small_a_style }}">{{ unsubscribe.specific_label }}</a> &middot;
 {% endif %}<a href="{{ unsubscribe.manage_url }}" style="{{ small_a_style }}">{% trans "Choose which emails you get" %}</a> &middot;
 <a href="{{ unsubscribe.all_url }}" style="{{ small_a_style }}">{% trans "Unsubscribe from all emails" %}</a> &middot;
 <a href="{{ unsubscribe.help_url }}" style="{{ small_a_style }}">{% trans "How email notifications work" %}</a></p>

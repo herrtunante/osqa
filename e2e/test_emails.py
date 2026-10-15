@@ -1,6 +1,7 @@
 """Emails and subscriptions through the real interface: comment, mention,
 accepted-answer, new-member, new-question and digest emails, the email
-settings that turn them on and off, following questions automatically and
+settings that turn them on and off, a weekly or daily summary instead of
+separate emails, following questions automatically and
 the "Questions you follow" tab, unsubscribe links from each kind of email
 (with undo), the welcome email's validation link and changing the email
 address."""
@@ -257,6 +258,89 @@ class NewQuestionAndDigestEmailTest(EmailTestCase):
 
         self.unsubscribe_and_undo(self.link(mail[3], 'Stop the daily digest'),
                                   lambda: self.prefs(self.alice).send_digest)
+
+
+class EmailFrequencyTest(EmailTestCase):
+    """A daily or weekly summary instead of separate emails."""
+
+    def setUp(self):
+        super().setUp()
+        self.alice = self.create_user('alice', reputation=500)
+        self.bob = self.create_user('bob', reputation=500)
+        self.prefs(self.alice, send_digest=False)  # the digest of new questions is another email
+        self.question = self.create_question(self.alice, 'How do I merge repeat groups in Collect?')
+        self.sent_mail.clear()
+
+    def test_switch_to_weekly_on_the_settings_page(self):
+        page = self.open(self.alice, device='mobile', dark=True)
+        self.visit(page, self.alice.get_user_subscriptions_url())
+        cards = page.locator('.email-frequency .frequency-option')
+        self.assertEqual(cards.count(), 4)
+        self.assertTrue(page.get_by_role('radio', name=re.compile('^As it happens')).is_checked())
+        self.assertIn('One email every', cards.nth(2).inner_text())
+        page.get_by_role('radio', name=re.compile('^Weekly summary')).check()
+        with page.expect_navigation():
+            page.locator('.email-frequency').get_by_role('button', name='Save').click()
+        self.check_page(page)
+        self.assertIn('Your email settings are saved', page.content())
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'w')
+        self.assertTrue(page.get_by_role('radio', name=re.compile('^Weekly summary')).is_checked())
+
+        # A new answer: no email now...
+        answer = self.create_answer(self.bob, self.question, 'Use the merge option on the export page.')
+        self.assertEqual(self.mail_to(self.alice), [])
+
+        # ...but in the weekly summary, sent once.
+        self.set_setting(settings.WEEKLY_SUMMARY_DAY, str(datetime.datetime.now().weekday()))
+        call_command('send_email_alerts')
+        call_command('send_email_alerts')
+        mails = self.mail_to(self.alice)
+        self.assertEqual(len(mails), 1)
+        self.assert_notification(mails[0], self.alice, 'Your weekly summary: 1 update', 'Answers to your questions (1)',
+                                 'How do I merge repeat groups in Collect?',
+                                 'bob answered: Use the merge option on the export page.',
+                                 specific='Stop these summaries')
+        self.assertNotIn('Get a daily summary instead', mails[0][3])
+
+        # its link opens the answer
+        path = re.search(r'href="http://testserver(%s[^"]*)"' % re.escape(answer.get_absolute_url()), mails[0][2]).group(1)
+        self.visit(page, path)
+        self.assertIn('How do I merge repeat groups in Collect?', page.locator('h1').first.inner_text())
+
+    def test_daily_summary_link_in_an_email(self):
+        self.create_answer(self.bob, self.question)
+        text = self.mail_to(self.alice)[0][3]
+        path = self.link(text, 'Get a daily summary instead')
+
+        page = self.open()
+        self.visit(page, path)
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'i', 'opening the link must change nothing')
+        with page.expect_navigation():
+            page.click('button.submit')
+        self.check_page(page)
+        self.assertIn("You'll get a daily summary", page.content())
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'd')
+        with page.expect_navigation():
+            page.get_by_role('button', name=re.compile('Undo')).click()
+        self.check_page(page)
+        self.assertIn('Back to separate emails', page.content())
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'i')
+
+    def test_weekly_summary_instead_of_unsubscribing(self):
+        self.create_answer(self.bob, self.question)
+        path = self.link(self.mail_to(self.alice)[0][3], 'Stop emails about this question')
+        page = self.open(device='mobile')
+        self.visit(page, path)
+        with page.expect_navigation():
+            page.get_by_role('button', name='Switch to a weekly summary instead').click()
+        self.check_page(page)
+        self.assertIn("You'll get a weekly summary", page.content())
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'w')
+        self.assertTrue(QuestionSubscription.objects.filter(user=self.alice, question=self.question).exists())
+        with page.expect_navigation():
+            page.get_by_role('button', name=re.compile('Undo')).click()
+        self.check_page(page)
+        self.assertEqual(self.prefs(self.alice).email_frequency, 'i')
 
 
 class FollowingQuestionsTest(EmailTestCase):

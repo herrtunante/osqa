@@ -36,7 +36,9 @@ class Command(BaseCommand):
                     id=asker.id, subscription_settings__enable_notifications=True))
                 if recipients.exists():
                     send_template_email(list(recipients), 'notifications/acceptreminder.html',
-                                        {'question': question, 'email_kind': 'question', 'email_question': question})
+                                        {'question': question, 'email_kind': 'question', 'email_question': question,
+                                         # a summary wouldn't replace reminders
+                                         'email_summary_offer': False})
                     emailed += 1
 
         verb = "would be reminded" if dry_run else "reminded"

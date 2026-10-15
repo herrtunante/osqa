@@ -27,6 +27,7 @@ from forum.http_responses import HttpResponseUnauthorized
 from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
 from forum.utils import conditional
+from forum.utils import review
 
 from . import decorators
 
@@ -38,6 +39,7 @@ class HottestQuestionsSort(pagination.SortBase):
                 WHERE fn1.abs_parent_id = forum_node.id
                     AND fn1.id != forum_node.id
                     AND NOT(fn1.state_string LIKE '%%(deleted)%%')
+                    AND NOT(fn1.state_string LIKE '%%(pending_review)%%')
                     AND added_at > %s'''
             },
             select_params=[ (datetime.datetime.now() - datetime.timedelta(days=2))
@@ -52,7 +54,8 @@ class UnansweredQuestionsSort(pagination.SortBase):
                 WHERE fn1.abs_parent_id = forum_node.id
                     AND fn1.id != forum_node.id
                     AND fn1.node_type='answer'
-                    AND NOT(fn1.state_string LIKE '%%(deleted)%%')'''
+                    AND NOT(fn1.state_string LIKE '%%(deleted)%%')
+                    AND NOT(fn1.state_string LIKE '%%(pending_review)%%')'''
             }).order_by('answer_count', 'last_activity_at')
 
 class QuestionListPaginatorContext(pagination.PaginatorContext):
@@ -100,7 +103,7 @@ def feed(request):
 def _latest_questions_feed(request):
     return RssQuestionFeed(
                 request,
-                Question.objects.filter_state(deleted=False).order_by('-last_activity_at'),
+                Question.objects.public().order_by('-last_activity_at'),
                 settings.APP_TITLE + _(' - ')+ _('latest questions'),
                 settings.APP_DESCRIPTION)(request)
 
@@ -185,7 +188,9 @@ def user_questions(request, mode, user, slug):
         questions = Question.objects.filter(author=user)
         description = _("Questions asked by %s")
     elif mode == 'answered-by':
-        questions = Question.objects.filter(children__author=user, children__node_type='answer').distinct()
+        # Answers held for review only count for those who may see them.
+        answers = Answer.objects.filter(author=user).visible_to(request.user)
+        questions = Question.objects.filter(id__in=answers.values('parent_id'))
         description = _("Questions answered by %s")
     elif mode == 'subscribed-by':
         if not (request.user.is_superuser or request.user == user):
@@ -219,7 +224,8 @@ def question_list(request, initial,
     if show_summary is None:
         show_summary = bool(settings.SHOW_SUMMARY_ON_QUESTIONS_LIST)
 
-    questions = initial.filter_state(deleted=False)
+    # Posts held for review: only their authors and the moderators see them.
+    questions = initial.visible_to(request.user)
 
     if request.user.is_authenticated and allowIgnoreTags:
         questions = questions.filter(~Q(tags__id__in = request.user.marked_tags.filter(user_selections__reason = 'bad')))
@@ -228,6 +234,7 @@ def question_list(request, initial,
         page_title = _("Questions")
 
     if request.GET.get('type', None) == 'rss':
+        questions = questions.public()
         if feed_sort:
             questions = questions.order_by(*feed_sort)
         return RssQuestionFeed(request, questions, page_title, list_description)(request)
@@ -318,7 +325,7 @@ def answer_redirect(request, answer):
     else:
         raise Http404()
 
-    count = answer.question.answers.filter(Q(marked=True) | filter).exclude(state_string="(deleted)").count()
+    count = answer.question.answers.visible_to(request.user).filter(Q(marked=True) | filter).count()
     pagesize = pc.pagesize(request)
 
     page = count // pagesize
@@ -347,6 +354,9 @@ def question(request, id, slug='', answer=None):
     if question.nis.deleted and not request.user.can_view_deleted_post(question):
         raise Http404
 
+    if not review.can_view(question, request.user):
+        raise Http404
+
     if request.GET.get('type', None) == 'rss':
         return RssAnswerFeed(request, question, include_comments=request.GET.get('comments', None) == 'yes')(request)
 
@@ -354,6 +364,9 @@ def question(request, id, slug='', answer=None):
         answer = get_object_or_404(Answer, id=answer)
 
         if (question.nis.deleted and not request.user.can_view_deleted_post(question)) or answer.question != question:
+            raise Http404
+
+        if not review.can_view(answer, request.user):
             raise Http404
 
         if answer.marked:
@@ -422,6 +435,8 @@ def revisions(request, id):
     for node in (post, post.abs_parent):
         if node is not None and node.nis.deleted and not request.user.can_view_deleted_post(node):
             raise Http404()
+    if not review.can_view(post, request.user):
+        raise Http404()
 
     revisions = list(post.revisions.order_by('revised_at'))
     rev_ctx = []

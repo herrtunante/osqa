@@ -283,7 +283,7 @@ class ModerationTest(AITestCase):
         self.assertNotContains(page, '<script>x()</script>')
 
         self.assertEqual(self.client.get(reverse('admin_resolve_moderation_report', args=[report.id])).status_code, 405)
-        self.assertRedirects(self.resolve(report, 'delete'), reverse('admin_flagged_posts'), fetch_redirect_response=False)
+        self.assertRedirects(self.resolve(report, 'delete'), reverse('admin_moderation'), fetch_redirect_response=False)
         report.refresh_from_db()
         self.assertEqual((report.resolution, report.resolved_by), ('deleted', self.mod))
         self.assertTrue(Question.objects.get(id=question.id).nis.deleted)

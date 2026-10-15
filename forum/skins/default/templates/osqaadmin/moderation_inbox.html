@@ -1,0 +1,175 @@
+{% extends basetemplate %}
+{% load i18n extra_tags %}
+{% comment %}The moderation inbox (forum/views/moderation.py). Each item is a card with
+   its content, its author, why it is here and one-click actions; "Delete as
+   spam" asks first in a <dialog> (media/js/osqa.moderation.js), which also
+   moves between the cards with j / k.{% endcomment %}
+
+{% block subtitle %}{% trans "Moderation inbox" %}{% endblock %}
+{% block pagename %}{% trans "Moderation inbox" %}{% endblock %}
+{% block description %}{% trans "Everything waiting for a moderator: new members' first posts, posts and accounts reported by members, and reports from automated checks." %}{% endblock %}
+
+{% block admincontent %}
+<div class="mod-inbox" id="moderation-inbox">
+    {% if undo %}
+    <form method="post" action="{% url "admin_moderation_undo" %}" class="mod-undo">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+        <span>{% trans "Changed your mind?" %}</span>
+        <button type="submit" class="plain-button">{% trans "Undo the last action" %}</button>
+    </form>
+    {% endif %}
+
+    <nav class="mod-filters" aria-label="{% trans "Show" %}">
+        <ul>
+        {% for key, label, count in filters %}
+            <li><a href="{% url "admin_moderation" %}{% if key != "all" %}?show={{ key }}{% endif %}"{% if show == key %} class="on" aria-current="page"{% endif %}>{{ label }} <span class="mod-count">{{ count }}</span></a></li>
+        {% endfor %}
+        </ul>
+    </nav>
+    <p class="mod-keys">{% trans "Keyboard: j and k move to the next and previous item; Tab reaches its buttons." %}</p>
+
+    {% if review_items is not None and mode == "off" %}
+    <p class="mod-note">{% trans "Reviewing new members' first posts is off." %}{% if request.user.is_superuser %} <a href="{% url "admin_set" "moderation" %}#id_FIRST_POSTS_MODERATION_0">{% trans "Turn it on in the moderation settings" %}</a>{% endif %}</p>
+    {% endif %}
+
+    {% if review_items %}
+    <section class="mod-section" aria-labelledby="mod-review-title">
+        <h2 id="mod-review-title">{% trans "First posts to review" %} <span class="mod-count">{{ review_total }}</span></h2>
+        {% for item in review_items %}{% with post=item.node account=item.author info=item.author_info %}
+        <article class="mod-card mod-review" id="review-{{ post.id }}" tabindex="-1" aria-labelledby="review-{{ post.id }}-title">
+            <header class="mod-card-head">
+                <span class="mod-type">{{ post.friendly_name|capfirst }}</span>
+                {% if item.held %}<span class="mod-tag mod-tag-held">{% trans "Hidden until approved" %}</span>{% else %}<span class="mod-tag">{% trans "Published" %}</span>{% endif %}
+                <h3 class="mod-title" id="review-{{ post.id }}-title"><a href="{{ post.get_absolute_url }}">{{ post.absolute_parent.title }}</a></h3>
+            </header>
+            <div class="mod-content">{{ post.html|safe }}</div>
+            {% include "osqaadmin/moderation_author.html" %}
+            <p class="mod-why"><strong>{% trans "Why it's here:" %}</strong> {{ item.reason }} &middot; {{ post.added_at|date:"Y-m-d H:i" }}</p>
+            <form method="post" action="{% url "admin_moderation_post" post.id %}" class="mod-actions">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+                <button type="submit" name="action" value="approve" class="mod-approve">{% trans "Approve" %}</button>
+                <button type="submit" name="action" value="delete" class="plain-button">{% trans "Delete" %}</button>
+                {% include "osqaadmin/moderation_spam.html" with field="action" prefix="review" key=post.id %}
+            </form>
+        </article>
+        {% endwith %}{% endfor %}
+        {% if review_total > review_items|length %}<p class="mod-more">{% blocktrans count counter=review_total %}Showing the oldest of {{ counter }} posts.{% plural %}Showing the oldest of {{ counter }} posts.{% endblocktrans %}</p>{% endif %}
+    </section>
+    {% endif %}
+
+    {% if flag_items %}
+    <section class="mod-section" aria-labelledby="mod-flags-title">
+        <h2 id="mod-flags-title">{% trans "Flagged posts" %} <span class="mod-count">{{ flag_total }}</span></h2>
+        {% for item in flag_items %}{% with post=item.node account=item.author info=item.author_info %}
+        <article class="mod-card mod-flagged" id="flagged-{{ post.id }}" tabindex="-1" aria-labelledby="flagged-{{ post.id }}-title">
+            <header class="mod-card-head">
+                <span class="mod-type">{{ post.friendly_name|capfirst }}</span>
+                <span class="mod-tag mod-tag-flag">{% blocktrans count counter=item.flags|length %}{{ counter }} flag{% plural %}{{ counter }} flags{% endblocktrans %}</span>
+                <h3 class="mod-title" id="flagged-{{ post.id }}-title"><a href="{{ post.get_absolute_url }}">{{ post.absolute_parent.title }}</a></h3>
+            </header>
+            <div class="mod-content">{{ post.html|safe }}</div>
+            {% include "osqaadmin/moderation_author.html" %}
+            <div class="mod-why"><strong>{% trans "Why it's here:" %}</strong>
+                <ul class="mod-reasons">
+                {% for flag in item.flags %}
+                    <li>{% blocktrans with name=flag.user.username reason=flag.extra %}{{ name }}: {{ reason }}{% endblocktrans %}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            <form method="post" action="{% url "admin_moderation_post" post.id %}" class="mod-actions">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+                <button type="submit" name="action" value="dismiss" class="mod-approve">{% trans "Dismiss" %}</button>
+                <button type="submit" name="action" value="delete" class="plain-button">{% trans "Delete" %}</button>
+                {% include "osqaadmin/moderation_spam.html" with field="action" prefix="flagged" key=post.id %}
+            </form>
+        </article>
+        {% endwith %}{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if user_items %}
+    <section class="mod-section" aria-labelledby="mod-users-title">
+        <h2 id="mod-users-title">{% trans "Reported users" %} <span class="mod-count">{{ user_total }}</span></h2>
+        {% for item in user_items %}{% with account=item.account info=item.author_info %}
+        <article class="mod-card mod-user" id="user-{{ account.id }}" tabindex="-1" aria-labelledby="user-{{ account.id }}-title">
+            <header class="mod-card-head">
+                <span class="mod-type">{% trans "Account" %}</span>
+                <span class="mod-tag mod-tag-flag">{% blocktrans count counter=item.reports|length %}{{ counter }} report{% plural %}{{ counter }} reports{% endblocktrans %}</span>
+                <h3 class="mod-title" id="user-{{ account.id }}-title"><a href="{{ account.get_profile_url }}">{{ account.username }}</a></h3>
+            </header>
+            {% if account.website or account.about %}<div class="mod-content">{% if account.website %}<p>{{ account.website }}</p>{% endif %}{% if account.about %}<p>{{ account.about|truncatechars:400 }}</p>{% endif %}</div>{% endif %}
+            {% include "osqaadmin/moderation_author.html" %}
+            <div class="mod-why"><strong>{% trans "Why it's here:" %}</strong>
+                <ul class="mod-reasons">
+                {% for report in item.reports %}
+                    <li>{% blocktrans with name=report.user.username reason=report.extra.publicmsg %}{{ name }}: {{ reason }}{% endblocktrans %}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            <form method="post" action="{% url "admin_moderation_user" account.id %}" class="mod-actions">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+                <button type="submit" name="action" value="dismiss" class="mod-approve">{% trans "Dismiss" %}</button>
+                {% if not account.is_staff and not account.is_superuser %}
+                {% if not account.is_suspended %}<button type="submit" name="action" value="suspend" class="plain-button">{% trans "Suspend" %}</button>{% endif %}
+                {% include "osqaadmin/moderation_spam.html" with field="action" prefix="user" key=account.id account_only=True %}
+                {% endif %}
+            </form>
+        </article>
+        {% endwith %}{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if moderation_reports %}
+    <section class="mod-section moderation-reports" aria-labelledby="mod-ai-title">
+        <h2 id="mod-ai-title">{% trans "Reported by automated checks" %} <span class="mod-count">{{ ai_total }}</span></h2>
+        {% for report in moderation_reports %}
+        <article class="mod-card moderation-report" id="report-{{ report.id }}" tabindex="-1" aria-labelledby="report-{{ report.id }}-title">
+            <header class="mod-card-head">
+                <span class="mod-type">{% if report.node_id %}{{ report.post.friendly_name|capfirst }}{% else %}{% trans "Account" %}{% endif %}</span>
+                <span class="moderation-verdict moderation-verdict-{{ report.verdict }}">{{ report.verdict }}</span>
+                <span class="moderation-meta">{% if report.verdict == "unsafe" %}{% trans "AI review: blocked by the safety filters" %}{% elif report.source == "ai" %}{% blocktrans with percent=report.confidence_percent %}AI review, {{ percent }}% sure{% endblocktrans %}{% else %}{% blocktrans with percent=report.confidence_percent source=report.source %}{{ source }}, {{ percent }}% sure{% endblocktrans %}{% endif %}
+                    &middot; {{ report.created_at|date:"Y-m-d H:i" }}</span>
+                {% if report.node_id %}
+                <h3 class="mod-title" id="report-{{ report.id }}-title"><a href="{{ report.post.get_absolute_url }}">{{ report.post.headline }}</a>{% if report.post.nis.deleted %} <em>({% trans "already deleted" %})</em>{% endif %}</h3>
+                {% else %}
+                <h3 class="mod-title" id="report-{{ report.id }}-title">{% trans "Account" %} <a href="{{ report.user.get_profile_url }}">{{ report.user.username }}</a></h3>
+                {% endif %}
+            </header>
+            {% if report.node_id %}{% with post=report.post account=report.post.author info=report.author_info %}
+            <div class="mod-content">{{ post.html|safe }}</div>
+            {% include "osqaadmin/moderation_author.html" %}
+            {% if report.reason %}<p class="mod-why moderation-reason"><strong>{% trans "Why it's here:" %}</strong> {{ report.reason }}</p>{% endif %}
+            <form method="post" action="{% url "admin_resolve_moderation_report" report.id %}" class="mod-actions moderation-actions">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+                <button type="submit" name="resolution" value="dismiss" class="mod-approve">{% trans "Not a problem" %}</button>
+                {% if not post.nis.deleted %}
+                <button type="submit" name="resolution" value="delete" class="moderation-delete plain-button">{% trans "Delete post" %}</button>
+                {% include "osqaadmin/moderation_spam.html" with field="resolution" prefix="report" key=report.id %}
+                {% endif %}
+            </form>
+            {% endwith %}{% else %}{% with account=report.user info=report.author_info %}
+            {% if account.website or account.about %}<div class="mod-content">{% if account.website %}<p>{{ account.website }}</p>{% endif %}{% if account.about %}<p>{{ account.about|truncatechars:400 }}</p>{% endif %}</div>{% endif %}
+            {% include "osqaadmin/moderation_author.html" %}
+            {% if report.reason %}<p class="mod-why moderation-reason"><strong>{% trans "Why it's here:" %}</strong> {{ report.reason }}</p>{% endif %}
+            <form method="post" action="{% url "admin_resolve_moderation_report" report.id %}" class="mod-actions moderation-actions">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ inbox_url }}">
+                <button type="submit" name="resolution" value="dismiss" class="mod-approve">{% trans "Not a problem" %}</button>
+                {% if not account.is_suspended %}
+                <button type="submit" name="resolution" value="suspend" class="moderation-delete plain-button">{% trans "Suspend account" %}</button>
+                {% endif %}
+                {% if not report.account_has_posts %}
+                <button type="submit" name="resolution" value="delete_account" class="moderation-delete plain-button">{% trans "Delete account" %}</button>
+                {% endif %}
+            </form>
+            {% endwith %}{% endif %}
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if empty %}
+    <p class="mod-empty">{% if show == "all" %}{% trans "Nothing is waiting for a moderator. Well done!" %}{% else %}{% trans "Nothing is waiting in this list." %}{% endif %}</p>
+    {% endif %}
+</div>
+<script src="{% media "/media/js/osqa.moderation.js" %}" defer></script>
+{% endblock %}

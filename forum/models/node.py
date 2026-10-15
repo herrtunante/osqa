@@ -188,6 +188,16 @@ class NodeQuerySet(CachedQuerySet):
         apply_bool = lambda q, b: b and q or ~q
         return self.filter(*[apply_bool(models.Q(state_string__contains="(%s)" % s), b) for s, b in kwargs.items()])
 
+    # Posts others may see (forum/utils/review.py): not deleted, and not held
+    # for review (for everybody) or held but visible to `user`.
+    def public(self):
+        from forum.utils import review
+        return review.published(self.filter_state(deleted=False))
+
+    def visible_to(self, user):
+        from forum.utils import review
+        return review.visible_to(self.filter_state(deleted=False), user)
+
     def children_count(self, child_type):
         return NodeMetaClass.types[child_type].objects.filter_state(deleted=False).filter(parent__in=self).count()
 
@@ -210,6 +220,12 @@ class NodeManager(CachedManager):
 
     def filter_state(self, **kwargs):
         return self.all().filter_state(**kwargs)
+
+    def public(self):
+        return self.all().public()
+
+    def visible_to(self, user):
+        return self.all().visible_to(user)
 
 
 class NodeStateDict:
@@ -374,9 +390,16 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
         return content
 
-    # Can be used to block subscription notifications for a specific node from a module
+    # Can be used to block subscription notifications for a specific node from a module.
+    # Posts held for review (forum/utils/review.py) notify nobody until they are approved.
     def _is_notifiable(self):
-        return True
+        from forum.utils import review
+        return not (review.is_held(self) or (self.abs_parent_id and review.is_held(self.abs_parent)))
+
+    @property
+    def counts_in_tags(self):
+        """Whether the post counts in its tags' usage: not deleted, not held for review."""
+        return not (self.nis.deleted or self.nis.pending_review)
 
     @property
     def is_notifiable(self):
@@ -477,11 +500,11 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
                 except Tag.DoesNotExist:
                     tag = Tag.objects.create(name=name, created_by=self._last_active_user())
 
-                if not self.nis.deleted:
+                if self.counts_in_tags:
                     tag.add_to_usage_count(1)
                     tag.save()
 
-            if not self.nis.deleted:
+            if self.counts_in_tags:
                 for name in tag_changes['removed']:
                     try:
                         tag = Tag.objects.get(name=name)
@@ -498,7 +521,9 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
         self.nstate.deleted = action
         self.save()
 
-        if action:
+        if self.nis.pending_review:
+            pass  # a held post isn't counted in its tags
+        elif action:
             for tag in self.tags.all():
                 tag.add_to_usage_count(-1)
                 tag.save()
@@ -508,7 +533,7 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
                 tag.save()
 
     def delete(self, *args, **kwargs):
-        for tag in self.tags.all():
+        for tag in (self.tags.all() if not self.nis.pending_review else ()):
             tag.add_to_usage_count(-1)
             tag.save()
 

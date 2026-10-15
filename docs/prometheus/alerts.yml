@@ -1,0 +1,88 @@
+# Example alerting rules for OSQA (Prometheus rule file; with the Prometheus
+# Operator put the `groups` list under a PrometheusRule's spec). Check with
+#   promtool check rules alerts.yml
+# Adjust the command list to the scheduled commands you actually run.
+groups:
+  - name: osqa
+    rules:
+      - alert: OSQADown
+        expr: up{job="osqa"} == 0
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "OSQA /metrics can't be scraped (site down or METRICS_TOKEN mismatch)"
+
+      - alert: OSQADatabaseDown
+        expr: osqa_database_up == 0
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "OSQA can't read its database"
+
+      # Daily commands: no successful run for 26 hours.
+      - alert: OSQACronNotRun
+        expr: >
+          time() - osqa_cron_last_success_timestamp_seconds{command=~"send_email_alerts|cleanup_inactive_users|remind_unaccepted|backup_site"}
+          > 26 * 3600
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.command }} has not completed successfully for {{ $value | humanizeDuration }}"
+
+      # A daily command that never ran at all has no time stamp yet.
+      - alert: OSQACronNeverRan
+        expr: absent(osqa_cron_last_success_timestamp_seconds{command="send_email_alerts"})
+        for: 26h
+        labels: {severity: warning}
+        annotations:
+          summary: "send_email_alerts has never completed: is the cron service / CronJob running?"
+
+      # Hourly AI suggestions (only if the AI module is used).
+      # - alert: OSQASuggestAnswersNotRun
+      #   expr: time() - osqa_cron_last_success_timestamp_seconds{command="suggest_answers"} > 3 * 3600
+      #   labels: {severity: info}
+
+      - alert: OSQACronFailed
+        expr: >
+          osqa_cron_last_failure_timestamp_seconds
+          > (osqa_cron_last_success_timestamp_seconds or osqa_cron_last_failure_timestamp_seconds * 0)
+        labels: {severity: warning}
+        annotations:
+          summary: "The last run of {{ $labels.command }} failed (see the cron service's / Job's log)"
+
+      - alert: OSQAHigh5xxRate
+        expr: >
+          sum(rate(osqa_http_requests_total{status="5xx"}[5m]))
+          / sum(rate(osqa_http_requests_total[5m])) > 0.02
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $value | humanizePercentage }} of OSQA requests fail with 5xx"
+
+      - alert: OSQASlowPages
+        expr: >
+          histogram_quantile(0.95, sum by (le) (rate(osqa_http_request_duration_seconds_bucket{view!="static"}[10m])))
+          > 2
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "95% of OSQA pages take up to {{ $value | humanizeDuration }}"
+
+      - alert: OSQAEmailFailures
+        expr: increase(osqa_emails_failed_total[1h]) > 5
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value | printf \"%.0f\" }} emails failed in the last hour (Admin > Email settings, SMTP server)"
+
+      - alert: OSQASignInAttack
+        expr: sum(increase(osqa_security_events_total{event=~"login_failed|login_paused"}[15m])) > 100
+        labels: {severity: info}
+        annotations:
+          summary: "Many failed or locked-out sign-ins in 15 minutes (security log)"
+
+      - alert: OSQAModerationBacklog
+        expr: sum(osqa_moderation_pending) > 25
+        for: 1d
+        labels: {severity: info}
+        annotations:
+          summary: "{{ $value }} flags/reports wait for moderators (Admin > Flagged posts)"

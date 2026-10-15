@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 from forum.models import MarkedTag, Tag
 from django.views.decorators.csrf import csrf_exempt
 
-from forum.utils import unsubscribe
+from forum.utils import email_frequency, unsubscribe
 
 
 @csrf_exempt  # the signed token is the credential; mail programs POST without a CSRF token
@@ -46,17 +46,27 @@ def email_unsubscribe(request, token):
             state = 'done'
     # GET only shows the page: link checkers and mail scanners that open the
     # link must not unsubscribe anyone.
+    prefs = type(user.subscription_settings).objects.get(user=user)
+    switch = scope in unsubscribe.SWITCH_SCOPES
     return render(request, 'email/unsubscribe.html', {
         'state': state, 'scope': scope, 'what': unsubscribe.SCOPES[scope][0], 'question': question,
         'person': user, 'token': token,
         'all_token': unsubscribe.make_token(user, 'all') if scope != 'all' else None,
+        # "Get a daily summary instead" / "Switch to a weekly summary instead" links
+        # change how often emails come rather than stopping them.
+        'switch': switch,
+        'weekday': email_frequency.weekly_day_name(),
+        'mentions_immediate': prefs.mentions_immediate,
+        # The alternative to unsubscribing: one weekly summary instead of separate emails.
+        'weekly_token': (unsubscribe.make_token(user, 'weekly')
+                         if not switch and scope != 'digest' and prefs.email_frequency != 'w' else None),
         'manage_url': user.get_user_subscriptions_url(),
         'own_page': request.user.is_authenticated and request.user == user,
     })
 
 
 _UNSUBSCRIBE_FIELDS = ('enable_notifications', 'new_question', 'new_question_watched_tags',
-                       'notify_reply_to_comments', 'member_joins', 'send_digest')
+                       'notify_reply_to_comments', 'member_joins', 'send_digest', 'email_frequency')
 
 
 def _prefs_snapshot(user):

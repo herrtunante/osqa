@@ -137,6 +137,7 @@
                     {% favorite_mark question request.user %}
                 </div>
                 <div id="item-right" class="post-main">
+                    {% review_notice question request.user %}
                     <div class="question-body post-body">
                         {{ question.html|safe }}
                     </div>
@@ -192,6 +193,7 @@
                         </div>
                         <div class="item-right post-main">
                             <p class="accepted-badge">{% trans "Accepted answer" %}</p>
+                            {% review_notice answer request.user %}
                             <div class="answer-body post-body">
                                 {{ answer.html|safe }}
                             </div>

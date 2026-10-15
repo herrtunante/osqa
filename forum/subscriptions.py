@@ -1,7 +1,9 @@
 import datetime
 import logging
-from forum.models import User, Question, QuestionSubscription
-from forum.utils.mail import send_template_email
+from forum.models import User, Question, QuestionSubscription, PendingEmail
+# Activity emails go through deliver(): now, queued for a daily/weekly summary, or not
+# at all, per member (SubscriptionSettings.email_frequency).
+from forum.utils.email_frequency import deliver
 from forum.actions import AskAction, AnswerAction, CommentAction, AcceptAnswerAction, UserJoinsAction, QuestionViewAction, ReviseAction
 from forum.utils.mentions import mentioned_user_ids
 from forum import settings
@@ -45,8 +47,9 @@ def notify_mentioned(node, author, user_ids):
         subscription_settings__enable_notifications=True,
         subscription_settings__notify_reply_to_comments=True,
     ))
-    send_template_email(users, "notifications/mention.html",
-                        {'node': node.leaf, 'question': question, 'author': author, 'email_kind': 'mention'})
+    deliver(users, PendingEmail.MENTION, "notifications/mention.html",
+            {'node': node.leaf, 'question': question, 'author': author, 'email_kind': 'mention'},
+            node=node, actor=author)
     return user_ids
 
 
@@ -69,7 +72,8 @@ def question_posted(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newquestion.html", {'question': question, 'email_kind': 'new_question'})
+    deliver(subscribers, PendingEmail.NEW_QUESTION, "notifications/newquestion.html",
+            {'question': question, 'email_kind': 'new_question'}, node=question, actor=question.author)
 
     subscription = QuestionSubscription(question=question, user=question.author)
     subscription.save()
@@ -103,8 +107,9 @@ def answer_posted(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newanswer.html",
-                        {'answer': answer, 'email_kind': 'question', 'email_question': answer.question})
+    deliver(subscribers, PendingEmail.ANSWER, "notifications/newanswer.html",
+            {'answer': answer, 'email_kind': 'question', 'email_question': answer.question},
+            node=answer, actor=answer.author)
 
     create_subscription_if_not_exists(question, answer.author)
 
@@ -135,8 +140,9 @@ def comment_posted(action, new):
     subscribers = filter_subscribers(subscribers)
 
 
-    send_template_email(subscribers, "notifications/newcomment.html",
-                        {'comment': comment, 'email_kind': 'question', 'email_question': comment.absolute_parent})
+    deliver(subscribers, PendingEmail.COMMENT, "notifications/newcomment.html",
+            {'comment': comment, 'email_kind': 'question', 'email_question': comment.absolute_parent},
+            node=comment, actor=comment.user)
 
     create_subscription_if_not_exists(question, comment.user)
 
@@ -173,9 +179,10 @@ def answer_accepted(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/answeraccepted.html",
-                        {'answer': action.node, 'accepted_by': answer.nstate.accepted.by, 'email_kind': 'question',
-                         'email_question': action.node.question})
+    deliver(subscribers, PendingEmail.ACCEPTED, "notifications/answeraccepted.html",
+            {'answer': action.node, 'accepted_by': answer.nstate.accepted.by, 'email_kind': 'question',
+             'email_question': action.node.question},
+            node=answer, actor=answer.nstate.accepted.by)
 
 AcceptAnswerAction.hook(answer_accepted)
 
@@ -188,7 +195,8 @@ def member_joined(action, new):
 
     subscribers = filter_subscribers(subscribers)
 
-    send_template_email(subscribers, "notifications/newmember.html", {'newmember': action.user, 'email_kind': 'member'})
+    deliver(subscribers, PendingEmail.MEMBER, "notifications/newmember.html",
+            {'newmember': action.user, 'email_kind': 'member'}, actor=action.user)
 
 UserJoinsAction.hook(member_joined)
 
@@ -236,3 +244,14 @@ QuestionViewAction.hook(question_viewed)
 #            q_author.message_set.create(message=msg)
 #
 #post_save.connect(record_answer_event, sender=Answer)
+
+
+# First posts review (forum/utils/review.py): a post held for review notified
+# nobody (Node.is_notifiable is False while it is held). When a moderator
+# approves it, send the emails its posting would have sent.
+def post_approved(action, new):
+    from forum.utils.review import replay_on_approval
+    replay_on_approval(action, {'ask': question_posted, 'answer': answer_posted, 'comment': comment_posted})
+
+from forum.actions import ApprovePostAction  # noqa: E402
+ApprovePostAction.hook(post_approved)

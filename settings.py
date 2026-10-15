@@ -11,6 +11,8 @@ CACHE_MAX_KEY_LENGTH = 235
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
 # Note: SessionMiddleware must come before CsrfViewMiddleware when using CSRF_USE_SESSIONS
 MIDDLEWARE = [
+    # Request id (X-Request-ID) for logs, responses and Sentry; request metrics.
+    'forum.middleware.ops.RequestContextMiddleware',
     'forum.middleware.security.ClientIPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'forum.middleware.security.SecurityHeadersMiddleware',
@@ -228,6 +230,19 @@ if SENTRY_DSN:
     else:
         MIDDLEWARE.insert(MIDDLEWARE.index('forum.middleware.extended_user.ExtendedUser') + 1,
                           'forum.middleware.sentry.SentryUserMiddleware')
+
+# Prometheus metrics at /metrics (forum/utils/metrics.py): set a long random
+# token to switch them on; Prometheus sends it as "Authorization: Bearer <token>".
+# Without a token /metrics answers 404.
+METRICS_TOKEN = _setting('METRICS_TOKEN')
+
+# LOG_FORMAT = 'json' (or the environment variable): one JSON object per line
+# on standard output instead of the LOGGING above, for containers; see
+# forum/utils/logs.py. LOG_LEVEL sets the root level of that configuration.
+LOG_FORMAT = str(_setting('LOG_FORMAT', 'text')).lower()
+if LOG_FORMAT == 'json':
+    from forum.utils.logs import json_logging
+    LOGGING = json_logging(str(_setting('LOG_LEVEL', 'INFO')).upper())
 
 FORCE_SCRIPT_NAME = ''
 

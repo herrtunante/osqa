@@ -1,0 +1,11 @@
+{% load i18n %}{% if show %}
+<div class="review-notice{% if held %} is-held{% endif %}" role="note">
+    <span class="review-badge">{% trans "Waiting for review" %}</span>
+    {% if moderator %}
+        <span class="review-notice-text">{% if held %}{% trans "Only its author and moderators can see this post until it is approved." %}{% else %}{% trans "This post is published and waiting for a moderator to review it." %}{% endif %}</span>
+        <a class="review-notice-link" href="{% url "admin_moderation" %}?show=review#review-{{ post.id }}">{% trans "Review it in the moderation inbox" %}</a>
+    {% else %}
+        <span class="review-notice-text">{% trans "Your post will appear once a moderator has reviewed it. Until then only you and the moderators can see it." %}</span>
+    {% endif %}
+</div>
+{% endif %}

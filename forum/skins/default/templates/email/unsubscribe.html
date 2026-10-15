@@ -7,6 +7,26 @@
 {% if invalid %}
     <h1 class="headNormal">{% trans "This link doesn't work" %}</h1>
     <p>{% blocktrans %}The unsubscribe link is incomplete or was changed. Copy the whole link from the email, or sign in and change your email settings on your profile.{% endblocktrans %}</p>
+{% elif switch %}
+    {% if state == 'done' %}
+    <h1 class="headNormal">{% if scope == 'weekly' %}{% trans "You'll get a weekly summary" %}{% else %}{% trans "You'll get a daily summary" %}{% endif %}</h1>
+    <p class="email-prefs-result">{% if scope == 'weekly' %}{% blocktrans %}Instead of a separate email for each update, you'll get one summary every {{ weekday }}, and none when there's nothing new.{% endblocktrans %}{% else %}{% blocktrans %}Instead of a separate email for each update, you'll get one summary a day, and none when there's nothing new.{% endblocktrans %}{% endif %}</p>
+    {% if mentions_immediate %}<p>{% trans "Mentions still arrive right away. You can change that in your email settings." %}</p>{% endif %}
+    <form method="post" class="email-prefs-actions">
+        <input type="hidden" name="action" value="undo">
+        <button type="submit" class="plain-button">{% trans "Undo: keep separate emails" %}</button>
+    </form>
+    {% elif state == 'restored' %}
+    <h1 class="headNormal">{% trans "Back to separate emails" %}</h1>
+    <p class="email-prefs-result">{% trans "You'll get your emails as things happen again." %}</p>
+    {% else %}
+    <h1 class="headNormal">{% if scope == 'weekly' %}{% trans "Get a weekly summary instead" %}{% else %}{% trans "Get a daily summary instead" %}{% endif %}</h1>
+    <p>{% if scope == 'weekly' %}{% blocktrans with name=person.username %}Send <strong>{{ name }}</strong> one summary email every {{ weekday }} instead of a separate email for each update?{% endblocktrans %}{% else %}{% blocktrans with name=person.username %}Send <strong>{{ name }}</strong> one summary email a day instead of a separate email for each update?{% endblocktrans %}{% endif %}</p>
+    <form method="post" class="email-prefs-actions">
+        <input type="hidden" name="action" value="switch">
+        <button type="submit" class="submit">{% if scope == 'weekly' %}{% trans "Yes, send a weekly summary" %}{% else %}{% trans "Yes, send a daily summary" %}{% endif %}</button>
+    </form>
+    {% endif %}
 {% elif state == 'done' %}
     <h1 class="headNormal">{% trans "You're unsubscribed" %}</h1>
     <p class="email-prefs-result">{% blocktrans %}You won't receive {{ what }} any more.{% endblocktrans %}</p>
@@ -25,6 +45,16 @@
         <input type="hidden" name="action" value="unsubscribe">
         <button type="submit" class="submit">{% trans "Yes, unsubscribe" %}</button>
     </form>
+    {% if weekly_token %}
+    <div class="email-prefs-alternative">
+        <h2>{% trans "Too many emails?" %}</h2>
+        <p>{% blocktrans %}Get one summary every {{ weekday }} with everything new instead of separate emails. You can undo it right after.{% endblocktrans %}</p>
+        <form method="post" action="{% url "email_unsubscribe" weekly_token %}">
+            <input type="hidden" name="action" value="switch">
+            <button type="submit" class="plain-button">{% trans "Switch to a weekly summary instead" %}</button>
+        </form>
+    </div>
+    {% endif %}
 {% endif %}
 {% if not invalid %}
     <div class="email-prefs-more">
