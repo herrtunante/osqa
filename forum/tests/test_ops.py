@@ -312,7 +312,8 @@ class BackupTest(OSQATestCase):
         archive = os.path.join(self.backups, name)
         self.assertRegex(name, r'^osqa-backup-\d{8}-\d{6}\.tar\.gz$')
         self.assertIn(archive, out)
-        self.assertEqual(os.stat(archive).st_mode & 0o777, 0o600)
+        if os.name == 'posix':  # Windows has no owner-only permission bits
+            self.assertEqual(os.stat(archive).st_mode & 0o777, 0o600)
         self.assertIn('backup_site', cron.last_runs())
 
         # Wipe: content, a setting and the uploaded file.
