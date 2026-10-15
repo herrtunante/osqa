@@ -25,13 +25,17 @@ from forum.context import application_settings
 from threading import Thread
 
 def send_template_email(recipients, template, context, sender=None, reply_to = None):
+    """Returns the sending errors (empty list when the SMTP server took every message)."""
     t = loader.get_template(template)
-    context.update(dict(recipients=recipients, settings=settings, sender=sender, reply_to=reply_to))
+    errors = []
+    context.update(dict(recipients=recipients, settings=settings, sender=sender, reply_to=reply_to,
+                        mail_errors=errors))
     t.render(context)
+    return errors
 
 def create_connection():
     connection = SMTP(str(settings.EMAIL_HOST), str(settings.EMAIL_PORT),
-                          local_hostname=DNS_NAME.get_fqdn())
+                          local_hostname=DNS_NAME.get_fqdn(), timeout=30)
 
     if bool(settings.EMAIL_USE_TLS):
         connection.ehlo()
@@ -45,8 +49,16 @@ def create_connection():
 
 
 def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
+    """Sends the messages; returns a list of error descriptions (also logged)."""
+    errors = []
+
+    def error(text):
+        logging.error(text)
+        errors.append(text)
+
     if not settings.EMAIL_HOST:
-        return
+        errors.append('No email server is set (Email host is empty), so no email was sent.')
+        return errors
 
     sender = Header(str(settings.APP_SHORT_NAME), 'utf-8')
     
@@ -107,9 +119,9 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             try:
                 connection.sendmail(sender, [recipient.email], msgRoot.as_string())
             except SMTPRecipientsRefused as e:
-                logging.error("Email address not accepted.  Exception: %s" % e)
+                error("Email address not accepted.  Exception: %s" % e)
             except Exception as e:
-                logging.error("Couldn't send mail using the sendmail method: %s" % e)
+                error("Couldn't send mail using the sendmail method: %s" % e)
                 try:
                     connection.quit()
                 except Exception as e:
@@ -124,4 +136,6 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
         except ssl.SSLError:
             connection.close()
     except Exception as e:
-        logging.error('Email sending has failed: %s' % e)
+        error('Email sending has failed: %s: %s' % (type(e).__name__, e))
+
+    return errors
