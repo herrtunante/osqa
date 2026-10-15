@@ -136,6 +136,8 @@ class UploadedFileHeadersTest(OSQATestCase):
 
     def test_uploads_are_cached_for_a_year(self):
         response = self.client.get('/upfiles/photo_x1y2.png')
+        # Close the streamed file, or Windows can't delete the temporary folder.
+        self.addCleanup(response.close)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Cache-Control'], LONG)
         self.assertEqual(self.client.get('/upfiles/photo_x1y2.png', HTTP_IF_NONE_MATCH=response['ETag']).status_code,
