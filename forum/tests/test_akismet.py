@@ -1,4 +1,3 @@
-import socket
 from unittest import mock
 from urllib.error import URLError
 from urllib.parse import parse_qs
@@ -83,7 +82,7 @@ class AkismetTest(OSQATestCase):
         self.assertFalse(Comment.objects.filter(parent=question).exists())
 
     def test_unreachable_akismet_does_not_block_posting(self):
-        for n, error in enumerate((URLError('no route to host'), socket.timeout('timed out'))):
+        for n, error in enumerate((URLError('no route to host'), TimeoutError('timed out'))):
             title = '%s %d' % (self.TITLE, n)
             with mock.patch('forum_modules.akismet.lib.akismet.urlopen', side_effect=error):
                 self.assertEqual(self.ask(title).status_code, 302)

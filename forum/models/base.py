@@ -39,13 +39,13 @@ class CachedQuerySet(models.query.QuerySet):
         return clone
 
     def _clone(self):
-        clone = super(CachedQuerySet, self)._clone()
+        clone = super()._clone()
         clone._osqa_prefetch = getattr(self, '_osqa_prefetch', None)
         return clone
 
     def _fetch_all(self):
         fetching = self._result_cache is None
-        super(CachedQuerySet, self)._fetch_all()
+        super()._fetch_all()
         spec = getattr(self, '_osqa_prefetch', None)
         if fetching and spec and self._result_cache and isinstance(self._result_cache[0], models.Model):
             fks, counts = spec
@@ -90,7 +90,7 @@ class CachedQuerySet(models.query.QuerySet):
             obj = cache.get(key)
 
             if obj is None:
-                obj = super(CachedQuerySet, self).get(*args, **kwargs)
+                obj = super().get(*args, **kwargs)
                 obj.cache()
             else:
                 obj = self.obj_from_datadict(obj)
@@ -99,13 +99,13 @@ class CachedQuerySet(models.query.QuerySet):
 
             return obj
 
-        return super(CachedQuerySet, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
     def _fetch_from_query_cache(self, key):
         invalidation_key = self.model._get_cache_query_invalidation_key()
         cached_result = cache.get_many([invalidation_key, key])
 
-        if not invalidation_key in cached_result:
+        if invalidation_key not in cached_result:
             self.model._set_query_cache_invalidation_timestamp()
             return None
 
@@ -124,7 +124,7 @@ class CachedQuerySet(models.query.QuerySet):
         if result is not None:
             return result
 
-        result = super(CachedQuerySet, self).count()
+        result = super().count()
         cache.set(cache_key, (datetime.datetime.now(), result), 60 * 60)
         return result
 
@@ -168,10 +168,10 @@ class CachedManager(models.Manager):
         except self.model.DoesNotExist:
             # Put defaults back for create
             kwargs['defaults'] = defaults
-            return super(CachedManager, self).get_or_create(*args, **kwargs)
+            return super().get_or_create(*args, **kwargs)
 
 
-class DenormalizedField(object):
+class DenormalizedField:
     def __init__(self, manager, *args, **kwargs):
         self.manager = manager
         self.filter = (args, kwargs)
@@ -305,7 +305,7 @@ class BaseMetaClass(type(models.Model)):
     to_denormalize = []
 
     def __new__(cls, *args, **kwargs):
-        new_cls = super(BaseMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
 
         BaseMetaClass.to_denormalize.extend(
             [(new_cls, name, field) for name, field in new_cls.__dict__.items() if isinstance(field, DenormalizedField)]
@@ -328,12 +328,12 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
         app_label = 'forum'
 
     def __init__(self, *args, **kwargs):
-        super(BaseModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.reset_original_state(kwargs.keys())
 
     def reset_original_state(self, reset_fields=None):
         self._original_state = self._as_dict()
-        
+
         if reset_fields:
             self._original_state.update(dict([(f, None) for f in reset_fields]))
 
@@ -370,7 +370,7 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
         if partial:
             self.__class__.objects.filter(id=self.id).update(**self._get_update_kwargs())
         else:
-            super(BaseModel, self).save()
+            super().save()
 
         if put_back:
             try:
@@ -399,7 +399,7 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
     def _set_query_cache_invalidation_timestamp(cls):
         cache.set(cls._get_cache_query_invalidation_key(), datetime.datetime.now(), 60 * 60 * 24)
 
-        for base in filter(lambda c: issubclass(c, BaseModel) and (not c is BaseModel), cls.__bases__):
+        for base in filter(lambda c: issubclass(c, BaseModel) and (c is not BaseModel), cls.__bases__):
             base._set_query_cache_invalidation_timestamp()
 
     @classmethod
@@ -443,7 +443,7 @@ class BaseModel(models.Model, metaclass=BaseMetaClass):
     def delete(self):
         self.uncache()
         self._set_query_cache_invalidation_timestamp()
-        super(BaseModel, self).delete()
+        super().delete()
 
 
 from .user import User

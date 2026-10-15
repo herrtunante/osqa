@@ -1,4 +1,12 @@
-import os, tarfile, datetime, logging, re, configparser, shutil, tempfile, zipfile
+import os
+import tarfile
+import datetime
+import logging
+import re
+import configparser
+import shutil
+import tempfile
+import zipfile
 
 from django.core.cache import cache
 from django.utils.translation import gettext as _
@@ -29,7 +37,7 @@ INVALID_XML_CHARS = re.compile('[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff￾￿]'
 def make_date(date, with_time=True):
     try:
         return date.strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
-    except ValueError as e:
+    except ValueError:
         return date.replace(year=1900).strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
 
 

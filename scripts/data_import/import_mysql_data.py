@@ -7,7 +7,6 @@ import os
 import django
 import re
 import sqlite3
-from datetime import datetime
 
 # Run from the repository root: 'settings' and the importData/ and osqa.db
 # paths below are resolved from the current directory.
@@ -22,7 +21,7 @@ print("="*80)
 
 # Read the MySQL dump
 print("\n[1/4] Reading MySQL dump file...")
-with open('importData/osqa-20-10-2025_23-30-01.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open('importData/osqa-20-10-2025_23-30-01.sql', encoding='utf-8', errors='ignore') as f:
     sql_content = f.read()
 print("  ✓ File loaded")
 
@@ -68,7 +67,7 @@ for table_name, values in inserts:
 
     table_inserts[table_name].extend(value_sets)
 
-print(f"  ✓ Organized data by table:")
+print("  ✓ Organized data by table:")
 for table, data in sorted(table_inserts.items()):
     print(f"    - {table}: {len(data)} rows")
 
@@ -189,7 +188,7 @@ conn.close()
 print("\n" + "="*80)
 print("✓ DATA IMPORT COMPLETED")
 print("="*80)
-print(f"\nStatistics:")
+print("\nStatistics:")
 print(f"  - Imported: {imported_count} rows")
 print(f"  - Skipped: {skipped_count} tables")
 print(f"  - Errors: {error_count}")

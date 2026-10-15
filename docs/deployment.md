@@ -212,6 +212,33 @@ If several app servers are updated one at a time, leave `/m/` to OSQA (drop
 the `alias` for it): nginx can't tell whether `?v=` matches the file on its
 own disk, while OSQA only marks the current version immutable.
 
+#### Security headers (Content-Security-Policy)
+
+OSQA sends its own `Content-Security-Policy` on every page. Inline scripts
+run only with the nonce that policy names, and the nonce is new on every
+response, so:
+
+- Don't add a second `Content-Security-Policy` in nginx, Apache, Caddy, a
+  CDN or a load balancer (`add_header Content-Security-Policy ...`, Helmet-like
+  middleware, "security headers" options). A browser applies every policy it
+  gets, and one without this response's nonce blocks the forum's scripts.
+- Don't let a proxy or CDN cache HTML pages and serve one copy to several
+  visitors: the copy's nonce wouldn't match the header sent with it. Question
+  pages are marked `private`, and a `304 Not Modified` carries no policy, so
+  the browser keeps the policy stored with its own copy.
+- Scripts, styles, fonts, frames or form targets from other origins (analytics,
+  widgets, a chat box in the custom `<head>` or footer) go in Admin > Security >
+  "Extra script sources", separated by spaces, e.g.
+  `https://plausible.io https://cdn.example.org`. They are added to
+  `script-src`, `style-src`, `font-src`, `connect-src`, `frame-src` and
+  `form-action`. Inline `<script>` elements in the custom `<head>`, header and
+  footer get the nonce automatically; inline event handlers (`onclick="..."`)
+  never run.
+- To try a change first, set `CONTENT_SECURITY_POLICY_REPORT_ONLY = True` in
+  `settings_local.py`: blocked items are only reported (security log, Sentry).
+  `CONTENT_SECURITY_POLICY = "..."` replaces the whole policy (write `{nonce}`
+  where the nonce goes, e.g. `script-src 'self' 'nonce-{nonce}'`).
+
 ### 5. Scheduled jobs
 
 `crontab -e -u osqa`:

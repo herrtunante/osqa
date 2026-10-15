@@ -266,6 +266,9 @@ these, because the old values may not fit the new version:
   - Scripts such as analytics must be allowed under Admin > Security > "Extra
     script sources". Otherwise the Content-Security-Policy blocks them, which
     shows up in `log/security.log` and Sentry.
+  - Inline `<script>` elements there still run (they get the page's CSP
+    nonce), but inline event handlers (`onclick="..."`), `javascript:` links
+    and scripts in the sidebar or custom pages don't.
   - Old Google Analytics (`ga.js`) no longer collects data; use Google
     Analytics 4 or another tool.
 - **Header search:** the forum's own search is used by default. It finds

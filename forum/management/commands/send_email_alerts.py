@@ -22,7 +22,7 @@ SUB_QUESTION_LIST_LENGTH = 5
 TRY_N_USER_TAGS = 5
 
 
-class DigestQuestionsIndex(object):
+class DigestQuestionsIndex:
     def __init__(self, from_date):
         self.from_date = from_date
 

@@ -1,0 +1,25 @@
+{% extends basetemplate %}
+
+{% load i18n extra_tags %}
+
+{% block adminjs %}<link rel="stylesheet" type="text/css" href="{% media "/media/style/email_previews.css" %}"/>{% endblock %}
+{% block subtitle %}{% trans "Email previews" %}{% endblock %}
+{% block pagename %}{% trans "Email previews" %}{% endblock %}
+{% block description %}{% trans "Every email the site sends, with sample posts and people, as you would receive it. Nothing is sent." %}{% endblock %}
+
+{% block admincontent %}
+<ul class="email-previews">
+    {% for kind in kinds %}
+    <li class="email-previews-item">
+        <h3><a href="{% url "admin_email_preview" kind.slug %}">{{ kind.name }}</a></h3>
+        <p class="email-previews-audience">{{ kind.audience }}</p>
+        <p class="email-previews-subject"><span>{% trans "Subject" %}:</span> {{ kind.subject }}</p>
+        <p class="email-previews-links">
+            <a href="{% url "admin_email_preview" kind.slug %}">{% trans "Preview" %}</a> &middot;
+            <a href="{% url "admin_email_preview" kind.slug %}?format=html">{% trans "HTML" %}</a> &middot;
+            <a href="{% url "admin_email_preview" kind.slug %}?format=text">{% trans "Plain text" %}</a>
+        </p>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

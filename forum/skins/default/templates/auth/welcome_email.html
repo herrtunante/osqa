@@ -1,8 +1,8 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = settings.EMAIL_SUBJECT_PREFIX
-    app_name = settings.APP_SHORT_NAME
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
 
     exclude_greeting = True
     exclude_finetune = True
@@ -10,37 +10,28 @@
 
 {% email %}
     {% subject %}{% blocktrans %}{{ prefix }} Welcome to {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "One last step: confirm your email address." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}Howdy and welcome to {{ app_name }}. We know you're busy, so we'll keep this real simple.{% endblocktrans %},
-        </p>
-
-        <p style="{{ p_style }}">{% trans "Here's your login info (store it in a cool dry place):" %}</p>
-
-        <p style="{{ p_style }}">{% trans "Username: " %} {{ recipient.username }}<br />
-        <b>{% trans "Password: As IF we would send your password in cleartext!" %}</b></p>
-
-        <p style="{{ p_style }}">{% trans "The following link will help us verify your email address:" %}</p>
-
-        <p style="{{ p_style }}"><a  style="{{ a_style }}" href="{% fullurl "auth_validate_email" user=recipient.id code=validation_code %}">{% trans "Validate my email address" %}</a></p>
-
-        <p style="{{ p_style }}">{% trans "If the above link is not clickable, copy and paste this url into your web browser's address bar:" %}</p>
-
-        <p style="{{ p_style }}">{% fullurl "auth_validate_email" user=recipient.id code=validation_code %}</p>
+        {% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, you can ignore it.{% endblocktrans %}
+        <h1 class="em-h1" style="{{ h1_style }}">{% blocktrans %}Welcome to {{ app_name }}!{% endblocktrans %}</h1>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm your email address, so you can hear about answers to your questions.{% endblocktrans %}</p>
+        {% fullurl "auth_validate_email" user=recipient.id code=validation_code as validate_url %}
+        {% trans "Confirm your email" as cta %}{% include "notifications/_button.html" with url=validate_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Your username is {{ name }}. The confirmation link works for 24 hours.{% endblocktrans %}</p>
+        {% include "notifications/_link_fallback.html" with url=validate_url %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}Howdy and welcome to {{ app_name }}. We know you're busy, so we'll keep this real simple.{% endblocktrans %},
-{% trans "Here's your login info (store it in a cool dry place):" %}
+{% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, you can ignore it.{% endblocktrans %}
+{% blocktrans %}Welcome to {{ app_name }}!{% endblocktrans %}
 
-{% trans "Username: " %} {{ recipient.username }}
-{% trans "Password: As IF we would send your password in cleartext!" %}
+{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm your email address, so you can hear about answers to your questions.{% endblocktrans %}
 
-{% trans "Copy and paste this url into your web browser's address bar to help us verify your email address:" %}
-
+{% trans "Confirm your email" %}:
 {% fullurl "auth_validate_email" user=recipient.id code=validation_code %}
+
+{% blocktrans with name=recipient.username %}Your username is {{ name }}. The confirmation link works for 24 hours.{% endblocktrans %}
 {% endtextcontent %}
 
 {% endemail %}
-

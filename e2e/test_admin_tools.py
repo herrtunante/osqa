@@ -89,6 +89,46 @@ class AdminToolsTest(AdminTestCase):
         for graph in ('#questions_graph', '#userss_graph'):
             page.wait_for_selector(graph + ' canvas')
 
+    def test_email_previews(self):
+        page = self.open(self.admin)
+        self.menu(page, 'Email previews')
+        self.assertEqual(page.url, self.url(reverse('admin_email_previews')))
+        listed = page.locator('.email-previews').inner_text()
+        for name in ('New answer', 'Mention', 'Daily digest', 'Welcome', 'Sign-in link'):
+            self.assertIn(name, listed)
+        self.assertIn('New answer to: How do I export survey data to CSV?', listed)
+        with page.expect_navigation():
+            page.get_by_role('link', name='New answer', exact=True).click()
+        self.check_page(page)
+        self.assertEqual(page.url, self.url(reverse('admin_email_preview', kwargs={'kind': 'new-answer'})))
+        frame = page.frame_locator('iframe.email-preview-frame')
+        self.assertEqual(frame.get_by_role('link', name='View the answer').count(), 1)
+        self.assertIn('Hi admin,', frame.locator('body').inner_text())
+        self.assertIn('Unsubscribe from all emails', page.locator('.email-preview-text').inner_text())
+        self.check_page(page)
+        self.assertEqual(self.sent_mail, [])
+
+        # On a phone, in dark mode: the list, a preview and the email itself fit the screen.
+        phone = self.open(self.admin, device='mobile', dark=True)
+        self.visit(phone, reverse('admin_email_previews'))
+        with phone.expect_navigation():
+            phone.get_by_role('link', name='Mention', exact=True).click()
+        self.check_page(phone)
+        frame = phone.frame_locator('iframe.email-preview-frame')
+        self.assertIn('@admin', frame.locator('.em-quote').inner_text())
+        self.visit(phone, reverse('admin_email_preview', kwargs={'kind': 'digest'}) + '?format=html')
+        self.assertEqual(phone.get_by_role('link', name='See all new questions').count(), 1)
+        # The dark-mode styles of the email apply.
+        self.assertEqual(phone.locator('.em-card').evaluate('el => getComputedStyle(el).backgroundColor'),
+                         'rgb(22, 27, 34)')
+        self.visit(phone, reverse('admin_email_preview', kwargs={'kind': 'welcome'}) + '?format=text')
+        self.assertIn('Confirm your email:', phone.locator('body').inner_text())
+
+        # Not for members.
+        member = self.open(self.alice)
+        self.assertEqual(member.goto(self.url(reverse('admin_email_previews'))).status, 403)
+        member.problems.clear()
+
     def test_recalculate_counts(self):
         # Counts gone wrong: a score with no votes, reputation with no history.
         Question.objects.filter(id=self.question.id).update(score=7)

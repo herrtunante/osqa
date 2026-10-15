@@ -2,7 +2,7 @@
 Django==5.2.18
 
 # Core dependencies
-markdown==3.11
+markdown==3.11.1
 nh3==0.3.7
 html2text==2025.4.15
 
@@ -10,7 +10,7 @@ html2text==2025.4.15
 Pillow==12.3.0
 
 # Google Gemini (Gemini API or Vertex AI), for the optional AI module (forum_modules/ai)
-google-genai==2.30.0
+google-genai==2.31.0
 numpy==2.5.4
 
 # Database driver for the default MySQL setup (needs the MySQL client headers,
@@ -21,7 +21,7 @@ mysqlclient==2.3.0
 pymemcache==4.0.0
 
 # Error reporting to Sentry (optional: only used when SENTRY_DSN is set)
-sentry-sdk==2.71.0
+sentry-sdk==2.72.0
 
 # WSGI server
 gunicorn==26.2.0

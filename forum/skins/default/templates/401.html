@@ -10,7 +10,7 @@
 	</style>
 {% endblock %}
 {% block forejs %}
-       <script type="text/javascript">
+       <script nonce="{{ csp_nonce }}" type="text/javascript">
         $().ready(function(){
             window.setInterval(function() {
                 $('#redirect_loader').html($('#redirect_loader').html() + '.')

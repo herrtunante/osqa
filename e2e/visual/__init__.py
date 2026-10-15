@@ -81,7 +81,7 @@ def compare(name, png):
 
 # -- environment ------------------------------------------------------------
 
-# Widths of a sample text in the skin's font stacks (modern.css --font and
+# Widths of a sample text in the skin's font stacks (osqa.css --font and
 # --mono, written out so every page measures the same): they change when
 # system-ui or the monospace font resolves to another font.
 SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif'

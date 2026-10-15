@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from .base import *
 import re
@@ -7,7 +6,6 @@ from .tag import Tag
 
 import markdown
 from django.utils.encoding import smart_str
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
@@ -82,7 +80,7 @@ class NodeContent(models.Model):
             return mark_safe(sanitize_html(markdown.markdown(content, extensions=extensions)))
         except Exception as e:
             import traceback
-            logging.error("Caught exception %s in markdown parser rendering %s %s:\s %s" % (
+            logging.error(r"Caught exception %s in markdown parser rendering %s %s:\s %s" % (
                 str(e), cls.__name__, str(e), traceback.format_exc()))
             return ''
 
@@ -105,7 +103,7 @@ class NodeContent(models.Model):
             return []
 
     def tagname_meta_generator(self):
-        return u','.join([tag for tag in self.tagname_list()])
+        return ','.join([tag for tag in self.tagname_list()])
 
     class Meta:
         abstract = True
@@ -115,7 +113,7 @@ class NodeMetaClass(BaseMetaClass):
     types = {}
 
     def __new__(cls, *args, **kwargs):
-        new_cls = super(NodeMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
 
         if not new_cls._meta.abstract and new_cls.__name__ != 'Node':
             NodeMetaClass.types[new_cls.get_type()] = new_cls
@@ -152,10 +150,10 @@ class NodeQuerySet(CachedQuerySet):
             obj.__dict__.update(datadict)
             return obj
         else:
-            return super(NodeQuerySet, self).obj_from_datadict(datadict)
+            return super().obj_from_datadict(datadict)
 
     def get(self, *args, **kwargs):
-        node = super(NodeQuerySet, self).get(*args, **kwargs).leaf
+        node = super().get(*args, **kwargs).leaf
 
         if not isinstance(node, self.model):
             raise self.model.DoesNotExist()
@@ -214,7 +212,7 @@ class NodeManager(CachedManager):
         return self.all().filter_state(**kwargs)
 
 
-class NodeStateDict(object):
+class NodeStateDict:
     def __init__(self, node):
         self.__dict__['_node'] = node
 
@@ -243,19 +241,19 @@ class NodeStateDict(object):
                 state.save()
                 self.__dict__[name] = value
 
-                if not "(%s)" % name in node.state_string:
+                if "(%s)" % name not in node.state_string:
                     node.state_string = "%s(%s)" % (node.state_string, name)
                     node.save()
         else:
             if current:
                 node = self.__dict__['_node']
-                node.state_string = "".join("(%s)" % s for s in re.findall('\w+', node.state_string) if s != name)
+                node.state_string = "".join("(%s)" % s for s in re.findall(r'\w+', node.state_string) if s != name)
                 node.save()
                 current.node_state.delete()
                 del self.__dict__[name]
 
 
-class NodeStateQuery(object):
+class NodeStateQuery:
     def __init__(self, node):
         self.__dict__['_node'] = node
 
@@ -300,7 +298,7 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
     @classmethod
     def _generate_cache_key(cls, key, group="node"):
-        return super(Node, cls)._generate_cache_key(key, group)
+        return super()._generate_cache_key(key, group)
 
     @classmethod
     def get_type(cls):
@@ -448,22 +446,10 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
         return active_users
 
-    def get_last_edited(self):
-        if not self.last_edited:
-            try:
-                le = self.actions.exclude(action_type__in=('voteup', 'votedown', 'flag'), canceled=True).order_by('-action_date')[0]
-                self.last_edited = le
-                self.save()
-            except:
-                pass
-
-        return self.last_edited
-
-
     def _list_changes_in_tags(self):
         dirty = self.get_dirty_fields()
 
-        if not 'tagnames' in dirty:
+        if 'tagnames' not in dirty:
             return None
         else:
             if self._original_state['tagnames']:
@@ -536,7 +522,7 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
             a.cancel()
 
         node_id, node_type, parent_id = self.id, self.node_type, self.abs_parent_id or self.parent_id
-        super(Node, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
         search_index.node_deleted(node_id, node_type, parent_id)
 
     def save(self, *args, **kwargs):
@@ -564,10 +550,10 @@ class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
         if self.parent_id and not self.abs_parent_id:
             self.abs_parent = self.parent.absolute_parent
-        
+
         tags_changed = self._process_changes_in_tags()
-        
-        super(Node, self).save(*args, **kwargs)
+
+        super().save(*args, **kwargs)
         if tags_changed:
             # Django 4.2: Use .set() for many-to-many assignment
             if self.tagnames.strip():

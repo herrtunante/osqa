@@ -1,31 +1,36 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = settings.EMAIL_SUBJECT_PREFIX
-    app_name = settings.APP_SHORT_NAME
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
 
     exclude_finetune = True
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} Temporary login link{% endblocktrans %}{% endsubject %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your sign-in link for {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Sign in with one click. The link works once, for 24 hours." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}The following link grants you a one time access to your account at {{ app_name }}.{% endblocktrans %}
-        </p>
-        <p style="{{ p_style }}"><a  style="{{ a_style }}" href="{% fullurl "auth_tempsignin" user=recipient.id code=temp_login_code %}">{% trans "Go to your account" %}</a></p>
-
-        <p style="{{ p_style }}">{% trans "If the above link is not clickable, copy and paste this url into your web browser's address bar:" %}</p>
-
-        <p style="{{ p_style }}">{% fullurl "auth_tempsignin" user=recipient.id code=temp_login_code %}</p>
+        {% blocktrans asvar footer_reason %}You receive this email because a sign-in link was requested for your account at {{ app_name }}.{% endblocktrans %}
+        {% fullurl "auth_tempsignin" user=recipient.id code=temp_login_code as signin_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Here is the sign-in link you asked for. It signs you in to {{ app_name }} once, and works for 24 hours.{% endblocktrans %}</p>
+        {% trans "Sign in" as cta %}{% include "notifications/_button.html" with url=signin_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Once you're in, you can set a new password." %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "Didn't ask for this? You can ignore this email: nobody can sign in without the link." %}</p>
+        {% include "notifications/_link_fallback.html" with url=signin_url %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}The following url grants you a one time access to your account at {{ app_name }}.{% endblocktrans %}
+{% blocktrans asvar footer_reason %}You receive this email because a sign-in link was requested for your account at {{ app_name }}.{% endblocktrans %}
+{% blocktrans %}Here is the sign-in link you asked for. It signs you in to {{ app_name }} once, and works for 24 hours.{% endblocktrans %}
 
+{% trans "Sign in" %}:
 {% fullurl "auth_tempsignin" user=recipient.id code=temp_login_code %}
+
+{% trans "Once you're in, you can set a new password." %}
+
+{% trans "Didn't ask for this? You can ignore this email: nobody can sign in without the link." %}
 {% endtextcontent %}
 
 {% endemail %}
-

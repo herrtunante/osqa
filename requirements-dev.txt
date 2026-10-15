@@ -4,4 +4,8 @@
 django-debug-toolbar==8.0.0
 
 # Browser tests (e2e/): also run "python -m playwright install chromium"
-playwright==1.63.0
+playwright==1.64.0
+
+# Lint (ruff check . ; config in pyproject.toml) and dependency audit
+ruff==0.17.1
+pip-audit==2.10.1

@@ -125,7 +125,7 @@ def parse_values(values_str):
 
     return values
 
-with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open('importData/osqa-split.sql', encoding='utf-8', errors='ignore') as f:
     line_num = 0
     batch = []
     batch_size = 500
@@ -249,7 +249,7 @@ print(f"\n  ✓ Processed {line_num:,} lines")
 print("\n" + "="*80)
 print("✓ DATA IMPORT COMPLETED")
 print("="*80)
-print(f"\nStatistics:")
+print("\nStatistics:")
 print(f"  - Imported: {imported_count:,} rows")
 print(f"  - Skipped: {skipped_count:,} rows")
 print(f"  - Errors: {error_count}")
@@ -268,7 +268,7 @@ cursor.execute('SELECT COUNT(*) FROM forum_vote')
 votes = cursor.fetchone()[0]
 conn.close()
 
-print(f"\nImported data:")
+print("\nImported data:")
 print(f"  - Users: {users:,}")
 print(f"  - Tags: {tags}")
 print(f"  - Votes: {votes:,}")

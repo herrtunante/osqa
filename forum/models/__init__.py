@@ -17,7 +17,7 @@ from .search import SearchDocument
 from .base import *
 
 __all__ = [
-        'Node', 'NodeRevision', 'NodeState',  
+        'Node', 'NodeRevision', 'NodeState',
         'Question', 'QuestionSubscription', 'QuestionRevision',
         'Answer', 'AnswerRevision',
         'Tag', 'TagSynonym', 'Comment', 'MarkedTag', 'Badge', 'Award',
@@ -30,7 +30,7 @@ __all__ = [
 from forum.modules import get_modules_script_classes
 
 for k, v in get_modules_script_classes('models', models.Model).items():
-    if not k in __all__:
+    if k not in __all__:
         __all__.append(k)
         exec("%s = v" % k)
 

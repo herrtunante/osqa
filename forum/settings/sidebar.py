@@ -16,13 +16,13 @@ label = _("Show interesting tags in the sidebar"),
 help_text = _("Check this if you want to see the interesting tags container in the sidebar."),
 required=False))
 
-APP_INTRO = Setting('APP_INTRO', u'<p>Ask and answer questions, make the world better!</p>', SIDEBAR_SET, dict(
+APP_INTRO = Setting('APP_INTRO', '<p>Ask and answer questions, make the world better!</p>', SIDEBAR_SET, dict(
 label = _("Application intro"),
 help_text = _("The introductory page that is visible in the sidebar for anonymous users."),
 widget=Textarea))
 
 QUESTION_TITLE_TIPS = Setting('QUESTION_TITLE_TIPS',
-u"""
+"""
  - **ask a question relevant to the |APP_TITLE| community**
  - the title must be in the form of a question
  - provide enough details
@@ -35,7 +35,7 @@ required=False,
 widget=Textarea(attrs={'rows': '10'})))
 
 QUESTION_TAG_TIPS = Setting('QUESTION_TAG_TIPS',
-u"""
+"""
  - Tags are words that will tell others what this question is about.
  - They will help other find your question.
  - A question can have up to |FORM_MAX_NUMBER_OF_TAGS| tags, but it must have at least |FORM_MIN_NUMBER_OF_TAGS|.
@@ -58,7 +58,7 @@ help_text = "Don't wrap upper block with the standard style.",
 required=False))
 
 # The old defaults advertised WebFaction (closed in 2022) and osqa.net (offline).
-SIDEBAR_UPPER_TEXT = Setting('SIDEBAR_UPPER_TEXT', u'', SIDEBAR_SET, dict(
+SIDEBAR_UPPER_TEXT = Setting('SIDEBAR_UPPER_TEXT', '', SIDEBAR_SET, dict(
 label = "Upper Block Content",
 help_text = " The upper sidebar block. ",
 required=False,
@@ -81,7 +81,7 @@ label = "Don't Wrap Lower Block",
 help_text = "Don't wrap lower block with the standard style.",
 required=False))
 
-SIDEBAR_LOWER_TEXT = Setting('SIDEBAR_LOWER_TEXT', u'', SIDEBAR_SET, dict(
+SIDEBAR_LOWER_TEXT = Setting('SIDEBAR_LOWER_TEXT', '', SIDEBAR_SET, dict(
 label = "Lower Block Content",
 help_text = " The lower sidebar block. ",
 required=False,

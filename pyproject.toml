@@ -1,0 +1,78 @@
+# Tool configuration only: OSQA is a Django project, not an installable package.
+
+[tool.ruff]
+target-version = "py312"
+extend-exclude = [
+    "forum/migrations",
+    "e2e/vendor",
+    "forum/skins/default/media/vendor",
+    "tmp",
+    "cache",
+    "log",
+]
+
+[tool.ruff.lint]
+# pyflakes, the error-prone pycodestyle checks, whitespace warnings,
+# a subset of bugbear and the Python 3 upgrades.
+select = ["F", "E4", "E7", "E9", "W", "B", "UP"]
+ignore = [
+    "F403", "F405",  # `from x import *` is how forum.models, forum.settings and the modules share names
+    "E402",          # imports after sys.path / settings setup in settings.py, scripts and modules
+    "E701", "E702",  # several statements on one line (style)
+    "E722",          # bare except: changing what is caught needs a case-by-case review
+    "E731",          # lambda assignment (style)
+    "E741",          # ambiguous variable names (style)
+    "B007",          # unused loop variable (style)
+    "B008",          # function calls in defaults
+    "B904",          # raise ... from inside except (style)
+    "B905",          # zip() without strict=
+    "UP031",         # %-formatting: rewriting 900 strings is churn, not a fix
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Re-export modules: their imports are the package interface.
+"__init__.py" = ["F401"]
+# Modules read with `from x import *`: their imports reach the importing module.
+"forum/actions/node.py" = ["F401"]
+"forum/actions/user.py" = ["F401"]
+"forum/forms/admin.py" = ["F401"]
+"forum/forms/auth.py" = ["F401"]
+"forum/forms/general.py" = ["F401"]
+"forum/forms/qanda.py" = ["F401"]
+"forum/models/base.py" = ["F401"]
+"forum/modules/ui_objects.py" = ["F401"]
+# Names come from `from settings_local import *`.
+"settings.py" = ["F821"]
+# Trailing space inside a translated help text (changing it changes the msgid).
+"forum_modules/default_badges/settings.py" = ["W291"]
+
+# To be cleaned after the CSP/email/CSS work (files other changes are touching).
+"forum/middleware/admin_messages.py" = ["F401", "UP004"]
+"forum/middleware/anon_user.py" = ["F401", "F821", "UP004"]
+"forum/middleware/cancel.py" = ["B009", "F401", "UP004"]
+"forum/middleware/custom_pages.py" = ["UP004"]
+"forum/middleware/django_cookies.py" = ["UP004"]
+"forum/middleware/extended_user.py" = ["F841", "UP008", "W292"]
+"forum/middleware/request_utils.py" = ["E713", "F401", "UP004"]
+"forum/middleware/static_files.py" = ["UP004"]
+"forum/settings/forms.py" = ["B026", "E713", "UP008", "W291"]
+"forum/skins/__init__.py" = ["UP015"]
+"forum/templatetags/__init__.py" = ["W292"]
+"forum/templatetags/email_tags.py" = ["F401", "W293"]
+"forum/templatetags/extra_filters.py" = ["F401"]
+"forum/templatetags/extra_tags.py" = ["F401", "F841", "UP025", "UP034", "W605"]
+"forum/templatetags/general_sidebar_tags.py" = ["W292", "W293"]
+"forum/templatetags/node_tags.py" = ["B006", "F401", "W293"]
+"forum/templatetags/question_list_tags.py" = ["F401"]
+"forum/templatetags/smart_if.py" = ["UP004", "UP008"]
+"forum/templatetags/ui_registry.py" = ["W292"]
+"forum/templatetags/user_tags.py" = ["F401", "F841"]
+"forum/utils/mail.py" = ["E711", "F401", "UP025", "W293"]
+"forum/views/admin.py" = ["E713", "UP008", "W291", "W293"]
+"forum/views/auth.py" = ["F841", "UP009", "W293"]
+"forum/views/commands.py" = ["UP008", "UP009", "W291", "W293"]
+"forum/views/decorators.py" = ["UP008", "UP009", "W293"]
+"forum/views/meta.py" = ["E401", "F401"]
+"forum/views/readers.py" = ["B006", "F401", "UP008", "UP009", "UP025", "W293"]
+"forum/views/users.py" = ["F401", "F811", "F841", "UP008", "W293"]
+"forum/views/writers.py" = ["E713", "E714", "F401", "UP009", "W293"]

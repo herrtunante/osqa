@@ -11,7 +11,7 @@ get_modules_script('startup')
 import forum.badges
 import forum.subscriptions
 import forum.notifications
-import forum.registry
+import forum.registry  # noqa: F401  (fills the UI registry)
 get_modules_script('registry')
 
 

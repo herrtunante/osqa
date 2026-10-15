@@ -1,4 +1,3 @@
-import os.path
 from .base import Setting, SettingSet
 from django.utils.translation import gettext_lazy as _
 

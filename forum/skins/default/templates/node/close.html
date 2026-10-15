@@ -15,11 +15,3 @@
     <option value="1">{% trans "Move the answers to the original question" %}</option>
 </select>
 {% endif %}
-<script>
-$('.prompt-examples').change(function() {
-    $('textarea[name=prompt]').val($(this).val());
-    if (/duplicate/i.test($(this).val())) {
-        $('#close-duplicate-of').focus();
-    }
-});
-</script>

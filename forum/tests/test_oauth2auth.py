@@ -12,7 +12,7 @@ GOOGLE_PROFILE = {'sub': '1234567890', 'email': 'carol@gmail.com', 'email_verifi
                   'name': 'Carol Example', 'given_name': 'carol'}
 
 
-class FakeProvider(object):
+class FakeProvider:
     """Stands in for the providers' HTTP endpoints."""
 
     def __init__(self, responses):

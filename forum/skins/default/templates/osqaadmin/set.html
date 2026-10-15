@@ -13,11 +13,11 @@
             {{ form.as_table }}
         </table>
         <div class="submit-row">
-                    <input id="submit" name="submit" type="submit" value="{% trans "Save" %}" onclick="this.form.target=''; return true;" />
+                    <input id="submit" name="submit" type="submit" value="{% trans "Save" %}" data-form-target="" />
                     {% if form.set.can_preview %}
-                        <input id="preview" name="preview" type="submit" value="{% trans "Preview" %}" onclick="this.form.target='_blank'; return true;" />
+                        <input id="preview" name="preview" type="submit" value="{% trans "Preview" %}" data-form-target="_blank" />
                         {% if form.set.name|contained_in:unsaved %}
-                            <input id="reset" name="reset" type="submit" value="{% trans "Reset Changes" %}" onclick="this.form.target=''; return true;" />
+                            <input id="reset" name="reset" type="submit" value="{% trans "Reset Changes" %}" data-form-target="" />
                         {% endif %}
                     {% endif %}
         </div>

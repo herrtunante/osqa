@@ -62,7 +62,7 @@ class LayoutTest(OSQATestCase):
         response = self.client.get('/')
         self.assertContains(response, '<!DOCTYPE html>')
         self.assertContains(response, '<meta name="viewport" content="width=device-width, initial-scale=1" />')
-        self.assertContains(response, '/media/style/modern.css')
+        self.assertContains(response, '/media/style/osqa.css')
         self.assertNotContains(response, 'http://www.google.com/jsapi')
         # jQuery is served by the site itself, and every page carries the
         # CSRF token for the AJAX commands.

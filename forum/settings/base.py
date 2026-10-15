@@ -1,6 +1,4 @@
-import django.dispatch
 from django.db import IntegrityError, transaction
-from django.utils.encoding import force_str, smart_str
 from datetime import datetime, timedelta
 import logging
 
@@ -16,7 +14,7 @@ class SettingSet(list):
         self.can_preview = can_preview
 
 
-class BaseSetting(object):
+class BaseSetting:
     @classmethod
     def add_to_class(cls, name):
         def wrapper(self, *args, **kwargs):
@@ -33,17 +31,14 @@ class BaseSetting(object):
 
         if set is not None:
             self.set = set
-            
-            if not set.name in Setting.sets:
+
+            if set.name not in Setting.sets:
                 Setting.sets[set.name] = set
 
             Setting.sets[set.name].append(self)
 
     def __str__(self):
         return str(self.value)
-
-    def __unicode__(self):
-        return smart_str(self.value)
 
     # Python 3: Implement comparison operators for use in templates and code
     def __lt__(self, other):
@@ -99,7 +94,7 @@ class BaseSetting(object):
                 pass
         except Exception as e:
             logging.error("Error retrieving setting from database (%s): %s" % (self.name, str(e)))
-            
+
         return self.default
 
     def set_value(self, new_value):
@@ -140,14 +135,14 @@ class AnyTypeSetting(BaseSetting):
         return value
 
 
-class Setting(object):
+class Setting:
     emulators = {}
     sets = {}
 
     def __new__(cls, name, default, set=None, field_context=None):
         if default is None:
             return AnyTypeSetting(name, default, set, field_context)
-            
+
         deftype = type(default)
 
         if deftype in Setting.emulators:
@@ -155,7 +150,7 @@ class Setting(object):
         else:
             emul = type(deftype.__name__ + cls.__name__, (BaseSetting,), {'base_type': deftype})
 
-            fns = [n for n, f in [(p, getattr(deftype, p)) for p in dir(deftype) if not p in dir(cls)] if callable(f)]
+            fns = [n for n, f in [(p, getattr(deftype, p)) for p in dir(deftype) if p not in dir(cls)] if callable(f)]
 
             for n in fns:
                emul.add_to_class(n)

@@ -4,8 +4,7 @@
 {% block title %}{% spaceless %}{% trans "Ask a question" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
         var related_questions_url = '{% url "related_questions" %}';
         {% if settings.AI_ASSISTANT %}
         var ai_assistant_url = '{% url "ai_assistant" %}';

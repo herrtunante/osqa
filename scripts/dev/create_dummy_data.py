@@ -19,10 +19,8 @@ from django.conf import settings as django_settings
 if not django_settings.DEBUG:
     sys.exit('Refusing to run with DEBUG = False: this creates users with known passwords.')
 
-from django.contrib.auth.models import User as DjangoUser
-from forum.models import User, Node, Tag, Vote, Badge, Award, KeyValue
+from forum.models import User, Tag, Vote, KeyValue
 from forum.models import Question, Answer, Comment
-from forum import settings
 
 print("="*80)
 print("OSQA Dummy Data Generator")
@@ -132,9 +130,9 @@ def create_users(count=15):
     admin.save()
 
     if created:
-        print(f"  ✓ Created admin: alfonso (password: alfonso)")
+        print("  ✓ Created admin: alfonso (password: alfonso)")
     else:
-        print(f"  ✓ Updated admin: alfonso (password: alfonso)")
+        print("  ✓ Updated admin: alfonso (password: alfonso)")
 
     users.append(admin)
 
@@ -214,7 +212,7 @@ def create_questions(users, tags_list):
 
 def create_answers(users, questions):
     """Create answers for questions"""
-    print(f"\n[4/7] Creating answers...")
+    print("\n[4/7] Creating answers...")
 
     answers = []
     answer_count = 0
@@ -226,7 +224,7 @@ def create_answers(users, questions):
         for j in range(num_answers):
             author = random.choice([u for u in users if u != question.author])
 
-            answer_body = random.choice(ANSWERS) + f"\n\n```python\n# Sample code here\nprint('Hello, World!')\n```"
+            answer_body = random.choice(ANSWERS) + "\n\n```python\n# Sample code here\nprint('Hello, World!')\n```"
 
             answer = Answer(
                 title='',
@@ -252,7 +250,7 @@ def create_answers(users, questions):
 
 def create_comments(users, questions, answers):
     """Create comments on questions and answers"""
-    print(f"\n[5/7] Creating comments...")
+    print("\n[5/7] Creating comments...")
 
     comment_count = 0
     all_nodes = list(questions) + list(answers)
@@ -283,7 +281,7 @@ def create_comments(users, questions, answers):
 
 def create_votes(users, questions, answers):
     """Create votes on questions and answers"""
-    print(f"\n[6/7] Creating votes...")
+    print("\n[6/7] Creating votes...")
 
     vote_count = 0
     all_votable = list(questions) + list(answers)
@@ -314,7 +312,7 @@ def create_votes(users, questions, answers):
 
 def create_settings():
     """Create some settings"""
-    print(f"\n[7/7] Creating settings...")
+    print("\n[7/7] Creating settings...")
 
     settings_data = [
         ('APP_TITLE', 'OSQA: Open Source Q&A Forum'),
@@ -344,17 +342,17 @@ def main():
     print("\n" + "="*80)
     print("✓ DUMMY DATA CREATED SUCCESSFULLY!")
     print("="*80)
-    print(f"\nCreated:")
+    print("\nCreated:")
     print(f"  - {len(users)} users (including admin 'alfonso')")
     print(f"  - {len(tags)} tags")
     print(f"  - {len(questions)} questions")
     print(f"  - {len(answers)} answers")
-    print(f"  - Votes and comments on content")
-    print(f"\nAdmin Login:")
-    print(f"  Username: alfonso")
-    print(f"  Password: alfonso")
-    print(f"  URL: http://127.0.0.1:8000/nimda/")
-    print(f"\nHomepage: http://127.0.0.1:8000/")
+    print("  - Votes and comments on content")
+    print("\nAdmin Login:")
+    print("  Username: alfonso")
+    print("  Password: alfonso")
+    print("  URL: http://127.0.0.1:8000/nimda/")
+    print("\nHomepage: http://127.0.0.1:8000/")
     print("="*80)
 
 if __name__ == '__main__':

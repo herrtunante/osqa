@@ -1,6 +1,5 @@
 import json
 
-from django.urls import reverse
 
 from forum.actions import AcceptAnswerAction, DeleteAction
 from forum.models import Question, Answer, Comment

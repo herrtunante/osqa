@@ -2,6 +2,7 @@ from django import template
 from django.utils.safestring import mark_safe
 import logging
 import markdown
+import re
 
 register = template.Library()
 
@@ -66,3 +67,16 @@ def static_content(content, render_mode):
         return mark_safe(str(content))
     else:
         return str(content)
+
+
+_SCRIPT_WITHOUT_NONCE = re.compile(r'<script\b(?![^>]*\snonce=)', re.IGNORECASE)
+
+
+@register.filter(is_safe=True)
+def csp_nonce_scripts(html, nonce):
+    """Gives the response's CSP nonce to the inline <script> elements of HTML
+    the site administrators wrote (custom <head>, header and footer), so their
+    analytics snippets keep running. Never use it on content members write."""
+    if not nonce or html is None:
+        return html
+    return _SCRIPT_WITHOUT_NONCE.sub('<script nonce="%s"' % nonce, str(html))

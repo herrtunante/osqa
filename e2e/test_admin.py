@@ -1,7 +1,6 @@
 """Moderators (staff) and administrators (superusers): moderation tools,
 the support dashboard, every settings page, maintenance mode, user
 management, and what ordinary users are kept out of."""
-import re
 
 from django.test import override_settings
 from django.urls import reverse

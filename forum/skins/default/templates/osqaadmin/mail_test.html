@@ -9,14 +9,14 @@
 
 {% email %}
     {% subject %}{% blocktrans %}{{ prefix }} Your email settings are correct: {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "If you see this content your E-Mail settings are correct." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        {% trans "If you see this content your E-Mail settings are correct." %}
+        <p class="em-text" style="{{ p_style }}">{% trans "If you see this content your E-Mail settings are correct." %}</p>
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-    {% trans "If you see this content your E-Mail settings are correct." %}
+{% trans "If you see this content your E-Mail settings are correct." %}
 {% endtextcontent %}
 
 {% endemail %}
-

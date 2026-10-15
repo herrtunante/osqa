@@ -26,7 +26,7 @@
                 <input type="submit" value="{% trans "Go" %}" />
             </div>
         </form>
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
             $(function() {
                 $limit = $('#filter-limit');
                 $sort = $('#filter-sort');

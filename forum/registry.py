@@ -74,7 +74,7 @@ ui.register(ui.FOOTER_LINKS,
 
 class ModerationMenuGroup(ui.AjaxMenuGroup):
     def can_render(self, context):
-        return context['user'] != context['viewer'] and super(ModerationMenuGroup, self).can_render(context)
+        return context['user'] != context['viewer'] and super().can_render(context)
 
 class OwnAccountMenuItem(ui.UserMenuItem):
     """Shown only to the account's owner (administrators see the menu on other profiles too)."""

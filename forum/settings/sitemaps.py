@@ -1,5 +1,4 @@
 from .base import Setting, SettingSet
-from django.forms.widgets import Textarea, RadioSelect, Select
 from django.utils.translation import gettext_lazy as _
 
 SITEMAP_SET = SettingSet('sitemap', _('Sitemap settings'), _("Some settings connected with the Sitemaps."), 2000)

@@ -160,7 +160,7 @@ class TestEmailSettingsWidget(forms.TextInput):
 
         return format_html("""
             <div id="test_email_settings">
-                <a href="{url}" onclick="return false;" class="button test_button" role="button">{label}</a>
+                <a href="{url}" class="button test_button" role="button">{label}</a>
 
                 <div class="test_email_status_box">
                 <div style="display: none" class="ajax_indicator">{wait}</div>

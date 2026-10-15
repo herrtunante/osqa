@@ -1,7 +1,7 @@
 /*
  * Tab rows that scroll sideways on narrow screens (header tabs, sort tabs,
  * profile tabs, settings sections): the edge where more tabs are hidden
- * fades out (classes fade-start / fade-end, see modern.css "Scrolling tab
+ * fades out (classes fade-start / fade-end, see osqa.css "Scrolling tab
  * rows"), and the current tab is scrolled into view when the page loads.
  */
 (function () {

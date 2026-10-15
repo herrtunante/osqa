@@ -12,6 +12,7 @@ Environment variables:
     E2E_SLOWMO=250           pause (ms) between browser actions
     E2E_CHROMIUM_PATH=...    use this Chromium instead of Playwright's own
     E2E_ARTIFACTS=dir        where screenshots of failed tests go (tmp/e2e)
+    E2E_CSS_COVERAGE=1       record which style sheet rules the pages use (e2e/css_coverage.py)
 """
 import datetime
 import os
@@ -136,6 +137,9 @@ class E2ETestCase(LiveServerTestCase):
                 except Exception:
                     pass
         leftovers = [] if failed else [p for page in self._pages for p in page.problems]
+        if os.environ.get('E2E_CSS_COVERAGE'):
+            from . import css_coverage
+            css_coverage.flush(self._pages)
         for context in self._contexts:
             context.close()
         if os.environ.get('E2E_RECORD') and self._requested:
@@ -225,6 +229,9 @@ class E2ETestCase(LiveServerTestCase):
             context.add_cookies([{'name': djsettings.SESSION_COOKIE_NAME, 'value': session.session_key,
                                   'url': self.live_server_url}])
         page = context.new_page()
+        if os.environ.get('E2E_CSS_COVERAGE'):
+            from . import css_coverage
+            css_coverage.track(page, self.live_server_url)
         page.set_default_timeout(int(os.environ.get('E2E_TIMEOUT', 10000)))
         page.problems = []
         page.device = device

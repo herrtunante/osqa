@@ -9,7 +9,6 @@ from forum import settings, REQUEST_HOLDER
 from forum.settings import APP_SHORT_NAME
 from forum.utils.mail import send_template_email
 
-from django.contrib import messages
 
 class UserJoinsAction(ActionProxy):
     verb = _("joined")
@@ -94,7 +93,7 @@ class BonusRepAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer), 'message': message
                 }
-        except Exception as e:
+        except Exception:
             return ''
 
 class AwardPointsAction(ActionProxy):
@@ -125,7 +124,7 @@ class AwardPointsAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer),
                 }
-        except Exception as e:
+        except Exception:
             return ''
 
 class AwardAction(ActionProxy):

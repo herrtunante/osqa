@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import json
 import logging
@@ -12,7 +11,7 @@ VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 # Seconds to wait for Google before giving up on a verification.
 VERIFY_TIMEOUT = 10
 
-class RecaptchaResponse(object):
+class RecaptchaResponse:
     def __init__(self, is_valid, error_code=None):
         self.is_valid = is_valid
         self.error_code = error_code

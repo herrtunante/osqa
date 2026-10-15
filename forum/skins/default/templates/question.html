@@ -31,7 +31,6 @@
         {% if not question.nis.closed %}
         <script type='text/javascript' src='{% media  "/media/js/osqa.question.js" %}'></script>
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 
         {% if embed_youtube_videos %}
@@ -40,7 +39,7 @@
         {% endif %}
         <script defer src="{% media "/media/js/osqa.posts.js" %}"></script>
 
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
         messages.copy_code = "{% trans "Copy" %}";
         messages.copy_code_label = "{% trans "Copy code to the clipboard" %}";
         messages.copied = "{% trans "Copied" %}";

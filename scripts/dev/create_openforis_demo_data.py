@@ -730,7 +730,7 @@ fill in the plot ID.
 # Helpers
 # ---------------------------------------------------------------------------
 
-class _Messages(object):
+class _Messages:
     """Stand-in for the django.contrib.messages storage of a request."""
     def add(self, level, message, extra_tags=''):
         pass

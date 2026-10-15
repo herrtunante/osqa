@@ -727,3 +727,38 @@ def support_dashboard(request):
         'target_hours': target,
         'reminder_days': int(settings.ACCEPT_REMINDER_DAYS),
     })
+
+
+@staff_user_required
+def email_previews(request, kind=None):
+    """Every kind of email the site sends, rendered with the real templates and
+    sample data for the admin who is looking. ?format=html or ?format=text
+    returns that part of one email by itself (the HTML one is shown in a frame)."""
+    from forum.utils import email_samples
+
+    if kind is not None and kind not in email_samples.KINDS:
+        raise Http404()
+
+    fmt = request.GET.get('format')
+    if kind is not None and fmt in ('html', 'text'):
+        email = email_samples.render(kind, request.user)
+        if fmt == 'text':
+            return HttpResponse(email['text'], content_type='text/plain; charset=utf-8')
+        return HttpResponse(email['html'], content_type='text/html; charset=utf-8')
+
+    def page(request):
+        if kind is None:
+            kinds = []
+            for slug, (name, audience, template, sample) in email_samples.KINDS.items():
+                kinds.append({'slug': slug, 'name': name, 'audience': audience,
+                              'subject': email_samples.render(slug, request.user)['subject']})
+            return ('osqaadmin/email_previews.html', {'kinds': kinds})
+
+        name, audience, template, sample = email_samples.KINDS[kind]
+        email = email_samples.render(kind, request.user)
+        return ('osqaadmin/email_preview.html', {
+            'kind': kind, 'name': name, 'audience': audience, 'template': template, 'email': email,
+            'list_unsubscribe': email['headers'].get('List-Unsubscribe', ''),
+        })
+
+    return admin_page_wrapper(page, request)

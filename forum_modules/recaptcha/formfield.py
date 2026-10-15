@@ -9,28 +9,28 @@ from . import settings
 
 class ReCaptchaField(forms.Field):
 
-	def __init__(self, *args, **kwargs):
-		super(ReCaptchaField, self).__init__(*args, widget=ReCaptchaWidget, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, widget=ReCaptchaWidget, **kwargs)
 
-	def clean(self, values):
-		super(ReCaptchaField, self).clean(values)
+    def clean(self, values):
+        super().clean(values)
 
-		request = REQUEST_HOLDER.request
-		remoteip = request and request.META.get('REMOTE_ADDR') or None
-		check_captcha = captcha.submit(values, str(settings.RECAPTCHA_PRIV_KEY), remoteip)
+        request = REQUEST_HOLDER.request
+        remoteip = request and request.META.get('REMOTE_ADDR') or None
+        check_captcha = captcha.submit(values, str(settings.RECAPTCHA_PRIV_KEY), remoteip)
 
-		if not check_captcha.is_valid:
-			raise forms.ValidationError(_('Invalid captcha, please try again.'), code=check_captcha.error_code)
+        if not check_captcha.is_valid:
+            raise forms.ValidationError(_('Invalid captcha, please try again.'), code=check_captcha.error_code)
 
-		return values
+        return values
 
 
 class ReCaptchaWidget(forms.Widget):
-	def render(self, name, value, attrs=None, renderer=None):
-		return mark_safe(captcha.displayhtml(str(settings.RECAPTCHA_PUB_KEY)))
+    def render(self, name, value, attrs=None, renderer=None):
+        return mark_safe(captcha.displayhtml(str(settings.RECAPTCHA_PUB_KEY)))
 
-	def value_from_datadict(self, data, files, name):
-		return data.get('g-recaptcha-response', None)
+    def value_from_datadict(self, data, files, name):
+        return data.get('g-recaptcha-response', None)
 
-	def value_omitted_from_data(self, data, files, name):
-		return 'g-recaptcha-response' not in data
+    def value_omitted_from_data(self, data, files, name):
+        return 'g-recaptcha-response' not in data

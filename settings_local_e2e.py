@@ -1,4 +1,3 @@
-# encoding:utf-8
 # Local settings for the browser tests (e2e/):
 #   OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e
 # Same as the unit test settings, but the test database is a file: the live

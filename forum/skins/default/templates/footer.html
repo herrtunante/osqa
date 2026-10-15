@@ -8,7 +8,7 @@
     <form class="language-switch" action="{% url "set_language" %}" method="post">{% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}" />
         <label for="language-select">{% trans "Language" %}</label>
-        <select id="language-select" name="language" onchange="this.form.submit()">
+        <select id="language-select" name="language" data-autosubmit>
             {% get_current_language as CURRENT_LANGUAGE %}
             {% for code, name in LANGUAGES %}<option value="{{ code }}" lang="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ name }}</option>{% endfor %}
         </select>

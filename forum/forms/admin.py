@@ -20,7 +20,7 @@ class IPListField(forms.CharField):
         for ip in ips:
             try:
                 socket.inet_aton(ip)
-            except socket.error:
+            except OSError:
                 raise forms.ValidationError(_('Invalid ip address: %s' % ip))
 
             if not len(ip.split('.')) == 4:
@@ -70,9 +70,9 @@ class PageForm(forms.Form):
         if page:
             initial = page.extra
             initial.update(dict(title=page.title, content=page.body))
-            super(PageForm, self).__init__(initial=initial, *args, **kwargs)
+            super().__init__(*args, initial=initial, **kwargs)
         else:
-            super(PageForm, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
 
     title  = forms.CharField(label=_lazy('Title'), max_length=255, widget=forms.TextInput(attrs={'class': 'longstring'}),
@@ -102,11 +102,11 @@ class CreateUserForm(SimpleRegistrationForm, SetPasswordForm):
     validate_email = forms.BooleanField(required=False, label=_lazy('send validation email'))
 
     def __init__(self, *args, **kwargs):
-        super(CreateUserForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Keep only these fields, in this order (fields.keyOrder was removed in Django 1.7).
         self.fields = dict((name, self.fields[name]) for name in
                            ['username', 'email', 'validate_email', 'password1', 'password2'])
         self.fields['email'].label = _('email address')
 
 
-    
+

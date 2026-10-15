@@ -1,28 +1,37 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
-    safe_app_name = html.mark_safe(smart_str(settings.APP_SHORT_NAME))
-    question_title = html.mark_safe(smart_str(question.title))
-    question_link = html.objlink(question, style=settings.EMAIL_ANCHOR_STYLE)
-    question_url = html.mark_safe(settings.APP_URL + question.get_absolute_url())
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
 {% enddeclare %}
 
 {% email %}
     {% subject %}{% blocktrans %}{{ prefix }} Did an answer solve "{{ question_title }}"?{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "If an answer solved your problem, accept it so others know what worked." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}Your question {{ question_link }} has received answers. If one of them solved your problem, please mark it as accepted (the check mark next to the answer).{% endblocktrans %}
-        </p>
-        <p style="{{ p_style }}">{% trans "It shows others with the same problem which answer works, and thanks the person who helped. If none of the answers solved it, add a comment saying what is still missing." %}</p>
+        {% declare %}
+            question_link = html.hyperlink(question_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Your question {{ question_link }} has answers. Did one of them solve your problem?{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If so, accept it with the check mark next to it. That shows others what worked and thanks the person who helped." %}</p>
+        {% trans "Review the answers" as cta %}{% include "notifications/_button.html" with url=question_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Still stuck? Add a comment saying what is missing." %}</p>
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}Your question "{{ question_title }}" has received answers. If one of them solved your problem, please mark it as accepted (the check mark next to the answer):{% endblocktrans %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% blocktrans %}Your question {{ question_link }} has answers. Did one of them solve your problem?{% endblocktrans %}
+
+{% trans "If so, accept it with the check mark next to it. That shows others what worked and thanks the person who helped." %}
+
+{% trans "Review the answers" %}:
 {{ question_url }}
 
-{% trans "It shows others with the same problem which answer works, and thanks the person who helped. If none of the answers solved it, add a comment saying what is still missing." %}
+{% trans "Still stuck? Add a comment saying what is missing." %}
 {% endtextcontent %}
 
 {% endemail %}

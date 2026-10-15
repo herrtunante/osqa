@@ -55,7 +55,7 @@ class CreatingNotificationsTest(NotificationFixture):
         prefs = User.objects.get(id=self.alice.id).subscription_settings
         prefs.enable_notifications = False
         prefs.save()
-        self.question.subscribers  # carol follows the question
+        self.question.subscribers  # noqa: B018  carol follows the question
         from forum.models import QuestionSubscription
         QuestionSubscription(user=self.carol, question=self.question).save()
 

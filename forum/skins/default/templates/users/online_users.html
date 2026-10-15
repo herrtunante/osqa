@@ -5,7 +5,7 @@
 {% load i18n %}
 {% block title %}{% spaceless %}{% trans "Users Online" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
 	    //todo move javascript out
         $().ready(function(){
             var orderby = "{{ tab_id }}";

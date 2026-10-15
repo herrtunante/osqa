@@ -53,6 +53,7 @@ Options (environment variables):
 | `E2E_ARTIFACTS=dir` | Where screenshots of failed tests go (default `tmp/e2e/`) |
 | `E2E_DB_NAME=name.db` | Test database file in `tmp/`, so several runs can work side by side |
 | `E2E_RECORD=file` | Append every forum URL the browser requests to this file (used by `coverage.py`) |
+| `E2E_CSS_COVERAGE=1` | Record which style sheet rules each page uses, in `tmp/e2e/css-usage.jsonl` (used by `css_coverage.py`) |
 | `E2E_UPDATE_BASELINES=1` | Visual tests: write the screenshots as the new baselines instead of comparing |
 | `E2E_VISUAL_STRICT=1` | Visual tests: compare even when the baselines were made on another environment |
 
@@ -138,6 +139,40 @@ Django's model admin are left out. Requests made with `page.request` aren't
 browser requests and don't count: reach an endpoint by clicking, by
 `page.goto`, or with `fetch` inside the page. When you add a page or a
 command, add a test that reaches it, and check the report.
+
+## Which CSS is used
+
+The public pages load one style sheet, `forum/skins/default/media/style/osqa.css`
+(sections in cascade order: legacy base, modern layout and colour variables,
+profile, ask, lists, search box, accessibility and print, editor, profile
+menu, Markdown help), plus jQuery UI's; the sign-in pages add `auth.css` and
+the admin layouts `admin.css` / `djstyle_admin.css`.
+
+```bash
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/css_coverage.py                    # runs the suite, then reports
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/css_coverage.py e2e.test_crawl     # only some tests
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/css_coverage.py --report           # report on the last run
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/css_coverage.py --report --prune   # remove dead rules
+OSQA_SETTINGS_LOCAL=settings_local_e2e python e2e/css_coverage.py --report --overridden --file=default/media/style/osqa.css
+```
+
+With `E2E_CSS_COVERAGE=1` every page a test opens (all roles, desktop and
+phone, light and dark, with the menus, dialogs, suggestions and errors the
+tests bring up) is watched: Chromium's CSS coverage (CDP rule usage, taken at
+each load and before each navigation) and a script that tests every selector,
+with :hover/:focus-like states and pseudo-elements stripped, against the
+document after each DOM change. The report lists per style sheet the rules
+used, those only referenced, and the **dead** selectors: not used on any page
+*and* naming a class or id that appears nowhere in the templates, JavaScript
+(vendored libraries included) or Python of `forum/` and `forum_modules/`.
+Selectors made only of elements, `@media print` and names built from a
+prefix (`'vote-' + kind`) are kept. `--prune` removes dead selectors, rules
+left empty and declarations no browser reads any more (IE hacks,
+`-moz-border-radius`, a legacy prefix followed by its standard form);
+`--overridden` lists (with `--prune`, removes) declarations that a later rule
+with the same selector and `@media` context always replaces. A file changed
+since the recorded run isn't judged (its offsets no longer fit). After
+pruning, review the diff and run `e2e.test_visual`.
 
 The unit tests (`forum/tests/`, run with `settings_local_test`) cover the
 server side in more depth. These browser tests check that the pieces work

@@ -1,4 +1,3 @@
-# encoding:utf-8
 import os.path
 import sys
 
@@ -126,6 +125,7 @@ TEMPLATES = [
                 'django.template.context_processors.csrf',
                 'django.template.context_processors.i18n',
                 'forum.context.application_settings',
+                'forum.context.csp_nonce',
                 'django.contrib.messages.context_processors.messages',
                 'forum.user_messages.context_processors.user_messages',
                 'django.contrib.auth.context_processors.auth',
@@ -247,7 +247,7 @@ MODULE_LIST = list(filter(lambda m: getattr(m, 'CAN_USE', True), [
         for f in os.listdir(MODULES_FOLDER)
         if os.path.isdir(os.path.join(MODULES_FOLDER, f)) and
            os.path.exists(os.path.join(MODULES_FOLDER, "%s/__init__.py" % f)) and
-           not f in DISABLED_MODULES
+           f not in DISABLED_MODULES
 ]))
 
 # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
@@ -275,7 +275,7 @@ INSTALLED_APPS = [
 
 if DEBUG:
     try:
-        import debug_toolbar
+        import debug_toolbar  # noqa: F401
         # Django 4.2: MIDDLEWARE_CLASSES → MIDDLEWARE
         MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
         INSTALLED_APPS.append('debug_toolbar')
@@ -287,14 +287,14 @@ if DEBUG:
 
 # Try loading Gunicorn web server
 try:
-    import gunicorn
+    import gunicorn  # noqa: F401
     INSTALLED_APPS.append('gunicorn')
 except ImportError:
     pass
 
 if not DEBUG:
     try:
-        import rosetta
+        import rosetta  # noqa: F401
         INSTALLED_APPS.append('rosetta')
     except:
         pass

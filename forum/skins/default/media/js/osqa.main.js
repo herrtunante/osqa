@@ -198,6 +198,9 @@ function show_dialog (extern) {
     var $dialog = $(html);
 
     $('body').append($dialog);
+    // Content loaded from the server brings no scripts (the CSP would block
+    // them): widgets in it are set up here, before the dialog is measured.
+    init_prompt_widgets($dialog);
     var message = $dialog.find('.dialog-content')[0];
     message.style.visibility = "hidden";
 
@@ -341,6 +344,59 @@ function show_message(evt, msg, callback) {
     });
 }
 
+// Widgets in prompt dialogs (templates node/*.html).
+function init_prompt_widgets($dialog) {
+    init_award_points($dialog);
+}
+
+// node/award_points.html: a slider and a field for the points; a warning when
+// the points given would leave the giver below the reputation to comment.
+function init_award_points($dialog) {
+    var $box = $dialog.find('.award-points');
+    if (!$box.length) return;
+    var user_reputation = Number($box.attr('data-user-reputation'));
+    var reputation_to_comment = Number($box.attr('data-reputation-to-comment'));
+    var notified = false;
+    var $input = $box.find('#points_input');
+    var $slider = $box.find('.award_points_slider');
+
+    function confirm_points(reputation, event) {
+        if ((user_reputation - reputation) < reputation_to_comment && !notified) {
+            notified = true;
+            show_dialog({
+                html: $('<div style="max-width: 300px !important; text-align: left;"></div>')
+                    .text($box.attr('data-warning'))[0].outerHTML,
+                extra_class: 'confirm',
+                yes_text: messages.yes,
+                show_no: true,
+                no_callback: function() {
+                    $(".dialog").fadeOut("fast", function() {
+                        $('.dialog').remove();
+                    })
+                },
+                no_text: messages.no,
+                event: event
+            });
+        }
+    }
+
+    $slider.slider({
+        min: 1, max: user_reputation,
+        slide: function(evt, ui) {
+            $input.val(ui.value);
+            confirm_points(Number(ui.value), evt);
+        }
+    });
+
+    $input.on('change keyup', function(evt) {
+        if ($(this).val() > user_reputation) {
+            $(this).val(user_reputation);
+        }
+        confirm_points(Number($(this).val()), evt);
+        $slider.slider('option', 'value', $(this).val());
+    });
+}
+
 function load_prompt(evt, el, url) {
     $.get(url, function(data) {
         var doptions = {
@@ -438,6 +494,42 @@ $(function() {
         evt.preventDefault();
         if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
         target.focus();
+    });
+
+    // Report and close dialogs: picking a reason fills the text box.
+    $(document).on('change', '.dialog .prompt-examples', function() {
+        var $dialog = $(this).closest('.dialog');
+        $dialog.find('textarea[name=prompt]').val($(this).val());
+        if (/duplicate/i.test($(this).val())) {
+            $dialog.find('#close-duplicate-of').trigger('focus');
+        }
+    });
+
+    // Permanent link dialog: clicking the link selects it; the dialog's
+    // Copy button copies it.
+    $(document).on('click', '#permanent_link_url', function() {
+        $(this).trigger('select');
+    });
+    $(document).on('click', '#copy_clip_button', function() {
+        var $field = $(this).closest('.dialog').find('#permanent_link_url');
+        if (!$field.length) return;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText($field.val());
+        } else {
+            $field.trigger('select');
+            try { document.execCommand('copy'); } catch (e) {}
+        }
+    });
+
+    // Canned comments (node/comment_skeleton.html) go in at the caret.
+    $(document).on('click', 'a.canned-comment', function(evt) {
+        evt.preventDefault();
+        canned_comment($(this).attr('data-post-id'), $(this).text());
+    });
+
+    // The close button of the message bar (base_content.html).
+    $(document).on('click', '#close-notify', function() {
+        notify.close(true);
     });
 
     $(document).on('keydown keyup mousedown mouseup mousemove', 'textarea.commentBox', function(evt) {

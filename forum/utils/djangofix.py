@@ -1,5 +1,4 @@
 import re
-import urllib
 from forum.modules import decorate
 
 from django.template.defaultfilters import slugify

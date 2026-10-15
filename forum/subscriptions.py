@@ -1,14 +1,11 @@
-import os
-import re
 import datetime
 import logging
-from forum.models import User, Question, Comment, QuestionSubscription, SubscriptionSettings, Answer
+from forum.models import User, Question, QuestionSubscription
 from forum.utils.mail import send_template_email
-from django.utils.translation import gettext as _
 from forum.actions import AskAction, AnswerAction, CommentAction, AcceptAnswerAction, UserJoinsAction, QuestionViewAction, ReviseAction
 from forum.utils.mentions import mentioned_user_ids
 from forum import settings
-from django.db.models import Q, F
+from django.db.models import Q
 
 def create_subscription_if_not_exists(question, user):
     try:
@@ -177,7 +174,8 @@ def answer_accepted(action, new):
     subscribers = filter_subscribers(subscribers)
 
     send_template_email(subscribers, "notifications/answeraccepted.html",
-                        {'answer': action.node, 'email_kind': 'question', 'email_question': action.node.question})
+                        {'answer': action.node, 'accepted_by': answer.nstate.accepted.by, 'email_kind': 'question',
+                         'email_question': action.node.question})
 
 AcceptAnswerAction.hook(answer_accepted)
 

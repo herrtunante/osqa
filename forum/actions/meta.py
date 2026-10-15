@@ -62,7 +62,7 @@ class VoteUpAction(VoteAction):
         self.user.reset_vote_up_count_cache()
 
     def cancel_action(self):
-        super(VoteUpAction, self).cancel_action()
+        super().cancel_action()
         self.user.reset_vote_up_count_cache()
 
     def describe(self, viewer=None):
@@ -78,7 +78,7 @@ class VoteDownAction(VoteAction):
         self.user.reset_vote_down_count_cache()
 
     def cancel_action(self):
-        super(VoteDownAction, self).cancel_action()
+        super().cancel_action()
         self.user.reset_vote_down_count_cache()
 
     def describe(self, viewer=None):
@@ -191,7 +191,7 @@ class FavoriteAction(ActionProxy):
 class DeleteAction(ActionProxy):
     def process_action(self):
         self.node.mark_deleted(self)
-        
+
         if self.node.node_type == "answer":
             self.node.question.reset_answer_count_cache()
 
@@ -221,7 +221,7 @@ class QuestionViewAction(DummyActionProxy):
     def __init__(self, node, user, ip=None):
         self.viewuser = user
         self.node = node
-        super(QuestionViewAction, self).__init__(ip)
+        super().__init__(ip)
 
     def process_action(self):
         # A plain UPDATE: node.save() would also reset the query-cache timestamp

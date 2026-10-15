@@ -136,7 +136,7 @@ class ExportImportTest(ExporterTestCase):
         # Empty every table but the settings and badge definitions.
         keep = (KeyValue, Badge)
         tables = [m._meta.db_table for m in apps.get_app_config('forum').get_models(include_auto_created=True)
-                  if not m in keep and not m._meta.proxy]
+                  if m not in keep and not m._meta.proxy]
         tables += ['auth_user_groups', 'auth_user_user_permissions', 'auth_user']
         with connection.cursor() as cursor:
             for table in tables:

@@ -10,24 +10,5 @@ Would you like to copy the permanent link to your clipboard?
 <p><label for="permanent_link_url" style="font-size: 13px;">{% trans "Permanent link" %}:</label></p>
 <p><textarea id="permanent_link_url" name="permanent_link_url" style="font-size: 12px;" readonly="readonly">{{ url }}</textarea></p>
 {% endspaceless %}
+{# Selecting the link and the Copy button: osqa.main.js. #}
 
-<script type="text/javascript">
-$(function() {
-    var url = '{{ url|escapejs }}';
-
-    $('#permanent_link_url').on('click', function() {
-        $(this).select();
-    });
-
-    // The dialog's OK button copies the link.
-    $(document).off('click.permalink').on('click.permalink', '#copy_clip_button', function() {
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(url);
-        } else {
-            var $field = $('#permanent_link_url');
-            $field.trigger('select');
-            try { document.execCommand('copy'); } catch (e) {}
-        }
-    });
-});
-</script>

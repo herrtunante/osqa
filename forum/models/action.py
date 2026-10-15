@@ -15,10 +15,10 @@ class ActionQuerySet(CachedQuerySet):
             obj.__dict__.update(datadict)
             return obj
         else:
-            return super(ActionQuerySet, self).obj_from_datadict(datadict)
+            return super().obj_from_datadict(datadict)
 
-    def get(self, *args, **kwargs):            
-        action = super(ActionQuerySet, self).get(*args, **kwargs).leaf
+    def get(self, *args, **kwargs):
+        action = super().get(*args, **kwargs).leaf
 
         if not isinstance(action, self.model):
             raise self.model.DoesNotExist()
@@ -111,9 +111,7 @@ class Action(BaseModel):
             return self
 
         leaf = leaf_cls()
-        d = self._as_dict()
         leaf.__dict__.update(self._as_dict())
-        l = leaf._as_dict()
         return leaf
 
     @classmethod
@@ -130,7 +128,7 @@ class Action(BaseModel):
         if data:
             self.process_data(**data)
 
-        super(Action, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if isnew:
             if (self.node is None) or (not self.node.nis.wiki):
@@ -142,7 +140,7 @@ class Action(BaseModel):
 
     def delete(self, *args, **kwargs):
         self.cancel_action()
-        super(Action, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     def cancel(self, user=None, ip=None):
         if not self.canceled:
@@ -155,19 +153,6 @@ class Action(BaseModel):
             self.cancel_reputes()
             self.cancel_action()
         #self.trigger_hooks(False)
-
-    @classmethod
-    def get_current(cls, **kwargs):
-        kwargs['canceled'] = False
-
-        try:
-            return cls.objects.get(**kwargs)
-        except cls.MultipleObjectsReturned:
-            logging.error("Got multiple values for action %s with args %s", cls.__name__,
-                          ", ".join(["%s='%s'" % i for i in kwargs.items()]))
-            raise
-        except cls.DoesNotExist:
-            return None
 
     @classmethod
     def hook(cls, fn):
@@ -222,7 +207,7 @@ class ActionProxyMetaClass(BaseMetaClass):
     types = {}
 
     def __new__(cls, *args, **kwargs):
-        new_cls = super(ActionProxyMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
         cls.types[new_cls.get_type()] = new_cls
 
         class Meta:
@@ -267,11 +252,11 @@ class ActionProxy(Action, metaclass=ActionProxyMetaClass):
 
 class DummyActionProxyMetaClass(type):
     def __new__(cls, *args, **kwargs):
-        new_cls = super(DummyActionProxyMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
         ActionProxyMetaClass.types[new_cls.get_type()] = new_cls
         return new_cls
 
-class DummyActionProxy(object, metaclass=DummyActionProxyMetaClass):
+class DummyActionProxy(metaclass=DummyActionProxyMetaClass):
 
     hooks = []
 
@@ -331,14 +316,14 @@ class ActionRepute(models.Model):
         if self.pk is None:
             # Record what was applied, so cancelling gives back exactly that.
             self.value = self._applicable(self.value)
-        super(ActionRepute, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self.user.reputation = models.F('reputation') + self.value
         self.user.save()
 
     def delete(self):
         self.user.reputation = models.F('reputation') + self._applicable(-self.value)
         self.user.save()
-        super(ActionRepute, self).delete()
+        super().delete()
 
     class Meta:
         app_label = 'forum'

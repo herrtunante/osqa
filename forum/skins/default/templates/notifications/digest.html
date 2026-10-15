@@ -1,146 +1,112 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
     app_name = smart_str(settings.APP_SHORT_NAME)
     app_url = settings.APP_URL
-
-    new_member_links = html.mark_safe(smart_str(", ".join([html.objlink(u, style=settings.EMAIL_ANCHOR_STYLE) for u in new_members])))
     new_question_count = digest.count
-
+    latest_url = app_url + reverse('questions') + '?sort=' + _('latest')
+    flagged_url = app_url + reverse('admin_flagged_posts')
 {% enddeclare %}
 
 {% email %}
-
-    {% subject %}{% blocktrans %}{{ prefix }} Daily digest{% endblocktrans %}{% endsubject %}
+    {% subject %}{% if new_question_count %}{% blocktrans count counter=new_question_count %}{{ prefix }} Daily digest: {{ counter }} new question{% plural %}{{ prefix }} Daily digest: {{ counter }} new questions{% endblocktrans %}{% else %}{% blocktrans %}{{ prefix }} Daily digest from {{ app_name }}{% endblocktrans %}{% endif %}{% endsubject %}
+    {% preheader %}{% blocktrans %}Here's what's new on {{ app_name }} since the last digest.{% endblocktrans %}{% endpreheader %}
+    {% declare %}
+        user_questions = digest.get_for_user(recipient)
+        subscribed_url = '%s%s' % (app_url, recipient.get_subscribed_url())
+    {% enddeclare %}
 
     {% htmlcontent notifications/base.html %}
-        {% declare %}
-            new_questions_link = html.hyperlink(smart_str(app_url) + reverse('questions') + '?sort=' + _('latest'), smart_str(_('new questions')), style=a_style)
-            user_questions = digest.get_for_user(recipient)
-            subscribed_url = '%s%s' % (app_url, recipient.get_subscribed_url())
-            subscriptions_link = html.hyperlink(subscribed_url, _('subscriptions'), style=a_style)
-        {% enddeclare %}
-
-        <p style="{{ p_style }}">
-            {% blocktrans %}
-            This is a brief of what's going on the {{ app_name }} community since our last update.
-            {% endblocktrans %}
-        </p>                           
-
-        {% if new_member_count %}
-        <p style="{{ p_style }}">
-        {% if show_all_users %}
-        {% blocktrans %}
-            There are {{ new_member_count }} new members in the community. {{ new_member_links }} were the most active so far.
-        {% endblocktrans %}
-        {% else %}
-        {% blocktrans %}
-            {{ new_member_links }} have joined the {{ app_name }} community.
-        {% endblocktrans %}
-        {% endif %}
-        {% endif %}
-        </p>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Here's what's new on {{ app_name }} since the last digest.{% endblocktrans %}</p>
 
         {% if new_question_count %}
-
-        <p style="{{ p_style }}">
-            {% blocktrans %}
-            {{ new_question_count }} {{ new_questions_link }} were posted since our last update.
-            {% endblocktrans %}
-        </p>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans count counter=new_question_count %}{{ counter }} new question was posted.{% plural %}{{ counter }} new questions were posted.{% endblocktrans %}</p>
 
         {% if user_questions.interesting %}
-        <p style="{{ p_style }}">
-            {% trans "We think you might like the following questions:" %}
-        </p>
-        <ul>
-        {% for q in user_questions.interesting %}
-            <li>
-                <a style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url  }}">{{ q.title }}</a>
-            </li>
-        {% endfor %}
+        <h2 class="em-h2" style="{{ h2_style }}">{% trans "Questions you might like" %}</h2>
+        <ul style="margin:0 0 16px 0;padding:0 0 0 20px;">{% for q in user_questions.interesting %}
+            <li class="em-li" style="{{ li_style }}"><a class="em-link" style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url }}">{{ q.title }}</a></li>{% endfor %}
         </ul>
         {% endif %}
 
         {% if user_questions.may_help %}
-        <p style="{{ p_style }}">
-            {% trans "These new questions didn't get many attention from the community, but we think you may be able to help:" %}
-        </p>
-        <ul>
-        {% for q in user_questions.may_help %}
-            <li>
-                <a style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url  }}">{{ q.title }}</a>
-            </li>
-        {% endfor %}
+        <h2 class="em-h2" style="{{ h2_style }}">{% trans "Can you help?" %}</h2>
+        <p class="em-text" style="{{ p_style }}">{% trans "These new questions haven't had much attention yet." %}</p>
+        <ul style="margin:0 0 16px 0;padding:0 0 0 20px;">{% for q in user_questions.may_help %}
+            <li class="em-li" style="{{ li_style }}"><a class="em-link" style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url }}">{{ q.title }}</a></li>{% endfor %}
         </ul>
         {% endif %}
 
         {% if user_questions.subscriptions %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}Meanwhile, some of your {{ subscriptions_link }} have new updates since you last visited them:{% endblocktrans %}
-        </p>
-        <ul>
-        {% for q in user_questions.subscriptions %}
-            <li>
-                <a style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url  }}">{{ q.title }}</a>
-            </li>
-        {% endfor %}
+        <h2 class="em-h2" style="{{ h2_style }}">{% trans "Updates in questions you follow" %}</h2>
+        <ul style="margin:0 0 16px 0;padding:0 0 0 20px;">{% for q in user_questions.subscriptions %}
+            <li class="em-li" style="{{ li_style }}"><a class="em-link" style="{{ a_style }}" href="{{ app_url }}{{ q.get_absolute_url }}">{{ q.title }}</a></li>{% endfor %}
         </ul>
+        <p class="em-text" style="{{ p_style }}"><a class="em-link" style="{{ a_style }}" href="{{ subscribed_url }}">{% trans "All the questions you follow" %}</a></p>
         {% endif %}
 
+        {% trans "See all new questions" as cta %}{% include "notifications/_button.html" with url=latest_url label=cta %}
         {% endif %}
 
-        {% if recipient.is_superuser %}
-        {% declare %}
-            flagged_url = html.hyperlink(smart_str(app_url + reverse('admin_flagged_posts')), smart_str(str(flagged_count) + ' ' + _('posts')), style=a_style)
-        {% enddeclare %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}
-            {{ flagged_url }} have been marked as flagged.
-            {% endblocktrans %}
-        </p>
+        {% if new_member_count %}
+        <h2 class="em-h2" style="{{ h2_style }}">{% trans "New members" %}</h2>
+        <p class="em-text" style="{{ p_style }}">{% if show_all_users %}{% blocktrans count counter=new_member_count %}{{ counter }} person joined. The most active so far:{% plural %}{{ counter }} people joined. The most active so far:{% endblocktrans %}{% else %}{% blocktrans count counter=new_member_count %}{{ counter }} person joined:{% plural %}{{ counter }} people joined:{% endblocktrans %}{% endif %}
+        {% for u in new_members %}<a class="em-link" style="{{ a_style }}" href="{{ u.get_profile_url|absolute_url }}">{{ u.username }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
         {% endif %}
 
+        {% if recipient.is_superuser and flagged_count %}
+        <h2 class="em-h2" style="{{ h2_style }}">{% trans "For moderators" %}</h2>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans count counter=flagged_count %}{{ counter }} post was flagged in the last day.{% plural %}{{ counter }} posts were flagged in the last day.{% endblocktrans %}
+        <a class="em-link" style="{{ a_style }}" href="{{ flagged_url }}">{% trans "Review flagged posts" %}</a></p>
+        {% endif %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}This is a brief of what's going on the {{ app_name }} community since our last update.{% endblocktrans %}
-
-{% if new_member_count %}
-{% if show_all_users %}
-{% blocktrans %}There are {{ new_member_count }} new members in the community. {{ new_member_links }} were the most active so far.{% endblocktrans %}
-{% else %}
-{% blocktrans %}{{ new_member_links }} have joined the {{ app_name }} community.{% endblocktrans %}
-{% endif %}
-{% endif %}
+{% blocktrans %}Here's what's new on {{ app_name }} since the last digest.{% endblocktrans %}
 
 {% if new_question_count %}
-{% blocktrans %}{{ new_question_count }} new questions were posted since our last update.{% endblocktrans %}
+{% blocktrans count counter=new_question_count %}{{ counter }} new question was posted.{% plural %}{{ counter }} new questions were posted.{% endblocktrans %}
 
-{% if user_questions.interesting %}{% trans "We think you might like the following questions:" %}
-{% for q in user_questions.interesting %}
-* {{ q.title }}
+{% if user_questions.interesting %}
+{% trans "Questions you might like" %}
+{% for q in user_questions.interesting %}* {{ q.title }}
+{{ app_url }}{{ q.get_absolute_url }}
+
 {% endfor %}
 {% endif %}
 
 {% if user_questions.may_help %}
-{% trans "These new questions didn't get many attention from the community, but we think you may be able to help:" %}
-{% for q in user_questions.may_help %}
-* {{ q.title }}
+{% trans "Can you help?" %} {% trans "These new questions haven't had much attention yet." %}
+{% for q in user_questions.may_help %}* {{ q.title }}
+{{ app_url }}{{ q.get_absolute_url }}
+
 {% endfor %}
 {% endif %}
 
 {% if user_questions.subscriptions %}
-{% blocktrans %}Meanwhile, some of your subscriptions have new updates since you last visited them:{% endblocktrans %}
-{% for q in user_questions.subscriptions %}
-* {{ q.title }}
+{% trans "Updates in questions you follow" %}
+{% for q in user_questions.subscriptions %}* {{ q.title }}
+{{ app_url }}{{ q.get_absolute_url }}
+
 {% endfor %}
-{% endif %}
+{% trans "All the questions you follow" %}:
+{{ subscribed_url }}
 {% endif %}
 
-{% if recipient.is_superuser %}
-{% blocktrans %}{{ flagged_count }} posts have been marked as flagged.{% endblocktrans %}
+{% trans "See all new questions" %}:
+{{ latest_url }}
+{% endif %}
+
+{% if new_member_count %}
+{% if show_all_users %}{% blocktrans count counter=new_member_count %}{{ counter }} person joined. The most active so far:{% plural %}{{ counter }} people joined. The most active so far:{% endblocktrans %}{% else %}{% blocktrans count counter=new_member_count %}{{ counter }} person joined:{% plural %}{{ counter }} people joined:{% endblocktrans %}{% endif %}
+{% for u in new_members %}{{ u.username }}{% if not forloop.last %}, {% endif %}{% endfor %}
+{% endif %}
+
+{% if recipient.is_superuser and flagged_count %}
+{% blocktrans count counter=flagged_count %}{{ counter }} post was flagged in the last day.{% plural %}{{ counter }} posts were flagged in the last day.{% endblocktrans %}
+{% trans "Review flagged posts" %}:
+{{ flagged_url }}
 {% endif %}
 {% endtextcontent %}
 {% endemail %}

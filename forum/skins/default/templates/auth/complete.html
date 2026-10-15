@@ -35,7 +35,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <script type="text/javascript">document.getElementById('form-errors').focus();</script>
+                <script nonce="{{ csp_nonce }}" type="text/javascript">document.getElementById('form-errors').focus();</script>
             {% endif %}
 
             {% if not provider and button_providers %}

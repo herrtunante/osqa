@@ -11,7 +11,7 @@ from .base import OSQATestCase
 XSS = '<img src=x onerror=alert(1)>'
 
 
-class QuestionMixin(object):
+class QuestionMixin:
     def setUp(self):
         super().setUp()
         self.owner = self.create_user('owner', is_superuser=True, is_staff=True)
@@ -123,7 +123,7 @@ class RedirectAndLoggingTest(OSQATestCase):
     def test_offsite_referer_not_used_after_login(self):
         self.client.get('/account/signin/', HTTP_REFERER='http://evil.example/phish')
         self.assertNotIn('on_signin_url', str(dict(self.client.session)))
-        user = self.create_user('carol', password='right-pass')
+        self.create_user('carol', password='right-pass')
         response = self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
         self.assertNotIn('evil.example', response['Location'])
 

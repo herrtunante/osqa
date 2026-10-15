@@ -6,7 +6,6 @@ from forum.settings import QUESTIONS_SITEMAP_LIMIT, QUESTIONS_SITEMAP_CHANGEFREQ
 from django.conf import settings
 from django.http import HttpResponse, Http404
 from django.template import loader
-from django import urls as urlresolvers
 from django.urls import get_script_prefix
 from django.utils.encoding import smart_str
 from django.core.paginator import EmptyPage, PageNotAnInteger
@@ -58,7 +57,7 @@ def sitemap(request, sitemaps, section=None, page=1):
         maps.append(sitemaps[section])
     else:
         maps = sitemaps.values()
-    
+
     for site in maps:
         try:
             if callable(site):

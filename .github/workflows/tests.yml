@@ -19,6 +19,8 @@ jobs:
       - name: Install MySQL client headers (for mysqlclient)
         run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
       - run: pip install -r requirements-dev.txt
+      - name: Lint (ruff, configured in pyproject.toml)
+        run: ruff check .
       - name: Check for missing migrations
         run: OSQA_SETTINGS_LOCAL=settings_local_test python manage.py makemigrations --check --dry-run
       - name: Run tests

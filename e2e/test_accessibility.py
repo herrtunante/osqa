@@ -79,7 +79,11 @@ class AccessibilityTest(E2ETestCase):
         # Messages fade in: check the colours they end with, not a frame of the fade.
         page.wait_for_function(FINISHED_ANIMATING)
         if not page.evaluate('() => !!window.axe'):
-            page.add_script_tag(path=AXE)
+            # Evaluated through the DevTools protocol: an injected <script>
+            # element has no nonce, so the page's CSP would block it.
+            with open(AXE, encoding='utf-8') as source:
+                page.evaluate('() => { %s\n}' % source.read())
+            page.wait_for_function('() => !!window.axe')
         # axe reads the page's style sheets itself (for css-orientation-lock)
         # and requests the targets of @import rules relative to the page
         # instead of to the style sheet (Django admin's forms.css imports

@@ -31,7 +31,7 @@ import threading
 
 from django.conf import settings as django_settings
 from django.core.exceptions import SuspiciousFileOperation
-from django.http import Http404, HttpResponse, HttpResponseNotModified
+from django.http import HttpResponse, HttpResponseNotModified
 from django.utils._os import safe_join
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date, parse_http_date_safe

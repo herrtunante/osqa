@@ -41,8 +41,8 @@ __CONTAINER = {
 
 
 def register(registry, *ui_objects):
-    if not registry in __CONTAINER:
-        raise('unknown registry')
+    if registry not in __CONTAINER:
+        raise KeyError('unknown registry %s' % registry)
 
     for ui_object in ui_objects:
         __CONTAINER[registry].add(ui_object)
@@ -50,8 +50,8 @@ def register(registry, *ui_objects):
 def get_registry_by_name(name):
     name = name.upper()
 
-    if not name in __CONTAINER:
-        raise('unknown registry')
+    if name not in __CONTAINER:
+        raise KeyError('unknown registry %s' % name)
 
     return __CONTAINER[name]
 

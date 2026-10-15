@@ -12,7 +12,7 @@ from forum.models.action import Action
 from .base import OSQATestCase
 
 
-class SettingMixin(object):
+class SettingMixin:
     def set(self, setting, value):
         setting.set_value(value)
         self.addCleanup(setattr, setting, '_temp', None)
@@ -191,7 +191,8 @@ class SecurityHeadersTest(SettingMixin, OSQATestCase):
 
         self.set(settings.CSP_EXTRA_SOURCES, 'https://plausible.io\nhttps://cdn.example.org')
         csp = self.client.get('/')['Content-Security-Policy']
-        self.assertIn("script-src 'self' 'unsafe-inline'", csp)
+        self.assertIn("script-src 'self' 'nonce-", csp)
+        self.assertNotIn("script-src 'self' 'unsafe-inline'", csp)
         self.assertIn('https://plausible.io https://cdn.example.org;', csp)
 
         with override_settings(CONTENT_SECURITY_POLICY_REPORT_ONLY=True):

@@ -1,5 +1,4 @@
 from .base import *
-from .tag import Tag
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
@@ -22,7 +21,7 @@ class Question(Node):
     def closed(self):
         return self.nis.closed
 
-    @property    
+    @property
     def view_count(self):
         return self.extra_count
 
@@ -62,12 +61,9 @@ class Question(Node):
         return self.answers.filter(~models.Q(state_string__contains="(deleted)"), marked=True)
     def get_absolute_url(self):
         return reverse('question', kwargs={'id': self.id, 'slug': django_urlquote(slugify(self.title))})
-        
+
     def meta_description(self):
         return self.summary
-
-    def get_revision_url(self):
-        return reverse('question_revisions', args=[self.id])
 
     def get_related_questions(self, count=10):
         cache_key = '%s.related_questions:%d:%d' % (settings.APP_URL, count, self.id)
@@ -81,7 +77,7 @@ class Question(Node):
         from .base import load_cached
         loaded = load_cached(Question, [r['id'] for r in related_list])
         return [loaded[r['id']] for r in related_list if isinstance(loaded.get(r['id']), Question)]
-    
+
 
 
 
@@ -101,4 +97,4 @@ class QuestionSubscription(models.Model):
 class QuestionRevision(NodeRevision):
     class Meta:
         proxy = True
-        
+

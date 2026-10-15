@@ -1,4 +1,4 @@
-from django.urls import re_path as url, include
+from django.urls import re_path as url
 from django.http import  HttpResponse
 from . import settings
 

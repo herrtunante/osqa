@@ -50,7 +50,7 @@
         }
     </style>
 
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
     $(function() {
         var exporting = {% if mode == "exporter" %}true{% else %}false{% endif %};
 

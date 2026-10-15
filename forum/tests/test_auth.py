@@ -81,7 +81,7 @@ class LocalAuthTest(OSQATestCase):
         self.assertContains(self.client.get('/account/signin/'), 'Too many failed sign-in attempts')
 
     def test_next_parameter_is_where_signing_in_leads(self):
-        user = self.create_user('carol', password='right-pass')
+        self.create_user('carol', password='right-pass')
         self.client.get('/account/signin/?next=/tags/collect/', HTTP_REFERER='http://testserver/questions/')
         response = self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
         self.assertTrue(response['Location'].startswith('/tags/collect/'))
@@ -136,5 +136,5 @@ class UserCopyTest(OSQATestCase):
         # The ONLINE_USERS setting deep-copies user objects when it is saved.
         import copy
         user = self.create_user('carol')
-        user.prop.some_property
+        user.prop.some_property  # noqa: B018  (reads the property)
         self.assertEqual(copy.deepcopy({user: 1}).popitem()[1], 1)

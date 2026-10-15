@@ -198,13 +198,31 @@ Running it again at any time is safe; it rebuilds everything.
   `AUTH_PASSWORD_VALIDATORS`. Changing a password signs out the account's other sessions.
 - **Posting limits:** questions, answers and comments per user per hour
   (moderators exempt).
-- **Headers:** Content-Security-Policy (scripts, styles and frames only from the
-  site and the Google services OSQA uses; no plugins; only this site may frame
-  it), Permissions-Policy, plus Django's nosniff, Referrer-Policy and X-Frame-Options.
+- **Headers:** Content-Security-Policy, Permissions-Policy, plus Django's
+  nosniff, Referrer-Policy and X-Frame-Options. The policy:
+  - scripts only from the site, the Google services OSQA uses (reCAPTCHA,
+    Analytics) and the extra sources setting, plus inline `<script>` elements
+    that carry the response's nonce: every response gets a new random nonce
+    (`request.csp_nonce`, `{{ csp_nonce }}` in templates). Script injected into
+    a post or profile has no nonce and doesn't run; there is no
+    `'unsafe-inline'` or `'unsafe-eval'` for scripts, and inline event handlers
+    (`onclick="…"`) and `javascript:` links are blocked, so templates don't use
+    them (`media/js/osqa.behaviors.js` covers confirmations, auto-submitting
+    selects and form targets with `data-` attributes);
+  - styles still allow `'unsafe-inline'` (the templates use `style=""`
+    attributes);
+  - no plugins (`object-src 'none'`), `base-uri 'self'`, forms post only to
+    the site (`form-action 'self'`), only this site may frame it;
+  - inline scripts in the admin's custom `<head>`, header and footer get the
+    nonce automatically; scripts in other admin texts (sidebar, custom pages)
+    and inline event handlers anywhere don't run.
+
   Browsers report blocked content to `/csp-report/`, which goes to the security
   log. Add origins for your own analytics or widgets in the admin's extra script
-  sources setting; `CONTENT_SECURITY_POLICY_REPORT_ONLY = True` only reports, and
-  `CONTENT_SECURITY_POLICY = None` turns the header off.
+  sources setting (Admin > Security); `CONTENT_SECURITY_POLICY_REPORT_ONLY = True` only reports,
+  `CONTENT_SECURITY_POLICY = "…"` replaces the policy (`{nonce}` in it is replaced by
+  the response's nonce), and `CONTENT_SECURITY_POLICY = None` turns the header off.
+  Django's model admin (`/nimda/`) runs only script files and gets the same policy.
 - All the limits above are under Admin > Security.
 - **Security log** (`log/security.log`, logger `forum.security`), one line per event:
   - failed and paused sign-ins;
@@ -300,6 +318,25 @@ in the guide. `docs/data-migration-guide.md` describes other approaches (MySQL t
 MySQL/PostgreSQL) and how to verify the result; `docs/database-tables.md` lists
 the tables.
 
+## Development
+
+`requirements-dev.txt` adds the tools used below to `requirements.txt`:
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .                      # lint; configuration in pyproject.toml
+pip-audit -r requirements.txt -r requirements-dev.txt   # known vulnerabilities
+```
+
+- **Lint:** [ruff](https://docs.astral.sh/ruff/) checks pyflakes errors, the
+  error-prone pycodestyle rules, part of bugbear and the Python 3 upgrades
+  (`pyproject.toml` lists the rules and why some are ignored; migrations and
+  vendored code are excluded). `ruff check --fix .` applies the safe fixes.
+  CI fails on any finding.
+- **Dependencies:** every version is pinned. CI runs `pip-audit` on everything
+  `requirements.txt` installs, and Dependabot proposes updates weekly; check
+  the changelog before moving a library to a new major version.
+
 ## Tests
 
 ```bash
@@ -319,7 +356,7 @@ python -m playwright install chromium
 OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e
 ```
 
-CI (`.github/workflows/tests.yml`) runs the
+CI (`.github/workflows/tests.yml`) runs `ruff check .`, the
 suite and `makemigrations --check` on Python 3.12 and 3.13.
 
 ## Modules
@@ -342,7 +379,6 @@ All modules below except the (switched-off) full-text search ones are covered by
 | `exporter` | Full-site XML backup (Admin > Tools > XML data exporter) and restore (XML data importer) | - |
 | `sximporter` | Import of a StackExchange data dump (`/admin/sximporter/`) | Old StackExchange 1.0 dump format only |
 | `robotstxt` | Editable `/robots.txt` | - |
-| `mysqlfulltext`, `pgfulltext` | Full-text search on MySQL / PostgreSQL | Switched off: not ported to Python 3 / Django 5 yet. Search uses the built-in keyword matching (plus semantic search with the `ai` module) |
 
 ### Spam sign-ups
 
@@ -452,10 +488,10 @@ authentication settings.
 
 ## Look and feel
 
-The default skin is responsive (phones, tablets, desktops). Its modern styles
-live in `forum/skins/default/media/style/modern.css`, loaded after the legacy
-`style.css`; the colour tokens at the top of that file (`--brand`, `--accent`,
-...) are the quickest way to re-brand the site. Admin > Custom CSS is loaded
+The default skin is responsive (phones, tablets, desktops). Its styles live
+in one file, `forum/skins/default/media/style/osqa.css`; the colour tokens at
+the start of its section 2 (`--brand`, `--accent`, ...) are the quickest way
+to re-brand the site. Admin > Custom CSS is loaded
 last and can override them, e.g. `:root { --brand: #00704a; }`.
 
 Visitors whose device is set to dark mode get a dark colour scheme; turn it off

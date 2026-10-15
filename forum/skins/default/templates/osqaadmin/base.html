@@ -48,6 +48,7 @@
         <li><a href="{% url "admin_maintenance" %}">{% trans "Maintenance mode" %}</a></li>
         <li><a href="{% url "admin_flagged_posts" %}">{% trans "Flagged Posts" %}</a></li>
         <li><a href="{% url "admin_support" %}">{% trans "Support dashboard" %}</a></li>
+        <li><a href="{% url "admin_email_previews" %}">{% trans "Email previews" %}</a></li>
         <li><a href="{% url "admin_statistics" %}">{% trans "Statistics" %}</a></li>
         <li><a href="{% url "admin_static_pages" %}">{% trans "Custom Pages" %}</a></li>
         {% for url,tool in tools %}
@@ -55,7 +56,7 @@
         {% endfor %}
         </ul>
         </details>
-        <script>osqaAdminMenu(document.getElementById('admin-menu'));</script>
+        <script nonce="{{ csp_nonce }}">osqaAdminMenu(document.getElementById('admin-menu'));</script>
     </div>
     {% if markdown %}
         {% markdown_help %}

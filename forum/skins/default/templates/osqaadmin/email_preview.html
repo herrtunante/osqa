@@ -1,0 +1,31 @@
+{% extends basetemplate %}
+
+{% load i18n extra_tags %}
+
+{% block adminjs %}<link rel="stylesheet" type="text/css" href="{% media "/media/style/email_previews.css" %}"/>{% endblock %}
+{% block subtitle %}{% trans "Email previews" %} - {{ name }}{% endblock %}
+{% block pagename %}{{ name }}{% endblock %}
+{% block description %}{{ audience }}{% endblock %}
+
+{% block admincontent %}
+<div class="email-preview">
+    <p class="email-preview-back"><a href="{% url "admin_email_previews" %}">&larr; {% trans "All email previews" %}</a></p>
+    <dl class="email-preview-meta">
+        <dt>{% trans "Subject" %}</dt><dd class="email-preview-subject">{{ email.subject }}</dd>
+        <dt>{% trans "To" %}</dt><dd>{{ user.username }} &lt;{{ user.email }}&gt;</dd>
+        <dt>{% trans "Template" %}</dt><dd><code>{{ template }}</code></dd>
+        <dt>{% trans "Unsubscribe header" %}</dt><dd>{% if list_unsubscribe %}{% trans "Yes: mail programs show their own unsubscribe button." %}{% else %}{% trans "No: account emails can't be unsubscribed from." %}{% endif %}</dd>
+    </dl>
+    <p class="email-preview-links">
+        <a href="?format=html" target="_blank" rel="noopener">{% trans "Open the HTML version" %}</a> &middot;
+        <a href="?format=text" target="_blank" rel="noopener">{% trans "Open the plain text version" %}</a>
+    </p>
+    <h2>{% trans "HTML version" %}</h2>
+    <p class="email-preview-hint">{% trans "Drag the corner of the frame to see it at other widths." %}</p>
+    <div class="email-preview-frame-box">
+        <iframe class="email-preview-frame" src="?format=html" title="{% trans "HTML version" %}" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+    </div>
+    <h2>{% trans "Plain text version" %}</h2>
+    <pre class="email-preview-text">{{ email.text }}</pre>
+</div>
+{% endblock %}

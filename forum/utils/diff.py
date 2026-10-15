@@ -8,59 +8,57 @@ __version__ = '0.22'
 
 import difflib
 
-def isTag(x): return x[0] == "<" and x[-1] == ">"
-
 def textDiff(a, b):
-	"""Takes in strings a and b and returns a human-readable HTML diff."""
+    """Takes in strings a and b and returns a human-readable HTML diff."""
 
-	out = []
-	a, b = html2list(a), html2list(b)
-	s = difflib.SequenceMatcher(None, a, b)
-	for e in s.get_opcodes():
-		if e[0] == "replace":
-			# @@ need to do something more complicated here
-			# call textDiff but not for html, but for some html... ugh
-			# gonna cop-out for now
-			out.append('<del>'+''.join(a[e[1]:e[2]]) + '</del><ins>'+''.join(b[e[3]:e[4]])+"</ins>")
-		elif e[0] == "delete":
-			out.append('<del >'+ ''.join(a[e[1]:e[2]]) + "</del>")
-		elif e[0] == "insert":
-			out.append('<ins >'+''.join(b[e[3]:e[4]]) + "</ins>")
-		elif e[0] == "equal":
-			out.append(''.join(b[e[3]:e[4]]))
-		else:
-			raise Exception("Um, something's broken. I didn't expect a '" + repr(e[0]) + "'.")
-	return ''.join(out)
+    out = []
+    a, b = html2list(a), html2list(b)
+    s = difflib.SequenceMatcher(None, a, b)
+    for e in s.get_opcodes():
+        if e[0] == "replace":
+            # @@ need to do something more complicated here
+            # call textDiff but not for html, but for some html... ugh
+            # gonna cop-out for now
+            out.append('<del>'+''.join(a[e[1]:e[2]]) + '</del><ins>'+''.join(b[e[3]:e[4]])+"</ins>")
+        elif e[0] == "delete":
+            out.append('<del >'+ ''.join(a[e[1]:e[2]]) + "</del>")
+        elif e[0] == "insert":
+            out.append('<ins >'+''.join(b[e[3]:e[4]]) + "</ins>")
+        elif e[0] == "equal":
+            out.append(''.join(b[e[3]:e[4]]))
+        else:
+            raise Exception("Um, something's broken. I didn't expect a '" + repr(e[0]) + "'.")
+    return ''.join(out)
 
 def html2list(x, b=0):
-	mode = 'char'
-	cur = ''
-	out = []
-	for c in x:
-		if mode == 'tag':
-			if c == '>': 
-				if b: cur += ']'
-				else: cur += c
-				out.append(cur); cur = ''; mode = 'char'
-			else: cur += c
-		elif mode == 'char':
-			if c == '<': 
-				out.append(cur)
-				if b: cur = '['
-				else: cur = c
-				mode = 'tag'
-			elif c.isspace(): out.append(cur+c); cur = ''
-			else: cur += c
-	out.append(cur)
-	return list(filter(lambda x: x != '', out))
+    mode = 'char'
+    cur = ''
+    out = []
+    for c in x:
+        if mode == 'tag':
+            if c == '>':
+                if b: cur += ']'
+                else: cur += c
+                out.append(cur); cur = ''; mode = 'char'
+            else: cur += c
+        elif mode == 'char':
+            if c == '<':
+                out.append(cur)
+                if b: cur = '['
+                else: cur = c
+                mode = 'tag'
+            elif c.isspace(): out.append(cur+c); cur = ''
+            else: cur += c
+    out.append(cur)
+    return list(filter(lambda x: x != '', out))
 
 if __name__ == '__main__':
-	import sys
-	try:
-		a, b = sys.argv[1:3]
-	except ValueError:
-		print("htmldiff: highlight the differences between two html files")
-		print("usage: " + sys.argv[0] + " a b")
-		sys.exit(1)
-	print(textDiff(open(a).read(), open(b).read()))
-	
+    import sys
+    try:
+        a, b = sys.argv[1:3]
+    except ValueError:
+        print("htmldiff: highlight the differences between two html files")
+        print("usage: " + sys.argv[0] + " a b")
+        sys.exit(1)
+    print(textDiff(open(a).read(), open(b).read()))
+

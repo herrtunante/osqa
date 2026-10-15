@@ -2,13 +2,10 @@ from forum.forms import NextUrlField, UserNameField, UserEmailField, SetPassword
 from forum.forms.auth import SignUpFieldsMixin
 from forum.forms.general import username_for_signin
 from forum.utils.antispam import BotTrapMixin
-from forum.models import Question
 from forum.modules import call_all_handlers
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
 from django.contrib.auth import authenticate
 from django import forms
-import logging
 
 class ClassicRegisterForm(BotTrapMixin, SignUpFieldsMixin, SetPasswordForm):
     """ legacy registration form """
@@ -20,7 +17,7 @@ class ClassicRegisterForm(BotTrapMixin, SignUpFieldsMixin, SetPasswordForm):
     email = UserEmailField()
 
     def __init__(self, *args, **kwargs):
-        super(ClassicRegisterForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Try importing the ReCapthca public and private keys, Import Error will be raised in case it has been disabled
         try:
@@ -53,7 +50,7 @@ class ClassicLoginForm(forms.Form):
 
     def __init__(self, data=None, files=None, auto_id='id_%s',
                  prefix=None, initial=None):
-        super(ClassicLoginForm, self).__init__(data, files, auto_id,
+        super().__init__(data, files, auto_id,
                                                prefix, initial)
         self.user_cache = None
 
@@ -92,11 +89,11 @@ class ClassicLoginForm(forms.Form):
                 except Exception:
                     error_list.append(_("This account can't sign in here. Please contact the site administrators."))
 
-        elif password == None and username == None:
+        elif password is None and username is None:
             error_list.append(_('Enter your username or email and your password.'))
-        elif password == None:
+        elif password is None:
             error_list.append(_('Enter your password.'))
-        elif username == None:
+        elif username is None:
             error_list.append(_('Enter your username or email.'))
         if len(error_list) > 0:
             self._errors['__all__'] = forms.utils.ErrorList(error_list)

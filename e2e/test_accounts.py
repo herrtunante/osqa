@@ -4,7 +4,7 @@ import re
 
 from django.urls import reverse
 
-from forum.models import MarkedTag, Tag, User
+from forum.models import MarkedTag, User
 
 from .base import E2ETestCase, PASSWORD
 

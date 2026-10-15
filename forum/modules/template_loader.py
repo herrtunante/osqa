@@ -20,7 +20,7 @@ TEMPLATE_OVERRIDE_LOOKUP_PATHS = [f for f in [
 class ModulesTemplateLoader(BaseLoader):
     """Django 4.2 compatible template loader for OSQA modules system"""
 
-    modules_re = re.compile('^%s(\w+)\/(.*)$' % MODULES_TEMPLATE_PREFIX)
+    modules_re = re.compile(r'^%s(\w+)\/(.*)$' % MODULES_TEMPLATE_PREFIX)
 
     def get_template_sources(self, template_name):
         """
@@ -48,8 +48,7 @@ class ModulesTemplateLoader(BaseLoader):
             stripped_name = template_name[len(NO_OVERRIDE_TEMPLATE_PREFIX):]
             # Instantiate the skins loader with our engine
             skins_loader = SkinsTemplateLoader(self.engine)
-            for origin in skins_loader.get_template_sources(stripped_name):
-                yield origin
+            yield from skins_loader.get_template_sources(stripped_name)
 
         else:
             # Check template override folders from modules
@@ -67,7 +66,7 @@ class ModulesTemplateLoader(BaseLoader):
         Read and return the template source from the given origin.
         """
         try:
-            with open(origin.name, 'r', encoding='utf-8') as f:
+            with open(origin.name, encoding='utf-8') as f:
                 return f.read()
         except Exception:
             # If we can't read it, delegate to parent class

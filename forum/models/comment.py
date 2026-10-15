@@ -1,5 +1,4 @@
 from .base import *
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 import re
 
@@ -9,11 +8,6 @@ class Comment(Node):
     class Meta(Node.Meta):
         ordering = ('-added_at',)
         proxy = True
-
-    def _update_parent_comment_count(self, diff):
-        parent = self.parent
-        parent.comment_count = parent.comment_count + diff
-        parent.save()
 
     @property
     def comment(self):
@@ -34,21 +28,21 @@ class Comment(Node):
         return self.parent.leaf
 
     def save(self, *args, **kwargs):
-        super(Comment,self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if not self.id:
             self.parent.reset_comment_count_cache()
 
     def mark_deleted(self, user):
-        if super(Comment, self).mark_deleted(user):
+        if super().mark_deleted(user):
             self.parent.reset_comment_count_cache()
 
     def unmark_deleted(self):
-        if super(Comment, self).unmark_deleted():
+        if super().unmark_deleted():
             self.parent.reset_comment_count_cache()
 
     def is_reply_to(self, user):
-        inreply = re.search('@\w+', self.body)
+        inreply = re.search(r'@\w+', self.body)
         if inreply is not None:
             return user.username.startswith(inreply.group(0))
 

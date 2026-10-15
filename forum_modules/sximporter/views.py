@@ -1,6 +1,5 @@
 import logging
 import os
-import posixpath
 import shutil
 import tempfile
 from zipfile import ZipFile, BadZipFile

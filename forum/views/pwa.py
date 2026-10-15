@@ -22,9 +22,9 @@ from forum import settings
 from forum.templatetags.extra_tags import media
 from forum.utils import static_files
 
-THEME_COLOR = '#2c5aa0'        # modern.css --brand
-THEME_COLOR_DARK = '#161b22'   # modern.css --surface in dark mode (the header)
-BACKGROUND_COLOR = '#f5f7fa'   # modern.css --background
+THEME_COLOR = '#2c5aa0'        # osqa.css --brand
+THEME_COLOR_DARK = '#161b22'   # osqa.css --surface in dark mode (the header)
+BACKGROUND_COLOR = '#f5f7fa'   # osqa.css --background
 PAGE_CACHE_SIZE = 50
 
 SKINS_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skins')

@@ -1,7 +1,6 @@
 from .base import Setting, SettingSet
 from django.utils.translation import gettext_lazy as _
 from django.forms.widgets import PasswordInput
-from django.forms.widgets import RadioSelect
 from .forms import TestEmailSettingsWidget
 
 EMAIL_SET = SettingSet('email', _('Email settings'), _("Email server and other email related settings."), 50)
@@ -53,7 +52,7 @@ label = _("Email Subject Prefix"),
 help_text = _("Every email sent through your website will have the subject prefixed by this string. It's usually a good idea to have such a prefix so your users can easily set up a filter on their email clients."),
 required=False))
 
-EMAIL_FOOTER_TEXT = Setting(u'EMAIL_FOOTER_TEXT', '', EMAIL_SET, dict(
+EMAIL_FOOTER_TEXT = Setting('EMAIL_FOOTER_TEXT', '', EMAIL_SET, dict(
 label = _("Email Footer Text"),
 help_text = _("Email footer text, usually \"CAN SPAM\" compliance, or the physical address of the organization running the website. See <a href=\"http://en.wikipedia.org/wiki/CAN-SPAM_Act_of_2003\">this Wikipedia article</a> for more info."),
 required=False))

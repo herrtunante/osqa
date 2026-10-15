@@ -1,9 +1,7 @@
-import re
 
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models.signals import post_save
 
-from forum.models import Badge, Node, Action
+from forum.models import Badge, Action
 from forum.actions import AwardAction
 
 import logging
@@ -42,7 +40,7 @@ class BadgesMeta(type):
             if name not in existing:
                 Badge(cls=name, type=getattr(inst, 'type', Badge.BRONZE)).save()
 
-class AbstractBadge(object, metaclass=BadgesMeta):
+class AbstractBadge(metaclass=BadgesMeta):
 
     abstract = True
     award_once = False
@@ -76,6 +74,6 @@ class AbstractBadge(object, metaclass=BadgesMeta):
                 AwardAction(user=user, node=node).save(data=dict(badge=db_object, trigger=trigger))
         except MultipleObjectsReturned:
             if node:
-                logging.error('Found multiple %s badges awarded for user %s (%s)' % (self.name, user.username, user.id))
+                logging.error('Found multiple %s badges awarded for user %s (%s) and node %s' % (cls.__name__, user.username, user.id, node.id))
             else:
-                logging.error('Found multiple %s badges awarded for user %s (%s) and node %s' % (self.name, user.username, user.id, node.id))
+                logging.error('Found multiple %s badges awarded for user %s (%s)' % (cls.__name__, user.username, user.id))

@@ -1,4 +1,3 @@
-# encoding:utf-8
 # Local settings for the test suite:
 #   OSQA_SETTINGS_LOCAL=settings_local_test python manage.py test forum.tests
 import os.path

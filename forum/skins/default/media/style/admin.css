@@ -1,7 +1,7 @@
 /* Standard administration layout (osqaadmin/base.html, inside the public
    page layout). djstyle_admin.css is loaded after this file for the rules
    both layouts share; it is written against Django admin's colour variable
-   names, so they are mapped onto the site's own (modern.css) here, and follow
+   names, so they are mapped onto the site's own (osqa.css) here, and follow
    its dark mode. */
 :root {
     --body-fg: var(--text, #1f2328);
@@ -15,7 +15,7 @@
     --primary: var(--button-bg);
     --header-link-color: #fff;
     --button-fg: #fff;
-    --button-bg: #2c5aa0; /* modern.css redefines it for dark mode */
+    --button-bg: #2c5aa0; /* osqa.css redefines it for dark mode */
     --button-hover-bg: var(--button-bg-hover, #1f4278);
     --message-success-bg: var(--success-soft, #e6f6ea);
 }

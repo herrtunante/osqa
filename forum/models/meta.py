@@ -33,7 +33,7 @@ class Badge(BaseModel):
     type        = models.SmallIntegerField()
     cls         = models.CharField(max_length=50, null=True)
     awarded_count = models.PositiveIntegerField(default=0)
-    
+
     awarded_to    = models.ManyToManyField(User, through='Award', related_name='badges')
 
     def get_handler(self):
@@ -54,10 +54,10 @@ class Badge(BaseModel):
 
     def save(self, *args, **kwargs):
         if isinstance(self.awarded_count, models.expressions.Expression):
-            super(Badge, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
             self.awarded_count = self.__class__.objects.filter(id=self.id).values_list('awarded_count', flat=True)[0]
         else:
-            super(Badge, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
 
     class Meta:

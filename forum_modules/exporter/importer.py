@@ -1,4 +1,10 @@
-import os, tarfile, datetime, configparser, logging, shutil, tempfile, zipfile
+import os
+import tarfile
+import datetime
+import configparser
+import logging
+import shutil
+import zipfile
 
 from django.core.cache import cache
 from django.db import models, transaction
@@ -12,7 +18,7 @@ from forum.models import User, AuthKeyUserAssociation, SubscriptionSettings, Tag
     NodeState, Action, ActionRepute, Vote, Flag, Badge, Award, KeyValue
 from forum.templatetags.extra_tags import diff_date
 
-from .exporter import TMP_FOLDER, DATETIME_FORMAT, DATE_FORMAT, META_INF_SECTION, OPTIONS_INF_SECTION, CACHE_KEY
+from .exporter import DATETIME_FORMAT, DATE_FORMAT, META_INF_SECTION, OPTIONS_INF_SECTION, CACHE_KEY
 from . import settings
 
 NO_DEFAULT = object()
@@ -28,7 +34,7 @@ def raw_save(obj, **kwargs):
     models.Model.save(obj, **kwargs)
 
 
-class ContentElement():
+class ContentElement:
     def __init__(self, content):
         self._content = content
 
@@ -72,7 +78,7 @@ class RowElement(ContentElement):
         self.name = name.lower()
         self.parent = parent
         self.attrs = dict([(k.lower(), ContentElement(v)) for k, v in attrs.items()])
-        self._content = u''
+        self._content = ''
         self.sub_elements = {}
 
         if parent:
@@ -141,7 +147,7 @@ class RowElement(ContentElement):
 
 
 class TableHandler(ContentHandler):
-    def __init__(self, root_name, row_name, callback, callback_args = [], ping = None):
+    def __init__(self, root_name, row_name, callback, callback_args = (), ping = None):
         self.root_name = root_name.lower()
         self.row_name = row_name.lower()
         self.callback = callback
@@ -234,7 +240,7 @@ def extract_backup(fileobj, location):
                     write(name, dump.extractfile(info))
                     extracted.append(name)
 
-    if not 'backup.inf' in extracted:
+    if 'backup.inf' not in extracted:
         raise ValueError(_('The file is not an OSQA backup (backup.inf is missing).'))
 
     return extracted
@@ -243,7 +249,7 @@ def extract_backup(fileobj, location):
 def read_inf(location):
     inf = configparser.RawConfigParser()
 
-    with open(os.path.join(location, 'backup.inf'), 'r') as inffile:
+    with open(os.path.join(location, 'backup.inf')) as inffile:
         inf.read_file(inffile)
 
     return inf
@@ -701,7 +707,7 @@ def actions_import(row, current_user, nodes, users, actions_map, data):
 @post_action('voteup', 'votedown', 'voteupcomment')
 def vote_action(row, action, data):
     # Check to see if the vote has already been registered.
-    if not (action.user_id, action.node_id) in data['persisted_votes']:
+    if (action.user_id, action.node_id) not in data['persisted_votes']:
         # Persist the vote action.
         Vote(user_id=action.user_id, node_id=action.node_id, action=action,
                  voted_at=action.action_date, value=(action.action_type != 'votedown') and 1 or -1).save()
@@ -731,7 +737,7 @@ post_action('close')(state_action('closed'))
 
 @post_action('flag')
 def flag_action(row, action, data):
-    if not (action.user_id, action.node_id) in data['persisted_flags']:
+    if (action.user_id, action.node_id) not in data['persisted_flags']:
         reason = action.extra
         Flag(user_id=action.user_id, node_id=action.node_id, action=action, flagged_at=action.action_date,
              reason=isinstance(reason, str) and reason[:300] or "").save()

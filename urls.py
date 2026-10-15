@@ -1,5 +1,4 @@
 from django.urls import re_path, include
-from django.utils.translation import gettext as _
 from django.conf import settings
 
 urlpatterns = [

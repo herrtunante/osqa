@@ -3,7 +3,7 @@ from forum.modules import decorate
 from .base import OSQATestCase
 
 
-class Greeter(object):
+class Greeter:
     def greet(self, name):
         return 'hello %s' % name
 
@@ -45,7 +45,7 @@ class DecorateTest(OSQATestCase):
         self.assertEqual(module.shout('hey'), 'hey!')
 
     def test_decorate_manager_method_like_fulltext_modules(self):
-        # mysqlfulltext/pgfulltext replace the site search this way.
+        # A module can replace a manager method (such as the site search) this way.
         from forum.models import Question
         from forum.models.question import QuestionManager
         original = QuestionManager.__dict__['search']

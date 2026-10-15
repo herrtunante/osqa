@@ -2,33 +2,31 @@ import math
 from collections import OrderedDict
 from django import template
 from django.core.paginator import Paginator, EmptyPage
-from django.utils.translation import gettext as _
 from django.utils.html import escape
 from django.http import Http404
 from django.utils.encoding import smart_str
 from urllib.parse import quote as urlquote
 from django.utils.safestring import mark_safe
-from django.utils.html import strip_tags, escape
-from forum.utils.html import sanitize_html
+from django.utils.html import strip_tags
 import logging
 
 def generate_uri(querydict, exclude=None):
     all = []
 
     for k, l in querydict.lists():
-        if (not exclude) or (not k in exclude):
+        if (not exclude) or (k not in exclude):
             all += ["%s=%s" % (k, escape(urlquote(strip_tags(v)))) for v in l]
-        
+
     return "&".join(all)
 
-class SortBase(object):
+class SortBase:
     def __init__(self, label, description=''):
         self.label = label
         self.description = description
 
 class SimpleSort(SortBase):
     def __init__(self, label, order_by, description=''):
-        super(SimpleSort, self) .__init__(label, description)
+        super() .__init__(label, description)
         self.order_by = order_by
 
     def _get_order_by(self):
@@ -40,7 +38,7 @@ class SimpleSort(SortBase):
 
         return objects
 
-class PaginatorContext(object):
+class PaginatorContext:
     visible_page_range = 5
     outside_page_range = 1
 
@@ -120,7 +118,7 @@ class PaginatorContext(object):
             else:
                 pagesize = session_prefs.get(self.PAGESIZE, self.default_pagesize)
 
-            if not pagesize in self.pagesizes:
+            if pagesize not in self.pagesizes:
                 pagesize = self.default_pagesize
         else:
             pagesize = 30
@@ -153,7 +151,7 @@ class PaginatorContext(object):
             else:
                 sort = self.force_sort or (sticky and session_prefs.get(self.SORT, None)) or self.default_sort
 
-            if not sort in self.sort_methods:
+            if sort not in self.sort_methods:
                 sort = self.default_sort
 
         return sort

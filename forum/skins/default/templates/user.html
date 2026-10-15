@@ -11,14 +11,13 @@
 {% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
 {% block forejs %}
     {% if request.user.is_superuser or request.user == view_user %}
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
             response_commands['update_profile_karma'] = function(new_karma) {
                 $('#user-reputation').css('background', 'yellow');
                 $('#user-reputation').html(new_karma);
                 $('#user-reputation').animate({ backgroundColor: "transparent" }, 1000);
             }
         </script>
-        <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/user.css" %}"/>
     {% endif %}
     <script defer src="{% media "/media/js/osqa.profile.js" %}"></script>
     {% block userjs %}{% endblock %}

@@ -9,12 +9,12 @@
 <div class="support-dashboard">
     <form method="get" class="support-filters">
         <label>{% trans "Period" %}
-            <select name="days" onchange="this.form.submit()">
+            <select name="days" data-autosubmit>
                 {% for p in periods %}<option value="{{ p }}"{% if p == days %} selected{% endif %}>{% if p %}{% blocktrans with n=p %}Last {{ n }} days{% endblocktrans %}{% else %}{% trans "All time" %}{% endif %}</option>{% endfor %}
             </select>
         </label>
         <label>{% trans "Tag" %}
-            <select name="tag" onchange="this.form.submit()">
+            <select name="tag" data-autosubmit>
                 <option value="">{% trans "All questions" %}</option>
                 {% for row in tag_rows %}<option value="{{ row.tag }}"{% if row.tag == tag %} selected{% endif %}>{{ row.tag }}</option>{% endfor %}
                 {% if tag and tag not in tag_names %}<option value="{{ tag }}" selected>{{ tag }}</option>{% endif %}

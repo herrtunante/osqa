@@ -12,7 +12,7 @@ from forum.modules import call_all_handlers
 from urllib.parse import unquote
 from django.utils.http import url_has_allowed_host_and_scheme
 
-DEFAULT_NEXT = getattr(settings, 'APP_BASE_URL')
+DEFAULT_NEXT = settings.APP_BASE_URL
 def clean_next(next):
     if next is None:
         return DEFAULT_NEXT
@@ -47,7 +47,7 @@ class StrippedNonEmptyCharField(forms.CharField):
 
 class NextUrlField(forms.CharField):
     def __init__(self):
-        super(NextUrlField,self).__init__(max_length = 255,widget = forms.HiddenInput(),required = False)
+        super().__init__(max_length = 255,widget = forms.HiddenInput(),required = False)
     def clean(self,value):
         return clean_next(value)
 
@@ -58,7 +58,7 @@ class UserNameField(StrippedNonEmptyCharField):
     def __init__(self,db_model=User, db_field='username', must_exist=False,skip_clean=False,label=_lazy('Username'),**kw):
         self.must_exist = must_exist
         self.skip_clean = skip_clean
-        self.db_model = db_model 
+        self.db_model = db_model
         self.db_field = db_field
         error_messages={'required':_lazy('Choose a username.'),
                         'taken':_lazy('That username is taken. Please choose another one.'),
@@ -71,7 +71,7 @@ class UserNameField(StrippedNonEmptyCharField):
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
             del kw['error_messages']
-        super(UserNameField,self).__init__(max_length=30,
+        super().__init__(max_length=30,
                 widget=forms.TextInput(attrs=login_form_widget_attrs),
                 label=label,
                 error_messages=error_messages,
@@ -80,13 +80,13 @@ class UserNameField(StrippedNonEmptyCharField):
 
     def clean(self,username):
         """ validate username """
-        if self.skip_clean == True:
+        if self.skip_clean:
             return username
         if hasattr(self, 'user_instance') and isinstance(self.user_instance, User):
             if username == self.user_instance.username:
                 return username
         try:
-            username = super(UserNameField, self).clean(username)
+            username = super().clean(username)
         except forms.ValidationError:
             raise forms.ValidationError(self.error_messages['required'])
         if len(username) < settings.MIN_USERNAME_LENGTH:
@@ -115,7 +115,7 @@ class UserNameField(StrippedNonEmptyCharField):
 class UserEmailField(forms.EmailField):
     def __init__(self,skip_clean=False,**kw):
         self.skip_clean = skip_clean
-        super(UserEmailField,self).__init__(widget=forms.EmailInput(attrs=dict(login_form_widget_attrs,
+        super().__init__(widget=forms.EmailInput(attrs=dict(login_form_widget_attrs,
             maxlength=200)), label=_lazy('Email address'),
             error_messages={'required':_lazy('Enter your email address.'),
                             'invalid':_lazy('Enter an email address like name@example.com.'),
@@ -129,19 +129,19 @@ class UserEmailField(forms.EmailField):
         """ validate if email exist in database
         from legacy register
         return: raise error if it exist """
-        email = super(UserEmailField,self).clean(email.strip())
+        email = super().clean(email.strip())
         if self.skip_clean:
             return email
-        if settings.EMAIL_UNIQUE == True:
+        if settings.EMAIL_UNIQUE:
             try:
-                user = User.objects.get(email = email)
+                User.objects.get(email = email)
                 raise forms.ValidationError(self.error_messages['taken'])
             except User.DoesNotExist:
                 return email
             except User.MultipleObjectsReturned:
                 raise forms.ValidationError(self.error_messages['taken'])
         else:
-            return email 
+            return email
 
 class UserRealNameField(StrippedNonEmptyCharField):
     def __init__(self, db_model=User, db_field='real_name', must_exist=True, skip_clean=False, label=_lazy('Your name'),**kw):
@@ -154,7 +154,7 @@ class UserRealNameField(StrippedNonEmptyCharField):
         if 'error_messages' in kw:
             error_messages.update(kw['error_messages'])
             del kw['error_messages']
-        super(UserRealNameField,self).__init__(max_length=100,
+        super().__init__(max_length=100,
                 widget=forms.TextInput(attrs=login_form_widget_attrs),
                 label=label,
                 error_messages=error_messages,
@@ -162,10 +162,10 @@ class UserRealNameField(StrippedNonEmptyCharField):
                 )
 
     def clean(self, real_name):
-        if self.skip_clean == True:
+        if self.skip_clean:
             return real_name
         try:
-            return super(UserRealNameField, self).clean(real_name)
+            return super().clean(real_name)
         except forms.ValidationError:
             raise forms.ValidationError(self.error_messages['required'])
 
@@ -173,13 +173,13 @@ class UserNameValidationField(StrippedNonEmptyCharField):
     def __init__(self,**kw):
        error_messages={'required':_lazy('Real name is required')
                     }
-       super(UserNameValidationField,self).__init__(max_length=0,
+       super().__init__(max_length=0,
                 widget=forms.TextInput(attrs=login_form_widget_attrs),
                 label="Validation user",
                 error_messages=error_messages,
                 **kw
                 )
-       super(UserNameValidationField,self).__init__(required=False, widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
+       super().__init__(required=False, widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200, tabindex='-1', autocomplete='off')), label="Human test",
             error_messages={
                             'invalid':_lazy('please probe you are not a robot by not filling this')
@@ -188,7 +188,7 @@ class UserNameValidationField(StrippedNonEmptyCharField):
             )
 
 
-    
+
     # Honeypot: humans leave it empty. StrippedNonEmptyCharField.clean() doesn't
     # call validate(), and the field must not be required.
     def clean(self, value):
@@ -196,11 +196,11 @@ class UserNameValidationField(StrippedNonEmptyCharField):
         if value:
             raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
         return value
-        
+
 class UserNameValidationSumField(StrippedNonEmptyCharField):
     def __init__(self,**kw):
-       
-         super(UserNameValidationSumField,self).__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
+
+         super().__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
             maxlength=200, inputmode='numeric', autocomplete='off')), label=_lazy('What is seven plus seven?'),
             help_text=_lazy('A quick check that you are not a robot. Type the answer in digits.'),
             error_messages={
@@ -209,14 +209,14 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
             **kw
             )
 
-    
+
     def clean(self, value):
         # Form data is text: compare with '14', not the integer 14.
         value = (value or '').strip()
         if value != '14':
             raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
         return value
-   
+
 
 def password_rules():
     """The AUTH_PASSWORD_VALIDATORS rules in a few plain words each, for the
@@ -277,7 +277,7 @@ class SetPasswordForm(forms.Form):
                                 )
 
     def __init__(self, data=None, user=None, *args, **kwargs):
-        super(SetPasswordForm, self).__init__(data, *args, **kwargs)
+        super().__init__(data, *args, **kwargs)
         self.password_user = user
         # The rules are listed on the sign-up page, and joined into the help text elsewhere.
         rules = password_rules()
@@ -298,7 +298,7 @@ class SetPasswordForm(forms.Form):
     def clean_password2(self):
         """
         Validates that the two password inputs match.
-        
+
         """
         if 'password1' in self.cleaned_data:
             if self.cleaned_data['password1'] == self.cleaned_data['password2']:
@@ -315,7 +315,7 @@ class SimpleCaptchaForm(forms.Form):
     fields = {}
 
     def __init__(self, *args, **kwargs):
-        super(SimpleCaptchaForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         spam_fields = call_all_handlers('create_anti_spam_field')
         if spam_fields:

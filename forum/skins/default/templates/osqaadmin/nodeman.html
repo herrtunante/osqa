@@ -3,7 +3,7 @@
 {% load i18n user_tags extra_tags extra_filters %}
 
 {% block adminjs %}
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
         $(function() {
             var $form = $('#changelist-search');
 
@@ -198,7 +198,7 @@
             padding: 0 0 0 0;
         }
     </style>
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
     /* gettext identity library */
 
     function gettext(msgid) { return msgid; }

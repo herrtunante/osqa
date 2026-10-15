@@ -95,7 +95,8 @@ class SearchMetadataTest(OSQATestCase):
         self.question.save()
 
     def structured_data(self, response):
-        import json, re
+        import json
+        import re
         match = re.search(r'<script type="application/ld\+json">(.*?)</script>', response.content.decode(), re.S)
         self.assertIsNotNone(match)
         return json.loads(match.group(1))
@@ -133,7 +134,8 @@ class ImageUploadTest(OSQATestCase):
 
     def setUp(self):
         super().setUp()
-        import tempfile, shutil
+        import tempfile
+        import shutil
         from forum import settings
         self.folder = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.folder)
@@ -250,7 +252,9 @@ class ImageUploadTest(OSQATestCase):
             self.assertEqual(stored.info['duration'], (i + 1) * 100)
 
     def test_decompression_bomb_is_refused(self):
-        import os, struct, zlib
+        import os
+        import struct
+        import zlib
         def chunk(kind, data):
             return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
         # A few hundred bytes claiming to be 60000x60000 pixels.
@@ -270,7 +274,6 @@ class ImageUploadTest(OSQATestCase):
 
     def test_admin_logo_upload_is_stripped(self):
         from PIL import Image
-        from forum import settings
         from forum.settings.forms import ImageFormWidget
         from django.core.files.uploadedfile import SimpleUploadedFile
         exif = Image.Exif()

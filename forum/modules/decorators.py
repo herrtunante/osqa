@@ -1,7 +1,7 @@
 import inspect
 import sys
 
-class DecoratableObject(object):
+class DecoratableObject:
     MODE_OVERRIDE = 0
     MODE_PARAMS = 1
     MODE_RESULT = 2
@@ -106,7 +106,7 @@ def _check_decoratable(origin, install=True):
                 setattr(owner, origin.__name__, decoratable_method)
 
             return decoratable_method
-                
+
         elif inspect.isfunction(origin):
             decoratable = DecoratableObject(origin)
 
@@ -131,7 +131,7 @@ def decorate(origin, needs_origin=True):
 
     def decorator(fn):
         origin._decoratable_obj._decorate(fn, DecoratableObject.MODE_OVERRIDE, needs_origin=needs_origin)
-        
+
     return decorator
 
 

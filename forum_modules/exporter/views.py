@@ -1,4 +1,9 @@
-import os, configparser, datetime, logging, shutil, tempfile
+import os
+import configparser
+import datetime
+import logging
+import shutil
+import tempfile
 import json
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404, FileResponse
@@ -67,7 +72,7 @@ def exporter(request):
     for f in os.listdir(folder):
         if (not os.path.isdir(os.path.join(folder, f))) and f.endswith('.backup.inf'):
             try:
-                with open(os.path.join(folder, f), 'r') as inffile:
+                with open(os.path.join(folder, f)) as inffile:
                     inf = configparser.RawConfigParser()
                     inf.read_file(inffile)
 
@@ -78,7 +83,7 @@ def exporter(request):
                             'date': datetime.datetime.strptime(inf.get(DATE_AND_AUTHOR_INF_SECTION, 'finished'), DATETIME_FORMAT),
                             'file': inf.get(DATE_AND_AUTHOR_INF_SECTION, 'file-name'),
                         })
-            except Exception as e:
+            except Exception:
                 pass
 
     available.sort(key=lambda b: b['date'], reverse=True)

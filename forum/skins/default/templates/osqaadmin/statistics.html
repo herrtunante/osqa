@@ -6,7 +6,7 @@
 {% block adminjs %}
 <script type="text/javascript" src="{% media "/media/vendor/flot-4.2.6/jquery.flot.min.js" %}"></script>
 <script type="text/javascript" src="{% media "/media/js/osqa.charts.js" %}"></script>
-<script type="text/javascript">
+<script nonce="{{ csp_nonce }}" type="text/javascript">
         $(function(){
         {% for graph in graphs %}
             osqaTimeChart('#{{ graph.id }}', {{ graph.data }});

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from datetime import datetime
 import time
@@ -125,7 +124,7 @@ def final_username_attempt(sxu):
 
     return UnknownUser(sxu.get('id'))
 
-class UnknownUser(object):
+class UnknownUser:
     def __init__(self, id):
         self._id = id
 
@@ -151,10 +150,10 @@ class IdMapper(dict):
 
     def __getitem__(self, key):
         key = int(key)
-        return super(IdMapper, self).get(key, self.default)
+        return super().get(key, self.default)
 
     def __setitem__(self, key, value):
-        super(IdMapper, self).__setitem__(int(key), int(value))
+        super().__setitem__(int(key), int(value))
 
 def unique_username(username, usernames):
     username = username[:30]
@@ -284,14 +283,14 @@ def userimport(path, options):
         usernames.add(osqau.username)
 
         openid = sxu.get('openid', None)
-        if openid and openidre.match(openid) and (not openid in openids) and \
+        if openid and openidre.match(openid) and (openid not in openids) and \
                 not AuthKeyUserAssociation.objects.filter(key=openid).exists():
             assoc = AuthKeyUserAssociation(user=osqau, key=openid, provider="openidurl")
             assoc.save()
             openids.add(openid)
 
         openidalt = sxu.get('openidalt', None)
-        if openidalt and openidre.match(openidalt) and (not openidalt in openids) and \
+        if openidalt and openidre.match(openidalt) and (openidalt not in openids) and \
                 not AuthKeyUserAssociation.objects.filter(key=openidalt).exists():
             assoc = AuthKeyUserAssociation(user=osqau, key=openidalt, provider="openidurl")
             assoc.save()
@@ -325,7 +324,7 @@ def tagsimport(dump, uidmap):
     return tagmap
 
 def add_post_state(name, post, action):
-    if not "(%s)" % name in post.state_string:
+    if "(%s)" % name not in post.state_string:
         post.state_string = "%s(%s)" % (post.state_string, name)
         raw_save(post)
 
@@ -344,7 +343,7 @@ def remove_post_state(name, post):
         post.state_string = "".join("(%s)" % s for s in re.findall(r'\w+', post.state_string) if s != name)
         raw_save(post)
 
-class PostMap(object):
+class PostMap:
     """Maps the posts and comments of the dump to the new node ids."""
 
     def __init__(self):
@@ -382,7 +381,7 @@ def postimport(dump, uidmap, tagmap):
         if is_question:
             post.title = sxpost.get('title', '')[:300]
 
-            tagnames = sxpost.get('tags', '').replace(u'ö', '-').replace(u'é', '').replace(u'à', '')
+            tagnames = sxpost.get('tags', '').replace('ö', '-').replace('é', '').replace('à', '')
             post.tagnames = tagnames
 
             post.extra_count = int(sxpost.get('viewcount', 0))
@@ -451,7 +450,7 @@ def comment_import(dump, uidmap, posts):
     mapping = {}
 
     def callback(sxc):
-        if not sxc.get('postid') in posts:
+        if sxc.get('postid') not in posts:
             return
 
         parent_id = posts[sxc['postid']]
@@ -501,7 +500,7 @@ def comment_import(dump, uidmap, posts):
 
 
 def add_tags_to_post(post, tagmap):
-    tags = [tag for tag in [tagmap.get(name.strip()) for name in post.tagnames.split(u' ') if name] if tag]
+    tags = [tag for tag in [tagmap.get(name.strip()) for name in post.tagnames.split(' ') if name] if tag]
     post.tagnames = " ".join([t.name for t in tags]).strip()[:125]
     post.tags.set(tags)
 
@@ -539,7 +538,7 @@ def post_vote_import(dump, uidmap, posts):
                 action_date = readTime(sxv['creationdate']),
                 )
 
-        if not sxv['postid'] in posts: return
+        if sxv['postid'] not in posts: return
         node = Node.objects.get(id=posts[sxv['postid']])
         action.node = node
 
@@ -556,7 +555,7 @@ def post_vote_import(dump, uidmap, posts):
                 Node.objects.filter(id=answer.parent_id).update(extra_ref=answer.id)
 
         elif sxv['votetypeid'] in ('2', '3'):
-            if not (action.node.id, action.user_id) in user2vote:
+            if (action.node.id, action.user_id) not in user2vote:
                 user2vote.add((action.node.id, action.user_id))
 
                 action.action_type = (sxv['votetypeid'] == '2') and "voteup" or "votedown"
@@ -578,7 +577,7 @@ def post_vote_import(dump, uidmap, posts):
             action.action_type = "flag"
             raw_save(action)
 
-            if not (action.node.id, action.user_id) in user2flag:
+            if (action.node.id, action.user_id) not in user2flag:
                 user2flag.add((action.node.id, action.user_id))
 
                 of = Flag(
@@ -662,7 +661,7 @@ def comment_vote_import(dump, uidmap, comments):
             comment_id = comments[int(sxv['postcommentid'])]
             user_id = uidmap[sxv.get('userid', -1)]
 
-            if not (comment_id, user_id) in user2vote:
+            if (comment_id, user_id) not in user2vote:
                 user2vote.add((comment_id, user_id))
 
                 action = Action(
@@ -683,7 +682,7 @@ def comment_vote_import(dump, uidmap, comments):
 
                 ov.save()
 
-                if not comment_id in comments2score:
+                if comment_id not in comments2score:
                     comments2score[comment_id] = 1
                 else:
                     comments2score[comment_id] += 1
@@ -821,14 +820,14 @@ def pages_import(dump, owner):
         settings.STATIC_PAGE_REGISTRY.set_value(current)
 
 sx2osqa_set_map = {
-u'theme.html.name': 'APP_TITLE',
-u'theme.html.footer': 'CUSTOM_FOOTER',
-u'theme.html.sidebar': 'SIDEBAR_UPPER_TEXT',
-u'theme.html.sidebar-low': 'SIDEBAR_LOWER_TEXT',
-u'theme.html.welcome': 'APP_INTRO',
-u'theme.html.head': 'CUSTOM_HEAD',
-u'theme.html.header': 'CUSTOM_HEADER',
-u'theme.css': 'CUSTOM_CSS',
+'theme.html.name': 'APP_TITLE',
+'theme.html.footer': 'CUSTOM_FOOTER',
+'theme.html.sidebar': 'SIDEBAR_UPPER_TEXT',
+'theme.html.sidebar-low': 'SIDEBAR_LOWER_TEXT',
+'theme.html.welcome': 'APP_INTRO',
+'theme.html.head': 'CUSTOM_HEAD',
+'theme.html.header': 'CUSTOM_HEADER',
+'theme.css': 'CUSTOM_CSS',
 }
 
 html_codes = (

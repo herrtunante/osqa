@@ -337,8 +337,8 @@ class MentionsAndContactTest(E2ETestCase):
         self.assertIn('Thanks for the feedback', page.locator('body').inner_text())
         mails = self.mail_to(admin)
         self.assertEqual(len(mails), 1)
-        self.assertIn('Sender: alice', mails[0][3])
-        self.assertIn('email: alice@example.com', mails[0][3])
+        self.assertIn('From: alice', mails[0][3])
+        self.assertIn('Email: alice@example.com', mails[0][3])
         self.assertEqual([m for m in self.sent_mail if m[0] != admin], [])
 
 
@@ -371,6 +371,12 @@ class BadgesAndAvatarTest(E2ETestCase):
         alice = self.create_user('alice', reputation=100)
         digest = md5(b'alice@example.com').hexdigest()
         page = self.open(device='mobile', dark=True)
+        # Gravatar answers with a tiny image, so the page keeps its own avatar URL
+        # (osqa.avatars.js swaps in the initial only when the image fails to load).
+        pixel = bytes.fromhex('89504e470d0a1a0a0000000d4948445200000001000000010806000000'
+                              '1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082')
+        page.route('https://secure.gravatar.com/**', lambda route: route.fulfill(
+            status=200, content_type='image/png', body=pixel))
         self.visit(page, alice.get_profile_url())
         avatar = page.locator('img.gravatar[width="128"]').first
         self.assertEqual(avatar.get_attribute('src'),

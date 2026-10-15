@@ -2223,20 +2223,22 @@ msgid "Already validated"
 msgstr "Ya validado"
 
 #, python-format
-msgid "%(prefix)s Your email validation link %(app_name)s"
-msgstr "%(prefix)s Su enlace de validación de correo electrónico de %(app_name)s"
+msgid "%(prefix)s Confirm your email address for %(app_name)s"
+msgstr "%(prefix)s Confirme su dirección de correo en %(app_name)s"
 
-msgid "Please use the following link to help us verify your email address:"
-msgstr "Utilice el siguiente enlace para ayudarnos a verificar su dirección de correo electrónico:"
+msgid "Confirm your email address with one click."
+msgstr "Confirme su dirección de correo con un clic."
 
-msgid "Validate my email address"
-msgstr "Validar mi dirección de correo electrónico"
+#, python-format
+msgid "You receive this email because a confirmation link was requested for your account at %(app_name)s."
+msgstr "Recibe este correo porque se pidió un enlace de confirmación para su cuenta en %(app_name)s."
 
-msgid "If the above link is not clickable, copy and paste this url into your web browser's address bar:"
-msgstr "Si no puede hacer clic en el enlace anterior, copie y pegue esta URL en la barra de direcciones de su navegador:"
+#, python-format
+msgid "Please confirm that this is your email address, so %(app_name)s can send you notifications. The link works for 24 hours."
+msgstr "Confirme que esta es su dirección de correo para que %(app_name)s pueda enviarle notificaciones. El enlace funciona durante 24 horas."
 
-msgid "Copy and paste this url into your web browser's address bar to help us verify your email address:"
-msgstr "Copie y pegue esta URL en la barra de direcciones de su navegador para ayudarnos a verificar su dirección de correo electrónico:"
+msgid "Confirm your email"
+msgstr "Confirmar su correo"
 
 msgid "Show password"
 msgstr "Mostrar contraseña"
@@ -2275,19 +2277,25 @@ msgid "Create an account"
 msgstr "Crear una cuenta"
 
 #, python-format
-msgid "%(prefix)s Temporary login link"
-msgstr "%(prefix)s Enlace temporal de inicio de sesión"
+msgid "%(prefix)s Your sign-in link for %(app_name)s"
+msgstr "%(prefix)s Su enlace de inicio de sesión para %(app_name)s"
+
+msgid "Sign in with one click. The link works once, for 24 hours."
+msgstr "Inicie sesión con un clic. El enlace funciona una vez, durante 24 horas."
 
 #, python-format
-msgid "The following link grants you a one time access to your account at %(app_name)s."
-msgstr "El siguiente enlace le concede un acceso único a su cuenta en %(app_name)s."
-
-msgid "Go to your account"
-msgstr "Ir a su cuenta"
+msgid "You receive this email because a sign-in link was requested for your account at %(app_name)s."
+msgstr "Recibe este correo porque se pidió un enlace de inicio de sesión para su cuenta en %(app_name)s."
 
 #, python-format
-msgid "The following url grants you a one time access to your account at %(app_name)s."
-msgstr "La siguiente URL le concede un acceso único a su cuenta en %(app_name)s."
+msgid "Here is the sign-in link you asked for. It signs you in to %(app_name)s once, and works for 24 hours."
+msgstr "Este es el enlace de inicio de sesión que pidió. Le permite entrar en %(app_name)s una vez y funciona durante 24 horas."
+
+msgid "Once you're in, you can set a new password."
+msgstr "Una vez dentro, puede establecer una contraseña nueva."
+
+msgid "Didn't ask for this? You can ignore this email: nobody can sign in without the link."
+msgstr "¿No lo pidió usted? Puede ignorar este correo: nadie puede entrar sin el enlace."
 
 msgid "Forgot your password?"
 msgstr "¿Olvidó su contraseña?"
@@ -2308,21 +2316,24 @@ msgstr "Volver a iniciar sesión"
 msgid "%(prefix)s Welcome to %(app_name)s"
 msgstr "%(prefix)s Bienvenido a %(app_name)s"
 
+msgid "One last step: confirm your email address."
+msgstr "Un último paso: confirme su dirección de correo."
+
 #, python-format
-msgid "Howdy and welcome to %(app_name)s. We know you're busy, so we'll keep this real simple."
-msgstr "Hola y bienvenido a %(app_name)s. Sabemos que está ocupado, así que seremos breves."
+msgid "You receive this email because someone signed up at %(app_name)s with this address. If it wasn't you, you can ignore it."
+msgstr "Recibe este correo porque alguien se registró en %(app_name)s con esta dirección. Si no fue usted, puede ignorarlo."
 
-msgid "Here's your login info (store it in a cool dry place):"
-msgstr "Estos son sus datos de inicio de sesión (guárdelos en un lugar seguro):"
+#, python-format
+msgid "Welcome to %(app_name)s!"
+msgstr "¡Bienvenido a %(app_name)s!"
 
-msgid "Username: "
-msgstr "Nombre de usuario: "
+#, python-format
+msgid "Thanks for joining, %(name)s. One last step: confirm your email address, so you can hear about answers to your questions."
+msgstr "Gracias por unirse, %(name)s. Un último paso: confirme su dirección de correo para enterarse de las respuestas a sus preguntas."
 
-msgid "Password: As IF we would send your password in cleartext!"
-msgstr "Contraseña: ¡como si fuéramos a enviarle su contraseña en texto plano!"
-
-msgid "The following link will help us verify your email address:"
-msgstr "El siguiente enlace nos ayudará a verificar su dirección de correo electrónico:"
+#, python-format
+msgid "Your username is %(name)s. The confirmation link works for 24 hours."
+msgstr "Su nombre de usuario es %(name)s. El enlace de confirmación funciona durante 24 horas."
 
 msgid "Badges"
 msgstr "Insignias"
@@ -2935,11 +2946,11 @@ msgstr ""
 "    Use el control deslizante de abajo o el campo de entrada para elegir la cantidad de puntos que desea otorgar.\n"
 "    "
 
-msgid "Points:"
-msgstr "Puntos:"
-
 msgid "Your karma points will be below the minimum reputation to comment. Are you sure you want to award points?"
 msgstr "Sus puntos de karma quedarán por debajo de la reputación mínima para comentar. ¿Está seguro de que desea otorgar puntos?"
+
+msgid "Points:"
+msgstr "Puntos:"
 
 msgid "Please select a reason bellow or use the text box to input your own reason."
 msgstr "Seleccione un motivo a continuación o use el cuadro de texto para introducir su propio motivo."
@@ -3070,51 +3081,82 @@ msgid "I am a Human Being"
 msgstr "Soy un ser humano"
 
 #, python-format
+msgid "%(comment_author)s commented on your answer to %(question_link)s:"
+msgstr "%(comment_author)s comentó su respuesta a %(question_link)s:"
+
+#, python-format
+msgid "%(comment_author)s commented on %(post_author)s's answer to %(question_link)s:"
+msgstr "%(comment_author)s comentó la respuesta de %(post_author)s a %(question_link)s:"
+
+#, python-format
+msgid "%(comment_author)s commented on your question %(question_link)s:"
+msgstr "%(comment_author)s comentó su pregunta %(question_link)s:"
+
+#, python-format
+msgid "%(comment_author)s commented on %(question_link)s:"
+msgstr "%(comment_author)s comentó en %(question_link)s:"
+
+msgid "Button not working? Copy this link into your browser:"
+msgstr "¿El botón no funciona? Copie este enlace en su navegador:"
+
+#, python-format
+msgid "%(author_name)s mentioned you in a comment on %(question_link)s:"
+msgstr "%(author_name)s le mencionó en un comentario en %(question_link)s:"
+
+#, python-format
+msgid "%(author_name)s mentioned you in an answer to %(question_link)s:"
+msgstr "%(author_name)s le mencionó en una respuesta a %(question_link)s:"
+
+#, python-format
+msgid "%(author_name)s mentioned you in the question %(question_link)s:"
+msgstr "%(author_name)s le mencionó en la pregunta %(question_link)s:"
+
+#, python-format
 msgid "%(prefix)s Did an answer solve \"%(question_title)s\"?"
 msgstr "%(prefix)s ¿Alguna respuesta resolvió \"%(question_title)s\"?"
 
-#, python-format
-msgid "Your question %(question_link)s has received answers. If one of them solved your problem, please mark it as accepted (the check mark next to the answer)."
-msgstr "Su pregunta %(question_link)s ha recibido respuestas. Si alguna de ellas resolvió su problema, márquela como aceptada (la marca de verificación junto a la respuesta)."
-
-msgid "It shows others with the same problem which answer works, and thanks the person who helped. If none of the answers solved it, add a comment saying what is still missing."
-msgstr "Así muestra a otras personas con el mismo problema qué respuesta funciona y da las gracias a quien le ayudó. Si ninguna de las respuestas lo resolvió, añada un comentario indicando lo que aún falta."
+msgid "If an answer solved your problem, accept it so others know what worked."
+msgstr "Si una respuesta resolvió su problema, acéptela para que otros sepan qué funcionó."
 
 #, python-format
-msgid "Your question \"%(question_title)s\" has received answers. If one of them solved your problem, please mark it as accepted (the check mark next to the answer):"
-msgstr "Su pregunta \"%(question_title)s\" ha recibido respuestas. Si alguna de ellas resolvió su problema, márquela como aceptada (la marca de verificación junto a la respuesta):"
+msgid "Your question %(question_link)s has answers. Did one of them solve your problem?"
+msgstr "Su pregunta %(question_link)s tiene respuestas. ¿Alguna resolvió su problema?"
+
+msgid "If so, accept it with the check mark next to it. That shows others what worked and thanks the person who helped."
+msgstr "Si es así, acéptela con la marca de verificación junto a ella. Así otros ven qué funcionó y agradece a quien le ayudó."
+
+msgid "Review the answers"
+msgstr "Ver las respuestas"
+
+msgid "Still stuck? Add a comment saying what is missing."
+msgstr "¿Sigue sin solución? Añada un comentario diciendo qué falta."
 
 #, python-format
-msgid "%(prefix)s An answer to: %(question_title)s has been accepted"
-msgstr "%(prefix)s Se ha aceptado una respuesta a: %(question_title)s"
+msgid "%(prefix)s Answer accepted: %(question_title)s"
+msgstr "%(prefix)s Respuesta aceptada: %(question_title)s"
 
 #, python-format
-msgid ""
-"\n"
-"            %(accepted_by_link)s has just accepted %(answer_author_link)s's answer on his question\n"
-"            %(question_link)s.\n"
-"            "
-msgstr ""
-"\n"
-"            %(accepted_by_link)s acaba de aceptar la respuesta de %(answer_author_link)s a su pregunta\n"
-"            %(question_link)s.\n"
-"            "
+msgid "%(accepted_by_name)s accepted your answer. Thanks for helping!"
+msgstr "%(accepted_by_name)s aceptó su respuesta. ¡Gracias por ayudar!"
 
 #, python-format
-msgid ""
-"\n"
-"%(accepted_by)s has just accepted %(answer_author)s's answer on his question\n"
-"\"%(question_title)s\".\n"
-msgstr ""
-"\n"
-"%(accepted_by)s acaba de aceptar la respuesta de %(answer_author)s a su pregunta\n"
-"\"%(question_title)s\".\n"
+msgid "%(accepted_by_name)s accepted %(answer_author)s's answer."
+msgstr "%(accepted_by_name)s aceptó la respuesta de %(answer_author)s."
 
-msgid "Hello"
-msgstr "Hola"
+#, python-format
+msgid "%(accepted_by_name)s accepted your answer to %(question_link)s. Thanks for helping!"
+msgstr "%(accepted_by_name)s aceptó su respuesta a %(question_link)s. ¡Gracias por ayudar!"
 
-msgid "Thanks"
-msgstr "Gracias"
+#, python-format
+msgid "%(accepted_by_name)s accepted %(answer_author)s's answer to %(question_link)s."
+msgstr "%(accepted_by_name)s aceptó la respuesta de %(answer_author)s a %(question_link)s."
+
+msgid "View the answer"
+msgstr "Ver la respuesta"
+
+#, python-format
+msgid "Hi %(name)s,"
+msgstr "Hola, %(name)s:"
 
 #, python-format
 msgid "You receive this email because %(reason)s."
@@ -3123,278 +3165,185 @@ msgstr "Recibe este correo electrónico porque %(reason)s."
 msgid "Unsubscribe from all emails"
 msgstr "Cancelar la suscripción a todos los correos"
 
-msgid "P.S. You can always fine-tune which notifications you receive"
-msgstr "P. D.: Siempre puede ajustar qué notificaciones recibe"
-
-msgid "P.S. You can always fine-tune which notifications you receive here:"
-msgstr "P. D.: Siempre puede ajustar qué notificaciones recibe aquí:"
+#, python-format
+msgid "%(prefix)s Daily digest: %(counter)s new question"
+msgid_plural "%(prefix)s Daily digest: %(counter)s new questions"
+msgstr[0] "%(prefix)s Resumen diario: %(counter)s pregunta nueva"
+msgstr[1] "%(prefix)s Resumen diario: %(counter)s preguntas nuevas"
+msgstr[2] "%(prefix)s Resumen diario: %(counter)s preguntas nuevas"
 
 #, python-format
-msgid "%(prefix)s Daily digest"
-msgstr "%(prefix)s Resumen diario"
+msgid "%(prefix)s Daily digest from %(app_name)s"
+msgstr "%(prefix)s Resumen diario de %(app_name)s"
 
 #, python-format
-msgid ""
-"\n"
-"            This is a brief of what's going on the %(app_name)s community since our last update.\n"
-"            "
-msgstr ""
-"\n"
-"            Este es un resumen de lo que ha ocurrido en la comunidad %(app_name)s desde nuestra última actualización.\n"
-"            "
+msgid "Here's what's new on %(app_name)s since the last digest."
+msgstr "Esto es lo nuevo en %(app_name)s desde el último resumen."
 
 #, python-format
-msgid ""
-"\n"
-"            There are %(new_member_count)s new members in the community. %(new_member_links)s were the most active so far.\n"
-"        "
-msgstr ""
-"\n"
-"            Hay %(new_member_count)s miembros nuevos en la comunidad. %(new_member_links)s han sido los más activos hasta ahora.\n"
-"        "
+msgid "%(counter)s new question was posted."
+msgid_plural "%(counter)s new questions were posted."
+msgstr[0] "Se publicó %(counter)s pregunta nueva."
+msgstr[1] "Se publicaron %(counter)s preguntas nuevas."
+msgstr[2] "Se publicaron %(counter)s preguntas nuevas."
+
+msgid "Questions you might like"
+msgstr "Preguntas que pueden interesarle"
+
+msgid "Can you help?"
+msgstr "¿Puede ayudar?"
+
+msgid "These new questions haven't had much attention yet."
+msgstr "Estas preguntas nuevas aún no han recibido mucha atención."
+
+msgid "Updates in questions you follow"
+msgstr "Novedades en las preguntas que sigue"
+
+msgid "All the questions you follow"
+msgstr "Todas las preguntas que sigue"
+
+msgid "See all new questions"
+msgstr "Ver todas las preguntas nuevas"
+
+msgid "New members"
+msgstr "Miembros nuevos"
 
 #, python-format
-msgid ""
-"\n"
-"            %(new_member_links)s have joined the %(app_name)s community.\n"
-"        "
-msgstr ""
-"\n"
-"            %(new_member_links)s se han unido a la comunidad %(app_name)s.\n"
-"        "
+msgid "%(counter)s person joined. The most active so far:"
+msgid_plural "%(counter)s people joined. The most active so far:"
+msgstr[0] "Se unió %(counter)s persona. La más activa hasta ahora:"
+msgstr[1] "Se unieron %(counter)s personas. Las más activas hasta ahora:"
+msgstr[2] "Se unieron %(counter)s personas. Las más activas hasta ahora:"
 
 #, python-format
-msgid ""
-"\n"
-"            %(new_question_count)s %(new_questions_link)s were posted since our last update.\n"
-"            "
-msgstr ""
-"\n"
-"            Se han publicado %(new_question_count)s %(new_questions_link)s desde nuestra última actualización.\n"
-"            "
+msgid "%(counter)s person joined:"
+msgid_plural "%(counter)s people joined:"
+msgstr[0] "Se unió %(counter)s persona:"
+msgstr[1] "Se unieron %(counter)s personas:"
+msgstr[2] "Se unieron %(counter)s personas:"
 
-msgid "We think you might like the following questions:"
-msgstr "Creemos que le podrían interesar las siguientes preguntas:"
-
-msgid "These new questions didn't get many attention from the community, but we think you may be able to help:"
-msgstr "Estas preguntas nuevas no han recibido mucha atención de la comunidad, pero creemos que usted podría ayudar:"
+msgid "For moderators"
+msgstr "Para moderadores"
 
 #, python-format
-msgid "Meanwhile, some of your %(subscriptions_link)s have new updates since you last visited them:"
-msgstr "Mientras tanto, algunas de sus %(subscriptions_link)s tienen novedades desde su última visita:"
+msgid "%(counter)s post was flagged in the last day."
+msgid_plural "%(counter)s posts were flagged in the last day."
+msgstr[0] "Se denunció %(counter)s publicación en el último día."
+msgstr[1] "Se denunciaron %(counter)s publicaciones en el último día."
+msgstr[2] "Se denunciaron %(counter)s publicaciones en el último día."
+
+msgid "Review flagged posts"
+msgstr "Revisar publicaciones denunciadas"
 
 #, python-format
-msgid ""
-"\n"
-"            %(flagged_url)s have been marked as flagged.\n"
-"            "
-msgstr ""
-"\n"
-"            %(flagged_url)s se han marcado como denunciadas.\n"
-"            "
+msgid "%(prefix)s Feedback from %(sender_name)s"
+msgstr "%(prefix)s Comentarios de %(sender_name)s"
 
 #, python-format
-msgid "This is a brief of what's going on the %(app_name)s community since our last update."
-msgstr "Este es un resumen de lo que ha ocurrido en la comunidad %(app_name)s desde nuestra última actualización."
+msgid "%(prefix)s Feedback from an anonymous visitor"
+msgstr "%(prefix)s Comentarios de un visitante anónimo"
 
 #, python-format
-msgid "There are %(new_member_count)s new members in the community. %(new_member_links)s were the most active so far."
-msgstr "Hay %(new_member_count)s miembros nuevos en la comunidad. %(new_member_links)s han sido los más activos hasta ahora."
+msgid "You receive this email because you are an administrator of %(app_name)s."
+msgstr "Recibe este correo porque es administrador de %(app_name)s."
 
 #, python-format
-msgid "%(new_member_links)s have joined the %(app_name)s community."
-msgstr "%(new_member_links)s se han unido a la comunidad %(app_name)s."
+msgid "New feedback on %(app_name)s"
+msgstr "Nuevos comentarios en %(app_name)s"
 
-#, python-format
-msgid "%(new_question_count)s new questions were posted since our last update."
-msgstr "Se han publicado %(new_question_count)s preguntas nuevas desde nuestra última actualización."
-
-msgid "Meanwhile, some of your subscriptions have new updates since you last visited them:"
-msgstr "Mientras tanto, algunas de sus suscripciones tienen novedades desde su última visita:"
-
-#, python-format
-msgid "%(flagged_count)s posts have been marked as flagged."
-msgstr "Se han marcado como denunciadas %(flagged_count)s publicaciones."
-
-#, python-format
-msgid "%(prefix)s Feedback message from %(app_name)s"
-msgstr "%(prefix)s Mensaje de comentarios de %(app_name)s"
-
-msgid "Sender"
-msgstr "Remitente"
+msgid "From"
+msgstr "De"
 
 msgid "anonymous"
 msgstr "anónimo"
 
-msgid "email"
-msgstr "correo electrónico"
+msgid "Email"
+msgstr "Correo electrónico"
 
-msgid "Message body:"
-msgstr "Cuerpo del mensaje:"
+msgid "IP address"
+msgstr "Dirección IP"
+
+msgid "Reply by email"
+msgstr "Responder por correo"
 
 #, python-format
 msgid "%(prefix)s %(author_name)s mentioned you in: %(question_title)s"
 msgstr "%(prefix)s %(author_name)s le mencionó en: %(question_title)s"
 
-#, python-format
-msgid "%(author_link)s mentioned you in %(question_link)s:"
-msgstr "%(author_link)s le mencionó en %(question_link)s:"
+msgid "View the comment"
+msgstr "Ver el comentario"
 
-msgid "View it on the site"
-msgstr "Verlo en el sitio"
-
-#, python-format
-msgid "%(author_name)s mentioned you in \"%(question_title)s\":"
-msgstr "%(author_name)s le mencionó en \"%(question_title)s\":"
+msgid "View the question"
+msgstr "Ver la pregunta"
 
 #, python-format
 msgid "%(prefix)s New answer to: %(question_title)s"
 msgstr "%(prefix)s Nueva respuesta a: %(question_title)s"
 
 #, python-format
-msgid ""
-"\n"
-"            %(author_link)s has just posted a new answer on %(app_name)s to the question\n"
-"            %(question_link)s:\n"
-"            "
-msgstr ""
-"\n"
-"            %(author_link)s acaba de publicar una nueva respuesta en %(app_name)s a la pregunta\n"
-"            %(question_link)s:\n"
-"            "
-
-msgid "Don't forget to come over and cast your vote."
-msgstr "No olvide pasarse a emitir su voto."
+msgid "%(answer_author)s answered:"
+msgstr "%(answer_author)s respondió:"
 
 #, python-format
-msgid ""
-"\n"
-"%(answer_author)s has just posted a new answer on %(safe_app_name)s to the question\n"
-"\"%(question_title)s\":\n"
-msgstr ""
-"\n"
-"%(answer_author)s acaba de publicar una nueva respuesta en %(safe_app_name)s a la pregunta\n"
-"\"%(question_title)s\":\n"
+msgid "%(answer_author)s answered %(question_link)s:"
+msgstr "%(answer_author)s respondió a %(question_link)s:"
+
+msgid "If the answer helps, vote for it so the best answers rise to the top."
+msgstr "Si la respuesta le ayuda, vótela para que las mejores respuestas suban."
 
 #, python-format
 msgid "%(prefix)s New comment on: %(question_title)s"
 msgstr "%(prefix)s Nuevo comentario en: %(question_title)s"
 
 #, python-format
-msgid "%(author_link)s has just posted a comment on "
-msgstr "%(author_link)s acaba de publicar un comentario en "
+msgid "%(comment_author)s commented:"
+msgstr "%(comment_author)s comentó:"
 
 #, python-format
-msgid "the answer posted by %(post_author)s to "
-msgstr "la respuesta publicada por %(post_author)s a "
+msgid "%(prefix)s %(newmember_name)s joined %(app_name)s"
+msgstr "%(prefix)s %(newmember_name)s se unió a %(app_name)s"
 
 #, python-format
-msgid "the question %(question_link)s"
-msgstr "la pregunta %(question_link)s"
+msgid "Say hello to %(newmember_name)s, the newest member of %(app_name)s."
+msgstr "Salude a %(newmember_name)s, el miembro más reciente de %(app_name)s."
 
 #, python-format
-msgid "%(comment_author)s has just posted a comment on "
-msgstr "%(comment_author)s acaba de publicar un comentario en "
+msgid "%(newmember_name)s just joined %(app_name)s."
+msgstr "%(newmember_name)s acaba de unirse a %(app_name)s."
+
+msgid "View their profile"
+msgstr "Ver su perfil"
 
 #, python-format
-msgid "the answer posted by %(safe_post_author)s to "
-msgstr "la respuesta publicada por %(safe_post_author)s a "
+msgid "%(prefix)s New question: %(question_title)s"
+msgstr "%(prefix)s Nueva pregunta: %(question_title)s"
 
 #, python-format
-msgid "the question \"%(question_title)s\""
-msgstr "la pregunta \"%(question_title)s\""
+msgid "%(question_author)s asked:"
+msgstr "%(question_author)s preguntó:"
 
 #, python-format
-msgid "%(prefix)s %(safe_newmember_name)s is a new member on %(safe_app_name)s"
-msgstr "%(prefix)s %(safe_newmember_name)s es un nuevo miembro de %(safe_app_name)s"
+msgid "%(question_author)s asked a new question tagged %(tag_list)s:"
+msgstr "%(question_author)s hizo una pregunta nueva con las etiquetas %(tag_list)s:"
 
 #, python-format
-msgid ""
-"\n"
-"            %(newmember_link)s has just joined %(app_name)s.\n"
-"            View <a style=\"%(a_style)s\" href=\"%(app_url)s%(newmember_url)s\">%(newmember_name)s's profile</a>.\n"
-"            "
-msgstr ""
-"\n"
-"            %(newmember_link)s acaba de unirse a %(app_name)s.\n"
-"            Vea el <a style=\"%(a_style)s\" href=\"%(app_url)s%(newmember_url)s\">perfil de %(newmember_name)s</a>.\n"
-"            "
+msgid "%(question_author)s asked a new question:"
+msgstr "%(question_author)s hizo una pregunta nueva:"
 
-#, python-format
-msgid ""
-"\n"
-"%(safe_newmember_name)s has just joined %(safe_app_name)s. You can visit %(safe_newmember_name)s's profile using the following url:\n"
-"%(app_url)s%(newmember_url)s\n"
-msgstr ""
-"\n"
-"%(safe_newmember_name)s acaba de unirse a %(safe_app_name)s. Puede visitar el perfil de %(safe_newmember_name)s en la siguiente URL:\n"
-"%(app_url)s%(newmember_url)s\n"
-
-#, python-format
-msgid "%(prefix)s New question: %(question_title)s on %(safe_app_name)s"
-msgstr "%(prefix)s Nueva pregunta: %(question_title)s en %(safe_app_name)s"
-
-#, python-format
-msgid ""
-"\n"
-"            %(author_link)s has just posted a new question on %(app_name)s, entitled\n"
-"            %(question_link)s\n"
-"             and tagged \"<em>%(tag_links)s</em>\". Here's what it says:\n"
-"            "
-msgstr ""
-"\n"
-"            %(author_link)s acaba de publicar una nueva pregunta en %(app_name)s, titulada\n"
-"            %(question_link)s\n"
-"             y etiquetada como \"<em>%(tag_links)s</em>\". Esto es lo que dice:\n"
-"            "
-
-#, python-format
-msgid ""
-"\n"
-"            %(author_link)s has just posted a new question on %(app_name)s, entitled\n"
-"            %(question_link)s. Here's what it says:\n"
-"            "
-msgstr ""
-"\n"
-"            %(author_link)s acaba de publicar una nueva pregunta en %(app_name)s, titulada\n"
-"            %(question_link)s. Esto es lo que dice:\n"
-"            "
-
-#, python-format
-msgid ""
-"\n"
-"%(question_author)s has just posted a new question on %(safe_app_name)s, entitled\n"
-"\"%(question_title)s\" and tagged %(question_tags)s:\n"
-msgstr ""
-"\n"
-"%(question_author)s acaba de publicar una nueva pregunta en %(safe_app_name)s, titulada\n"
-"\"%(question_title)s\" y etiquetada como %(question_tags)s:\n"
+msgid "Know the answer? Share it, or vote for the question if you'd like to know too."
+msgstr "¿Sabe la respuesta? Compártala, o vote la pregunta si también quiere saberla."
 
 #, python-format
 msgid "%(prefix)s User reported: %(reported)s by %(reporter_author)s"
 msgstr "%(prefix)s Usuario denunciado: %(reported)s por %(reporter_author)s"
 
 #, python-format
-msgid ""
-"\n"
-"\t\t\tUser reported: %(reported)s by %(reporter_author)s.<br/>\n"
-"\t\t\tReporter Message: %(message)s\n"
-"            "
-msgstr ""
-"\n"
-"\t\t\tUsuario denunciado: %(reported)s por %(reporter_author)s.<br/>\n"
-"\t\t\tMensaje del denunciante: %(message)s\n"
-"            "
+msgid "%(reporter_link)s reported %(reported_link)s with this message:"
+msgstr "%(reporter_link)s denunció a %(reported_link)s con este mensaje:"
 
 #, python-format
-msgid ""
-"\n"
-"\t\t\tUser reported: %(reported)s by %(reporter_author)s.\n"
-"\t\t\tReporter Message: %(message)s\n"
-msgstr ""
-"\n"
-"\t\t\tUsuario denunciado: %(reported)s por %(reporter_author)s.\n"
-"\t\t\tMensaje del denunciante: %(message)s\n"
+msgid "Review %(name)s's profile"
+msgstr "Revisar el perfil de %(name)s"
 
 msgid "using your browser."
 msgstr "con su navegador."
@@ -3425,6 +3374,9 @@ msgstr "Publicaciones marcadas"
 
 msgid "Support dashboard"
 msgstr "Panel de soporte"
+
+msgid "Email previews"
+msgstr "Vistas previas de correos"
 
 msgid "Statistics"
 msgstr "Estadísticas"
@@ -3567,6 +3519,45 @@ msgstr "Retirar publicación"
 msgid "Publish"
 msgstr "Publicar"
 
+msgid "All email previews"
+msgstr "Todas las vistas previas de correos"
+
+msgid "Subject"
+msgstr "Asunto"
+
+msgid "To"
+msgstr "Para"
+
+msgid "Unsubscribe header"
+msgstr "Cabecera de baja"
+
+msgid "Yes: mail programs show their own unsubscribe button."
+msgstr "Sí: los programas de correo muestran su propio botón para darse de baja."
+
+msgid "No: account emails can't be unsubscribed from."
+msgstr "No: no es posible darse de baja de los correos de la cuenta."
+
+msgid "Open the HTML version"
+msgstr "Abrir la versión HTML"
+
+msgid "Open the plain text version"
+msgstr "Abrir la versión de texto"
+
+msgid "HTML version"
+msgstr "Versión HTML"
+
+msgid "Drag the corner of the frame to see it at other widths."
+msgstr "Arrastre la esquina del marco para verlo con otros anchos."
+
+msgid "Plain text version"
+msgstr "Versión de texto"
+
+msgid "Every email the site sends, with sample posts and people, as you would receive it. Nothing is sent."
+msgstr "Todos los correos que envía el sitio, con publicaciones y personas de ejemplo, tal como los recibiría. No se envía nada."
+
+msgid "Plain text"
+msgstr "Texto sin formato"
+
 msgid "Posts flagged by users, and posts and accounts reported by automated checks."
 msgstr "Publicaciones marcadas por los usuarios, y publicaciones y cuentas denunciadas por comprobaciones automáticas."
 
@@ -3670,9 +3661,6 @@ msgstr "Ir"
 
 msgid "Possible cheaters"
 msgstr "Posibles tramposos"
-
-msgid "Email"
-msgstr "Correo electrónico"
 
 msgid "Validated"
 msgstr "Validado"
@@ -4665,6 +4653,9 @@ msgstr "edad"
 msgid "age unit"
 msgstr "años"
 
+msgid "email"
+msgstr "correo electrónico"
+
 msgid "not validated"
 msgstr "no validado"
 
@@ -5096,9 +5087,6 @@ msgstr "Vote a favor de las preguntas y respuestas que le ayudan; así suben par
 msgid "No votes yet."
 msgstr "Aún no hay votos."
 
-msgid "users"
-msgstr "usuarios"
-
 msgid "reputation points"
 msgstr "puntos de reputación"
 
@@ -5234,6 +5222,75 @@ msgstr "Ha publicado el número máximo de respuestas permitido en una hora. Esp
 
 msgid "You have posted the maximum number of comments for one hour. Please wait a while."
 msgstr "Ha publicado el número máximo de comentarios permitido en una hora. Espere un rato."
+
+msgid "People who follow a question, when someone answers it."
+msgstr "Quienes siguen una pregunta, cuando alguien la responde."
+
+msgid "The post's author and people who follow all comments."
+msgstr "El autor de la publicación y quienes siguen todos los comentarios."
+
+msgid "The answer's author and followers who asked for it."
+msgstr "El autor de la respuesta y los seguidores que lo pidieron."
+
+msgid "Someone mentioned with @username in a post or comment."
+msgstr "Alguien mencionado con @usuario en una publicación o comentario."
+
+msgid "New question"
+msgstr "Nueva pregunta"
+
+msgid "People who want new questions, or new questions in tags they follow."
+msgstr "Quienes quieren recibir las preguntas nuevas, o las de las etiquetas que siguen."
+
+msgid "New member"
+msgstr "Nuevo miembro"
+
+msgid "People who asked to hear about new members."
+msgstr "Quienes pidieron enterarse de los miembros nuevos."
+
+msgid "Daily digest"
+msgstr "Resumen diario"
+
+msgid "People subscribed to the daily digest."
+msgstr "Quienes están suscritos al resumen diario."
+
+msgid "Accept reminder"
+msgstr "Recordatorio para aceptar"
+
+msgid "Askers whose question has answers but none accepted."
+msgstr "Quienes preguntaron y tienen respuestas pero ninguna aceptada."
+
+msgid "Administrators, when someone sends the feedback form."
+msgstr "Los administradores, cuando alguien envía el formulario de contacto."
+
+msgid "User reported"
+msgstr "Usuario denunciado"
+
+msgid "Administrators, when someone reports a user."
+msgstr "Los administradores, cuando alguien denuncia a un usuario."
+
+msgid "Welcome"
+msgstr "Bienvenida"
+
+msgid "New members, with the link that confirms their email address."
+msgstr "Los miembros nuevos, con el enlace que confirma su dirección de correo."
+
+msgid "Sign-in link"
+msgstr "Enlace de inicio de sesión"
+
+msgid "Members who ask for a one-time sign-in link."
+msgstr "Los miembros que piden un enlace de inicio de sesión de un solo uso."
+
+msgid "Confirm email address"
+msgstr "Confirmar dirección de correo"
+
+msgid "Members who ask for a new confirmation link."
+msgstr "Los miembros que piden un nuevo enlace de confirmación."
+
+msgid "Test email"
+msgstr "Correo de prueba"
+
+msgid "The administrator who tests the email settings."
+msgstr "El administrador que prueba la configuración de correo."
 
 msgid "algorithm"
 msgstr "algoritmo"
@@ -5802,6 +5859,9 @@ msgstr "por nombre de usuario"
 
 msgid "sorted by username"
 msgstr "ordenados por nombre de usuario"
+
+msgid "users"
+msgstr "usuarios"
 
 msgid "Online Users"
 msgstr "Usuarios en línea"

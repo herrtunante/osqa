@@ -1,5 +1,6 @@
 import markdown
-import re, socket
+import re
+import socket
 
 TLDS = ('gw', 'gu', 'gt', 'gs', 'gr', 'gq', 'gp', 'gy', 'gg', 'gf', 'ge', 'gd', 'ga', 'edu', 'va', 'gn', 'gl', 'gi',
         'gh', 'iq', 'lb', 'lc', 'la', 'tv', 'tw', 'tt', 'arpa', 'lk', 'li', 'lv', 'to', 'lt', 'lr', 'ls', 'th', 'tf',

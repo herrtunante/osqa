@@ -1,6 +1,5 @@
 import os
 
-from django.conf import settings as djsettings
 from forum.settings.base import Setting, SettingSet
 from django.utils.translation import gettext_lazy as _
 

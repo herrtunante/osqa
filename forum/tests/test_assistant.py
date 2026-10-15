@@ -161,8 +161,8 @@ class SuggestedAnswerTest(AssistantTestCase):
 
     def test_suggestions_for_old_unanswered_questions_only(self):
         waiting = self.question('Exporting survey data to CSV fails')
-        recent = self.question('Brand new CSV question', hours_ago=2)
-        ancient = self.question('Very old CSV question', hours_ago=24 * 60)
+        self.question('Brand new CSV question', hours_ago=2)
+        self.question('Very old CSV question', hours_ago=24 * 60)
         closed = self.question('Closed CSV question')
         CloseAction(user=self.mod, node=closed, extra='off topic', ip='127.0.0.1').save()
         Question.objects.filter(id=self.export.id).update(added_at=datetime.now() - timedelta(days=3))

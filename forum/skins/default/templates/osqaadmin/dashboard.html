@@ -50,10 +50,10 @@
                     </p>
                     <div class="admin-actions">
                     {% if settings_pack != "default" %}
-                        <form method="post" action="{% url "admin_go_defaults" %}" onsubmit="return window.confirm('{% trans "Are you sure you want to revert to the defaults?" %}');">{% csrf_token %}<button type="submit" class="button">{% trans "revert to defaults" %}</button></form>
+                        <form method="post" action="{% url "admin_go_defaults" %}" data-confirm="{% trans "Are you sure you want to revert to the defaults?" %}">{% csrf_token %}<button type="submit" class="button">{% trans "revert to defaults" %}</button></form>
                     {% endif %}
                     {% if settings_pack != "bootstrap" %}
-                        <form method="post" action="{% url "admin_go_bootstrap" %}" onsubmit="return window.confirm('{% trans "Are you sure you want to run bootstrap mode?" %}');">{% csrf_token %}<button type="submit" class="button">{% trans "go bootstrap" %}</button></form>
+                        <form method="post" action="{% url "admin_go_bootstrap" %}" data-confirm="{% trans "Are you sure you want to run bootstrap mode?" %}">{% csrf_token %}<button type="submit" class="button">{% trans "go bootstrap" %}</button></form>
                     {% endif %}
                     </div>
                 </td>
@@ -66,7 +66,7 @@
             <tr>
                 <td>
                     <p>{% trans "Recalculate the scores of posts and the reputation of users from their votes and reputation history." %}</p>
-                    <form method="post" action="{% url "admin_denormalize" %}" class="admin-actions" onsubmit="return window.confirm('{% trans "This is a heavy operation, are you sure?" %}');">{% csrf_token %}<button type="submit" class="button">{% trans "Recalculate" %}</button></form>
+                    <form method="post" action="{% url "admin_denormalize" %}" class="admin-actions" data-confirm="{% trans "This is a heavy operation, are you sure?" %}">{% csrf_token %}<button type="submit" class="button">{% trans "Recalculate" %}</button></form>
                 </td>
             </tr>
         </table>

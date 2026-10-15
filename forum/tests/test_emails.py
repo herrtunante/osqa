@@ -115,7 +115,8 @@ class DigestTest(EmailTestCase):
         self.assertIn('How do I import plots from a shapefile?', text)
         self.assertIn('How do I import plots from a shapefile?', html)
         self.assertIn(self.question.get_absolute_url(), html)
-        self.assertIn('new questions were posted', text)
+        self.assertIn('1 new question was posted.', text)
+        self.assertIn('Daily digest: 1 new question', subject)
         self.assertIn('Stop the daily digest: http://testserver/unsubscribe/', text)
         self.assertIn('You receive this email because you are subscribed to the daily digest.', text)
         self.assertRegex(headers['List-Unsubscribe'], r'^<http://testserver/unsubscribe/[^>]+/>$')
@@ -212,7 +213,7 @@ class PreferencesStopEmailsTest(EmailTestCase):
         self.command(reverse('accept_answer', kwargs={'id': answer.id}))
         self.assertEqual(sorted(m[0].username for m in self.sent_mail), ['bob', 'carol'])
         recipient, subject, html, text, media, headers = self.mail_to(carol)[0]
-        self.assertIn('An answer to: How do I export survey data to CSV? has been accepted', subject)
+        self.assertIn('Answer accepted: How do I export survey data to CSV?', subject)
         self.assertIn('Stop emails about this question: http://testserver/unsubscribe/', text)
         self.assertIn('List-Unsubscribe', headers)
 

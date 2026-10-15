@@ -10,7 +10,7 @@ class ProjectBadgesTest(OSQATestCase):
     def setUpClass(cls):
         super().setUpClass()
         # The module is disabled in the test settings; importing it registers the badge.
-        from forum_modules.project_badges import badges, settings
+        from forum_modules.project_badges import badges, settings  # noqa: F401
         cls.badge_settings = settings
 
     def setUp(self):

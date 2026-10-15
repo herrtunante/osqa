@@ -10,7 +10,6 @@ from unittest import mock
 
 from django.urls import reverse
 
-from forum import settings
 from forum.models import AISuggestion, Notification, User
 from forum.models.action import Action
 

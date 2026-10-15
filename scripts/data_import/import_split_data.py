@@ -57,7 +57,7 @@ skipped_count = 0
 error_count = 0
 current_table = None
 
-with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open('importData/osqa-split.sql', encoding='utf-8', errors='ignore') as f:
     line_num = 0
     batch = []
     batch_size = 1000
@@ -118,7 +118,7 @@ with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') a
                         conn.commit()
                         imported_count += len(batch)
                         batch = []
-                    except sqlite3.IntegrityError as e:
+                    except sqlite3.IntegrityError:
                         # Skip integrity errors (duplicates, etc.)
                         error_count += 1
                         conn.rollback()
@@ -161,7 +161,7 @@ print(f"\n  ✓ Processed {line_num} lines")
 print("\n" + "="*80)
 print("✓ DATA IMPORT COMPLETED")
 print("="*80)
-print(f"\nStatistics:")
+print("\nStatistics:")
 print(f"  - Lines processed: {line_num:,}")
 print(f"  - Imported: {imported_count:,} rows")
 print(f"  - Skipped: {skipped_count:,} rows")
@@ -179,7 +179,7 @@ cursor.execute('SELECT COUNT(*) FROM forum_tag')
 tags = cursor.fetchone()[0]
 conn.close()
 
-print(f"\nImported data:")
+print("\nImported data:")
 print(f"  - Users: {users:,}")
 print(f"  - Tags: {tags}")
 if nodes:

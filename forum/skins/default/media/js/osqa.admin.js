@@ -81,7 +81,8 @@ $(function() {
         rewrite_anchor();        
     });
 
-    $('#test_email_settings a.test_button').on('click', function() {
+    $('#test_email_settings a.test_button').on('click', function(evt) {
+        evt.preventDefault();
         $('div.test_status').hide('slow')
         $('div.ajax_indicator').show('fast')
         $.post($(this).attr('href'), function(data) {

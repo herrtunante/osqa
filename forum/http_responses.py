@@ -5,7 +5,7 @@ from forum import settings
 
 class HttpResponseServiceUnavailable(HttpResponse):
     def __init__(self, message):
-        super(HttpResponseServiceUnavailable, self).__init__(
+        super().__init__(
             content=render_to_string('503.html', {
                 'message': message,
                 'app_logo': settings.APP_LOGO,
@@ -19,19 +19,19 @@ class HttpResponseUnauthorized(HttpResponse):
             # visitors are just asked to sign in).
             from forum.utils import security_log
             security_log.event('permission_denied', request, path=request.path)
-            super(HttpResponseUnauthorized, self).__init__(
+            super().__init__(
                 content=render_to_string('403.html', request=request),
                 status=403
             )
         else:
-            super(HttpResponseUnauthorized, self).__init__(
+            super().__init__(
                 content=render_to_string('401.html', request=request),
                 status=401
             )
 
 class HttpResponseNotFound(HttpResponse):
     def __init__(self, request):
-        super(HttpResponseNotFound, self).__init__(
+        super().__init__(
             content=render_to_string('404.html', request=request),
             status=404
         )
@@ -43,4 +43,4 @@ class HttpResponseIntServerError(HttpResponse):
         except Exception:
             # Whatever broke the request may break the context processors too.
             content = render_to_string('500.html')
-        super(HttpResponseIntServerError, self).__init__(content=content, status=500)
+        super().__init__(content=content, status=500)

@@ -1,7 +1,7 @@
 import threading
 
 
-class RequestHolder(object):
+class RequestHolder:
     _requests = threading.local()
 
     @property

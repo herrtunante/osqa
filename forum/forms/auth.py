@@ -43,7 +43,7 @@ class PublicRegistrationForm(BotTrapMixin, SignUpFieldsMixin, SimpleRegistration
 
 class TemporaryLoginRequestForm(DescribedFieldsMixin, forms.Form):
     def __init__(self, data=None):
-        super(TemporaryLoginRequestForm, self).__init__(data)
+        super().__init__(data)
         self.user_cache = None
 
     email = forms.EmailField(
@@ -71,7 +71,7 @@ class ChangePasswordForm(SetPasswordForm):
     def __init__(self, data=None, user=None, *args, **kwargs):
         if user is None:
             raise TypeError("Keyword argument 'user' must be supplied")
-        super(ChangePasswordForm, self).__init__(data, user, *args, **kwargs)
+        super().__init__(data, user, *args, **kwargs)
         self.user = user
         self.fields['password1'].label = _('New password')
         self.fields['password2'].label = _('Confirm new password')

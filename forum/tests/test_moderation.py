@@ -432,8 +432,8 @@ class FeedbackTest(OSQATestCase):
         self.assertRedirects(response, '/faq/', fetch_redirect_response=False)
         self.assertEqual(sorted(m[0].username for m in self.sent_mail), ['admin1', 'admin2'])
         text = self.sent_mail[0][3]
-        self.assertIn('Sender: alice', text)
-        self.assertIn('email: alice@example.com', text)
+        self.assertIn('From: alice', text)
+        self.assertIn('Email: alice@example.com', text)
         self.assertIn('The export button is missing.', text)
         self.assertNotIn('forged@example.com', text)
         self.assertNotIn('Someone Else', text)

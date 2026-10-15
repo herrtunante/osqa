@@ -109,7 +109,7 @@ class CommentAndMentionEmailTest(EmailTestCase):
         comment_mails = self.mails(self.bob, 'New comment on')
         self.assertEqual(len(comment_mails), 1)
         self.assert_notification(comment_mails[0], self.bob, 'New comment on: %s' % title,
-                                 'carol has just posted a comment on', 'the answer posted by bob',
+                                 'carol commented on your answer to "%s"' % title,
                                  'Does this also work for', specific='Stop emails about this question')
         # alice follows the question but not all its comments (the default); carol wrote it
         self.assertEqual(self.mail_to(self.alice), [])
@@ -163,9 +163,9 @@ class AcceptedAnswerEmailTest(EmailTestCase):
         self.visit(alice_page, question.get_absolute_url())
         self.click_command(alice_page, 'a.accept-answer[href$="/%d/"]' % answer.id)
         self.assertEqual(sorted(m[0].username for m in self.sent_mail), ['bob', 'carol'])
-        subject = 'An answer to: Why does my Collect Earth plot not load? has been accepted'
-        for user in (bob, carol):
-            self.assert_notification(self.mail_to(user)[0], user, subject, "alice has just accepted bob's answer",
+        subject = 'Answer accepted: Why does my Collect Earth plot not load?'
+        for user, sentence in ((bob, 'alice accepted your answer to'), (carol, "alice accepted bob's answer to")):
+            self.assert_notification(self.mail_to(user)[0], user, subject, sentence,
                                      specific='Stop emails about this question')
 
         # carol switches it off again: no email the next time
@@ -196,9 +196,9 @@ class NewMemberEmailTest(EmailTestCase):
 
         mails = self.mail_to(admin)
         self.assertEqual(len(mails), 1)
-        self.assert_notification(mails[0], admin, 'newcomer is a new member on', 'newcomer has just joined',
+        self.assert_notification(mails[0], admin, 'newcomer joined', 'newcomer just joined',
                                  newcomer.get_profile_url(), specific='Stop emails about new members')
-        self.assertEqual(self.mails(newcomer, 'new member'), [])
+        self.assertEqual(self.mails(newcomer, 'newcomer joined'), [])
         self.unsubscribe_and_undo(self.link(mails[0][3], 'Stop emails about new members'),
                                   lambda: self.prefs(admin).member_joins == 'i')
 

@@ -1,6 +1,6 @@
 """The ask and edit pages (templates/ask.html, question_edit.html,
 answer_edit.html, compose/*.html; osqa.compose.js, osqa.tagchips.js,
-osqa.ask.js, ask.css): tags as chips, the "Similar questions" panel, the
+osqa.ask.js, the ask section of osqa.css): tags as chips, the "Similar questions" panel, the
 Write/Preview tabs on a phone, the draft kept in the browser, Ctrl+Enter, the
 unsaved-changes guard, the error summary, the edit page's revision picker and
 summary, and screenshots (tmp/e2e/ask-page-*.png) on a desktop and a phone,

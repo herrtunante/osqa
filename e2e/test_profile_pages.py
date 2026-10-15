@@ -56,7 +56,7 @@ class ProfileHeaderAndTabsTest(ProfilePagesTestCase):
         self.assertEqual(card.locator('h1').inner_text().strip(), 'alice')
         self.assertIn('Alice Forest', card.inner_text())
         alice = User.objects.get(id=self.alice.id)
-        self.assertEqual(page.locator('#user-reputation').inner_text().strip(), '{:,}'.format(alice.reputation))
+        self.assertEqual(page.locator('#user-reputation').inner_text().strip(), f'{alice.reputation:,}')
         # member since and last seen: relative text, the exact date in <time>
         joined = card.locator('.profile-meta-joined time')
         self.assertTrue(joined.get_attribute('datetime').startswith(str(alice.date_joined.date())))
@@ -97,7 +97,7 @@ class ProfileHeaderAndTabsTest(ProfilePagesTestCase):
         self.assertEqual(tiles['questions'], '2')
         self.assertEqual(tiles['answers'], '0')
         self.assertEqual(tiles['votes cast'], '1')
-        self.assertEqual(tiles['reputation'], '{:,}'.format(User.objects.get(id=self.alice.id).reputation))
+        self.assertEqual(tiles['reputation'], f'{User.objects.get(id=self.alice.id).reputation:,}')
         # recent activity: an icon and a relative time per entry
         activity = page.locator('.profile-activity .activity-list > li')
         self.assertGreaterEqual(activity.count(), 2)

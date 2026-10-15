@@ -18,7 +18,7 @@ class AkismetError(Exception):
     """Akismet could not be reached or gave an unexpected answer."""
 
 
-class Akismet(object):
+class Akismet:
     def __init__(self, key, blog_url, agent, timeout=DEFAULT_TIMEOUT):
         self.key = key
         self.blog_url = blog_url

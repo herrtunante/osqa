@@ -9,7 +9,6 @@ import os
 import django
 import sqlite3
 import re
-from datetime import datetime
 
 # Run from the repository root: 'settings' and the importData/ and osqa.db
 # paths below are resolved from the current directory.
@@ -18,7 +17,6 @@ sys.path.insert(0, os.getcwd())
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 django.setup()
 
-from forum.models import Node, NodeRevision, User, Tag
 
 print("="*80)
 print("OSQA Data Import - Two-Phase Approach")
@@ -60,7 +58,7 @@ skipped_count = 0
 error_count = 0
 current_table = None
 
-with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open('importData/osqa-split.sql', encoding='utf-8', errors='ignore') as f:
     line_num = 0
     batch = []
     batch_size = 1000
@@ -236,7 +234,7 @@ node_data = []
 revision_data = []
 
 print("  → Reading SQL file...")
-with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') as f:
+with open('importData/osqa-split.sql', encoding='utf-8', errors='ignore') as f:
     for line in f:
         line = line.strip()
 
@@ -248,7 +246,7 @@ with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') a
                     if len(values) == len(NODE_COLS_MYSQL):
                         node_dict = dict(zip(NODE_COLS_MYSQL, values))
                         node_data.append(node_dict)
-                except Exception as e:
+                except Exception:
                     error_count += 1
 
         elif line.startswith('INSERT INTO `forum_noderevision` VALUES'):
@@ -259,7 +257,7 @@ with open('importData/osqa-split.sql', 'r', encoding='utf-8', errors='ignore') a
                     if len(values) == len(REVISION_COLS_MYSQL):
                         rev_dict = dict(zip(REVISION_COLS_MYSQL, values))
                         revision_data.append(rev_dict)
-                except Exception as e:
+                except Exception:
                     error_count += 1
 
 print(f"  ✓ Parsed {len(node_data)} nodes and {len(revision_data)} revisions")
@@ -354,7 +352,7 @@ conn.close()
 print("\n" + "="*80)
 print("✓ DATA IMPORT COMPLETED")
 print("="*80)
-print(f"\nStatistics:")
+print("\nStatistics:")
 print(f"  - Phase 1 (regular tables): {imported_count:,} rows")
 print(f"  - Phase 2 (nodes): {node_count} rows")
 print(f"  - Phase 2 (revisions): {revision_count} rows")
@@ -375,7 +373,7 @@ cursor.execute('SELECT COUNT(*) FROM forum_vote')
 votes = cursor.fetchone()[0]
 conn.close()
 
-print(f"\nImported data:")
+print("\nImported data:")
 print(f"  - Users: {users:,}")
 print(f"  - Tags: {tags}")
 print(f"  - Votes: {votes:,}")

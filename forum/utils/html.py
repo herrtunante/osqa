@@ -6,7 +6,6 @@ import nh3
 from urllib.parse import quote_plus
 from django.utils.html import strip_tags, conditional_escape
 from django.utils.safestring import mark_safe
-from forum import settings
 
 LANGUAGE_CLASS = re.compile(r'language-[\w+#.-]{1,30}')
 
@@ -94,8 +93,3 @@ def buildtag(name, content, **attrs):
 def hyperlink(url, title, **attrs):
     return mark_safe('<a href="%s" %s>%s</a>' % (conditional_escape(url), _attrs(attrs), conditional_escape(title)))
 
-def objlink(obj, **attrs):
-    link = obj.get_absolute_url()
-    if not link.startswith(settings.APP_URL):
-        link = settings.APP_URL + link
-    return hyperlink(link, str(obj), **attrs)

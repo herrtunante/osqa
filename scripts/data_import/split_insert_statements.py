@@ -11,7 +11,7 @@ DUMP = sys.argv[1] if len(sys.argv) > 1 else 'importData/osqa-20-10-2025_23-30-0
 
 print("Splitting multi-row INSERT statements...")
 
-with open(DUMP, 'r', encoding='utf-8', errors='ignore') as f:
+with open(DUMP, encoding='utf-8', errors='ignore') as f:
     content = f.read()
 
 # Find all INSERT statements
@@ -102,4 +102,4 @@ print("  Writing split SQL file...")
 with open('importData/osqa-split.sql', 'w', encoding='utf-8') as f:
     f.write('\n'.join(output_lines))
 
-print(f"  ✓ Created importData/osqa-split.sql")
+print("  ✓ Created importData/osqa-split.sql")

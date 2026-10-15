@@ -2,9 +2,7 @@ from .base import *
 from .utils import PickledObjectField
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User as DjangoUser, AnonymousUser as DjangoAnonymousUser
-from django.db.models import Q, Manager
 from django.urls import get_script_prefix
 
 from django.utils.encoding import smart_str, force_bytes
@@ -16,12 +14,11 @@ import hmac
 import secrets
 import string
 
-from django.utils.translation import gettext as _
 import logging
 
 class AnonymousUser(DjangoAnonymousUser):
     reputation = 0
-    
+
     def get_visible_answers(self, question):
         return question.answers.filter_state(deleted=False)
 
@@ -33,7 +30,7 @@ class AnonymousUser(DjangoAnonymousUser):
 
     def can_vote_down(self):
         return False
-    
+
     def can_vote_count_today(self):
         return 0
 
@@ -57,10 +54,10 @@ class AnonymousUser(DjangoAnonymousUser):
 
     def can_convert_to_comment(self, answer):
         return False
-    
+
     def can_convert_to_question(self, answer):
         return False
-    
+
     def can_convert_comment_to_answer(self, comment):
         return False
 
@@ -117,7 +114,7 @@ class UserManager(CachedManager):
     def get(self, *args, **kwargs):
         if not len(args) and len(kwargs) == 1 and 'username' in kwargs:
             matching_users = self.filter(username=kwargs['username'])
-            
+
             if len(matching_users) == 1:
                 return matching_users[0]
             elif len(matching_users) > 1:
@@ -125,7 +122,7 @@ class UserManager(CachedManager):
                     if user.username == kwargs['username']:
                         return user
                 return matching_users[0]
-        return super(UserManager, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
 class User(BaseModel, DjangoUser):
     is_approved = models.BooleanField(default=False)
@@ -177,10 +174,10 @@ class User(BaseModel, DjangoUser):
 
         if settings.SHOW_STATUS_DIAMONDS:
             if self.is_superuser:
-                return u"%s \u2666\u2666" % username
+                return "%s \u2666\u2666" % username
 
             if self.is_staff:
-                return u"%s \u2666" % username
+                return "%s \u2666" % username
 
         return username
 
@@ -206,7 +203,7 @@ class User(BaseModel, DjangoUser):
     def gravatar(self):
         # Python 3: md5() requires bytes, not strings
         return md5(self.email.lower().encode('utf-8')).hexdigest()
-    
+
     def save(self, *args, **kwargs):
         # If the community doesn't allow negative reputation, set it to 0
         # (changes from actions are F() expressions, already kept from going
@@ -216,7 +213,7 @@ class User(BaseModel, DjangoUser):
 
         new = not bool(self.id)
 
-        super(User, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if new:
             sub_settings = SubscriptionSettings(user=self)
@@ -259,10 +256,6 @@ class User(BaseModel, DjangoUser):
             # If some Exception has been raised, don't forget to log it.
             logging.error("Error retrieving a subscribed user URL: %s" % e)
 
-    def get_profile_link(self):
-        profile_link = u'<a href="%s">%s</a>' % (self.get_profile_url(), self.username)
-        return mark_safe(profile_link)
-
     def get_visible_answers(self, question):
         return question.answers.filter_state(deleted=False)
 
@@ -290,15 +283,15 @@ class User(BaseModel, DjangoUser):
     def get_flagged_items_count_today(self):
         return self.actions.filter(canceled=False, action_type="flag",
                                    action_date__gte=self._one_day_ago()).count()
-    
+
     def can_vote_count_today(self):
         votes_today = settings.MAX_VOTES_PER_DAY
-        
+
         if settings.USER_REPUTATION_TO_MAX_VOTES:
             votes_today = votes_today + int(self.reputation)
-        
+
         return votes_today
-    
+
     def can_use_canned_comments(self):
         # The canned comments feature is available only for admins and moderators,
         # and only if the "Use canned comments" setting is activated in the administration.
@@ -364,7 +357,7 @@ class User(BaseModel, DjangoUser):
     def can_convert_to_comment(self, answer):
         return (not answer.marked) and (self.is_superuser or self.is_staff or answer.author == self or self.reputation >= int
                 (settings.REP_TO_CONVERT_TO_COMMENT))
-    
+
     def can_convert_to_question(self, node):
         return (not node.marked) and (self.is_superuser or self.is_staff or node.author == self or self.reputation >= int
                 (settings.REP_TO_CONVERT_TO_QUESTION))
@@ -442,7 +435,7 @@ class User(BaseModel, DjangoUser):
 
     @property
     def suspension(self):
-        if self.__dict__.get('_suspension_dencache_', False) != None:
+        if self.__dict__.get('_suspension_dencache_', False) is not None:
             try:
                 self.__dict__['_suspension_dencache_'] = self.reputes.get(action__action_type="suspend", action__canceled=False).action
             except ObjectDoesNotExist:
@@ -499,7 +492,7 @@ class UserProperty(BaseModel):
 
         return None
 
-class UserPropertyDict(object):
+class UserPropertyDict:
     def __init__(self, user):
         self.__dict__['_user'] = user
 
@@ -594,7 +587,7 @@ class ValidationHashManager(models.Manager):
         message = "%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)
         return hmac.new(force_bytes(django_settings.SECRET_KEY), message.encode('utf-8'), hashlib.sha256).hexdigest()
 
-    def create_new(self, user, type, hash_data=[], expiration=None):
+    def create_new(self, user, type, hash_data=(), expiration=None):
         seed = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
         hash = self._generate_hash(user, type, hash_data, seed)
 
@@ -610,7 +603,7 @@ class ValidationHashManager(models.Manager):
 
         return obj
 
-    def validate(self, hash, user, type, hash_data=[]):
+    def validate(self, hash, user, type, hash_data=()):
         try:
             obj = self.get(hash_code=hash)
         except:

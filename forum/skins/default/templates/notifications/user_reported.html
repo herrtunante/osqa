@@ -1,37 +1,42 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
     reporter_author = smart_str(user.username)
-    reported_link = html.objlink(reported, style=settings.EMAIL_ANCHOR_STYLE)
-    reported = smart_str(reported.username)
-    
+    reported_name = smart_str(reported.username)
+    reported_url = settings.APP_URL + reported.get_profile_url()
+    reporter_url = settings.APP_URL + user.get_profile_url()
     message = smart_str(message)
-    
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% autoescape off %}{% blocktrans %}{{ prefix }} User reported: {{ reported }} by {{ reporter_author }}{% endblocktrans %}{% endautoescape %}{% endsubject %}
+    {% subject %}{% blocktrans with reported=reported_name %}{{ prefix }} User reported: {{ reported }} by {{ reporter_author }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{{ message|truncatechars:140 }}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}
-			User reported: {{ reported }} by {{ reporter_author }}.<br/>
-			Reporter Message: {{message}}
-            {% endblocktrans %}
-        </p>
-
-
+        {% blocktrans asvar footer_reason %}You receive this email because you are an administrator of {{ app_name }}.{% endblocktrans %}
+        {% declare %}
+            reporter_link = html.hyperlink(reporter_url, reporter_author, style=a_style, **{'class': 'em-link'})
+            reported_link = html.hyperlink(reported_url, reported_name, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}{{ reporter_link }} reported {{ reported_link }} with this message:{% endblocktrans %}</p>
+        {% include "notifications/_quote.html" with text=message %}
+        {% blocktrans asvar cta with name=reported_name %}Review {{ name }}'s profile{% endblocktrans %}{% include "notifications/_button.html" with url=reported_url label=cta %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% autoescape off %}{% blocktrans %}
-			User reported: {{ reported }} by {{ reporter_author }}.
-			Reporter Message: {{message}}
-{% endblocktrans %}{% endautoescape %}
+{% blocktrans asvar footer_reason %}You receive this email because you are an administrator of {{ app_name }}.{% endblocktrans %}
+{% declare %}
+    reporter_link = reporter_author
+    reported_link = reported_name
+{% enddeclare %}
+{% blocktrans %}{{ reporter_link }} reported {{ reported_link }} with this message:{% endblocktrans %}
 
+> {{ message }}
 
+{% blocktrans with name=reported_name %}Review {{ name }}'s profile{% endblocktrans %}:
+{{ reported_url }}
 {% endtextcontent %}
 
 {% endemail %}
-

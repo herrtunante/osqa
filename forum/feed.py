@@ -1,17 +1,7 @@
-# -*- coding: utf-8 -*-
-
-try:
-    from django.contrib.syndication.views import Feed, FeedDoesNotExist, add_domain
-    old_version = False
-except:
-    from django.contrib.syndication.feeds import Feed, FeedDoesNotExist, add_domain
-    old_version = True
-
-from django.http import HttpResponse
+from django.contrib.syndication.views import Feed, add_domain
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from .models import Question
 from forum import settings
 from forum.modules import decorate
 from forum.utils.pagination import generate_uri
@@ -21,38 +11,31 @@ def add_domain(domain, url, *args, **kwargs):
     return "%s%s" % (settings.APP_BASE_URL, url)
 
 class BaseNodeFeed(Feed):
-    if old_version:
-        title_template = "feeds/rss_title.html"
-        description_template = "feeds/rss_description.html"
-
     def __init__(self, request, title, description, url):
-        self._title = u"%s" % smart_str(title)
-        self._description = mark_safe(u"%s" % smart_str(description))
+        self._title = "%s" % smart_str(title)
+        self._description = mark_safe("%s" % smart_str(description))
         self._url = url
 
-        if old_version:
-            super(BaseNodeFeed, self).__init__('', request)
-
     def title(self):
-        return u"%s" % smart_str(self._title)
+        return "%s" % smart_str(self._title)
 
     def link(self):
         return self._url
 
     def description(self):
-        return u"%s" % smart_str(self._description)
+        return "%s" % smart_str(self._description)
 
     def item_title(self, item):
-        return u"%s" % smart_str(item.title)
+        return "%s" % smart_str(item.title)
 
     def item_description(self, item):
-        return u"%s" % smart_str(item.html)
+        return "%s" % smart_str(item.html)
 
     def item_link(self, item):
         return item.leaf.get_absolute_url()
 
     def item_author_name(self, item):
-        return u"%s" % smart_str(item.author.username)
+        return "%s" % smart_str(item.author.username)
 
     def item_author_link(self, item):
         return item.author.get_profile_url()
@@ -60,23 +43,16 @@ class BaseNodeFeed(Feed):
     def item_pubdate(self, item):
         return item.added_at
 
-    if old_version:
-        def __call__(self, request):
-            feedgen = self.get_feed('')
-            response = HttpResponse(content_type=feedgen.mime_type)
-            feedgen.write(response, 'utf-8')
-            return response
-
 
 class RssQuestionFeed(BaseNodeFeed):
     def __init__(self, request, question_list, title, description):
         url = request.path + "?" + generate_uri(request.GET, ('page', 'pagesize', 'sort'))
-        super(RssQuestionFeed, self).__init__(request, title, description, url)
+        super().__init__(request, title, description, url)
 
         self._question_list = question_list
 
     def item_categories(self, item):
-        return item.tagname_list()  
+        return item.tagname_list()
 
     def _items(self):
        return self._question_list
@@ -85,11 +61,8 @@ class RssQuestionFeed(BaseNodeFeed):
         return self._items()[:30]
 
 class RssAnswerFeed(BaseNodeFeed):
-    if old_version:
-        title_template = "feeds/rss_answer_title.html"
-
     def __init__(self, request, question, include_comments=False):
-        super(RssAnswerFeed, self).__init__(
+        super().__init__(
             request, _("Answers to: %s") % smart_str(question.title),
             question.html,
             question.get_absolute_url()

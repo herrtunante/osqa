@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpResponsePermanentRedirect
+from django.http import Http404
 from django.template.defaultfilters import slugify
 
 from forum.views import readers
@@ -6,7 +6,6 @@ from forum.modules import decorate
 from forum.models import Question
 
 from . import settings
-import logging
 
 @decorate(readers.question, needs_origin=True)
 def match_question_slug(origin, request, id, slug='', answer=None):

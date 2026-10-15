@@ -1,7 +1,4 @@
 from django.db import models
-from django.core.cache import cache
-from django.conf import settings
-from django.utils.encoding import force_str
 
 from pickle import loads, dumps
 
@@ -47,10 +44,10 @@ class PickledObjectField(models.Field):
         self.protocol = kwargs.pop('protocol', 2)
         kwargs.setdefault('null', True)
         kwargs.setdefault('editable', False)
-        super(PickledObjectField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def generate_type_marked_value(self, value):
-        return PickledObject(u"T[%s]%s" % (type(value).__name__, value))
+        return PickledObject("T[%s]%s" % (type(value).__name__, value))
 
     def read_marked_value(self, value):
         m = self.marker_re.match(value)
@@ -69,7 +66,7 @@ class PickledObjectField(models.Field):
                 return self.default()
             return self.default
 
-        return super(PickledObjectField, self).get_default()
+        return super().get_default()
 
     def from_db_value(self, value, expression, connection):
         """Django 2.0+ method to convert database value to Python"""
@@ -106,7 +103,7 @@ class PickledObjectField(models.Field):
     def get_db_prep_lookup(self, lookup_type, value):
         if lookup_type not in ['exact', 'in', 'isnull']:
             raise TypeError('Lookup type %s is not supported.' % lookup_type)
-        return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
+        return super().get_db_prep_lookup(lookup_type, value)
 
 
 class KeyValue(BaseModel):

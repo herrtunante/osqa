@@ -1,33 +1,38 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
-    answer_author = html.mark_safe(smart_str(answer.author.username))
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
     question = answer.question
-    question_title = html.mark_safe(smart_str(question.title))
-    accepted_by = html.mark_safe(smart_str(answer.nstate.accepted.by.username))
-    accepted_by_link = html.objlink(answer.nstate.accepted.by, style=settings.EMAIL_ANCHOR_STYLE)
-    answer_author_link = html.objlink(answer.author, style=settings.EMAIL_ANCHOR_STYLE)
-    question_link = html.objlink(question, style=settings.EMAIL_ANCHOR_STYLE)
+    question_title = smart_str(question.title)
+    answer_author = smart_str(answer.author.username)
+    accepted_by_name = smart_str(accepted_by.username)
+    question_url = settings.APP_URL + question.get_absolute_url()
+    answer_url = settings.APP_URL + answer.get_absolute_url()
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} An answer to: {{ question_title }} has been accepted{% endblocktrans %}{% endsubject %}
+    {% subject %}{% blocktrans %}{{ prefix }} Answer accepted: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% if recipient == answer.author %}{% blocktrans %}{{ accepted_by_name }} accepted your answer. Thanks for helping!{% endblocktrans %}{% else %}{% blocktrans %}{{ accepted_by_name }} accepted {{ answer_author }}'s answer.{% endblocktrans %}{% endif %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}
-            {{ accepted_by_link }} has just accepted {{ answer_author_link }}'s answer on his question
-            {{ question_link }}.
-            {% endblocktrans %}
-        </p>
+        {% declare %}
+            question_link = html.hyperlink(question_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% if recipient == answer.author %}{% blocktrans %}{{ accepted_by_name }} accepted your answer to {{ question_link }}. Thanks for helping!{% endblocktrans %}{% else %}{% blocktrans %}{{ accepted_by_name }} accepted {{ answer_author }}'s answer to {{ question_link }}.{% endblocktrans %}{% endif %}</p>
+        {% include "notifications/_quote.html" with text=answer.html|email_snippet:300 %}
+        {% trans "View the answer" as cta %}{% include "notifications/_button.html" with url=answer_url label=cta %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}
-{{ accepted_by }} has just accepted {{ answer_author }}'s answer on his question
-"{{ question_title }}".
-{% endblocktrans %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% if recipient == answer.author %}{% blocktrans %}{{ accepted_by_name }} accepted your answer to {{ question_link }}. Thanks for helping!{% endblocktrans %}{% else %}{% blocktrans %}{{ accepted_by_name }} accepted {{ answer_author }}'s answer to {{ question_link }}.{% endblocktrans %}{% endif %}
+
+> {{ answer.html|email_snippet:300 }}
+
+{% trans "View the answer" %}:
+{{ answer_url }}
 {% endtextcontent %}
 
 {% endemail %}

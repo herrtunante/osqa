@@ -13,8 +13,8 @@ OSQA_VERSION = "Development Build"
 VCS_REVISION = get_git_changeset()
 
 # We'll have to keep in mind this variable on every release.
-if VCS_REVISION == u'SVN-unknown':
-    VCS_REVISION = u'SVN-1000'
+if VCS_REVISION == 'SVN-unknown':
+    VCS_REVISION = 'SVN-1000'
 
 MAINTAINANCE_MODE = Setting('MAINTAINANCE_MODE', None)
 
@@ -59,7 +59,7 @@ __all__ = list(locals().keys())
 
 # Be able to import all module settings as well
 for k,v in get_modules_script_implementations('settings', BaseSetting).items():
-   if not k in __all__:
+   if k not in __all__:
         __all__.append(k)
         exec("%s = v" % k)
 

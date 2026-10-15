@@ -33,6 +33,18 @@ def send_template_email(recipients, template, context, sender=None, reply_to = N
     t.render(context)
     return errors
 
+
+def render_template_email(recipient, template, context):
+    """Renders an email template for one recipient without sending it (the
+    admin's email previews). Returns a dict: subject, html, text, headers."""
+    t = loader.get_template(template)
+    captured = []
+    context = dict(context, recipients=[recipient], settings=settings, sender=None, reply_to=None,
+                   mail_errors=[], email_capture=captured)
+    t.render(context)
+    to, subject, html, text, media, headers = captured[0]
+    return {'subject': subject, 'html': html, 'text': text, 'headers': headers}
+
 def create_connection():
     connection = SMTP(str(settings.EMAIL_HOST), str(settings.EMAIL_PORT),
                           local_hostname=DNS_NAME.get_fqdn(), timeout=30)

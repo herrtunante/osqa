@@ -20,15 +20,15 @@ LONG = 'public, max-age=31536000, immutable'
 class MediaVersionTest(OSQATestCase):
 
     def test_media_urls_carry_the_file_hash(self):
-        url = media('/media/style/modern.css')
-        path = os.path.join(pwa.SKINS_ROOT, 'default', 'media', 'style', 'modern.css')
-        self.assertEqual(url, '/m/default/media/style/modern.css?v=%s' % static_files.file_token(path))
+        url = media('/media/style/osqa.css')
+        path = os.path.join(pwa.SKINS_ROOT, 'default', 'media', 'style', 'osqa.css')
+        self.assertEqual(url, '/m/default/media/style/osqa.css?v=%s' % static_files.file_token(path))
         self.assertRegex(url, r'\?v=[0-9a-f]{12}$')
 
     def test_pages_link_versioned_media(self):
         html = self.client.get('/').content.decode()
         self.assertRegex(html, r'/m/default/media/vendor/jquery-3\.7\.1\.min\.js\?v=[0-9a-f]{12}"')
-        self.assertRegex(html, r'/m/default/media/style/modern\.css\?v=[0-9a-f]{12}"')
+        self.assertRegex(html, r'/m/default/media/style/osqa\.css\?v=[0-9a-f]{12}"')
 
     def test_token_follows_content(self):
         folder = tempfile.mkdtemp()
@@ -92,7 +92,7 @@ class MediaHeadersTest(OSQATestCase):
         self.assertEqual(response['Cache-Control'], 'no-cache')
 
     def test_gzip_for_text_assets(self):
-        url = media('/media/style/modern.css')
+        url = media('/media/style/osqa.css')
         plain = b''.join(self.get(url).streaming_content)
         response = self.get(url, HTTP_ACCEPT_ENCODING='gzip, deflate, br')
         self.assertEqual(response['Content-Encoding'], 'gzip')
