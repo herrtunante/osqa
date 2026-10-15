@@ -648,13 +648,32 @@ def node_management(request):
 def test_email_settings(request):
     user = request.user
 
-    send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
+    errors = send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
 
     return render(
         request,
         'osqaadmin/test_email_settings.html',
-        { 'user': user, }
+        { 'user': user, 'errors': errors, 'hints': _email_error_hints(errors) }
     )
+
+
+def _email_error_hints(errors):
+    """Plain-language advice for the SMTP errors people usually hit."""
+    text = ' '.join(errors)
+    hints = []
+    if 'AUTH extension not supported' in text:
+        hints.append(_("The server only accepts a sign-in over an encrypted connection: tick \"Use TLS\" "
+                       "(with port 587)."))
+    if 'SMTPAuthenticationError' in text or 'Username and Password not accepted' in text:
+        hints.append(_("The user name or password was refused. Gmail needs an App Password "
+                       "(myaccount.google.com/apppasswords), not the normal account password."))
+    if 'WRONG_VERSION_NUMBER' in text or 'SMTPServerDisconnected' in text:
+        hints.append(_("Port 465 (SSL from the start) is not supported: use port 587 with \"Use TLS\" ticked."))
+    if any(s in text for s in ('timed out', 'getaddrinfo failed', 'Name or service not known', 'refused')) \
+            and 'Recipients' not in text:
+        hints.append(_("The email server could not be reached: check the host name and port, and that the "
+                       "firewall allows outgoing connections to it."))
+    return hints
 
 
 SUPPORT_PERIODS = (30, 90, 365, 0)

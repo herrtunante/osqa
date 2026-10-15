@@ -31,7 +31,9 @@ class MultiUserMailMessage(template.Node):
             messages.append((recipient, context['subject'], context['htmlcontent'], context['textcontent'],
                              context['embeddedmedia'], headers))
         
-        create_and_send_mail_messages(messages, sender_data=context['sender'], reply_to=context['reply_to'])
+        errors = create_and_send_mail_messages(messages, sender_data=context['sender'], reply_to=context['reply_to'])
+        if 'mail_errors' in context:
+            context['mail_errors'].extend(errors or [])
         return ''
 
 @register.tag
