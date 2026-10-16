@@ -197,27 +197,6 @@ class UserNameValidationField(StrippedNonEmptyCharField):
             raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
         return value
 
-class UserNameValidationSumField(StrippedNonEmptyCharField):
-    def __init__(self,**kw):
-
-         super().__init__(widget=forms.TextInput(attrs=dict(login_form_widget_attrs,
-            maxlength=200, inputmode='numeric', autocomplete='off')), label=_lazy('What is seven plus seven?'),
-            help_text=_lazy('A quick check that you are not a robot. Type the answer in digits.'),
-            error_messages={
-                            'invalid':_lazy('That is not the right answer. Type the result of seven plus seven in digits.')
-                            },
-            **kw
-            )
-
-
-    def clean(self, value):
-        # Form data is text: compare with '14', not the integer 14.
-        value = (value or '').strip()
-        if value != '14':
-            raise forms.ValidationError(self.error_messages['invalid'], code='invalid')
-        return value
-
-
 class PasswordRule(str):
     """One line of the password rules; `key` tells osqa.password.js which
     rule it is ('length', 'common', 'similar', 'breach'), so the strength

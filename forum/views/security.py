@@ -1,6 +1,7 @@
 """The account security page (passkeys, two-step verification, recovery
 codes), the passkey calls of media/js/osqa.passkeys.js and the verification
-step of signing in. Logic in forum/utils/two_factor.py and forum/utils/passkeys.py."""
+step of signing in, and "Confirm it's you" (forum/utils/sudo.py). Logic in
+forum/utils/two_factor.py and forum/utils/passkeys.py."""
 import datetime
 import json
 import logging
@@ -9,13 +10,14 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from forum.http_responses import HttpResponseUnauthorized
-from forum.models import Passkey, User
-from forum.utils import passkeys, security_log, two_factor
+from forum.models import Passkey, User, ValidationHash
+from forum.utils import accounts, passkeys, security_log, sudo, two_factor
 
 MAX_BODY = 64 * 1024
 
@@ -58,11 +60,15 @@ def _proof_ok(request, user, purpose):
         result = two_factor.check_code(request, user, code, purpose)
         if result == two_factor.PAUSED:
             return _paused_message()
-        return None if result in (two_factor.OK_TOTP, two_factor.OK_RECOVERY) else _("That code is not right.")
+        if result in (two_factor.OK_TOTP, two_factor.OK_RECOVERY):
+            accounts.mark_reauthenticated(request, result)
+            return None
+        return _("That code is not right.")
     if password and user.has_usable_password():
         if two_factor.paused(request, user):
             return _paused_message()
         if user.check_password(password):
+            accounts.mark_reauthenticated(request, 'password')
             return None
         two_factor.count_failure(request, user, purpose)
         return _("That password is not right.")
@@ -89,6 +95,7 @@ def security_page(request, id):
 # -- authenticator app ---------------------------------------------------------
 
 @never_cache
+@sudo.sudo_required
 def totp_setup(request):
     user = _own_user(request)
     if user is None:
@@ -105,6 +112,7 @@ def totp_setup(request):
             # This session has just shown the second factor.
             request.session[two_factor.METHOD_SESSION_KEY] = 'totp'
             security_log.event('two_factor_enabled', request, account=user)
+            accounts.security_notice(request, user, 'two_factor_on')
             return render(request, 'users/recovery_codes.html', {
                 'view_user': user, 'codes': codes, 'just_enabled': True})
         if result == two_factor.PAUSED:
@@ -133,13 +141,19 @@ def totp_disable(request, id):
         if error:
             messages.error(request, error)
             return HttpResponseRedirect(_security_url(view_user))
+    else:
+        # An administrator turning it off for a member confirms it's them first.
+        refused = sudo.require_recent_auth(request, _security_url(view_user))
+        if refused:
+            return refused
     two_factor.disable(view_user)
     security_log.event('two_factor_disabled', request, logging.WARNING, account=view_user)
+    accounts.security_notice(request, view_user, 'two_factor_off', by_admin=request.user != view_user)
     if request.user == view_user:
         request.session.pop(two_factor.METHOD_SESSION_KEY, None)
         messages.info(request, _("Two-step verification is off."))
     else:
-        messages.info(request, _("Two-step verification is off for %s.") % view_user.username)
+        messages.info(request, _("Two-step verification is off for %s.") % escape(view_user.username))
     return HttpResponseRedirect(_security_url(view_user))
 
 
@@ -157,6 +171,7 @@ def recovery_codes(request):
         return HttpResponseRedirect(_security_url(user))
     codes = two_factor.new_recovery_codes(user)
     security_log.event('recovery_codes_regenerated', request, account=user)
+    accounts.security_notice(request, user, 'recovery_codes')
     return render(request, 'users/recovery_codes.html', {'view_user': user, 'codes': codes, 'just_enabled': False})
 
 
@@ -177,6 +192,9 @@ def passkey_register_options(request):
     user = _own_user(request)
     if user is None:
         return _error(_('Please sign in first.'), 403)
+    refused = sudo.require_recent_auth(request, _security_url(user), json=True)
+    if refused:
+        return refused
     return JsonResponse(passkeys.registration_options(request, user))
 
 
@@ -193,6 +211,7 @@ def passkey_register(request):
         passkeys.register(request, user, data['credential'], name)
     except passkeys.PasskeyError as e:
         return _error(PASSKEY_ERRORS[str(e)]())
+    accounts.security_notice(request, user, 'passkey_added', name=name)
     messages.info(request, _("Passkey added. Next time you can sign in with it."))
     return JsonResponse({'redirect': _security_url(user)})
 
@@ -203,9 +222,15 @@ def passkey_remove(request, id):
     if not request.user.is_authenticated or not (request.user == passkey.user or request.user.is_superuser):
         return HttpResponseUnauthorized(request)
     owner = passkey.user
+    if sudo.sign_in_methods(owner) <= 1:
+        # The last way to sign in: removing it locks the account.
+        refused = sudo.require_recent_auth(request, _security_url(owner))
+        if refused:
+            return refused
     passkey.delete()
     security_log.event('passkey_removed', request, account=owner, passkey=id)
-    messages.info(request, _("The passkey \"%s\" was removed.") % passkey.name)
+    # Messages are shown unescaped (base_content.html) and the name is the member's own text.
+    messages.info(request, _("The passkey \"%s\" was removed.") % escape(passkey.name))
     return HttpResponseRedirect(_security_url(owner))
 
 
@@ -280,3 +305,100 @@ def require_staff_two_factor(view):
     wrapper.__doc__ = getattr(view, '__doc__', None)
     return wrapper
 
+
+
+# -- "Confirm it's you" (forum/utils/sudo.py) -------------------------------------------
+
+def _confirm_next(request):
+    return sudo.safe_next(request.POST.get('next') or request.GET.get('next')) or _security_url(request.user)
+
+
+def _confirmed(request, method):
+    accounts.mark_reauthenticated(request, method)
+    return HttpResponseRedirect(_confirm_next(request))
+
+
+@never_cache
+def confirm_identity(request):
+    """Password, a two-step or recovery code, a passkey, or (without password
+    and two-step verification) an emailed link; then back to `next`."""
+    from forum.views.auth import count_login_failure, login_paused
+    user = request.user
+    if not user.is_authenticated:
+        return HttpResponseRedirect(reverse('auth_signin'))
+    has_password, has_totp = user.has_usable_password(), two_factor.is_enabled(user)
+    needs_email = not has_password and not has_totp
+    error, sent = None, False
+    if request.method == 'POST':
+        method = request.POST.get('method')
+        if method == 'password' and has_password:
+            if login_paused(request, user.username):
+                error = _("Too many wrong passwords. Wait %(minutes)s minutes and try again.") % {
+                    'minutes': two_factor.lockout_minutes()}
+            elif user.check_password(request.POST.get('password', '')):
+                return _confirmed(request, 'password')
+            else:
+                count_login_failure(request, user.username)
+                security_log.event('reauth_failed', request, logging.WARNING, account=user, method='password')
+                error = _("That password is not right.")
+        elif method == 'code' and has_totp:
+            result = two_factor.check_code(request, user, request.POST.get('code', ''), 'reauth')
+            if result in (two_factor.OK_TOTP, two_factor.OK_RECOVERY):
+                return _confirmed(request, result)
+            error = _paused_message() if result == two_factor.PAUSED else _("That code is not right.")
+        elif method == 'email' and needs_email:
+            if accounts.over_limit(request, 'reauth-email', user.pk):
+                error = _("Too many emails were sent. Please try again in an hour.")
+            else:
+                ValidationHash.objects.filter(user=user, type=sudo.LINK_TYPE).delete()
+                code = ValidationHash.objects.create_new(
+                    user, sudo.LINK_TYPE, [user.pk, user.session_epoch or 0],
+                    expiration=datetime.datetime.now() + datetime.timedelta(minutes=sudo.LINK_MINUTES))
+                request.session[sudo.NEXT_SESSION_KEY] = _confirm_next(request)
+                accounts.send([user], 'auth/reauth_email.html', {'reauth_code': code,
+                                                                 'link_minutes': sudo.LINK_MINUTES})
+                security_log.event('reauth_link_sent', request, account=user)
+                sent = True
+    return render(request, 'auth/confirm_identity.html', {
+        'next': _confirm_next(request), 'error': error, 'sent': sent, 'has_password': has_password,
+        'has_totp': has_totp, 'has_passkeys': user.passkeys.exists(), 'needs_email': needs_email,
+        'link_minutes': sudo.LINK_MINUTES,
+    })
+
+
+@never_cache
+def confirm_identity_link(request, user, code):
+    """The emailed "Confirm it's you" link. It works in the browser that is
+    signed in to the account (where it was asked for); opening it elsewhere,
+    e.g. a mail scanner, uses nothing up."""
+    account = get_object_or_404(User, id=user)
+    if not request.user.is_authenticated or request.user.pk != account.pk:
+        return render(request, 'auth/confirm_identity.html', {'link_elsewhere': True}, status=403)
+    if not ValidationHash.objects.validate(code, account, sudo.LINK_TYPE, [account.pk, account.session_epoch or 0]):
+        return render(request, 'auth/confirm_identity.html', {'link_invalid': True, 'needs_email': True,
+                                                              'next': _security_url(account)}, status=410)
+    accounts.mark_reauthenticated(request, 'email')
+    target = sudo.safe_next(request.session.pop(sudo.NEXT_SESSION_KEY, '')) or _security_url(account)
+    return HttpResponseRedirect(target)
+
+
+@require_POST
+def confirm_passkey_options(request):
+    if not request.user.is_authenticated or not request.user.passkeys.exists():
+        return _error(_('Please sign in first.'), 403)
+    return JsonResponse(passkeys.reauth_options(request, request.user))
+
+
+@require_POST
+def confirm_passkey(request):
+    if not request.user.is_authenticated:
+        return _error(_('Please sign in first.'), 403)
+    data = _json_body(request)
+    if data is None or not isinstance(data.get('credential'), dict):
+        return _error(_('Invalid request.'))
+    try:
+        passkeys.authenticate(request, data['credential'], user=request.user)
+    except passkeys.PasskeyError as e:
+        return _error(PASSKEY_ERRORS[str(e)]())
+    accounts.mark_reauthenticated(request, 'passkey')
+    return JsonResponse({'redirect': sudo.safe_next(request.GET.get('next')) or _security_url(request.user)})

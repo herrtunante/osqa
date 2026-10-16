@@ -193,6 +193,16 @@ def email_changed_by_admin(recipient):
     return {'new_email_masked': 'n•••@example.com'}
 
 
+def _security_change(change, name=''):
+    def sample(recipient):
+        return dict(_security_event(), change=change, name=name, by_admin=False)
+    return sample
+
+
+def reauth_link(recipient):
+    return {'reauth_code': 'sample-confirm-code', 'link_minutes': 15}
+
+
 def account_deleted(recipient):
     return {'deleted_name': recipient.username, 'posts_deleted': False}
 
@@ -258,6 +268,22 @@ KINDS = {
     'email-changed-by-admin': (_lazy("Email address changed by an administrator"),
                                _lazy("The old address, when an administrator changes a member's address."),
                                'auth/email_changed_by_admin_email.html', email_changed_by_admin),
+    'passkey-added': (_lazy("Passkey added"), _lazy("Members who add a passkey (a security notice)."),
+                      'auth/security_change_email.html', _security_change('passkey_added', 'Work laptop')),
+    'two-step-on': (_lazy("Two-step verification turned on"),
+                    _lazy("Members who turn on two-step verification (a security notice)."),
+                    'auth/security_change_email.html', _security_change('two_factor_on')),
+    'two-step-off': (_lazy("Two-step verification turned off"),
+                     _lazy("Members whose two-step verification is turned off, by them or an administrator."),
+                     'auth/security_change_email.html', _security_change('two_factor_off')),
+    'recovery-codes': (_lazy("New recovery codes"), _lazy("Members who make new recovery codes (a security notice)."),
+                       'auth/security_change_email.html', _security_change('recovery_codes')),
+    'api-token-created': (_lazy("API token created"),
+                          _lazy("Members who create a personal access token (a security notice)."),
+                          'auth/security_change_email.html', _security_change('api_token', 'Weekly report')),
+    'confirm-its-you': (_lazy("Identity confirmation link"),
+                        _lazy("Members without a password or two-step verification, before a sensitive change."),
+                        'auth/reauth_email.html', reauth_link),
     'account-deleted': (_lazy("Account deleted"), _lazy("Members who delete their account (the last email)."),
                         'auth/account_deleted_email.html', account_deleted),
     'account-exists': (_lazy("Account already exists"),

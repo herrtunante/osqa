@@ -947,6 +947,19 @@ posts of a question page (`u`/`d` vote). They never apply while typing, and
 members can turn them off in their preferences (this also turns off `j`/`k`
 in the moderation inbox).
 
+Accessibility: the pages aim at WCAG 2.2 AA, in both themes and on phones.
+`e2e/test_accessibility.py` runs axe-core on them and `e2e/test_wcag22.py`
+measures what axe can't: controls of at least 24x24 px (or spaced apart), a
+visible focus ring of 3:1 that bars at the bottom of the screen (the live
+"Show" banner, the phone's message bar) never cover, no sideways scrolling at
+320 px, the text spacing of WCAG 1.4.12, Escape and focus return in dialogs
+and menus, and sign-in fields that allow pasting and password managers. Links
+inside sentences are underlined. A list or radio button that applies at once
+(the search filters, the footer's language) waits for Enter, leaving it or
+"Apply filters" when changed with the keyboard, so the arrow keys don't
+reload the page at each option. Animations stop with the system's reduced
+motion setting.
+
 jQuery 3.7, jQuery UI 1.14 (tag and user suggestions), Flot 4.2
 (charts) and highlight.js 11.11 are served from the skin (`media/vendor/`), so
 pages load no third-party scripts unless Google search, Analytics or a provider

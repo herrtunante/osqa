@@ -308,7 +308,9 @@ def temp_signin(request, user, code):
     if request.method == 'POST':
         form = SetPasswordForm(request.POST, user=user)
         result = None
-        if needs_code:
+        # The code is checked (and a recovery code used up) only once the new
+        # password is acceptable, so a typo in it costs no code.
+        if needs_code and form.is_valid():
             result = two_factor.check_code(request, user, request.POST.get('code', ''), 'password_reset')
             if result == two_factor.PAUSED:
                 code_error = _("Too many wrong codes. Wait %(minutes)s minutes and try again.") % {
@@ -517,6 +519,12 @@ def remove_external_provider(request, id):
     association = get_object_or_404(AuthKeyUserAssociation, id=id)
     if not (request.user.is_superuser or request.user == association.user):
         return HttpResponseUnauthorized(request)
+    from forum.utils import sudo
+    if sudo.sign_in_methods(association.user) <= 1:
+        # The last way to sign in: removing it locks the account.
+        refused = sudo.require_recent_auth(request, reverse('user_authsettings', kwargs={'id': association.user.id}))
+        if refused:
+            return refused
 
     messages.info(request, _("You removed the association with %s") % association.provider)
     association.delete()

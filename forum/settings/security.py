@@ -66,3 +66,10 @@ label = _("Require two-step verification for staff"),
 help_text = _("Moderators and administrators who have not turned on two-step verification (an authenticator app) "
               "and did not sign in with a passkey are sent to set it up when they open an admin page."),
 required=False))
+
+REAUTH_MINUTES = Setting('REAUTH_MINUTES', 15, SECURITY_SET, dict(
+label = _("Confirm it's you after (minutes)"),
+help_text = _("Changing the email address, adding a passkey, setting up two-step verification, creating an API "
+              "token or removing the last way to sign in asks members to confirm it's them (password, code, "
+              "passkey or an emailed link) when they signed in or confirmed longer ago than this."),
+min_value = 1))

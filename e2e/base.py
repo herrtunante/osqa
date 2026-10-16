@@ -215,9 +215,10 @@ class E2ETestCase(LiveServerTestCase):
     def url(self, path):
         return self.live_server_url + path
 
-    def open(self, user=None, device='desktop', dark=False, locale='en-US', **options):
-        """A new browser page, signed in as `user` (or anonymous). Other
-        keyword arguments are browser context options (viewport,
+    def open(self, user=None, device='desktop', dark=False, locale='en-US', recent=True, **options):
+        """A new browser page, signed in as `user` (or anonymous); like a real
+        sign-in it counts as recent for "Confirm it's you" unless `recent` is
+        False. Other keyword arguments are browser context options (viewport,
         reduced_motion...) that override the device's."""
         context = self.browser.new_context(**dict(DEVICES[device], color_scheme='dark' if dark else 'light',
                                                   locale=locale, **options))
@@ -227,6 +228,8 @@ class E2ETestCase(LiveServerTestCase):
             session['_auth_user_id'] = str(user.pk)
             session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
             session['_auth_user_hash'] = user.get_session_auth_hash()
+            if recent:
+                session['osqa_auth_time'] = datetime.datetime.now().isoformat()
             session.create()
             context.add_cookies([{'name': djsettings.SESSION_COOKIE_NAME, 'value': session.session_key,
                                   'url': self.live_server_url}])

@@ -364,7 +364,7 @@ class ExternalSignInTest(AdminTestCase):
         # The registration form is filled in from the GitHub profile.
         self.assertEqual(page.input_value('#id_username'), 'octofield')
         self.assertEqual(page.input_value('#id_email'), 'octo@example.com')
-        page.fill('#id_username_validation_sum', '14')
+        self.assertEqual(page.locator('#id_username_validation_sum').count(), 0)  # no puzzle (WCAG 2.2 3.3.8)
         self.submit(page, '#bnewaccount')
         user = User.objects.get(username='octofield')
         self.assertTrue(user.email_isvalid)  # GitHub verified the address

@@ -64,6 +64,7 @@ class AccountTestCase(OSQATestCase):
         # Like a real sign-in: the session remembers the account's epoch.
         session = client.session
         session[accounts.EPOCH_SESSION_KEY] = User.objects.get(id=user.id).session_epoch
+        session[accounts.AUTH_TIME_SESSION_KEY] = datetime.datetime.now().isoformat()
         session.save()
         return client
 
@@ -729,7 +730,7 @@ class AccountDeletionTest(AccountTestCase):
     def test_accounts_without_password_sign_in_again_first(self):
         self.carol.set_unusable_password()
         self.carol.save()
-        self.login(self.carol)  # no recent sign-in time in this session
+        self.login(self.carol, recent=False)  # no recent sign-in time in this session
         page = self.client.get(self.data_url)
         self.assertContains(page, 'sign in again first')
         self.assertNotContains(page, 'name="confirm_username"')

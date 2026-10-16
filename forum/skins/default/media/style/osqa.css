@@ -3654,11 +3654,14 @@ img.gravatar {
 
 /* ---- Feed icons -------------------------------------------------------- */
 
+/* A 16px icon in a 24px target (WCAG 2.5.8); the negative margin keeps the
+   layout of a 16px box. */
 a.feed-icon {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
+    margin: -4px;
     vertical-align: middle;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f26522'/%3E%3Cpath d='M6.5 11a6.5 6.5 0 016.5 6.5M6.5 6.5a11 11 0 0111 11' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='7.3' cy='16.7' r='1.6' fill='white'/%3E%3C/svg%3E") no-repeat center / contain !important;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f26522'/%3E%3Cpath d='M6.5 11a6.5 6.5 0 016.5 6.5M6.5 6.5a11 11 0 0111 11' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='7.3' cy='16.7' r='1.6' fill='white'/%3E%3C/svg%3E") no-repeat center / 16px 16px !important;
 }
 
 img[src*="feed-icon-small"] {
@@ -5807,7 +5810,12 @@ ul.question-tags-list .tag-number {
 .email-help-link a,
 .inbox-note a,
 .subscription-settings-note a,
-.notify a {
+.notify a,
+.settings-lead a,
+.sugg-meta a,
+.md-help p a,
+.api-docs p a,
+.api-docs td a {
     text-decoration: underline;
 }
 
@@ -10868,6 +10876,12 @@ li.tag-chip {
     cursor: pointer;
 }
 
+/* --success is a light green in dark mode: white needs a darker one (4.5:1). */
+:root[data-theme="dark"] .sugg-actions .sugg-approve {
+    border-color: #238636;
+    background: #238636;
+}
+
 .sugg-improve, .sugg-reject-toggle {
     border: 1px solid var(--border-strong);
     background: var(--surface);
@@ -12828,6 +12842,43 @@ ul.related-tags li {
     outline: none;
 }
 
+/* ---- Text fields: the focus shows in their border (WCAG 1.4.11) -------- */
+
+/* Section 2 gives a focused field the brand colour's border and a pale
+   halo; the pages' own field rules (sign-in, search filters, editor...)
+   set their borders more specifically and left only the halo, under 3:1.
+   Fields with an error keep their red border. */
+:is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="range"], [type="image"]),
+    select, textarea):focus-visible:not([aria-invalid="true"]) {
+    border-color: var(--brand) !important;
+}
+
+/* Checkboxes and radio buttons: the solid ring, not the fields' halo. */
+input:is([type="checkbox"], [type="radio"]):focus-visible {
+    outline: 2px solid var(--brand) !important;
+    outline-offset: 2px !important;
+}
+
+/* ---- Focus not hidden under bars at the bottom (WCAG 2.4.11) ---------- */
+
+/* The live "new answers · Show" banner and, on phones, the message bar sit
+   over the end of the screen: with this padding the browser scrolls a
+   focused control above them instead of leaving it underneath. */
+html:has(#live-banner:not(:empty)) {
+    scroll-padding-bottom: 88px;
+}
+
+/* ...and the end of the page can scroll up from under the banner. */
+html:has(#live-banner:not(:empty)) body {
+    padding-bottom: 88px;
+}
+
+@media (max-width: 640px) {
+    html:has(.notify:not([style*="none"])) {
+        scroll-padding-bottom: 120px;
+    }
+}
+
 /* ---- Command dialogs (flag, close, delete…) ---------------------------- */
 
 div.dialog:focus {
@@ -13081,7 +13132,16 @@ div.dialog :focus-visible {
     font-size: 12px;
     line-height: 1.4;
     white-space: nowrap;
-    pointer-events: none;
+}
+
+/* The pointer can move from the button onto the tip across the gap (WCAG 1.4.13). */
+.editor-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: 0;
+    left: 0;
+    height: 7px;
 }
 
 .editor-tooltip[hidden] {
@@ -13588,8 +13648,12 @@ div.dialog.award-rep-points table input, div.dialog.award-rep-points table texta
     list-style: disc;
 }
 
+/* Long lines wrap instead of scrolling inside the box, which the keyboard
+   can't reach (and nothing scrolls sideways at 320px, WCAG 1.4.10). */
 .api-code {
     margin: 10px 0 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .api-table-wrap {
@@ -13638,6 +13702,10 @@ div.dialog.award-rep-points table input, div.dialog.award-rep-points table texta
 .api-required {
     display: inline;
     color: var(--accent-dark);
+}
+
+:root[data-theme="dark"] .api-required {
+    color: #ff9a6b;
 }
 
 .api-docs .api-index ul {

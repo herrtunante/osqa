@@ -18,7 +18,7 @@ from forum.api.schemas import COMPONENTS
 from forum.http_responses import HttpResponseUnauthorized
 from forum.models import ApiToken, User
 from forum.models.api import MAX_TOKENS_PER_USER
-from forum.utils import security_log
+from forum.utils import accounts, security_log, sudo
 
 EXPIRY_DAYS = {'30': 30, '90': 90, '365': 365, 'never': None}
 
@@ -168,6 +168,9 @@ def tokens_page(request, id):
     if request.method == 'POST':
         if not own:
             return HttpResponseUnauthorized(request)
+        refused = sudo.require_recent_auth(request, reverse('user_api_tokens', kwargs={'id': account.id}))
+        if refused:
+            return refused
         form = ApiTokenForm(request.POST, writes=writes)
         if account.api_tokens.count() >= MAX_TOKENS_PER_USER:
             form.add_error(None, _("You have %d tokens, the most an account can have. Revoke one you no longer "
@@ -177,6 +180,7 @@ def tokens_page(request, id):
             token, new_token = ApiToken.objects.create_token(account, form.cleaned_data['name'].strip(), scopes,
                                                              EXPIRY_DAYS[form.cleaned_data['expires']])
             security_log.event('api_token_created', request, token_id=token.id, scopes=token.scopes)
+            accounts.security_notice(request, account, 'api_token', name=token.name)
             form = ApiTokenForm(writes=writes)
     response = render(request, 'users/api_tokens.html', {
         'view_user': account,

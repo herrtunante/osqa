@@ -75,7 +75,7 @@ class AccessibilityTest(E2ETestCase):
             self.fail('%d accessibility violations (WCAG 2.1 A/AA, axe-core):\n\n%s' % (
                 len(failures), '\n'.join(failures)))
 
-    def axe(self, page):
+    def axe(self, page, tags=WCAG_TAGS):
         # Messages fade in: check the colours they end with, not a frame of the fade.
         page.wait_for_function(FINISHED_ANIMATING)
         if not page.evaluate('() => !!window.axe'):
@@ -92,7 +92,7 @@ class AccessibilityTest(E2ETestCase):
         listener = lambda request: fetched.append(request.url) if request.resource_type in ('xhr', 'fetch') else None
         page.on('request', listener)
         try:
-            violations = page.evaluate(RUN_AXE, [WCAG_TAGS, EXCLUDE])
+            violations = page.evaluate(RUN_AXE, [tags, EXCLUDE])
         finally:
             page.remove_listener('request', listener)
         page.problems[:] = [p for p in page.problems if not any(url in p for url in fetched)]

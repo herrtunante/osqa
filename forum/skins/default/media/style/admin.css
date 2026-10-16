@@ -91,6 +91,31 @@
     --osqa-bad-fg: #ff8b84;
 }
 
+/* ---- Focus and motion ----------------------------------------------------- */
+
+/* The same focus ring as on the public pages, 3:1 or more on every
+   background (WCAG 2.4.7, 1.4.11; the browser's own is orange on Android
+   and near-black in dark mode); white on the dark header. */
+:focus-visible {
+    outline: 2px solid var(--link-fg);
+    outline-offset: 2px;
+}
+
+#header :focus-visible {
+    outline-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 /* ---- Layout: header ------------------------------------------------------ */
 
 .skip-link {
@@ -409,7 +434,7 @@ input.longstring {
 }
 
 /* Links within text are underlined, so they don't rely on colour alone (WCAG 1.4.1). */
-.breadcrumbs a, .admin_message a, #footer a {
+.breadcrumbs a, .admin_message a, #footer a, .mod-note a {
     text-decoration: underline;
 }
 

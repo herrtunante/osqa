@@ -194,6 +194,13 @@ core_urls = [
     re_path(r'^account/passkey-signin/options/$', app.security.passkey_auth_options, name='passkey_auth_options'),
     re_path(r'^account/passkey-signin/$', app.security.passkey_auth, name='passkey_auth'),
     re_path(r'^account/passkeys/(?P<id>\d+)/remove/$', app.security.passkey_remove, name='passkey_remove'),
+    # "Confirm it's you" before sensitive changes (forum/utils/sudo.py).
+    re_path(r'^account/confirm/$', app.security.confirm_identity, name='auth_confirm_identity'),
+    re_path(r'^account/confirm/passkey/options/$', app.security.confirm_passkey_options,
+            name='auth_confirm_passkey_options'),
+    re_path(r'^account/confirm/passkey/$', app.security.confirm_passkey, name='auth_confirm_passkey'),
+    re_path(r'^account/confirm/(?P<user>\d+)/(?P<code>[\w$-]+)/$', app.security.confirm_identity_link,
+            name='auth_confirm_identity_link'),
 
 
     re_path(r'^%s$' % 'admin/', app.admin.dashboard, name='admin_index'),

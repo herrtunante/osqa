@@ -657,7 +657,9 @@ class ValidationHashManager(models.Manager):
                 obj.delete()
                 return False
             if consume:
-                obj.delete()
+                # Only the request that deletes the row uses the link: two at
+                # once (e.g. a double-submitted reset form) can't both pass.
+                return self.filter(pk=obj.pk).delete()[0] > 0
             return True
 
         return False

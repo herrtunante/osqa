@@ -218,7 +218,8 @@ def confirm_email_change(request, user, code):
     user.email_confirmation_required = False
     user.save()
     clear_pending_email(user)
-    ValidationHash.objects.filter(user=user, type='email').delete()
+    # Links sent to the old address stop working, password resets included.
+    ValidationHash.objects.filter(user=user, type__in=('email', 'pwreset', 'templogin')).delete()
     if not was_valid:
         EmailValidationAction(user=user, ip=request.META.get('REMOTE_ADDR', '')).save()
     security_log.event('email_changed', request, account=user)
@@ -234,7 +235,10 @@ def cancel_email_change(request, user, code):
         return False
     clear_pending_email(user)
     sign_out_everywhere(user)
-    security_log.event('email_change_cancelled', request, logging.WARNING, account=user)
+    # Whoever asked for the change may have made API tokens with the session: they are signed out too.
+    from forum.models import ApiToken
+    revoked = ApiToken.objects.filter(user=user).delete()[0]
+    security_log.event('email_change_cancelled', request, logging.WARNING, account=user, tokens_revoked=revoked)
     return True
 
 
@@ -327,12 +331,43 @@ def signed_in(request, user):
         request.session.set_expiry(0)  # ends when the browser closes
 
 
-def recently_signed_in(request, minutes=RECENT_AUTH_MINUTES):
+def reauth_minutes():
+    """How long a sign-in (or a "Confirm it's you") counts as recent: the REAUTH_MINUTES setting."""
+    try:
+        return max(1, int(settings.REAUTH_MINUTES))
+    except (TypeError, ValueError):
+        return RECENT_AUTH_MINUTES
+
+
+def recently_signed_in(request, minutes=None):
+    """Whether this session signed in or confirmed it's the member (forum/utils/sudo.py)
+    within the last `minutes` (default: the REAUTH_MINUTES setting)."""
     try:
         when = datetime.datetime.fromisoformat(request.session.get(AUTH_TIME_SESSION_KEY) or '')
-    except ValueError:
+    except (ValueError, TypeError):
         return False
-    return _now() - when < datetime.timedelta(minutes=minutes)
+    return _now() - when < datetime.timedelta(minutes=minutes or reauth_minutes())
+
+
+def mark_reauthenticated(request, method):
+    """The member has just proved it's them again (password, code, passkey or emailed link)."""
+    request.session[AUTH_TIME_SESSION_KEY] = _now().isoformat()
+    security_log.event('reauthenticated', request, account=request.user, method=method)
+
+
+# -- security notices ----------------------------------------------------------------------
+
+SECURITY_CHANGES = ('passkey_added', 'two_factor_on', 'two_factor_off', 'recovery_codes', 'api_token')
+
+
+def security_notice(request, user, change, name='', by_admin=False):
+    """Emails `user` that `change` (SECURITY_CHANGES) was made to their account
+    (always sent, like the other account emails), with where to check and undo it."""
+    if not user.email:
+        return
+    send([user], 'auth/security_change_email.html', {
+        'change': change, 'name': name, 'by_admin': by_admin, 'when': _now(), 'browser': browser_summary(request),
+        'ip': throttle.client_ip(request)})
 
 
 # -- sign-ins from new browsers -----------------------------------------------------------

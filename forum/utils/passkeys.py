@@ -131,10 +131,21 @@ def authentication_options(request):
     return _json(options)
 
 
-def authenticate(request, credential):
-    """The Passkey that signed the answer of navigator.credentials.get()."""
+def reauth_options(request, user):
+    """Options for confirming it's `user` again ("Confirm it's you"): one of their passkeys."""
+    options = generate_authentication_options(
+        rp_id=rp_id(), timeout=TIMEOUT_MS, user_verification=UserVerificationRequirement.REQUIRED,
+        allow_credentials=[PublicKeyCredentialDescriptor(id=base64url_to_bytes(p.credential_id))
+                           for p in user.passkeys.all()])
+    _store_challenge(request, 'reauth', options.challenge, user)
+    return _json(options)
+
+
+def authenticate(request, credential, user=None):
+    """The Passkey that signed the answer of navigator.credentials.get(); with
+    `user`, the answer to reauth_options() for that member (their passkey only)."""
     from forum.models import Passkey
-    started = _take_challenge(request, 'authenticate')
+    started = _take_challenge(request, 'reauth' if user is not None else 'authenticate', user)
     if started is None:
         raise PasskeyError('challenge')
     challenge = started['challenge']
@@ -142,6 +153,8 @@ def authenticate(request, credential):
     if not isinstance(credential_id, str) or len(credential_id) > 2048:
         raise PasskeyError('invalid')
     passkey = Passkey.objects.filter(credential_hash=credential_hash(credential_id)).select_related('user').first()
+    if passkey is not None and user is not None and passkey.user_id != user.id:
+        passkey = None
     if passkey is None:
         security_log.event('passkey_unknown', request, logging.WARNING)
         raise PasskeyError('unknown')

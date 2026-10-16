@@ -838,8 +838,17 @@
             var item = e.target.closest('.editor-button');
             if (item && e.pointerType === 'mouse') showTip(item);
         });
+        // The tip stays while the pointer moves onto it, and Escape hides it
+        // wherever the focus is (WCAG 1.4.13).
         toolbar.addEventListener('pointerout', function (e) {
+            if (!e.relatedTarget || !(toolbar.contains(e.relatedTarget) || tooltip.contains(e.relatedTarget))) hideTip();
+        });
+        tooltip.addEventListener('pointerleave', function (e) {
             if (!e.relatedTarget || !toolbar.contains(e.relatedTarget)) hideTip();
+        });
+        tooltip.addEventListener('pointerdown', hideTip);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !tooltip.hidden) hideTip();
         });
         toolbar.addEventListener('scroll', hideTip, {passive: true});
         window.addEventListener('scroll', hideTip, {passive: true});

@@ -170,8 +170,9 @@ class RegistrationRobotChecksTest(OSQATestCase):
     def test_human_passes(self):
         self.assertTrue(self.form().is_valid())
 
-    def test_wrong_sum_fails(self):
-        self.assertIn('username_validation_sum', self.form(username_validation_sum='15').errors)
+    def test_no_arithmetic_question(self):
+        # WCAG 2.2 3.3.8: no puzzle to solve when creating an account.
+        self.assertNotIn('username_validation_sum', self.form().fields)
 
     def test_filled_honeypot_fails(self):
         self.assertIn('username_validation', self.form(username_validation='robot').errors)

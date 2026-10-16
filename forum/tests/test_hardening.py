@@ -230,7 +230,7 @@ class SecurityLogTest(OSQATestCase):
             self.client.post(reverse('admin_set', args=['security']), {
                 'LOGIN_FAILURES_LIMIT': 7, 'LOGIN_LOCKOUT_MINUTES': 15, 'PASSWORD_RESETS_PER_HOUR': 3,
                 'QUESTIONS_PER_HOUR': 10, 'ANSWERS_PER_HOUR': 20, 'COMMENTS_PER_HOUR': 40, 'CSP_EXTRA_SOURCES': '',
-                'PASSWORD_MIN_LENGTH': 8})
+                'PASSWORD_MIN_LENGTH': 8, 'REAUTH_MINUTES': 15})
         self.assertIn("event=permissions_changed ip=127.0.0.1 user=owner(id=%d) account=alice(id=%d) change='grant staff'"
                       % (self.owner.id, self.alice.id), logs.output[0])
         self.assertIn("event=settings_changed", logs.output[1])

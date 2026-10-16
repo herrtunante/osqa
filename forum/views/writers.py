@@ -19,7 +19,7 @@ from forum.actions import AskAction, AnswerAction, ReviseAction, RollbackAction,
 from forum.forms import *
 from forum.models import *
 from forum.models.node import render_markdown
-from forum.utils import html
+from forum.utils import html, throttle
 from forum.utils.images import store_upload, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils import review
@@ -46,7 +46,8 @@ def upload(request):
 
     Answers JSON: {"url": "/upfiles/name.png"} on success, otherwise
     {"error": "message for the user"} with status 403 (not allowed), 400
-    (not an image, or too many pixels), 413 (too big) or 500.
+    (not an image, or too many pixels), 413 (too big), 429 (more than
+    UPLOADS_PER_HOUR in an hour; staff have no limit) or 500.
     """
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -68,6 +69,14 @@ def upload(request):
     # check file size (in bytes) before writing anything to disk
     if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
         return refused(_("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, 413)
+
+    # Every image that reaches Pillow counts (decoding is the expensive part).
+    limit = int(settings.UPLOADS_PER_HOUR or 0)
+    if limit > 0 and not (request.user.is_staff or request.user.is_superuser):
+        if throttle.count('upload', request.user.pk) >= limit:
+            return refused(_("You have uploaded %d images in the last hour, the most you can. Please try again "
+                             "later.") % limit, 429)
+        throttle.hit('upload', request.user.pk, 3600)
 
     # The extension is chosen by the client: Pillow decodes the content, and
     # only the re-encoded image (no metadata, downscaled) is written to disk,

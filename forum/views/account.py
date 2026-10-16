@@ -59,7 +59,7 @@ def _deletion_context(request, user):
         'needs_code': totp,
         # Accounts with neither (a sign-in service only) sign in again first.
         'needs_recent_signin': not has_password and not totp and not accounts.recently_signed_in(request),
-        'recent_minutes': accounts.RECENT_AUTH_MINUTES,
+        'recent_minutes': accounts.reauth_minutes(),
         'last_admin': _is_last_admin(user),
         'is_staff_account': user.is_staff or user.is_superuser,
         'posts_deleted': str(settings.ACCOUNT_DELETION_POSTS) == 'delete',
@@ -147,7 +147,7 @@ def _reauthenticate(request, user):
             return _("The code from your authenticator app is not right.")
     elif not user.has_usable_password() and not accounts.recently_signed_in(request):
         return _("For your security, sign in again, then delete your account within %(minutes)s minutes.") % {
-            'minutes': accounts.RECENT_AUTH_MINUTES}
+            'minutes': accounts.reauth_minutes()}
     return None
 
 
@@ -216,6 +216,25 @@ def _delete_posts(user, request):
             DeleteAction(user=user, node=node, ip=ip).save()
 
 
+def _forget_action_ips(user):
+    """The actions stay (votes, revisions, reputation); the IP addresses they
+    recorded (every sign-in, post and vote) are removed, from the object cache too."""
+    from django.core.cache import cache
+    from django.db.models import Q
+    from forum.models.action import ActionProxyMetaClass
+    rows = list(Action.objects.filter(Q(user=user) | Q(canceled_by=user)).values_list('id', 'action_type'))
+    Action.objects.filter(user=user).exclude(ip='').update(ip='')
+    Action.objects.filter(canceled_by=user).exclude(canceled_ip='').update(canceled_ip='')
+    keys = []
+    for action_id, action_type in rows:
+        keys.append(Action._generate_cache_key(action_id))
+        proxy = ActionProxyMetaClass.types.get(action_type)
+        if proxy is not None:
+            keys.append(proxy._generate_cache_key(action_id))
+    if keys:
+        cache.delete_many(keys)
+
+
 def anonymise_user(user):
     """Personal data out, the account unusable; content and votes stay."""
     from forum.models import (ApiToken, Notification, PendingEmail, Passkey, PushSubscription, RecoveryCode,
@@ -238,6 +257,7 @@ def anonymise_user(user):
     user.session_epoch = (user.session_epoch or 0) + 1
     user.save()
 
+    _forget_action_ips(user)
     AuthKeyUserAssociation.objects.filter(user=user).delete()
     ValidationHash.objects.filter(user=user).delete()
     MarkedTag.objects.filter(user=user).delete()

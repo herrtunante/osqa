@@ -6,7 +6,8 @@
  *
  *   - empty fields are left out of the URL (and from/to unless the date is
  *     "Custom range", whose fields show only then);
- *   - on a desktop a radio button, checkbox or select applies at once;
+ *   - on a desktop a radio button, checkbox or select chosen with the
+ *     pointer applies at once (with the keyboard: "Apply filters");
  *   - on phones and narrow windows (the sidebar is below the results) the
  *     "Filters" button opens them in a modal <dialog>, where they apply with
  *     "Apply filters"; the panel moves into the dialog and back;
@@ -80,6 +81,19 @@
     }
     showRange();
 
+    // Choices made with the keyboard wait for "Apply filters": the arrow keys
+    // move through radio buttons (and a closed select) choosing each one, and
+    // the page must not reload at every step (WCAG 3.2.2).
+    var byKeyboard = false;
+    panel.addEventListener('keydown', function (event) {
+        if (event.key !== 'Tab' && event.key !== 'Shift') {
+            byKeyboard = true;
+        }
+    }, true);
+    panel.addEventListener('pointerdown', function () {
+        byKeyboard = false;
+    }, true);
+
     panel.addEventListener('change', function (event) {
         var target = event.target;
         if (target === date) {
@@ -92,7 +106,7 @@
                 return;
             }
         }
-        if (!inDialog() && target.matches('input[type=radio], input[type=checkbox], select')) {
+        if (!inDialog() && !byKeyboard && target.matches('input[type=radio], input[type=checkbox], select')) {
             submit();
         }
     });

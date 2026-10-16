@@ -669,15 +669,6 @@ msgstr "El nombre real es obligatorio"
 msgid "please probe you are not a robot by not filling this"
 msgstr "demuestre que no es un robot dejando este campo vacío"
 
-msgid "What is seven plus seven?"
-msgstr "¿Cuánto es siete más siete?"
-
-msgid "A quick check that you are not a robot. Type the answer in digits."
-msgstr "Una comprobación rápida de que no es un robot. Escriba la respuesta en cifras."
-
-msgid "That is not the right answer. Type the result of seven plus seven in digits."
-msgstr "Esa no es la respuesta correcta. Escriba el resultado de siete más siete en cifras."
-
 #, python-format
 msgid "At least %(count)d character"
 msgid_plural "At least %(count)d characters"
@@ -1769,6 +1760,12 @@ msgstr "Exigir la verificación en dos pasos al personal"
 msgid "Moderators and administrators who have not turned on two-step verification (an authenticator app) and did not sign in with a passkey are sent to set it up when they open an admin page."
 msgstr "Los moderadores y administradores que no hayan activado la verificación en dos pasos (una aplicación de autenticación) ni hayan iniciado sesión con una llave de acceso deberán configurarla al abrir una página de administración."
 
+msgid "Confirm it's you after (minutes)"
+msgstr "Confirmar la identidad después de (minutos)"
+
+msgid "Changing the email address, adding a passkey, setting up two-step verification, creating an API token or removing the last way to sign in asks members to confirm it's them (password, code, passkey or an emailed link) when they signed in or confirmed longer ago than this."
+msgstr "Cambiar la dirección de correo, añadir una llave de acceso, configurar la verificación en dos pasos, crear un token de API o quitar el último método de inicio de sesión pide a los miembros que confirmen su identidad (contraseña, código, llave de acceso o un enlace por correo) si iniciaron sesión o la confirmaron hace más de este tiempo."
+
 msgid "Show the Welcome box"
 msgstr "Mostrar el cuadro de bienvenida"
 
@@ -1963,6 +1960,9 @@ msgstr "Tamaño máximo de imagen en píxeles"
 
 msgid "Uploaded images are reduced so that their longest side is at most this many pixels. Location and other metadata are always removed."
 msgstr "Las imágenes subidas se reducen para que su lado más largo tenga como máximo este número de píxeles. La ubicación y los demás metadatos se eliminan siempre."
+
+msgid "Image uploads per member per hour"
+msgstr "Imágenes subidas por miembro y hora"
 
 msgid "URL settings"
 msgstr "Configuración de URL"
@@ -2981,6 +2981,44 @@ msgstr "Enviar el enlace de confirmación"
 msgid "Already confirmed?"
 msgstr "¿Ya la ha confirmado?"
 
+msgid "Confirm it's you"
+msgstr "Confirme que es usted"
+
+msgid "Open this link in the browser where you asked for it, signed in to your account."
+msgstr "Abra este enlace en el navegador donde lo pidió, con la sesión iniciada en su cuenta."
+
+#, python-format
+msgid "We emailed you a link. Open it in this browser within %(minutes)s minutes; it works once."
+msgstr "Le enviamos un enlace por correo. Ábralo en este navegador en menos de %(minutes)s minutos; funciona una vez."
+
+msgid "This link doesn't work any more. Ask for a new one."
+msgstr "Este enlace ya no funciona. Pida uno nuevo."
+
+msgid "For your security, confirm it's you before changing how you sign in or your email address. Then send the form on the page you come back to again."
+msgstr "Por su seguridad, confirme que es usted antes de cambiar cómo inicia sesión o su dirección de correo. Después, vuelva a enviar el formulario en la página a la que regrese."
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+msgid "Code from your authenticator app"
+msgstr "Código de su aplicación de autenticación"
+
+msgid "A recovery code works too."
+msgstr "También sirve un código de recuperación."
+
+msgid "Confirm with the code"
+msgstr "Confirmar con el código"
+
+#, python-format
+msgid "Your account has no password or two-step verification, so we email you a link instead. It works once, for %(minutes)s minutes, in this browser."
+msgstr "Su cuenta no tiene contraseña ni verificación en dos pasos, así que le enviamos un enlace por correo. Funciona una vez, durante %(minutes)s minutos, en este navegador."
+
+msgid "Email me a link"
+msgstr "Enviarme un enlace"
+
+msgid "Confirm with a passkey"
+msgstr "Confirmar con una llave de acceso"
+
 msgid "Cancel the email change?"
 msgstr "¿Cancelar el cambio de correo electrónico?"
 
@@ -3255,9 +3293,6 @@ msgstr "Para la cuenta <strong>%(name)s</strong>. Después se cerrará la sesió
 msgid "Your password isn't changed yet. Please check:"
 msgstr "Su contraseña aún no se ha cambiado. Revise lo siguiente:"
 
-msgid "Code from your authenticator app"
-msgstr "Código de su aplicación de autenticación"
-
 msgid "Your account uses two-step verification. A recovery code works too."
 msgstr "Su cuenta usa la verificación en dos pasos. También sirve un código de recuperación."
 
@@ -3302,6 +3337,68 @@ msgstr "Su %(what)s"
 
 msgid "Continue"
 msgstr "Continuar"
+
+#, python-format
+msgid "%(prefix)s Confirm it's you on %(app_name)s"
+msgstr "%(prefix)s Confirme que es usted en %(app_name)s"
+
+msgid "Open the link to continue changing your account."
+msgstr "Abra el enlace para seguir cambiando su cuenta."
+
+#, python-format
+msgid "You receive this email because someone signed in to your account at %(app_name)s asked to confirm it's you. These notices are always sent."
+msgstr "Recibe este correo porque alguien con la sesión iniciada en su cuenta de %(app_name)s pidió confirmar su identidad. Estos avisos se envían siempre."
+
+#, python-format
+msgid "Open this link in the browser where you asked for it to confirm it's you. It works once, for %(minutes)s minutes."
+msgstr "Abra este enlace en el navegador donde lo pidió para confirmar que es usted. Funciona una vez, durante %(minutes)s minutos."
+
+msgid "Confirm and continue"
+msgstr "Confirmar y continuar"
+
+msgid "If you didn't ask for this, someone may be using your account: sign out everywhere on your security page."
+msgstr "Si no lo pidió, puede que alguien esté usando su cuenta: cierre la sesión en todas partes desde su página de seguridad."
+
+#, python-format
+msgid "%(prefix)s Security change on your %(app_name)s account"
+msgstr "%(prefix)s Cambio de seguridad en su cuenta de %(app_name)s"
+
+msgid "If you didn't do this, secure your account now."
+msgstr "Si no fue usted, proteja su cuenta ahora."
+
+#, python-format
+msgid "You receive this security notice because the sign-in settings of your account at %(app_name)s were changed. These notices are always sent."
+msgstr "Recibe este aviso de seguridad porque cambió la configuración de inicio de sesión de su cuenta de %(app_name)s. Estos avisos se envían siempre."
+
+#, python-format
+msgid "A passkey named “%(name)s” was added to your account."
+msgstr "Se añadió a su cuenta una llave de acceso llamada «%(name)s»."
+
+msgid "Two-step verification was turned on for your account."
+msgstr "Se activó la verificación en dos pasos en su cuenta."
+
+msgid "An administrator turned off two-step verification for your account."
+msgstr "Un administrador desactivó la verificación en dos pasos de su cuenta."
+
+msgid "Two-step verification was turned off for your account."
+msgstr "Se desactivó la verificación en dos pasos en su cuenta."
+
+msgid "New recovery codes were made for your account; the old ones no longer work."
+msgstr "Se crearon nuevos códigos de recuperación para su cuenta; los anteriores ya no funcionan."
+
+#, python-format
+msgid "An API token named “%(name)s” was created for your account."
+msgstr "Se creó para su cuenta un token de API llamado «%(name)s»."
+
+#, python-format
+msgid "If this wasn't you, check your <a href=\"%(security_url)s\" style=\"%(a_style)s\">security page</a> and <a href=\"%(reset_url)s\" style=\"%(a_style)s\">reset your password</a> now."
+msgstr "Si no fue usted, revise su <a href=\"%(security_url)s\" style=\"%(a_style)s\">página de seguridad</a> y <a href=\"%(reset_url)s\" style=\"%(a_style)s\">restablezca su contraseña</a> ahora."
+
+msgid "Open your security page"
+msgstr "Abrir su página de seguridad"
+
+msgid "If this wasn't you, reset your password now and check your security page."
+msgstr "Si no fue usted, restablezca su contraseña ahora y revise su página de seguridad."
 
 msgid "Connect another account"
 msgstr "Conectar otra cuenta"
@@ -3472,6 +3569,13 @@ msgstr "Aceptar"
 
 msgid "People to mention"
 msgstr "Personas a las que mencionar"
+
+msgid "1 suggestion"
+msgstr "1 sugerencia"
+
+#, python-brace-format
+msgid "{count} suggestions"
+msgstr "{count} sugerencias"
 
 msgid "word"
 msgid_plural "words"
@@ -3945,13 +4049,6 @@ msgstr "Personas"
 #, python-brace-format
 msgid "Search for “{query}”"
 msgstr "Buscar «{query}»"
-
-msgid "1 suggestion"
-msgstr "1 sugerencia"
-
-#, python-brace-format
-msgid "{count} suggestions"
-msgstr "{count} sugerencias"
 
 msgid "Search questions, tags and people"
 msgstr "Buscar preguntas, etiquetas y personas"
@@ -6726,9 +6823,6 @@ msgstr "Escriba su nombre de usuario (<strong>%(name)s</strong>) para confirmar"
 msgid "Your password"
 msgstr "Su contraseña"
 
-msgid "A recovery code works too."
-msgstr "También sirve un código de recuperación."
-
 msgid "This can't be undone."
 msgstr "Esto no se puede deshacer."
 
@@ -7960,6 +8054,42 @@ msgstr "Dirección de correo electrónico cambiada por un administrador"
 msgid "The old address, when an administrator changes a member's address."
 msgstr "La dirección anterior, cuando un administrador cambia la dirección de un miembro."
 
+msgid "Passkey added"
+msgstr "Llave de acceso añadida"
+
+msgid "Members who add a passkey (a security notice)."
+msgstr "Miembros que añaden una llave de acceso (aviso de seguridad)."
+
+msgid "Two-step verification turned on"
+msgstr "Verificación en dos pasos activada"
+
+msgid "Members who turn on two-step verification (a security notice)."
+msgstr "Miembros que activan la verificación en dos pasos (aviso de seguridad)."
+
+msgid "Two-step verification turned off"
+msgstr "Verificación en dos pasos desactivada"
+
+msgid "Members whose two-step verification is turned off, by them or an administrator."
+msgstr "Miembros cuya verificación en dos pasos se desactiva, por ellos mismos o por un administrador."
+
+msgid "New recovery codes"
+msgstr "Nuevos códigos de recuperación"
+
+msgid "Members who make new recovery codes (a security notice)."
+msgstr "Miembros que crean nuevos códigos de recuperación (aviso de seguridad)."
+
+msgid "API token created"
+msgstr "Token de API creado"
+
+msgid "Members who create a personal access token (a security notice)."
+msgstr "Miembros que crean un token de acceso personal (aviso de seguridad)."
+
+msgid "Identity confirmation link"
+msgstr "Enlace de confirmación de identidad"
+
+msgid "Members without a password or two-step verification, before a sensitive change."
+msgstr "Miembros sin contraseña ni verificación en dos pasos, antes de un cambio delicado."
+
 msgid "Account deleted"
 msgstr "Cuenta eliminada"
 
@@ -8074,6 +8204,9 @@ msgstr "Nueva notificación"
 
 msgid "Thanks! Your post will appear once a moderator has reviewed it."
 msgstr "¡Gracias! Su publicación aparecerá cuando un moderador la haya revisado."
+
+msgid "Please confirm it's you first."
+msgstr "Primero confirme que es usted."
 
 msgid "It doesn't make the post easier to read or more useful"
 msgstr "No hace la publicación más fácil de leer ni más útil"
@@ -9184,6 +9317,10 @@ msgstr "los tipos de archivo permitidos son 'jpg', 'jpeg', 'gif', 'bmp', 'png', 
 #, python-format
 msgid "maximum upload file size is %sM"
 msgstr "el tamaño máximo de archivo es de %sM"
+
+#, python-format
+msgid "You have uploaded %d images in the last hour, the most you can. Please try again later."
+msgstr "Ha subido %d imágenes en la última hora, el máximo permitido. Vuelva a intentarlo más tarde."
 
 msgid "This image has too many pixels. Please upload a smaller image."
 msgstr "Esta imagen tiene demasiados píxeles. Sube una imagen más pequeña."

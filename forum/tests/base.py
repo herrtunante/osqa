@@ -1,3 +1,4 @@
+import datetime
 import json
 from unittest import mock
 
@@ -49,8 +50,15 @@ class OSQATestCase(TestCase):
         from forum.utils.antispam import SIGNUP_SALT
         return signing.dumps(time.time() - age, salt=SIGNUP_SALT)
 
-    def login(self, user):
+    def login(self, user, recent=True):
+        """Signs `user` in; like a real sign-in, it counts as recent for
+        "Confirm it's you" (forum/utils/sudo.py) unless `recent` is False."""
         self.client.force_login(user)
+        if recent:
+            from forum.utils import accounts
+            session = self.client.session
+            session[accounts.AUTH_TIME_SESSION_KEY] = datetime.datetime.now().isoformat()
+            session.save()
 
     def command(self, url, data=None):
         """POST to an AJAX command view and return the decoded JSON response."""

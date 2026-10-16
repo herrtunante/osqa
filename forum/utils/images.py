@@ -42,6 +42,8 @@ from PIL import Image, ImageOps, ImageSequence, features
 MAX_PIXELS = 50 * 1000 * 1000
 # Animations: all frames together.
 MAX_ANIMATION_PIXELS = 200 * 1000 * 1000
+# No side longer than this (a 1 x 50 million pixel strip is no photo).
+MAX_SIDE = 30000
 
 INPUT_FORMATS = {'JPEG', 'MPO', 'PNG', 'GIF', 'WEBP', 'BMP', 'TIFF', 'ICO'}
 OUTPUT_FORMATS = {'JPEG': 'JPEG', 'MPO': 'JPEG', 'PNG': 'PNG', 'GIF': 'GIF', 'WEBP': 'WEBP',
@@ -103,7 +105,8 @@ def process_image(f, filename, max_side=None, keep_ico=False):
             img = Image.open(f)
             if img.format not in INPUT_FORMATS:
                 raise NotAnImage(img.format)
-            if img.width * img.height > MAX_PIXELS:
+            # Image.open() only read the header: checked before any pixel is decoded.
+            if img.width * img.height > MAX_PIXELS or max(img.size) > MAX_SIDE:
                 raise ImageTooLarge()
 
             if keep_ico and img.format == 'ICO':
@@ -259,7 +262,7 @@ def write_variants(folder, name, dry_run=False):
         with warnings.catch_warnings():
             warnings.simplefilter('error', Image.DecompressionBombWarning)
             with Image.open(path) as img:
-                if img.format not in INPUT_FORMATS or img.width * img.height > MAX_PIXELS:
+                if img.format not in INPUT_FORMATS or img.width * img.height > MAX_PIXELS or max(img.size) > MAX_SIDE:
                     return None, False
                 if dry_run:
                     return {'width': img.width, 'height': img.height, 'sources': {}}, True

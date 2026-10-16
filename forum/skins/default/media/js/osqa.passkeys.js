@@ -5,7 +5,11 @@
  *                          shown when the browser has WebAuthn; where the browser
  *                          supports it, passkeys are also offered in the username
  *                          field's autofill (conditional mediation).
- * [data-passkey-register]  the "Add a passkey" form of the security page.
+ * [data-passkey-register]  the "Add a passkey" form of the security page; when the
+ *                          options answer {redirect} (no recent sign-in), it goes
+ *                          to "Confirm it's you" first.
+ * The "Confirm it's you" page (auth/confirm_identity.html) uses [data-passkey-signin]
+ * with its own URLs.
  *
  * Both POST JSON (with the X-CSRFToken header) to the URLs in their
  * data-options-url / data-verify-url attributes: first for the options, then
@@ -206,13 +210,24 @@
             showError(form, '');
             button.disabled = true;
             post(form.getAttribute('data-options-url')).then(function (json) {
+                if (json.redirect) {
+                    // "Confirm it's you" first (forum/utils/sudo.py); the member adds the passkey afterwards.
+                    window.location.assign(json.redirect);
+                    return null;
+                }
                 if (json.error) {
                     throw new Error(json.error);
                 }
                 return navigator.credentials.create({publicKey: creationOptions(json)});
             }).then(function (credential) {
+                if (!credential) {
+                    return null;
+                }
                 return post(form.getAttribute('data-verify-url'), {credential: credentialJSON(credential), name: name});
             }).then(function (reply) {
+                if (!reply) {
+                    return;
+                }
                 if (reply.redirect) {
                     window.location.assign(reply.redirect);
                 } else {

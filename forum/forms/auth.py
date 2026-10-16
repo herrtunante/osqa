@@ -1,4 +1,4 @@
-from .general import NextUrlField,  UserNameField,  UserEmailField, UserRealNameField, UserNameValidationField, UserNameValidationSumField, SetPasswordForm, DescribedFieldsMixin
+from .general import NextUrlField,  UserNameField,  UserEmailField, UserRealNameField, UserNameValidationField, SetPasswordForm, DescribedFieldsMixin
 from forum import settings
 
 from forum.models import User
@@ -15,7 +15,8 @@ class SimpleRegistrationForm(forms.Form):
     email = UserEmailField()
     real_name = UserRealNameField()
     username_validation = UserNameValidationField()
-    username_validation_sum = UserNameValidationSumField()
+    # No "what is seven plus seven?": a puzzle is a cognitive test (WCAG 2.2
+    # 3.3.8); the honeypot, signed time stamp and per-IP limit stay.
 
 class SignUpFieldsMixin(DescribedFieldsMixin):
     """Help texts and browser hints (autocomplete, no autocapitalisation) for

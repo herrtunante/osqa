@@ -14,6 +14,7 @@ from django.contrib import messages
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -162,7 +163,7 @@ def review_action(request, id):
     elif verb == 'approve':
         action = sugg.approve(suggestion, request.user, _ip(request))
         if action is not None:
-            messages.info(request, _("The edit is approved and credited to %s.") % suggestion.author.username)
+            messages.info(request, _("The edit is approved and credited to %s.") % escape(suggestion.author.username))
         else:
             messages.info(request, _("The post was edited in the meantime in a way that conflicts with this "
                                      "suggestion, so it can't be applied any more."))
@@ -176,7 +177,7 @@ def review_action(request, id):
         else:
             action = sugg.reject(suggestion, request.user, reason, comment, _ip(request))
             if action is not None:
-                messages.info(request, _("The edit is rejected; %s will be told why.") % suggestion.author.username)
+                messages.info(request, _("The edit is rejected; %s will be told why.") % escape(suggestion.author.username))
     else:
         messages.error(request, _("Unknown action."))
     _remember(request, action)
@@ -216,7 +217,7 @@ def improve(request, id):
                 data['summary'] = data.get('summary', '').strip() or _("Improved a suggested edit")
                 ReviseAction(user=request.user, node=post, ip=_ip(request)).save(data=data)
             messages.info(request, _("The edit is approved and credited to %s, with your improvements.")
-                          % suggestion.author.username)
+                          % escape(suggestion.author.username))
             return HttpResponseRedirect(post.get_absolute_url())
     else:
         form = _prepare(form_class(post, request.user, starting_point), False)

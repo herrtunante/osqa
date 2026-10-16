@@ -52,8 +52,7 @@
                 {% if form1.real_name %}
                     {% include "auth/field.html" with field=form1.real_name %}
                 {% endif %}
-                {% if form1.username_validation_sum %}
-                    {% include "auth/field.html" with field=form1.username_validation_sum %}
+                {% if form1.username_validation %}
                     {# Bots fill in every field; people never see this one. #}
                     <div class="form-trap" aria-hidden="true">
                         <label for="id_username_validation">{% trans "Leave this field empty" %}</label>

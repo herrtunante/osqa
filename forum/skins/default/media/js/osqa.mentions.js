@@ -3,7 +3,7 @@
  * a letter, up to six members (matching_users); Up/Down choose, Enter or Tab
  * insert "@username ", Escape closes. The text box points at the list
  * (aria-controls, aria-activedescendant); in the post editor the insertion
- * is one undo step (osqa.editor.js).
+ * is one undo step (osqa.editor.js). A polite status says how many were found.
  */
 (function() {
     var SELECTOR = 'textarea.commentBox, textarea#editor';
@@ -49,6 +49,21 @@
     function close() {
         removeBox();
         items = [];
+    }
+
+    // How many members were found, for screen readers (the list itself is
+    // only pointed at by aria-activedescendant).
+    var status = null;
+    function announce() {
+        if (!status) {
+            status = document.createElement('div');
+            status.className = 'visually-hidden';
+            status.setAttribute('role', 'status');
+            document.body.appendChild(status);
+        }
+        var m = window.messages || {};
+        status.textContent = !items.length ? '' : items.length === 1 ? (m.suggestion_one || '1 suggestion') :
+            (m.suggestion_many || '{count} suggestions').replace('{count}', items.length);
     }
 
     function render() {
@@ -118,6 +133,7 @@
             items = cache[query];
             active = 0;
             render();
+            announce();
             return;
         }
         fetch(messages.matching_users_url + '?limit=6&q=' + encodeURIComponent(query), {credentials: 'same-origin'})
@@ -132,6 +148,7 @@
                     items = found;
                     active = 0;
                     render();
+                    announce();
                 }
             }).catch(function(err) {
                 if (window.console) {

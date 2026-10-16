@@ -150,6 +150,13 @@ def edit_user(request, id, slug):
         if form.is_valid():
             new_email = sanitize_html(form.cleaned_data['email'])
             email_change_requested = False
+            if new_email != user.email and request.user == user and new_email != accounts.pending_email(user):
+                # A new address can take over the account (password reset): confirm it's you first.
+                # Nothing is saved; the member sends the form again afterwards.
+                from forum.utils.sudo import require_recent_auth
+                refused = require_recent_auth(request, request.path)
+                if refused:
+                    return refused
 
             if new_email != user.email and request.user == user:
                 # The member's own change: the current address stays until the

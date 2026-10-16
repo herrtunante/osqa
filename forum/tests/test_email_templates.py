@@ -39,6 +39,12 @@ CTA = {
     'email-changed-by-admin': (None, None),
     'account-deleted': (None, None),
     'account-exists': ('Sign in', '/account/signin/'),
+    'passkey-added': ('Open your security page', '/account/%(id)d/security/'),
+    'two-step-on': ('Open your security page', '/account/%(id)d/security/'),
+    'two-step-off': ('Open your security page', '/account/%(id)d/security/'),
+    'recovery-codes': ('Open your security page', '/account/%(id)d/security/'),
+    'api-token-created': ('Open your security page', '/account/%(id)d/security/'),
+    'confirm-its-you': ('Confirm and continue', '/account/confirm/%(id)d/sample-confirm-code/'),
     'test-email': (None, None),
 }
 NOTIFICATIONS = {'new-answer', 'new-comment', 'answer-accepted', 'mention', 'new-question', 'new-member', 'digest',
