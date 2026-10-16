@@ -19,6 +19,8 @@ class OSQATestCase(TestCase):
         # so they would otherwise leak between tests.
         cache.clear()
         self.addCleanup(cache.clear)
+        from forum.settings.base import Setting
+        Setting.forget_values()
 
         # Action hooks run in a background thread, which can't see the test
         # transaction; run them inline instead.

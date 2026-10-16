@@ -139,6 +139,17 @@ class Setting:
     emulators = {}
     sets = {}
 
+    @staticmethod
+    def forget_values():
+        """Drops every setting's in-process copy of its value (kept for
+        TMP_MINICACHE_SECONDS). Tests call it first: a value left by an earlier
+        test would hide this test's empty database until it expires, and the
+        setting then stores its default mid-test, which moves the KeyValue
+        cache time stamp (and so every ETag) between two requests."""
+        for setting_set in Setting.sets.values():
+            for setting in setting_set:
+                setting._temp = None
+
     def __new__(cls, name, default, set=None, field_context=None):
         if default is None:
             return AnyTypeSetting(name, default, set, field_context)

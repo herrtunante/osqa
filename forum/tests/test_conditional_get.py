@@ -76,6 +76,33 @@ class ConditionalFeedTest(OSQATestCase):
         self.assertEqual(self.client.get('/feeds/rss/', HTTP_IF_NONE_MATCH=first['ETag']).status_code, 304)
 
 
+class StaleSettingValuesTest(OSQATestCase):
+    """Setting values an earlier test left in memory used to expire in the
+    middle of a test: the setting then stored its default, the KeyValue time
+    stamp moved and the feed's ETag changed between two requests (an
+    intermittent CI failure of test_feed_not_modified)."""
+
+    def setUp(self):
+        from datetime import datetime
+        from forum.settings.base import Setting
+        for setting_set in Setting.sets.values():
+            for setting in setting_set:
+                setting._temp = (setting.default, datetime.now())  # left by an earlier test
+        super().setUp()
+
+    def test_feed_etag_holds_when_they_would_have_expired(self):
+        from datetime import datetime
+        from forum.settings.base import Setting
+        Question(author=self.create_user('alice'), title='Feed question title', body='Body text').save()
+        self.client.get('/feeds/rss/')
+        for setting_set in Setting.sets.values():  # TMP_MINICACHE_SECONDS pass
+            for setting in setting_set:
+                if setting._temp:
+                    setting._temp = (setting._temp[0], datetime(2000, 1, 1))
+        first = self.client.get('/feeds/rss/')
+        self.assertEqual(self.client.get('/feeds/rss/', HTTP_IF_NONE_MATCH=first['ETag']).status_code, 304)
+
+
 class LazyImagesTest(OSQATestCase):
 
     def test_post_images_load_lazily(self):

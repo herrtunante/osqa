@@ -112,6 +112,8 @@ class E2ETestCase(LiveServerTestCase):
     def setUp(self):
         super().setUp()
         cache.clear()
+        from forum.settings.base import Setting
+        Setting.forget_values()
         # Action hooks (notifications, emails, badges) run in a thread in
         # production; inline here so tests can check their results.
         trigger_hooks = Action.trigger_hooks
