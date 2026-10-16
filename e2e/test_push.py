@@ -51,10 +51,19 @@ def fake_keys():
 FAKE_PUSH = '''(() => {
     const FAKE = %s;
     window.__permissionAsks = 0;
+    // The permission is faked too: Chromium's headless shell (what CI's
+    // "playwright install chromium" runs) reports "denied" even when the
+    // context was granted notifications, and an ungranted full Chromium
+    // reports "denied" rather than "default".
     if (window.Notification && Notification.requestPermission) {
-        const ask = Notification.requestPermission.bind(Notification);
-        Notification.requestPermission = function () { window.__permissionAsks++; return FAKE.answer ? Promise.resolve(FAKE.answer) : ask(); };
-        if (FAKE.permission) Object.defineProperty(Notification, 'permission', {get: () => FAKE.permission});
+        let permission = FAKE.permission || (FAKE.grant ? 'granted' : 'default');
+        Notification.requestPermission = function () {
+            window.__permissionAsks++;
+            const answer = FAKE.answer || (FAKE.grant ? 'granted' : 'denied');
+            if (answer !== 'default') permission = answer;
+            return Promise.resolve(answer);
+        };
+        Object.defineProperty(Notification, 'permission', {get: () => permission});
     }
     if (FAKE.noPush) { delete window.PushManager; return; }
     if (!window.PushManager) return;
@@ -131,7 +140,7 @@ class PushNotificationsTest(E2ETestCase):
         if grant:
             options['permissions'] = ['notifications']
         page = self.open(user, **options)
-        page.context.add_init_script(FAKE_PUSH % json.dumps(dict({'endpoint': ENDPOINT, 'keys': self.keys}, **fake)))
+        page.context.add_init_script(FAKE_PUSH % json.dumps(dict({'endpoint': ENDPOINT, 'keys': self.keys, 'grant': grant}, **fake)))
         return page
 
     def switch(self, page):
