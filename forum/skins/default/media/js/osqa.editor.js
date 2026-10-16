@@ -600,6 +600,8 @@
     }
 
     Editor.prototype.openDialog = function (dialog, onOk) {
+        // Never left open from an earlier use (before this use's listeners).
+        if (dialog.open) dialog.close();
         var editor = this, ta = this.textarea;
         var range = [ta.selectionStart, ta.selectionEnd];
         var returnTo = document.activeElement && document.activeElement !== document.body ? document.activeElement : ta;
@@ -649,7 +651,12 @@
         cancel.addEventListener('click', dismiss);
         dialog.addEventListener('keydown', keys);
         dialog.addEventListener('close', closed);
-        dialog.showModal();
+        // A modal the browser refuses to open still opens, as a plain dialog.
+        try {
+            dialog.showModal();
+        } catch (err) {
+            dialog.show();
+        }
         var first = dialog.querySelector('[autofocus]') || dialog.querySelector('input');
         if (first) first.focus();
         editor.hideTooltip && editor.hideTooltip();

@@ -16,6 +16,7 @@ Environment variables:
 """
 import datetime
 import os
+import sys
 
 # Playwright's sync API runs an event loop in this thread; Django's ORM is
 # only used synchronously here.
@@ -138,6 +139,10 @@ class E2ETestCase(LiveServerTestCase):
                     page.screenshot(path=os.path.join(ARTIFACTS, name), full_page=True)
                 except Exception:
                     pass
+                # What the page logged often explains a timeout (CI only keeps the log).
+                if page.problems:
+                    sys.stderr.write('\n%s, page %d (%s):\n  %s\n' % (
+                        self.id(), index, page.url, '\n  '.join(page.problems)))
         leftovers = [] if failed else [p for page in self._pages for p in page.problems]
         if os.environ.get('E2E_CSS_COVERAGE'):
             from . import css_coverage
