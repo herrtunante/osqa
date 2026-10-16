@@ -18,8 +18,17 @@
     var RICH = 'a[href],b,strong,em,i,h1,h2,h3,h4,h5,h6,ul,ol,li,table,pre,code,blockquote,img[src],' +
                'span[style*="font-weight"],span[style*="italic"],p.MsoListParagraph,[style*="mso-list"]';
 
+    // Event handler attributes are dropped from the tags first: even in an
+    // inert DOMParser document, newer Chromium reports them to the page's
+    // CSP as blocked inline handlers.
+    function withoutHandlers(html) {
+        return (html || '').replace(/<[^>]+>/g, function (tag) {
+            return tag.replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+        });
+    }
+
     function parse(html) {
-        return new DOMParser().parseFromString(html || '', 'text/html');
+        return new DOMParser().parseFromString(withoutHandlers(html), 'text/html');
     }
 
     function tag(node) {
