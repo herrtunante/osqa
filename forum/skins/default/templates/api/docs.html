@@ -75,7 +75,7 @@
   "detail": "title must be at least 10 characters",
   "errors": {"title": ["title must be at least 10 characters"]}
 }</pre>
-        <div class="api-table-wrap">
+        <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
         <table class="api-table">
             <thead><tr><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Title" %}</th></tr></thead>
             <tbody>
@@ -106,7 +106,7 @@
             {% if op.ep.description %}<p>{{ op.ep.description }}</p>{% endif %}
             <p class="api-op-auth">{{ op.auth }}</p>
             {% if op.params %}
-            <div class="api-table-wrap">
+            <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
             <table class="api-table">
                 <caption>{% trans "Parameters" %}</caption>
                 <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Description" %}</th></tr></thead>
@@ -137,7 +137,7 @@
             {% if object.description %}<p>{{ object.description }}</p>{% endif %}
             {% if object.based_on %}<p>{% trans "Everything in" %} <a href="#schema-{{ object.based_on }}">{{ object.based_on }}</a>, {% trans "and:" %}</p>{% endif %}
             {% if object.fields %}
-            <div class="api-table-wrap">
+            <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
             <table class="api-table">
                 <thead><tr><th scope="col">{% trans "Field" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Description" %}</th></tr></thead>
                 <tbody>

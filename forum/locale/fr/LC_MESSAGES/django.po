@@ -2623,6 +2623,9 @@ msgstr "Les pages web d'autres sites ne peuvent pas lire l'API en JavaScript (CO
 msgid "Errors are problem details (RFC 9457, <code>application/problem+json</code>): <code>type</code> (one of the addresses below), <code>title</code>, <code>status</code>, <code>detail</code> (what went wrong, in the language of <code>Accept-Language</code>) and, for invalid data, <code>errors</code> per field."
 msgstr "Les erreurs sont des détails de problème (RFC 9457, <code>application/problem+json</code>) : <code>type</code> (l'une des adresses ci-dessous), <code>title</code>, <code>status</code>, <code>detail</code> (ce qui n'a pas fonctionné, dans la langue de <code>Accept-Language</code>) et, pour les données non valides, <code>errors</code> par champ."
 
+msgid "Scrollable table"
+msgstr "Tableau défilant"
+
 msgid "Status"
 msgstr "Statut"
 

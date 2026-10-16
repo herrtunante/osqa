@@ -2623,6 +2623,9 @@ msgstr "Páginas de outros sites não podem ler a API com JavaScript (o CORS est
 msgid "Errors are problem details (RFC 9457, <code>application/problem+json</code>): <code>type</code> (one of the addresses below), <code>title</code>, <code>status</code>, <code>detail</code> (what went wrong, in the language of <code>Accept-Language</code>) and, for invalid data, <code>errors</code> per field."
 msgstr "Os erros são detalhes de problema (RFC 9457, <code>application/problem+json</code>): <code>type</code> (um dos endereços abaixo), <code>title</code>, <code>status</code>, <code>detail</code> (o que deu errado, no idioma de <code>Accept-Language</code>) e, para dados inválidos, <code>errors</code> por campo."
 
+msgid "Scrollable table"
+msgstr "Tabela rolável"
+
 msgid "Status"
 msgstr "Status"
 

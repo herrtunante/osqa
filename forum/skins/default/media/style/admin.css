@@ -1391,6 +1391,14 @@ input[type="file"]::file-selector-button:hover {
     text-decoration: underline;
 }
 
+/* Names are short ("sam"): at least 24x24 px to tap (WCAG 2.5.8). */
+.mod-title a, .mod-author a {
+    display: inline-block;
+    min-width: 24px;
+    min-height: 24px;
+    line-height: 24px;
+}
+
 /* The post itself, kept short: it scrolls inside its box. */
 .mod-content {
     max-height: 14em;
