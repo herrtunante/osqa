@@ -19,6 +19,7 @@ from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
 from forum.utils import security_log
 from forum.utils import review
+from forum.views.security import require_staff_two_factor
 from forum.utils.mail import send_template_email
 from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
@@ -30,6 +31,8 @@ TOOLS = {}
 TOOL_LINKS = []
 
 def super_user_required(fn):
+    # Staff who must use two-step verification (Admin > Security) set it up first.
+    @require_staff_two_factor
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_superuser:
             return fn(request, *args, **kwargs)
@@ -39,6 +42,7 @@ def super_user_required(fn):
     return wrapper
 
 def staff_user_required(fn):
+    @require_staff_two_factor
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
             return fn(request, *args, **kwargs)

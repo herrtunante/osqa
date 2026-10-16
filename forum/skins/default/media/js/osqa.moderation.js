@@ -4,7 +4,9 @@
  *   delete their other posts) instead of submitting at once. Without
  *   JavaScript the button submits with the dialog's default choices.
  * - j / k move the focus to the next / previous item, so a moderator can go
- *   through the inbox from the keyboard (Tab then reaches the item's buttons).
+ *   through the inbox from the keyboard (Tab then reaches the item's buttons),
+ *   unless the moderator turned keyboard shortcuts off in their preferences
+ *   (<html data-shortcuts="off">; the public pages' shortcuts are osqa.shortcuts.js).
  */
 (function () {
     'use strict';
@@ -38,7 +40,8 @@
     });
 
     document.addEventListener('keydown', function (event) {
-        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
+                document.documentElement.getAttribute('data-shortcuts') === 'off') {
             return;
         }
         if (event.key !== 'j' && event.key !== 'k') {

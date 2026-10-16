@@ -172,6 +172,20 @@ msgstr "a publié"
 msgid "%(user)s published a new page titled %(page)s"
 msgstr "%(user)s a publié une nouvelle page intitulée %(page)s"
 
+#, python-format
+msgid "%(user)s edited %(post_desc)s (suggested edit approved by %(reviewer)s)"
+msgstr "%(user)s a modifié %(post_desc)s (modification suggérée approuvée par %(reviewer)s)"
+
+msgid "rejected a suggested edit"
+msgstr "a refusé une modification suggérée"
+
+#, python-format
+msgid "%(user)s rejected an edit suggested by %(author)s to %(post_desc)s: %(reason)s"
+msgstr "%(user)s a refusé une modification suggérée par %(author)s pour %(post_desc)s : %(reason)s"
+
+msgid "someone"
+msgstr "quelqu'un"
+
 msgid "renamed a tag"
 msgstr "a renommé une étiquette"
 
@@ -684,6 +698,12 @@ msgstr "Message approuvé"
 msgid "Post removed"
 msgstr "Message retiré"
 
+msgid "Suggested edit approved"
+msgstr "Modification suggérée approuvée"
+
+msgid "Suggested edit rejected"
+msgstr "Modification suggérée refusée"
+
 msgid "New question"
 msgstr "Nouvelle question"
 
@@ -705,6 +725,18 @@ msgstr " [doublon]"
 
 msgid "[closed] "
 msgstr "[fermé] "
+
+msgid "Waiting for review"
+msgstr "En attente de vérification"
+
+msgid "Approved"
+msgstr "Approuvée"
+
+msgid "Rejected"
+msgstr "Refusée"
+
+msgid "Superseded"
+msgstr "Remplacée"
 
 msgid "interesting"
 msgstr "intéressantes"
@@ -744,6 +776,9 @@ msgstr "modifier le profil"
 
 msgid "authentication settings"
 msgstr "paramètres d'authentification"
+
+msgid "passkeys and two-step verification"
+msgstr "clés d'accès et validation en deux étapes"
 
 msgid "email notification settings"
 msgstr "paramètres des notifications par e-mail"
@@ -1347,6 +1382,18 @@ msgstr "Vérifier aussi les messages des membres sous cette réputation"
 msgid "Every post by a member with less reputation than this is reviewed, however many posts they have. 0 turns this off."
 msgstr "Tous les messages d'un membre ayant moins de réputation que cela sont vérifiés, quel que soit leur nombre. 0 désactive cette option."
 
+msgid "Suggested edits"
+msgstr "Modifications suggérées"
+
+msgid "Members who can't edit others' posts yet (see the minimum reputation to edit others posts) may suggest an edit instead. Members who can edit others' posts and moderators review the suggestions."
+msgstr "Les membres qui ne peuvent pas encore modifier les messages des autres (voir la réputation minimale pour modifier les messages des autres) peuvent suggérer une modification. Les membres qui le peuvent et les modérateurs examinent les suggestions."
+
+msgid "Suggested edits per member per day"
+msgstr "Modifications suggérées par membre et par jour"
+
+msgid "How many edits a member may suggest in 24 hours. 0 for no limit."
+msgstr "Nombre de modifications qu'un membre peut suggérer en 24 heures. 0 pour aucune limite."
+
 msgid "Reputation gains and losses config"
 msgstr "Configuration des gains et pertes de réputation"
 
@@ -1419,6 +1466,18 @@ msgstr "Perte de réputation par publication signalée et supprimée"
 msgid "Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to delete the post."
 msgstr "Réputation perdue par un utilisateur lorsque la dernière révision d'une de ses publications est signalée suffisamment de fois pour supprimer la publication."
 
+msgid "Rep gain by approved suggested edit"
+msgstr "Réputation gagnée par modification suggérée approuvée"
+
+msgid "Reputation a user gains when an edit they suggested is approved."
+msgstr "Réputation gagnée par un utilisateur quand une modification qu'il a suggérée est approuvée."
+
+msgid "Max rep by suggested edits"
+msgstr "Réputation maximale par modifications suggérées"
+
+msgid "Most reputation a user can gain in all from approved suggested edits. 0 for no limit."
+msgstr "Réputation maximale qu'un utilisateur peut gagner au total grâce aux modifications suggérées approuvées. 0 pour aucune limite."
+
 msgid "Security"
 msgstr "Sécurité"
 
@@ -1460,6 +1519,12 @@ msgstr "Sources de scripts supplémentaires"
 
 msgid "The Content-Security-Policy header only lets the browser load scripts, styles and frames from this site and the Google services OSQA uses. If you add analytics or widgets in the custom <head> or footer, list their origins here, separated by spaces (e.g. https://plausible.io). Blocked items are written to the security log."
 msgstr "L'en-tête Content-Security-Policy n'autorise le navigateur à charger des scripts, styles et cadres que depuis ce site et les services Google utilisés par OSQA. Si vous ajoutez des outils d'analyse ou des widgets dans le <head> personnalisé ou le pied de page, indiquez ici leurs origines, séparées par des espaces (par ex. https://plausible.io). Les éléments bloqués sont consignés dans le journal de sécurité."
+
+msgid "Require two-step verification for staff"
+msgstr "Exiger la validation en deux étapes pour l'équipe"
+
+msgid "Moderators and administrators who have not turned on two-step verification (an authenticator app) and did not sign in with a passkey are sent to set it up when they open an admin page."
+msgstr "Les modérateurs et administrateurs qui n'ont pas activé la validation en deux étapes (une application d'authentification) et ne se sont pas connectés avec une clé d'accès sont invités à la configurer en ouvrant une page d'administration."
 
 msgid "Show the Welcome box"
 msgstr "Afficher la boîte de bienvenue"
@@ -2109,6 +2174,12 @@ msgstr "Changer le mot de passe"
 msgid "Give your  account a new password."
 msgstr "Attribuez un nouveau mot de passe à votre compte."
 
+msgid "Suggest an edit"
+msgstr "Suggérer une modification"
+
+msgid "Improve a suggested edit"
+msgstr "Améliorer une modification suggérée"
+
 msgid "Edit answer"
 msgstr "Modifier la réponse"
 
@@ -2118,9 +2189,25 @@ msgstr "Votre réponse"
 msgid "Your edits aren't saved yet. Please check:"
 msgstr "Vos modifications ne sont pas encore enregistrées. Vérifiez :"
 
+msgid "Your edit will be reviewed"
+msgstr "Votre modification sera examinée"
+
+msgid "A member who can edit others' posts checks your changes first: they appear on the post once approved, and you get a notification either way. Describe what you changed in the edit summary."
+msgstr "Un membre qui peut modifier les messages des autres vérifie d'abord vos changements : ils apparaissent sur le message une fois approuvés, et vous recevez une notification dans tous les cas. Décrivez ce que vous avez changé dans le résumé de modification."
+
+#, python-format
+msgid "You are improving an edit suggested by %(author)s. Saving approves their edit (credited to them) and then saves your changes as a revision of your own."
+msgstr "Vous améliorez une modification suggérée par %(author)s. Enregistrer approuve sa modification (qui lui est attribuée), puis enregistre vos changements comme votre propre révision."
+
 #, python-format
 msgid "You are editing a post by %(author)s. Your changes will be shown in its revision history."
 msgstr "Vous modifiez un message de %(author)s. Vos modifications apparaîtront dans son historique des révisions."
+
+msgid "Suggest edit"
+msgstr "Suggérer la modification"
+
+msgid "Approve with my changes"
+msgstr "Approuver avec mes changements"
 
 msgid "Save edits"
 msgstr "Enregistrer les modifications"
@@ -2354,6 +2441,9 @@ msgstr "Confirmez qu'il s'agit bien de votre adresse e-mail, pour que %(app_name
 msgid "Confirm your email"
 msgstr "Confirmer votre e-mail"
 
+msgid "Sign in with a passkey"
+msgstr "Se connecter avec une clé d'accès"
+
 msgid "Show password"
 msgstr "Afficher le mot de passe"
 
@@ -2425,6 +2515,27 @@ msgstr "Vous vous en souvenez ?"
 
 msgid "Back to sign in"
 msgstr "Retour à la connexion"
+
+msgid "Two-step verification"
+msgstr "Validation en deux étapes"
+
+msgid "Open your authenticator app and enter the 6-digit code it shows for this site."
+msgstr "Ouvrez votre application d'authentification et saisissez le code à 6 chiffres affiché pour ce site."
+
+msgid "Verification code"
+msgstr "Code de validation"
+
+msgid "Verify"
+msgstr "Valider"
+
+msgid "Can't use your app?"
+msgstr "Vous ne pouvez pas utiliser votre application ?"
+
+msgid "Enter one of your recovery codes in the field above instead (for example abcd-efgh-jkmn). Each code works once."
+msgstr "Saisissez plutôt l'un de vos codes de récupération dans le champ ci-dessus (par exemple abcd-efgh-jkmn). Chaque code ne fonctionne qu'une fois."
+
+msgid "Lost your phone and your recovery codes? Contact the site administrators."
+msgstr "Vous avez perdu votre téléphone et vos codes de récupération ? Contactez les administrateurs du site."
 
 #, python-format
 msgid "%(prefix)s Welcome to %(app_name)s"
@@ -2598,6 +2709,19 @@ msgstr "Rien à prévisualiser pour l'instant."
 msgid "Revision"
 msgstr "Révision"
 
+msgid "This post was changed while you were editing it"
+msgstr "Ce message a été modifié pendant que vous le modifiiez"
+
+#, python-format
+msgid "%(who)s saved revision %(number)s after you opened this page. Nothing was saved: your text is kept below."
+msgstr "%(who)s a enregistré la révision %(number)s après l'ouverture de cette page. Rien n'a été enregistré : votre texte est conservé ci-dessous."
+
+msgid "Compare the revisions (opens in a new tab)"
+msgstr "Comparer les révisions (s'ouvre dans un nouvel onglet)"
+
+msgid "Saving again replaces their version with yours."
+msgstr "Enregistrer à nouveau remplace sa version par la vôtre."
+
 msgid "Start from an earlier version of the post; saving it unchanged rolls the post back."
 msgstr "Partez d'une version précédente du message ; l'enregistrer sans modification rétablit cette version."
 
@@ -2627,6 +2751,70 @@ msgstr "Étiquette %%s retirée"
 
 msgid "Selected tags"
 msgstr "Étiquettes choisies"
+
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
+
+msgid "Anywhere"
+msgstr "Partout"
+
+msgid "Show this list"
+msgstr "Afficher cette liste"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Go to the home page"
+msgstr "Aller à l'accueil"
+
+msgid "Go to the questions"
+msgstr "Aller aux questions"
+
+msgid "Go to the tags"
+msgstr "Aller aux étiquettes"
+
+msgid "Go to the users"
+msgstr "Aller aux utilisateurs"
+
+msgid "Go to your notifications"
+msgstr "Aller à vos notifications"
+
+msgid "Lists of questions"
+msgstr "Listes de questions"
+
+msgid "Next or previous question"
+msgstr "Question suivante ou précédente"
+
+msgid "Open the question"
+msgstr "Ouvrir la question"
+
+msgid "Question pages"
+msgstr "Pages de question"
+
+msgid "Next or previous post"
+msgstr "Message suivant ou précédent"
+
+msgid "Vote the post up or down"
+msgstr "Voter pour ou contre le message"
+
+msgid "Shortcuts never apply while you type in a text field."
+msgstr "Les raccourcis ne s'appliquent jamais pendant la saisie dans un champ de texte."
+
+#, python-format
+msgid "You can turn them off in <a href=\"%(preferences_url)s\">your preferences</a>."
+msgstr "Vous pouvez les désactiver dans <a href=\"%(preferences_url)s\">vos préférences</a>."
+
+msgid "Members can turn them off in their preferences."
+msgstr "Les membres peuvent les désactiver dans leurs préférences."
+
+msgid "Theme"
+msgstr "Thème"
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Change"
+msgstr "Changer"
 
 msgid "Email notifications"
 msgstr "Notifications par e-mail"
@@ -2791,9 +2979,6 @@ msgstr "Réponse de %(author)s"
 msgid "Language"
 msgstr "Langue"
 
-msgid "Change"
-msgstr "Changer"
-
 msgid "Powered by the <a href=\"https://github.com/openforis/osqa\">Open Foris edition of OSQA</a>"
 msgstr "Propulsé par l'<a href=\"https://github.com/openforis/osqa\">édition Open Foris d'OSQA</a>"
 
@@ -2822,9 +3007,6 @@ msgstr "1 suggestion"
 #, python-brace-format
 msgid "{count} suggestions"
 msgstr "{count} suggestions"
-
-msgid "Search"
-msgstr "Rechercher"
 
 msgid "Search questions, tags and people"
 msgstr "Rechercher des questions, étiquettes et personnes"
@@ -2890,6 +3072,14 @@ msgstr "Un modérateur a approuvé votre message dans <em>%(title)s</em> : il es
 #, python-format
 msgid "A moderator removed your post in <em>%(title)s</em>"
 msgstr "Un modérateur a retiré votre message dans <em>%(title)s</em>"
+
+#, python-format
+msgid "<strong>%(actor)s</strong> approved the edit you suggested to <em>%(title)s</em>"
+msgstr "<strong>%(actor)s</strong> a approuvé la modification que vous avez suggérée pour <em>%(title)s</em>"
+
+#, python-format
+msgid "<strong>%(actor)s</strong> rejected the edit you suggested to <em>%(title)s</em>: %(reason)s"
+msgstr "<strong>%(actor)s</strong> a refusé la modification que vous avez suggérée pour <em>%(title)s</em> : %(reason)s"
 
 #, python-format
 msgid "Your question <em>%(title)s</em> has answers. If one solved it, accept it so others know."
@@ -3113,6 +3303,13 @@ msgid "Remove suggestion"
 msgstr "Retirer la suggestion"
 
 #, python-format
+msgid "Answer by %(name)s"
+msgstr "Réponse de %(name)s"
+
+msgid "Accepted answer"
+msgstr "Réponse acceptée"
+
+#, python-format
 msgid ""
 "\n"
 "    If you like this answer you can award %(awarded_user)s with reputation points.\n"
@@ -3152,6 +3349,27 @@ msgstr "Conserver les réponses sur cette question"
 msgid "Move the answers to the original question"
 msgstr "Déplacer les réponses vers la question d'origine"
 
+msgid "likes"
+msgstr "j'aime"
+
+msgid "Like"
+msgstr "J'aime"
+
+msgid "I like this comment (click again to cancel)"
+msgstr "J'aime ce commentaire (cliquez à nouveau pour annuler)"
+
+msgid "Edit comment"
+msgstr "Modifier le commentaire"
+
+msgid "Delete comment"
+msgstr "Supprimer le commentaire"
+
+msgid "Convert comment to answer"
+msgstr "Convertir le commentaire en réponse"
+
+msgid "Convert comment to question"
+msgstr "Convertir le commentaire en question"
+
 msgid "Your comment"
 msgstr "Votre commentaire"
 
@@ -3172,30 +3390,6 @@ msgstr "Utiliser un commentaire prédéfini"
 
 msgid "just now"
 msgstr "à l'instant"
-
-msgid "Edit comment"
-msgstr "Modifier le commentaire"
-
-msgid "Delete comment"
-msgstr "Supprimer le commentaire"
-
-msgid "Convert comment to answer"
-msgstr "Convertir le commentaire en réponse"
-
-msgid "likes"
-msgstr "j'aime"
-
-msgid "Waiting for review"
-msgstr "En attente de vérification"
-
-msgid "Like"
-msgstr "J'aime"
-
-msgid "I like this comment (click again to cancel)"
-msgstr "J'aime ce commentaire (cliquez à nouveau pour annuler)"
-
-msgid "Convert comment to question"
-msgstr "Convertir le commentaire en question"
 
 #, python-format
 msgid "showing %(showing)s of %(total)s"
@@ -3238,6 +3432,10 @@ msgstr "Lien permanent"
 
 msgid "more"
 msgstr "plus"
+
+#, python-format
+msgid "see questions tagged '%(tagname)s'"
+msgstr "voir les questions étiquetées « %(tagname)s »"
 
 msgid "Only its author and moderators can see this post until it is approved."
 msgstr "Seuls son auteur et les modérateurs voient ce message jusqu'à son approbation."
@@ -3341,6 +3539,14 @@ msgstr "Posée par %(actor)s, étiquettes %(tags)s"
 #, python-format
 msgid "Asked by %(actor)s"
 msgstr "Posée par %(actor)s"
+
+#, python-format
+msgid "%(actor)s approved the edit you suggested."
+msgstr "%(actor)s a approuvé la modification que vous avez suggérée."
+
+#, python-format
+msgid "%(actor)s rejected the edit you suggested."
+msgstr "%(actor)s a refusé la modification que vous avez suggérée."
 
 #, python-format
 msgid "%(prefix)s Did an answer solve \"%(question_title)s\"?"
@@ -3590,6 +3796,36 @@ msgstr "Voir votre message"
 #, python-format
 msgid "A moderator reviewed your post in \"%(question_title)s\" and removed it, so it won't be published. Please read the %(rules_link)s before posting again."
 msgstr "Un modérateur a vérifié votre message dans « %(question_title)s » et l'a retiré : il ne sera pas publié. Veuillez lire les %(rules_link)s avant de publier à nouveau."
+
+#, python-format
+msgid "%(prefix)s Your edit was approved: %(question_title)s"
+msgstr "%(prefix)s Votre modification a été approuvée : %(question_title)s"
+
+#, python-format
+msgid "%(reviewer_name)s approved the edit you suggested. Thanks for improving the post!"
+msgstr "%(reviewer_name)s a approuvé la modification que vous avez suggérée. Merci d'avoir amélioré le message !"
+
+#, python-format
+msgid "%(prefix)s Your edit was not approved: %(question_title)s"
+msgstr "%(prefix)s Votre modification n'a pas été approuvée : %(question_title)s"
+
+#, python-format
+msgid "%(reviewer_name)s reviewed the edit you suggested and rejected it."
+msgstr "%(reviewer_name)s a examiné la modification que vous avez suggérée et l'a refusée."
+
+#, python-format
+msgid "Good news: %(reviewer_name)s approved the edit you suggested to %(question_link)s. It is now part of the post, credited to you in its revision history."
+msgstr "Bonne nouvelle : %(reviewer_name)s a approuvé la modification que vous avez suggérée pour %(question_link)s. Elle fait maintenant partie du message et vous est attribuée dans l'historique des révisions."
+
+msgid "View the post"
+msgstr "Voir le message"
+
+#, python-format
+msgid "%(reviewer_name)s reviewed the edit you suggested to %(question_link)s and rejected it, for this reason: %(reason_text)s"
+msgstr "%(reviewer_name)s a examiné la modification que vous avez suggérée pour %(question_link)s et l'a refusée pour cette raison : %(reason_text)s"
+
+msgid "Edits that fix mistakes, make the post clearer or add missing details are the most likely to be approved."
+msgstr "Les modifications qui corrigent des erreurs, clarifient le message ou ajoutent des détails manquants ont le plus de chances d'être approuvées."
 
 #, python-format
 msgid "%(prefix)s Your weekly summary: %(counter)s update"
@@ -3958,6 +4194,19 @@ msgstr "Suspendre le compte"
 
 msgid "Delete account"
 msgstr "Supprimer le compte"
+
+msgid "Deleted post"
+msgstr "Message supprimé"
+
+msgid "Conflicts with a later edit"
+msgstr "En conflit avec une modification ultérieure"
+
+msgid "Edit summary:"
+msgstr "Résumé de modification :"
+
+#, python-format
+msgid "suggested by %(name)s"
+msgstr "suggérée par %(name)s"
 
 msgid "Nothing is waiting for a moderator. Well done!"
 msgstr "Rien n'attend de modérateur. Bravo !"
@@ -4460,10 +4709,6 @@ msgid "The question has been closed for the following reason \"%(close_reason)s\
 msgstr "La question a été fermée pour le motif suivant « %(close_reason)s » par"
 
 #, python-format
-msgid "see questions tagged '%(tagname)s'"
-msgstr "voir les questions étiquetées « %(tagname)s »"
-
-#, python-format
 msgid "%(counter)s Answer"
 msgid_plural "%(counter)s Answers"
 msgstr[0] "%(counter)s réponse"
@@ -4495,13 +4740,6 @@ msgstr "Plus anciennes"
 
 msgid "most recently updated answers/comments will be shown first"
 msgstr "les réponses/commentaires mis à jour le plus récemment seront affichés en premier"
-
-#, python-format
-msgid "Answer by %(name)s"
-msgstr "Réponse de %(name)s"
-
-msgid "Accepted answer"
-msgstr "Réponse acceptée"
 
 msgid "Be the first one to answer this question!"
 msgstr "Soyez le premier à répondre à cette question !"
@@ -4866,6 +5104,68 @@ msgstr "s'abonner aux commentaires et aux réponses"
 msgid "Answers and Comments"
 msgstr "Réponses et commentaires"
 
+msgid "Improve"
+msgstr "Améliorer"
+
+msgid "Reject"
+msgstr "Refuser"
+
+msgid "Why do you reject this edit?"
+msgstr "Pourquoi refusez-vous cette modification ?"
+
+#, python-format
+msgid "A word for %(name)s (optional, required for another reason)"
+msgstr "Un mot pour %(name)s (facultatif, obligatoire pour une autre raison)"
+
+msgid "Reject edit"
+msgstr "Refuser la modification"
+
+#, python-format
+msgid "Review suggested edits: %(counter)s waiting"
+msgid_plural "Review suggested edits: %(counter)s waiting"
+msgstr[0] "Examiner les modifications suggérées : %(counter)s en attente"
+msgstr[1] "Examiner les modifications suggérées : %(counter)s en attente"
+
+msgid "review edits"
+msgstr "examiner les modifications"
+
+msgid "Review suggested edits"
+msgstr "Examiner les modifications suggérées"
+
+msgid "Members who can't edit others' posts yet suggest these edits. Approve the ones that make the post clearer or more useful (they are credited to their author), improve them, or reject them with a reason. The diff shows removed text struck through and added text underlined."
+msgstr "Ces modifications sont suggérées par des membres qui ne peuvent pas encore modifier les messages des autres. Approuvez celles qui rendent le message plus clair ou plus utile (elles sont attribuées à leur auteur), améliorez-les ou refusez-les avec une raison. La comparaison montre le texte supprimé barré et le texte ajouté souligné."
+
+msgid "Suggesting edits is turned off: no new suggestions arrive."
+msgstr "Les modifications suggérées sont désactivées : aucune nouvelle suggestion n'arrive."
+
+msgid "Undo the last review"
+msgstr "Annuler le dernier examen"
+
+#, python-format
+msgid "%(counter)s edit waiting for review"
+msgid_plural "%(counter)s edits waiting for review"
+msgstr[0] "%(counter)s modification en attente d'examen"
+msgstr[1] "%(counter)s modifications en attente d'examen"
+
+#, python-format
+msgid "Suggested by <a href=\"%(url)s\">%(name)s</a>"
+msgstr "Suggérée par <a href=\"%(url)s\">%(name)s</a>"
+
+msgid "The post was edited after this suggestion in a way that conflicts with it: approving it will mark it as superseded."
+msgstr "Le message a été modifié après cette suggestion d'une manière qui entre en conflit avec elle : l'approuver la marquera comme remplacée."
+
+msgid "The post was edited after this suggestion; approving it keeps those changes."
+msgstr "Le message a été modifié après cette suggestion ; l'approuver conserve ces changements."
+
+#, python-format
+msgid "Showing the oldest of %(counter)s suggestions."
+msgid_plural "Showing the oldest of %(counter)s suggestions."
+msgstr[0] "Affichage de la plus ancienne des %(counter)s suggestions."
+msgstr[1] "Affichage de la plus ancienne des %(counter)s suggestions."
+
+msgid "No suggested edits are waiting for review. Thanks for checking!"
+msgstr "Aucune modification suggérée n'attend d'examen. Merci d'avoir vérifié !"
+
 #, python-format
 msgid "Manage tag %(name)s"
 msgstr "Gérer l'étiquette %(name)s"
@@ -5222,6 +5522,12 @@ msgstr "Navigation"
 msgid "Always remember the sort order I apply to the lists I view"
 msgstr "Toujours mémoriser l'ordre de tri que j'applique aux listes que je consulte"
 
+msgid "Keyboard"
+msgstr "Clavier"
+
+msgid "Use keyboard shortcuts (press ? on any page to see them)"
+msgstr "Utiliser les raccourcis clavier (appuyez sur ? sur n'importe quelle page pour les voir)"
+
 msgid "Favorite questions"
 msgstr "Questions favorites"
 
@@ -5239,6 +5545,21 @@ msgstr "Pas encore de questions favorites."
 
 msgid "No activity yet."
 msgstr "Pas encore d'activité."
+
+msgid "Your recovery codes"
+msgstr "Vos codes de récupération"
+
+msgid "Two-step verification is on."
+msgstr "La validation en deux étapes est activée."
+
+msgid "Save your recovery codes"
+msgstr "Enregistrez vos codes de récupération"
+
+msgid "If you lose your phone, each of these codes signs you in once instead of a code from the app. Keep them somewhere safe, like a password manager, or print them. They are shown only now."
+msgstr "Si vous perdez votre téléphone, chacun de ces codes vous connecte une fois à la place d'un code de l'application. Conservez-les en lieu sûr, comme un gestionnaire de mots de passe, ou imprimez-les. Ils ne sont affichés que maintenant."
+
+msgid "I have saved them"
+msgstr "Je les ai enregistrés"
 
 msgid "Public message"
 msgstr "Message public"
@@ -5260,6 +5581,105 @@ msgstr "Derniers changements"
 
 msgid "Reputation comes from votes on your posts, accepted answers and badges."
 msgstr "La réputation vient des votes sur vos messages, des réponses acceptées et des badges."
+
+msgid "Passkeys and two-step verification"
+msgstr "Clés d'accès et validation en deux étapes"
+
+msgid "Two-step verification is required for moderators and administrators."
+msgstr "La validation en deux étapes est obligatoire pour les modérateurs et administrateurs."
+
+msgid "Set up an authenticator app below (or sign in with a passkey) to use the admin pages."
+msgstr "Configurez une application d'authentification ci-dessous (ou connectez-vous avec une clé d'accès) pour utiliser les pages d'administration."
+
+msgid "Passkeys"
+msgstr "Clés d'accès"
+
+msgid "Sign in with your fingerprint, face, screen lock or a security key instead of a password. Passkeys can't be guessed or phished, and signing in with one counts as two-step verification."
+msgstr "Connectez-vous avec votre empreinte, votre visage, le verrouillage de l'écran ou une clé de sécurité au lieu d'un mot de passe. Les clés d'accès ne peuvent être ni devinées ni hameçonnées, et se connecter avec l'une d'elles compte comme une validation en deux étapes."
+
+#, python-format
+msgid "Added %(added)s"
+msgstr "Ajoutée %(added)s"
+
+#, python-format
+msgid "last used %(used)s"
+msgstr "dernière utilisation %(used)s"
+
+msgid "never used"
+msgstr "jamais utilisée"
+
+#, python-format
+msgid "Remove the passkey &quot;%(name)s&quot;? You won't be able to sign in with it any more."
+msgstr "Retirer la clé d'accès « %(name)s » ? Vous ne pourrez plus vous connecter avec."
+
+msgid "No passkeys yet."
+msgstr "Pas encore de clé d'accès."
+
+msgid "This passkey is already registered."
+msgstr "Cette clé d'accès est déjà enregistrée."
+
+msgid "Name of the new passkey"
+msgstr "Nom de la nouvelle clé d'accès"
+
+msgid "So you can tell your passkeys apart, e.g. “Work laptop” or “Phone”."
+msgstr "Pour distinguer vos clés d'accès, p. ex. « Ordinateur du travail » ou « Téléphone »."
+
+msgid "Add a passkey"
+msgstr "Ajouter une clé d'accès"
+
+msgid "This browser can't create passkeys. Try a current version of Chrome, Edge, Firefox or Safari."
+msgstr "Ce navigateur ne peut pas créer de clés d'accès. Essayez une version récente de Chrome, Edge, Firefox ou Safari."
+
+msgid "On"
+msgstr "Activée"
+
+msgid "Off"
+msgstr "Désactivée"
+
+msgid "After your password (or another sign-in service), you enter a code from your authenticator app."
+msgstr "Après votre mot de passe (ou un autre service de connexion), vous saisissez un code de votre application d'authentification."
+
+msgid "Recovery codes"
+msgstr "Codes de récupération"
+
+#, python-format
+msgid "%(left)s code left"
+msgid_plural "%(left)s codes left"
+msgstr[0] "%(left)s code restant"
+msgstr[1] "%(left)s codes restants"
+
+msgid "Make new recovery codes"
+msgstr "Créer de nouveaux codes de récupération"
+
+msgid "Your old codes stop working. Confirm with a code from your app or your password."
+msgstr "Vos anciens codes cesseront de fonctionner. Confirmez avec un code de votre application ou votre mot de passe."
+
+msgid "Make new codes"
+msgstr "Créer de nouveaux codes"
+
+msgid "Turn off two-step verification"
+msgstr "Désactiver la validation en deux étapes"
+
+msgid "Signing in will only need your password again. Confirm with a code from your app or your password."
+msgstr "La connexion ne demandera plus que votre mot de passe. Confirmez avec un code de votre application ou votre mot de passe."
+
+msgid "Turn off"
+msgstr "Désactiver"
+
+msgid "Turn off two-step verification for this member?"
+msgstr "Désactiver la validation en deux étapes pour ce membre ?"
+
+msgid "Protect your account even if someone learns your password: after signing in, you also enter a code from an authenticator app on your phone (such as Google Authenticator, Microsoft Authenticator, 1Password or Aegis)."
+msgstr "Protégez votre compte même si quelqu'un connaît votre mot de passe : après la connexion, vous saisissez aussi un code d'une application d'authentification sur votre téléphone (comme Google Authenticator, Microsoft Authenticator, 1Password ou Aegis)."
+
+msgid "Set up an authenticator app"
+msgstr "Configurer une application d'authentification"
+
+msgid "Code from your app"
+msgstr "Code de votre application"
+
+msgid "or your password"
+msgstr "ou votre mot de passe"
 
 msgid "Back to your profile"
 msgstr "Retour à votre profil"
@@ -5562,6 +5982,30 @@ msgstr "Si ce champ est renseigné, seul l'utilisateur suspendu verra ce message
 msgid "Profile sections"
 msgstr "Sections du profil"
 
+msgid "Set up two-step verification"
+msgstr "Configurer la validation en deux étapes"
+
+msgid "Scan the QR code"
+msgstr "Scannez le code QR"
+
+msgid "Open your authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, Aegis…), choose to add an account and scan this code."
+msgstr "Ouvrez votre application d'authentification (Google Authenticator, Microsoft Authenticator, 1Password, Aegis…), choisissez d'ajouter un compte et scannez ce code."
+
+msgid "Can't scan it? Enter this key in the app instead (time-based):"
+msgstr "Impossible de le scanner ? Saisissez plutôt cette clé dans l'application (basée sur le temps) :"
+
+msgid "Open in an authenticator app on this device"
+msgstr "Ouvrir dans une application d'authentification sur cet appareil"
+
+msgid "Enter the code from the app"
+msgstr "Saisissez le code de l'application"
+
+msgid "6-digit code"
+msgstr "Code à 6 chiffres"
+
+msgid "Turn on two-step verification"
+msgstr "Activer la validation en deux étapes"
+
 msgid "Users"
 msgstr "Utilisateurs"
 
@@ -5607,6 +6051,18 @@ msgstr "Votez pour les questions et réponses qui vous aident : elles remontent 
 
 msgid "No votes yet."
 msgstr "Pas encore de votes."
+
+msgctxt "theme"
+msgid "System"
+msgstr "Système"
+
+msgctxt "theme"
+msgid "Light"
+msgstr "Clair"
+
+msgctxt "theme"
+msgid "Dark"
+msgstr "Sombre"
 
 msgid "reputation points"
 msgstr "points de réputation"
@@ -5671,6 +6127,36 @@ msgid_plural "%(sec)d "
 msgstr[0] "%(sec)d "
 msgstr[1] "%(sec)d "
 
+#, python-format
+msgid "%(count)s new answer"
+msgid_plural "%(count)s new answers"
+msgstr[0] "%(count)s nouvelle réponse"
+msgstr[1] "%(count)s nouvelles réponses"
+
+#, python-format
+msgid "%(count)s edited post"
+msgid_plural "%(count)s edited posts"
+msgstr[0] "%(count)s message modifié"
+msgstr[1] "%(count)s messages modifiés"
+
+#, python-format
+msgid "%(count)s new comment"
+msgid_plural "%(count)s new comments"
+msgstr[0] "%(count)s nouveau commentaire"
+msgstr[1] "%(count)s nouveaux commentaires"
+
+msgid "Show the new and edited posts"
+msgstr "Afficher les messages nouveaux et modifiés"
+
+msgid "A new answer was posted while you were writing."
+msgstr "Une nouvelle réponse a été publiée pendant que vous écriviez."
+
+msgid "Read it"
+msgstr "La lire"
+
+msgid "The new posts are shown."
+msgstr "Les nouveaux messages sont affichés."
+
 msgid "permanent link"
 msgstr "lien permanent"
 
@@ -5683,6 +6169,18 @@ msgstr "attribuer des points"
 #, python-format
 msgid "award points to %s"
 msgstr "attribuer des points à %s"
+
+msgid "edit pending"
+msgstr "modification en attente"
+
+msgid "An edit is waiting for review"
+msgstr "Une modification attend d'être examinée"
+
+msgid "suggest an edit"
+msgstr "suggérer une modification"
+
+msgid "Suggest an edit: a reviewer checks it before it appears"
+msgstr "Suggérer une modification : un relecteur la vérifie avant qu'elle n'apparaisse"
 
 msgid "retag"
 msgstr "réétiqueter"
@@ -5771,6 +6269,9 @@ msgstr "Réponses acceptées"
 msgid "New questions"
 msgstr "Nouvelles questions"
 
+msgid "Your suggested edits"
+msgstr "Vos modifications suggérées"
+
 msgid "A separate email for each answer, comment or new question, as soon as it's posted."
 msgstr "Un e-mail par réponse, commentaire ou nouvelle question, dès sa publication."
 
@@ -5819,6 +6320,12 @@ msgstr "Message vérifié"
 
 msgid "New members whose post waited for review, when a moderator approves or removes it."
 msgstr "Les nouveaux membres dont le message attendait une vérification, quand un modérateur l'approuve ou le retire."
+
+msgid "Suggested edit reviewed"
+msgstr "Modification suggérée examinée"
+
+msgid "Members who suggested an edit, when a reviewer approves or rejects it."
+msgstr "Membres ayant suggéré une modification, quand un relecteur l'approuve ou la refuse."
 
 msgid "Accept reminder"
 msgstr "Rappel d'acceptation"
@@ -5889,6 +6396,9 @@ msgstr "Un modérateur approuve ou retire mon message"
 msgid "Reminders to accept an answer"
 msgstr "Rappels pour accepter une réponse"
 
+msgid "A reviewer approves or rejects an edit I suggested"
+msgstr "Un relecteur approuve ou refuse une modification que j'ai suggérée"
+
 #, python-format
 msgid "%(user)s answered your question"
 msgstr "%(user)s a répondu à votre question"
@@ -5922,6 +6432,14 @@ msgstr "Un modérateur a retiré votre message"
 msgid "Did an answer solve your question?"
 msgstr "Une réponse a-t-elle résolu votre question ?"
 
+#, python-format
+msgid "%(user)s approved your suggested edit"
+msgstr "%(user)s a approuvé votre modification suggérée"
+
+#, python-format
+msgid "%(user)s rejected your suggested edit"
+msgstr "%(user)s a refusé votre modification suggérée"
+
 msgid "New notification"
 msgstr "Nouvelle notification"
 
@@ -5931,6 +6449,28 @@ msgstr "%(browser)s sur %(system)s"
 
 msgid "Thanks! Your post will appear once a moderator has reviewed it."
 msgstr "Merci ! Votre message apparaîtra après la vérification d'un modérateur."
+
+msgid "It doesn't make the post easier to read or more useful"
+msgstr "Elle ne rend pas le message plus lisible ni plus utile"
+
+msgid "It changes what the author meant"
+msgstr "Elle change ce que l'auteur voulait dire"
+
+msgid "It damages the post (spam, vandalism or nonsense)"
+msgstr "Elle abîme le message (spam, vandalisme ou texte absurde)"
+
+msgid "It should have been a comment or an answer"
+msgstr "Cela aurait dû être un commentaire ou une réponse"
+
+msgid "Another reason (explained below)"
+msgstr "Une autre raison (expliquée ci-dessous)"
+
+msgid "The post was edited in the meantime"
+msgstr "Le message a été modifié entre-temps"
+
+#, python-format
+msgid "%(summary)s (suggested edit approved by %(reviewer)s)"
+msgstr "%(summary)s (modification suggérée approuvée par %(reviewer)s)"
 
 msgid "Enter a valid tag name."
 msgstr "Saisissez un nom d'étiquette valide."
@@ -6045,6 +6585,9 @@ msgstr "vous avez choisi un résumé quotidien de l'activité que vous suivez"
 
 msgid "you chose a weekly summary of the activity you follow"
 msgstr "vous avez choisi un résumé hebdomadaire de l'activité que vous suivez"
+
+msgid "you suggested an edit to a post"
+msgstr "vous avez suggéré une modification d'un message"
 
 msgid "You are the only administrator. Make someone else an administrator first."
 msgstr "Vous êtes le seul administrateur. Nommez d'abord quelqu'un d'autre administrateur."
@@ -6622,6 +7165,115 @@ msgid "%(count)d reputation point"
 msgid_plural "%(count)d reputation points"
 msgstr[0] "%(count)d point de réputation"
 msgstr[1] "%(count)d points de réputation"
+
+#, python-format
+msgid "Too many wrong codes. Wait %(minutes)s minutes and try again."
+msgstr "Trop de codes erronés. Attendez %(minutes)s minutes et réessayez."
+
+msgid "That code is not right."
+msgstr "Ce code n'est pas correct."
+
+msgid "That password is not right."
+msgstr "Ce mot de passe n'est pas correct."
+
+msgid "Enter a code from your authenticator app or your password."
+msgstr "Saisissez un code de votre application d'authentification ou votre mot de passe."
+
+msgid "That code is not right. Check that the time on your phone is correct and enter the newest code."
+msgstr "Ce code n'est pas correct. Vérifiez que l'heure de votre téléphone est juste et saisissez le code le plus récent."
+
+msgid "QR code for your authenticator app"
+msgstr "Code QR pour votre application d'authentification"
+
+msgid "Two-step verification is off."
+msgstr "La validation en deux étapes est désactivée."
+
+#, python-format
+msgid "Two-step verification is off for %s."
+msgstr "La validation en deux étapes est désactivée pour %s."
+
+msgid "This request has expired. Please try again."
+msgstr "Cette demande a expiré. Veuillez réessayer."
+
+msgid "You have too many passkeys. Remove one first."
+msgstr "Vous avez trop de clés d'accès. Retirez-en une d'abord."
+
+msgid "This passkey is not registered on this site. Sign in another way and add it on your security page."
+msgstr "Cette clé d'accès n'est pas enregistrée sur ce site. Connectez-vous autrement et ajoutez-la sur votre page de sécurité."
+
+msgid "The passkey could not be verified. Please try again."
+msgstr "La clé d'accès n'a pas pu être vérifiée. Veuillez réessayer."
+
+msgid "Passkey"
+msgstr "Clé d'accès"
+
+msgid "Passkey added. Next time you can sign in with it."
+msgstr "Clé d'accès ajoutée. La prochaine fois, vous pourrez vous connecter avec."
+
+#, python-format
+msgid "The passkey \"%s\" was removed."
+msgstr "La clé d'accès « %s » a été retirée."
+
+msgid "Your sign-in took too long. Please sign in again."
+msgstr "La connexion a pris trop de temps. Veuillez vous reconnecter."
+
+#, python-format
+msgid "You signed in with a recovery code. You have %(left)s left; you can make new ones on your security page."
+msgstr "Vous vous êtes connecté avec un code de récupération. Il vous en reste %(left)s ; vous pouvez en créer de nouveaux sur votre page de sécurité."
+
+msgid "That code is not right. Enter the newest code from your app, or a recovery code."
+msgstr "Ce code n'est pas correct. Saisissez le code le plus récent de votre application, ou un code de récupération."
+
+msgid "Turn on two-step verification to use the admin pages."
+msgstr "Activez la validation en deux étapes pour utiliser les pages d'administration."
+
+msgid "Say what you changed and why (e.g. fixed spelling, added the error message): reviewers read it first."
+msgstr "Dites ce que vous avez changé et pourquoi (p. ex. orthographe corrigée, message d'erreur ajouté) : les relecteurs le lisent en premier."
+
+msgid "An edit to this post is already waiting for review. Please try again once it has been reviewed."
+msgstr "Une modification de ce message attend déjà d'être examinée. Réessayez une fois qu'elle l'aura été."
+
+msgid "You have suggested as many edits as you can in a day. Please come back tomorrow."
+msgstr "Vous avez suggéré autant de modifications que possible pour aujourd'hui. Revenez demain."
+
+msgid "You haven't changed anything yet."
+msgstr "Vous n'avez encore rien changé."
+
+msgid "An edit to this post is already waiting for review."
+msgstr "Une modification de ce message attend déjà d'être examinée."
+
+msgid "Thanks! Your edit will appear on the post once a reviewer has approved it."
+msgstr "Merci ! Votre modification apparaîtra sur le message une fois approuvée par un relecteur."
+
+msgid "This suggested edit has already been reviewed."
+msgstr "Cette modification suggérée a déjà été examinée."
+
+#, python-format
+msgid "The edit is approved and credited to %s."
+msgstr "La modification est approuvée et attribuée à %s."
+
+msgid "The post was edited in the meantime in a way that conflicts with this suggestion, so it can't be applied any more."
+msgstr "Le message a été modifié entre-temps d'une manière qui entre en conflit avec cette suggestion ; elle ne peut plus être appliquée."
+
+msgid "Please choose why you reject this edit."
+msgstr "Veuillez choisir pourquoi vous refusez cette modification."
+
+msgid "Please explain why you reject this edit."
+msgstr "Veuillez expliquer pourquoi vous refusez cette modification."
+
+#, python-format
+msgid "The edit is rejected; %s will be told why."
+msgstr "La modification est refusée ; %s en sera informé avec la raison."
+
+msgid "Improved a suggested edit"
+msgstr "A amélioré une modification suggérée"
+
+#, python-format
+msgid "The edit is approved and credited to %s, with your improvements."
+msgstr "La modification est approuvée et attribuée à %s, avec vos améliorations."
+
+msgid "Undone: the suggested edit is waiting for review again."
+msgstr "Annulé : la modification suggérée attend de nouveau d'être examinée."
 
 msgid "The tag description was saved."
 msgstr "La description de l'étiquette a été enregistrée."

@@ -47,3 +47,11 @@ help_text = _("Reputation a user loses once when one of his posts reaches the \"
 REP_LOST_BY_FLAGGED_5_TIMES = Setting('REP_LOST_BY_FLAGGED_5_TIMES', 100, REP_GAIN_SET, dict(
 label = _("Rep lost by post flagged and deleted"),
 help_text = _("Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to delete the post.")))
+
+REP_GAIN_BY_SUGGESTED_EDIT = Setting('REP_GAIN_BY_SUGGESTED_EDIT', 2, REP_GAIN_SET, dict(
+label = _("Rep gain by approved suggested edit"),
+help_text = _("Reputation a user gains when an edit they suggested is approved.")))
+
+MAX_REP_BY_SUGGESTED_EDITS = Setting('MAX_REP_BY_SUGGESTED_EDITS', 1000, REP_GAIN_SET, dict(
+label = _("Max rep by suggested edits"),
+help_text = _("Most reputation a user can gain in all from approved suggested edits. 0 for no limit.")))

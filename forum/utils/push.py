@@ -51,6 +51,7 @@ PUSH_KINDS = (
     ('badge', _lazy('Badges I earn'), False),
     ('review', _lazy('A moderator approves or removes my post'), False),
     ('reminder', _lazy('Reminders to accept an answer'), False),
+    ('edit', _lazy('A reviewer approves or rejects an edit I suggested'), True),
 )
 KIND_KEYS = tuple(key for key, label, default in PUSH_KINDS)
 DEFAULT_KINDS = tuple(key for key, label, default in PUSH_KINDS if default)
@@ -125,6 +126,8 @@ def kind_of(notification):
             else 'answer_followed'
     if kind in (Notification.APPROVED, Notification.REMOVED):
         return 'review'
+    if kind in (Notification.EDIT_APPROVED, Notification.EDIT_REJECTED):
+        return 'edit'
     return kind
 
 
@@ -166,6 +169,10 @@ def message(notification):
         title = _('A moderator removed your post')
     elif kind == Notification.REMINDER:
         title = _('Did an answer solve your question?')
+    elif kind == Notification.EDIT_APPROVED:
+        title = _('%(user)s approved your suggested edit') % {'user': actor}
+    elif kind == Notification.EDIT_REJECTED:
+        title = _('%(user)s rejected your suggested edit') % {'user': actor}
     else:
         title = _('New notification')
     body = question.title if question is not None else settings.APP_SHORT_NAME

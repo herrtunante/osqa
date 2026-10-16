@@ -25,6 +25,7 @@ from forum.utils import html
 from forum.utils.images import process_image, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils import review
+from forum.utils import live
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
@@ -187,6 +188,7 @@ def _retag_question(request, question):
 
 def _edit_question(request, question, template='question_edit.html', summary='', action_class=ReviseAction,
                    allow_rollback=True, url_getter=lambda q: q.get_absolute_url(), additional_context=None):
+    conflict = None  # changed by someone else since the form was opened (forum/utils/live.py)
     if request.method == 'POST':
         revision_form = RevisionForm(question, data=request.POST)
         if revision_form.is_valid():
@@ -199,7 +201,8 @@ def _edit_question(request, question, template='question_edit.html', summary='',
         else:
             form = EditQuestionForm(question, request.user, revision, data=request.POST)
 
-        if not 'select_revision' in request.POST and form.is_valid():
+        if not 'select_revision' in request.POST and form.is_valid() and \
+                not (conflict := live.edit_conflict(request, question, form)):
             if form.has_changed():
                 action = action_class(user=request.user, node=question, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -225,6 +228,7 @@ def _edit_question(request, question, template='question_edit.html', summary='',
         'revision_form': revision_form,
         'form' : form,
     }
+    context.update(live.edit_context(request, question, conflict))
 
     if not (additional_context is None):
         context.update(additional_context)
@@ -241,6 +245,7 @@ def edit_answer(request, id):
     elif not request.user.can_edit_post(answer):
         raise Http404
 
+    conflict = None  # changed by someone else since the form was opened (forum/utils/live.py)
     if request.method == "POST":
         revision_form = RevisionForm(answer, data=request.POST)
         if revision_form.is_valid():
@@ -253,7 +258,8 @@ def edit_answer(request, id):
         else:
             form = EditAnswerForm(answer, request.user, revision, data=request.POST)
 
-        if not 'select_revision' in request.POST and form.is_valid():
+        if not 'select_revision' in request.POST and form.is_valid() and \
+                not (conflict := live.edit_conflict(request, answer, form)):
             if form.has_changed():
                 action = ReviseAction(user=request.user, node=answer, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -275,6 +281,7 @@ def edit_answer(request, id):
                               'answer': answer,
                               'revision_form': revision_form,
                               'form': form,
+                              **live.edit_context(request, answer, conflict),
                               })
 
 def answer(request, id):

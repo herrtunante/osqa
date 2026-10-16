@@ -2,7 +2,7 @@
 <!-- template answer_edit.html -->
 {% load i18n %}
 {% load extra_tags %}
-{% block title %}{% spaceless %}{% trans "Edit answer" %}{% endspaceless %}{% endblock %}
+{% block title %}{% spaceless %}{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit answer" %}{% endif %}{% endspaceless %}{% endblock %}
 {% block forejs %}
         <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
@@ -10,23 +10,32 @@
 
 {% block content %}
 <div id="main-bar" class="headNormal compose-header">
-    <h1>{% trans "Edit answer" %}</h1>
+    <h1>{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit answer" %}{% endif %}</h1>
     <p class="compose-lead"><a href="{{ answer.get_absolute_url }}">{{ answer.question.headline }}</a></p>
 </div>
 <div id="main-body" class="ask-body compose-page">
     <div id="askform">
-        <form id="fmedit" class="compose-form" novalidate data-guard="changed" action="{% url "edit_answer" answer.id %}" method="post">
+        <form id="fmedit" class="compose-form" novalidate data-guard="changed" action="{% if suggesting or improving %}{{ request.path }}{% else %}{% url "edit_answer" answer.id %}{% endif %}" method="post">
             {% csrf_token %}
             {% trans "Your answer" as body_label %}
             {% trans "Your edits aren't saved yet. Please check:" as errors_title %}
             {% include "compose/errors.html" with title=errors_title text_label=body_label %}
-            {% if answer.author_id != request.user.id %}
+            {% if suggesting %}
+            <div class="compose-note suggest-edit-note" role="note">
+                <p class="compose-note-title">{% trans "Your edit will be reviewed" %}</p>
+                <p>{% blocktrans %}A member who can edit others' posts checks your changes first: they appear on the post once approved, and you get a notification either way. Describe what you changed in the edit summary.{% endblocktrans %}</p>
+            </div>
+            {% elif improving %}
+            <div class="compose-note suggest-edit-note" role="note">
+                {% blocktrans with author=improving.author.username %}You are improving an edit suggested by {{ author }}. Saving approves their edit (credited to them) and then saves your changes as a revision of your own.{% endblocktrans %}
+            </div>
+            {% elif answer.author_id != request.user.id %}
             <div class="compose-note" role="note">
                 {% blocktrans with author=answer.author.username %}You are editing a post by {{ author }}. Your changes will be shown in its revision history.{% endblocktrans %}
             </div>
             {% endif %}
 
-            {% include "compose/revision.html" %}
+            {% if revision_form %}{% include "compose/revision.html" %}{% endif %}
 
             
             {% include "compose/editor.html" with label=body_label %}
@@ -43,7 +52,7 @@
             {% endif %}
 
             <div class="compose-actions">
-                <input type="submit" value="{% trans "Save edits" %}" class="submit compose-submit" />
+                <input type="submit" value="{% if suggesting %}{% trans "Suggest edit" %}{% elif improving %}{% trans "Approve with my changes" %}{% else %}{% trans "Save edits" %}{% endif %}" class="submit compose-submit" />
                 <a class="compose-cancel" href="{{ answer.get_absolute_url }}">{% trans "Cancel" %}</a>
                 <span class="compose-shortcut" aria-hidden="true"><kbd class="compose-mod">Ctrl</kbd>+<kbd>Enter</kbd></span>
             </div>

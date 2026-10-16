@@ -2,7 +2,7 @@
 {% spaceless %}
 {% for control in controls %}
     <span class="action-link">
-        <a rel="nofollow" title="{{ control.title }}" class="{{ control.classes }}" href="{{ control.url }}">{{ control.text }}</a>
+        {% if control.url %}<a rel="nofollow" title="{{ control.title }}" class="{{ control.classes }}" href="{{ control.url }}">{{ control.text }}</a>{% else %}<span class="{{ control.classes }}" title="{{ control.title }}">{{ control.text }}<span class="visually-hidden">: {{ control.title }}</span></span>{% endif %}
     </span>
     {% if controls|last != control %}
         <span class="action-link-separator">|</span>

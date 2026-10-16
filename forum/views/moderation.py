@@ -5,6 +5,8 @@ moderator in one place, with one-click actions.
 - Flagged posts (members' "report" on a post: FlagAction)
 - Reported users (members' "report user": ReportAction)
 - AI moderation reports (ModerationReport, e.g. from forum_modules/ai)
+- Suggested edits (forum/utils/suggested_edits.py; reviewed through
+  forum/views/suggested_edits.py, as on the public review page)
 
 Every action goes through the Action system (ApprovePostAction, DeleteAction,
 SuspendAction, cancelling flags), so reputation, the activity log and undo
@@ -25,10 +27,10 @@ from forum.utils import review, security_log
 
 from .admin import moderation_page, staff_user_required
 
-FILTERS = ('all', 'review', 'flags', 'users', 'ai')
+FILTERS = ('all', 'review', 'flags', 'users', 'ai', 'edits')
 SECTION_SIZE = 50
 UNDO_SESSION_KEY = 'moderation_undo'
-UNDOABLE = ('approvepost', 'delete', 'suspend')
+UNDOABLE = ('approvepost', 'delete', 'suspend', 'suggestededit', 'rejectsuggestededit')
 
 
 def inbox_url(show=None):
@@ -135,6 +137,7 @@ def inbox(request):
         ('flags', _("Flagged posts"), counts['flags']),
         ('users', _("Reported users"), counts['users']),
         ('ai', _("AI moderation reports"), counts['ai']),
+        ('edits', _("Suggested edits"), counts.get('edits', 0)),
     ], 'inbox_url': request.get_full_path()}
     if show in ('all', 'review'):
         context['review_items'], context['review_total'] = _review_items()
@@ -144,13 +147,19 @@ def inbox(request):
         context['user_items'], context['user_total'] = _user_items()
     if show in ('all', 'ai'):
         context['moderation_reports'], context['ai_total'] = _ai_items()
+    if show in ('all', 'edits'):
+        from forum.utils import suggested_edits
+        from .suggested_edits import edit_items
+        context['edit_items'], context['edit_total'] = edit_items(request.user, SECTION_SIZE)
+        context['edit_reasons'] = suggested_edits.REJECT_REASONS
     # Real counts of what is shown (the header's are cached for a minute).
     fresh = {'review': context.get('review_total'), 'flags': context.get('flag_total'),
-             'users': context.get('user_total'), 'ai': context.get('ai_total')}
+             'users': context.get('user_total'), 'ai': context.get('ai_total'),
+             'edits': context.get('edit_total')}
     if None not in fresh.values() and dict(counts, total=None) != dict(fresh, total=None):
         review.invalidate_counts()
     context['empty'] = not any(context.get(k) for k in ('review_items', 'flag_items', 'user_items',
-                                                        'moderation_reports'))
+                                                        'moderation_reports', 'edit_items'))
     undo = request.session.get(UNDO_SESSION_KEY)
     context['undo'] = undo if isinstance(undo, dict) and undo.get('ids') else None
     return 'osqaadmin/moderation_inbox.html', context

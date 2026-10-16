@@ -14,6 +14,8 @@ from .knowledge import KnowledgeChunk, AISuggestion
 from .notification import Notification, QuestionReminder, PendingEmail
 from .search import SearchDocument
 from .push import PushSubscription
+from .suggested_edit import SuggestedEdit
+from .two_factor import TOTPDevice, RecoveryCode, Passkey
 
 from .base import *
 
@@ -24,7 +26,8 @@ __all__ = [
         'Tag', 'TagSynonym', 'Comment', 'MarkedTag', 'Badge', 'Award',
         'ValidationHash', 'AuthKeyUserAssociation', 'SubscriptionSettings', 'KeyValue', 'User',
         'Action', 'ActionRepute', 'Vote', 'Flag', 'Page', 'ModerationReport', 'KnowledgeChunk', 'AISuggestion',
-        'Notification', 'QuestionReminder', 'PendingEmail', 'SearchDocument', 'PushSubscription'
+        'Notification', 'QuestionReminder', 'PendingEmail', 'SearchDocument', 'PushSubscription', 'SuggestedEdit',
+        'TOTPDevice', 'RecoveryCode', 'Passkey'
         ]
 
 

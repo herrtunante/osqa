@@ -83,3 +83,16 @@ FIRST_POSTS_REVIEW_MIN_REP = Setting('FIRST_POSTS_REVIEW_MIN_REP', 0, MODERATION
 label = _("Also review posts by members below this reputation"),
 help_text = _("Every post by a member with less reputation than this is reviewed, however many posts they have. "
               "0 turns this off.")))
+
+
+# Suggested edits (forum/utils/suggested_edits.py): members below the
+# reputation to edit others' posts may suggest edits, reviewed by those above it.
+SUGGESTED_EDITS_ENABLED = Setting('SUGGESTED_EDITS_ENABLED', True, MODERATION_SET, dict(
+label = _("Suggested edits"),
+help_text = _("Members who can't edit others' posts yet (see the minimum reputation to edit others posts) may suggest "
+              "an edit instead. Members who can edit others' posts and moderators review the suggestions."),
+required=False))
+
+SUGGESTED_EDITS_PER_DAY = Setting('SUGGESTED_EDITS_PER_DAY', 5, MODERATION_SET, dict(
+label = _("Suggested edits per member per day"),
+help_text = _("How many edits a member may suggest in 24 hours. 0 for no limit.")))

@@ -41,3 +41,9 @@ help_text = _("The Content-Security-Policy header only lets the browser load scr
               "written to the security log."),
 widget=Textarea(attrs={'rows': '3'}),
 required=False))
+
+TWO_FACTOR_REQUIRED_FOR_STAFF = Setting('TWO_FACTOR_REQUIRED_FOR_STAFF', False, SECURITY_SET, dict(
+label = _("Require two-step verification for staff"),
+help_text = _("Moderators and administrators who have not turned on two-step verification (an authenticator app) "
+              "and did not sign in with a passkey are sent to set it up when they open an admin page."),
+required=False))

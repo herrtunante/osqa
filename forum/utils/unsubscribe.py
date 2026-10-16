@@ -37,7 +37,7 @@ SCOPES = {
 SWITCH_SCOPES = {'daily': 'd', 'weekly': 'w'}
 
 # Kinds whose emails are sent as things happen, and so can offer a summary instead.
-SUMMARY_OFFER_KINDS = ('question', 'new_question', 'mention', 'member')
+SUMMARY_OFFER_KINDS = ('question', 'new_question', 'mention', 'member', 'suggested_edit')
 
 # email kind -> (why the person gets it, the specific scope to offer)
 KINDS = {
@@ -49,6 +49,8 @@ KINDS = {
     'digest': (_("you are subscribed to the daily digest"), 'digest'),
     'summary_daily': (_("you chose a daily summary of the activity you follow"), 'summary'),
     'summary_weekly': (_("you chose a weekly summary of the activity you follow"), 'summary'),
+    # The outcome of an edit the person suggested: no specific link (scope 'question' without a question).
+    'suggested_edit': (_("you suggested an edit to a post"), 'question'),
 }
 
 

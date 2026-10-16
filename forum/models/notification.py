@@ -15,6 +15,8 @@ class Notification(models.Model):
     ANSWER, COMMENT, MENTION, ACCEPTED, BADGE, REMINDER = 'answer', 'comment', 'mention', 'accepted', 'badge', 'reminder'
     # A post held for review (forum/utils/review.py) was approved or removed.
     APPROVED, REMOVED = 'approved', 'removed'
+    # An edit the user suggested (forum/utils/suggested_edits.py) was approved or rejected.
+    EDIT_APPROVED, EDIT_REJECTED = 'edit_approved', 'edit_rejected'
     KINDS = (
         (ANSWER, _('New answer')),
         (COMMENT, _('New comment')),
@@ -24,6 +26,8 @@ class Notification(models.Model):
         (REMINDER, _('Accept an answer')),
         (APPROVED, _('Post approved')),
         (REMOVED, _('Post removed')),
+        (EDIT_APPROVED, _('Suggested edit approved')),
+        (EDIT_REJECTED, _('Suggested edit rejected')),
     )
 
     user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
@@ -63,6 +67,7 @@ class PendingEmail(models.Model):
 
     ANSWER, COMMENT, MENTION, ACCEPTED, NEW_QUESTION, MEMBER = (
         'answer', 'comment', 'mention', 'accepted', 'new_question', 'member')
+    EDIT_APPROVED, EDIT_REJECTED = 'edit_approved', 'edit_rejected'
     KINDS = (
         (ANSWER, _('New answer')),
         (COMMENT, _('New comment')),
@@ -70,6 +75,8 @@ class PendingEmail(models.Model):
         (ACCEPTED, _('Answer accepted')),
         (NEW_QUESTION, _('New question')),
         (MEMBER, _('New member')),
+        (EDIT_APPROVED, _('Suggested edit approved')),
+        (EDIT_REJECTED, _('Suggested edit rejected')),
     )
 
     user = models.ForeignKey(User, related_name='pending_emails', on_delete=models.CASCADE)

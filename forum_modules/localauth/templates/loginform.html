@@ -2,7 +2,7 @@
 <div class="auth-field">
     <label for="id_username">{% trans "Username or email" %}</label>
     <input id="id_username" type="text" name="username" maxlength="254" value="{{ username }}" required autofocus
-           autocomplete="username" autocapitalize="none" spellcheck="false"{% if msg and username %} aria-invalid="true" aria-describedby="signin-error"{% endif %} />
+           autocomplete="username webauthn" autocapitalize="none" spellcheck="false"{% if msg and username %} aria-invalid="true" aria-describedby="signin-error"{% endif %} />
 </div>
 <div class="auth-field">
     <div class="auth-label-row">

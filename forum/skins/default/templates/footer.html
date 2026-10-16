@@ -15,6 +15,7 @@
         <noscript><button type="submit">{% trans "Change" %}</button></noscript>
     </form>
     {% endif %}
+    {% include "display/theme_switch.html" %}
     {# The separator dot is drawn before each item and clipped at the start of a line, so none dangles when they wrap. #}
     <p class="footer-meta"><span class="footer-meta-items">
         <span class="footer-meta-item" title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>

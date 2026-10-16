@@ -9,6 +9,8 @@
      /admin/, /nimda/, /account/ (sign-in, sign-out, settings), /notifications/,
      /users/ (profiles and their tabs), /upfiles/, /mcp, /export/, /pending-data/,
      /upload/, /preview/, /logout/, /i18n/, /csp-report/, /sw.js, the manifest.
+   Requests that are neither skin media nor navigations (fetch/XHR, such as
+   the live question page's /questions/<id>/updates/ polls) aren't either.
 
    Skin media (/m/<skin>/media/...), in a cache named after VERSION, a hash
    of this file and of the media files (the same content hashes as the ?v=

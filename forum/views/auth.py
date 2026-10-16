@@ -36,7 +36,7 @@ from forum.authentication import AUTH_PROVIDERS
 from forum.models import User, AuthKeyUserAssociation, ValidationHash
 from forum.actions import UserJoinsAction, UserLoginAction
 from forum.utils.antispam import signup_limit_reached, count_signup
-from forum.utils import security_log, throttle
+from forum.utils import security_log, throttle, two_factor
 from forum import settings
 
 from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
@@ -305,14 +305,19 @@ def temp_signin(request, user, code):
 
     if (ValidationHash.objects.validate(code, user, 'templogin', [user.id])):
         
-        # If the user requests temp_signin he must have forgotten his password. So we mark it as unusable.
-        user.set_unusable_password()
-        user.save()
+        # If the user requests temp_signin he must have forgotten his password. So we mark it as unusable,
+        # but for members with two-step verification only once their code is right (forum/views/security.py).
         security_log.event('temp_login_used', request, account=user)
-        
+        after = ()
+        if two_factor.is_enabled(user) and not user.is_suspended():
+            after = (two_factor.AFTER_RESET_PASSWORD,)
+        else:
+            user.set_unusable_password()
+            user.save()
+
         return login_and_forward(request, user, reverse('user_authsettings', kwargs={'id': user.id}),
                                  _("You're signed in with a one-time link. Set a new password below so you can "
-                                   "sign in with it next time."))
+                                   "sign in with it next time."), after_two_factor=after)
     else:
         raise Http404()
 
@@ -424,12 +429,25 @@ def remove_external_provider(request, id):
     association.delete()
     return HttpResponseRedirect(reverse('user_authsettings', kwargs={'id': association.user.id}))
 
-def login_and_forward(request, user, forward=None, message=None):
+def login_and_forward(request, user, forward=None, message=None, two_factor_method=None, after_two_factor=()):
+    """Signs `user` in and redirects. Members with two-step verification on
+    are sent to the code page first, unless `two_factor_method` says how
+    they already passed it ('totp', 'recovery' or 'passkey'). `after_two_factor`
+    names account changes the code page makes once the code is right
+    (two_factor.AFTER_RESET_PASSWORD)."""
     if user.is_suspended():
         return forward_suspended_user(request, user)
 
+    if two_factor_method is None and two_factor.is_enabled(user):
+        two_factor.start_pending(request, user, forward, message, after_two_factor)
+        security_log.event('two_factor_required', request, account=user)
+        return HttpResponseRedirect(reverse('auth_two_factor'))
+
     user.backend = "django.contrib.auth.backends.ModelBackend"
     login(request, user)
+    two_factor.clear_pending(request)
+    if two_factor_method:
+        request.session[two_factor.METHOD_SESSION_KEY] = two_factor_method
 
     # Store the login action
     UserLoginAction(user=user, ip=request.META['REMOTE_ADDR']).save()

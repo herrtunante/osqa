@@ -133,6 +133,15 @@ def post_reviewed(recipient):
     return {'node': answer, 'outcome': 'approved'}
 
 
+def suggested_edit(recipient):
+    from forum.models import SuggestedEdit
+    bob, carol, question, answer = _people()
+    suggestion = SuggestedEdit(id=SAMPLE_ID + 40, node=answer, author=recipient, summary='Added the menu path',
+                               reason='no_improvement', comment='The menu path was already in the answer.')
+    return {'suggestion': suggestion, 'node': answer, 'reviewer': carol, 'outcome': 'rejected',
+            'reason': "It doesn't make the post easier to read or more useful", 'email_kind': 'suggested_edit'}
+
+
 def accept_reminder(recipient):
     bob, carol, question, answer = _people()
     return {'question': question, 'email_kind': 'question', 'email_question': question}
@@ -186,6 +195,9 @@ KINDS = {
     'post-reviewed': (_lazy("Post reviewed"),
                       _lazy("New members whose post waited for review, when a moderator approves or removes it."),
                       'notifications/post_reviewed.html', post_reviewed),
+    'suggested-edit': (_lazy("Suggested edit reviewed"),
+                       _lazy("Members who suggested an edit, when a reviewer approves or rejects it."),
+                       'notifications/suggested_edit.html', suggested_edit),
     'accept-reminder': (_lazy("Accept reminder"), _lazy("Askers whose question has answers but none accepted."),
                         'notifications/acceptreminder.html', accept_reminder),
     'feedback': (_lazy("Feedback"), _lazy("Administrators, when someone sends the feedback form."),

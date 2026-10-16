@@ -590,7 +590,10 @@ $(function() {
     // Post menus ("more"): a disclosure button (aria-expanded) with a list of
     // links; arrow keys move between the links, Escape closes and returns
     // focus to the button.
-    $('.context-menu').each(function() {
+    // Post menus and comment forms: at load, and for posts the live question
+    // page inserts later (osqa.live.js calls window.osqaInitPostWidgets).
+    function init_post_widgets(scope) {
+    $(scope).find('.context-menu').each(function() {
         var $menu = $(this);
         var $trigger = $menu.find('.context-menu-trigger');
         var $dropdown = $menu.find('.context-menu-dropdown');
@@ -668,7 +671,7 @@ $(function() {
         });
     });
 
-    $('div.comment-form-container').each(function() {
+    $(scope).find('div.comment-form-container').each(function() {
         var $container = $(this);
         var $comment_tools = $container.parent().find('.comment-tools');
         var $comments_container = $container.parent().find('.comments-container');
@@ -854,6 +857,9 @@ $(function() {
             return false;
         });
     });
+    }
+    init_post_widgets(document);
+    window.osqaInitPostWidgets = init_post_widgets;
 
     if ($('#editor').length) {
         var $editor = $('#editor');

@@ -15,6 +15,13 @@
             <label for="{{ form.sticky_sorts.id_for_label }}">{% trans "Always remember the sort order I apply to the lists I view" %}</label>
         </div>
     </fieldset>
+    <fieldset class="settings-fieldset">
+        <legend>{% trans "Keyboard" %}</legend>
+        <div class="settings-check">
+            {{ form.keyboard_shortcuts }}
+            <label for="{{ form.keyboard_shortcuts.id_for_label }}">{% trans "Use keyboard shortcuts (press ? on any page to see them)" %}</label>
+        </div>
+    </fieldset>
     <div class="settings-actions">
         <input type="submit" class="submit" name="save" value="{% trans "Save" %}"/>
     </div>

@@ -29,6 +29,8 @@
                 {% elif item.kind == "badge" %}{% blocktrans with badge=item.text %}You earned the <strong>{{ badge }}</strong> badge{% endblocktrans %}
                 {% elif item.kind == "approved" %}{% blocktrans with title=question.title %}A moderator approved your post in <em>{{ title }}</em>: it is published now{% endblocktrans %}
                 {% elif item.kind == "removed" %}{% blocktrans with title=question.title %}A moderator removed your post in <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "edit_approved" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> approved the edit you suggested to <em>{{ title }}</em>{% endblocktrans %}
+                {% elif item.kind == "edit_rejected" %}{% blocktrans with title=question.title reason=item.text %}<strong>{{ actor }}</strong> rejected the edit you suggested to <em>{{ title }}</em>: {{ reason }}{% endblocktrans %}
                 {% elif item.kind == "reminder" %}{% blocktrans with title=question.title %}Your question <em>{{ title }}</em> has answers. If one solved it, accept it so others know.{% endblocktrans %}
                 {% endif %}
                 </span>

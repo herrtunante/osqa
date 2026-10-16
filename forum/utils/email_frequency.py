@@ -54,6 +54,7 @@ SECTIONS = (
     ('accepted', _lazy("Accepted answers")),
     ('new_question', _lazy("New questions")),
     ('member', _lazy("New members")),
+    ('edits', _lazy("Your suggested edits")),
 )
 
 
@@ -138,6 +139,8 @@ def summary_item(user, kind, node=None, actor=None):
     section = kind
     if kind == 'answer' and question.author_id == user.id:
         section = 'answer_own'
+    elif kind in ('edit_approved', 'edit_rejected'):
+        section = 'edits'
     return {'section': section, 'kind': kind, 'node': node, 'actor': actor, 'question': question,
             'url': node.get_absolute_url(), 'own': node.author_id == user.id}
 

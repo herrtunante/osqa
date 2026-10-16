@@ -26,6 +26,7 @@ CTA = {
     'summary': ('See all your notifications', '/notifications/'),
     'post-reviewed': ('View your post', '/questions/990010/how-do-i-export-survey-data-to-csv/990011'),
     'accept-reminder': ('Review the answers', '/questions/990010/how-do-i-export-survey-data-to-csv'),
+    'suggested-edit': ('View the post', '/questions/990010/how-do-i-export-survey-data-to-csv/990011'),
     'feedback': ('Reply by email', 'mailto:carol@example.com'),
     'user-reported': ("Review bob's profile", '/users/990001/bob'),
     'welcome': ('Confirm your email', '/account/validate/%(id)d/sample-validation-code/'),
@@ -34,7 +35,7 @@ CTA = {
     'test-email': (None, None),
 }
 NOTIFICATIONS = {'new-answer', 'new-comment', 'answer-accepted', 'mention', 'new-question', 'new-member', 'digest',
-                 'summary', 'accept-reminder'}
+                 'summary', 'accept-reminder', 'suggested-edit'}
 
 
 def button(html):

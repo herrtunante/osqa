@@ -2,14 +2,18 @@
    sheets (base, forms, changelists, responsive, and dark_mode.css when the
    site's DARK_MODE setting is on) with OSQA's colours and additions here.
    Colours are Django's variables, set to the site's palette below, or the
-   OSQA ones; dark only when the <html> element has data-color-scheme="auto"
-   (DARK_MODE on) and the visitor's system prefers dark, as on public pages.
+   OSQA ones; dark when the <html> element has data-theme="dark", as on
+   public pages: the visitor's theme choice, with "System" resolved from
+   prefers-color-scheme by {% theme_head %} (DARK_MODE on; see osqa.css,
+   "Dark mode"). Django's own CSS follows the same attribute.
 
    Sections: palette, layout (header, breadcrumbs, menu, content), messages,
    buttons and forms, then one per page (dashboard, statistics, static pages,
    node manager, moderation inbox, support), then phones. */
 
-:root {
+/* :root[data-theme]: above Django's html[data-theme="light"/"dark"] palettes;
+   the dark values below come later with the same weight. */
+:root, :root[data-theme] {
     --primary: #2c5aa0;
     --secondary: #2c5aa0;
     --accent: #ffd166;
@@ -45,35 +49,33 @@
     --osqa-tap: 32px;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root[data-color-scheme="auto"] {
-        --primary: #284a78;
-        --secondary: #3a6bb0;
-        --header-bg: #172235;
-        --header-color: #c3cfdf;
-        --breadcrumbs-bg: #1a1f28;
-        --breadcrumbs-fg: #c3cad5;
-        --breadcrumbs-link-fg: #8ab4f8;
-        --link-fg: #8ab4f8;
-        --link-hover-color: #b3cdfb;
-        --link-selected-fg: #b3cdfb;
-        --selected-row: #1d2a3d;
-        --button-bg: #3a6bb0;
-        --button-hover-bg: #2c5aa0;
-        --default-button-bg: #2c5aa0;
-        --default-button-hover-bg: #3a6bb0;
-        --osqa-notice-bg: #2b2412;
-        --osqa-notice-border: #7a6220;
-        --osqa-notice-fg: #f0cf6c;
-        --osqa-deleted-bg: #3a1d1f;
-        --osqa-accepted-bg: #11251a;
-        --osqa-verdict-bg: #3a1d1f;
-        --osqa-verdict-fg: #ff8b84;
-        --osqa-error-fg: #ff8b84;
-        --osqa-control-bg: #1b1b1b;
-        --osqa-menu-current-bg: #1f3352;
-        --osqa-menu-current-fg: #dbe7fb;
-    }
+:root[data-theme="dark"] {
+    --primary: #284a78;
+    --secondary: #3a6bb0;
+    --header-bg: #172235;
+    --header-color: #c3cfdf;
+    --breadcrumbs-bg: #1a1f28;
+    --breadcrumbs-fg: #c3cad5;
+    --breadcrumbs-link-fg: #8ab4f8;
+    --link-fg: #8ab4f8;
+    --link-hover-color: #b3cdfb;
+    --link-selected-fg: #b3cdfb;
+    --selected-row: #1d2a3d;
+    --button-bg: #3a6bb0;
+    --button-hover-bg: #2c5aa0;
+    --default-button-bg: #2c5aa0;
+    --default-button-hover-bg: #3a6bb0;
+    --osqa-notice-bg: #2b2412;
+    --osqa-notice-border: #7a6220;
+    --osqa-notice-fg: #f0cf6c;
+    --osqa-deleted-bg: #3a1d1f;
+    --osqa-accepted-bg: #11251a;
+    --osqa-verdict-bg: #3a1d1f;
+    --osqa-verdict-fg: #ff8b84;
+    --osqa-error-fg: #ff8b84;
+    --osqa-control-bg: #1b1b1b;
+    --osqa-menu-current-bg: #1f3352;
+    --osqa-menu-current-fg: #dbe7fb;
 }
 
 /* ---- Layout: header ------------------------------------------------------ */
@@ -1124,6 +1126,109 @@ input[type="file"]::file-selector-button:hover {
     margin-top: 8px;
 }
 
+/* ---- Moderation inbox: suggested edits (suggested_edits/_actions.html) ----- */
+
+.sugg-diff .text {
+    white-space: pre-wrap;
+    font-family: var(--font-family-monospace, monospace);
+}
+
+.sugg-diff h2.revision-title {
+    margin: 0 0 6px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg, #333);
+    font-size: 1.05em;
+}
+
+.sugg-diff ins {
+    background: var(--osqa-accepted-bg);
+    text-decoration: underline;
+}
+
+.sugg-diff del {
+    background: var(--osqa-deleted-bg);
+    color: var(--osqa-verdict-fg);
+}
+
+.sugg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+.sugg-actions form {
+    margin: 0;
+}
+
+#moderation-inbox .sugg-actions button, #moderation-inbox .sugg-improve, #moderation-inbox .sugg-reject-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--osqa-tap);
+    padding: 6px 14px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+#moderation-inbox .sugg-actions button.sugg-approve {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+#moderation-inbox .sugg-actions button.sugg-reject-button {
+    border-color: var(--osqa-verdict-fg);
+    background: var(--osqa-verdict-bg);
+    color: var(--osqa-verdict-fg);
+    font-weight: 600;
+}
+
+.sugg-reject {
+    flex: 1 1 100%;
+}
+
+#moderation-inbox .sugg-reject-toggle {
+    width: max-content;
+    list-style: none;
+}
+
+.sugg-reject-form {
+    margin-top: 8px;
+}
+
+.sugg-reject-form fieldset {
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+}
+
+.sugg-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    color: var(--body-fg, #333);
+}
+
+.sugg-comment-label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.sugg-reject-form textarea {
+    width: 100%;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
 /* ---- Support dashboard --------------------------------------------------- */
 
 .support-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 16px; }
@@ -1445,10 +1550,8 @@ body.osqa-admin {
     .support-module table.support-wide { min-width: 520px; }
     .support-caption-note { display: block; margin: 2px 0 0; }
 }
-@media (prefers-color-scheme: dark) {
-    :root[data-color-scheme="auto"] #content input, :root[data-color-scheme="auto"] #content select,
-    :root[data-color-scheme="auto"] #content textarea { border-color: #5a5a5a; }
-}
+:root[data-theme="dark"] #content input, :root[data-theme="dark"] #content select,
+:root[data-theme="dark"] #content textarea { border-color: #5a5a5a; }
 
 /* Django 6.0's admin CSS stretches a new wrapper inside #changelist on phones
    instead of #changelist itself; keep the node manager's toolbar inside the

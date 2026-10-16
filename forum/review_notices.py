@@ -1,6 +1,8 @@
 """What the author of a post held for review hears (forum/utils/review.py):
 an email and an in-site notification when a moderator approves it or removes
-it. Also keeps the moderation inbox count in the header fresh."""
+it. Also keeps the moderation inbox count in the header fresh, and
+supersedes a pending suggested edit that an edit of its post conflicts with
+(forum/utils/suggested_edits.py)."""
 from forum.actions import ApprovePostAction, DeleteAction, FlagAction, ReportAction
 from forum.models import Notification
 from forum.utils import review
@@ -35,3 +37,15 @@ DeleteAction.hook(post_deleted)
 
 FlagAction.hook(review.invalidate_counts)
 ReportAction.hook(review.invalidate_counts)
+
+
+def post_revised(action, new):
+    """An edit, retag or rollback of a post: a pending suggested edit it conflicts with is superseded."""
+    from forum.actions import SuggestedEditAction
+    from forum.utils import suggested_edits
+    if not isinstance(action, SuggestedEditAction) and action.node is not None:
+        suggested_edits.check_after_edit(action.node.leaf)
+
+from forum.actions import ReviseAction, RetagAction, RollbackAction  # noqa: E402
+for _action_class in (ReviseAction, RetagAction, RollbackAction):
+    _action_class.hook(post_revised)

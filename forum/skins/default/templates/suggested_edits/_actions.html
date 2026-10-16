@@ -1,0 +1,25 @@
+{% load i18n %}{% comment %}Approve / improve / reject one suggested edit (forum/views/suggested_edits.py), on the
+"Review suggested edits" page and in the moderation inbox. Context: suggestion, reasons, next_url.
+The rejection reasons open in a <details>, so it works without JavaScript and on a phone.{% endcomment %}
+<div class="sugg-actions">
+    <form method="post" action="{% url "suggested_edit_review" suggestion.id %}" class="sugg-approve-form">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+        <button type="submit" name="action" value="approve" class="sugg-approve plain-button">{% trans "Approve" %}</button>
+    </form>
+    <a class="sugg-improve" href="{% url "suggested_edit_improve" suggestion.id %}">{% trans "Improve" %}</a>
+    <details class="sugg-reject">
+        <summary class="sugg-reject-toggle">{% trans "Reject" %}</summary>
+        <form method="post" action="{% url "suggested_edit_review" suggestion.id %}" class="sugg-reject-form">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+            <fieldset>
+                <legend>{% trans "Why do you reject this edit?" %}</legend>
+                {% for key, label in reasons %}
+                <label class="sugg-reason"><input type="radio" name="reason" value="{{ key }}" required> <span>{{ label }}</span></label>
+                {% endfor %}
+            </fieldset>
+            <label class="sugg-comment-label" for="sugg-comment-{{ suggestion.id }}">{% blocktrans with name=suggestion.author.username %}A word for {{ name }} (optional, required for another reason){% endblocktrans %}</label>
+            <textarea id="sugg-comment-{{ suggestion.id }}" name="comment" rows="2" maxlength="300"></textarea>
+            <button type="submit" name="action" value="reject" class="sugg-reject-button plain-button">{% trans "Reject edit" %}</button>
+        </form>
+    </details>
+</div>

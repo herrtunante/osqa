@@ -1,0 +1,46 @@
+{% extends "base_content.html" %}
+
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Two-step verification" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block forejs %}
+    {% if has_passkeys %}<script defer src="{% media "/media/js/osqa.passkeys.js" %}"></script>{% endif %}
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 18h4"/><path d="M9.5 10.5l2 2 3.5-4"/></svg>
+            </div>
+            <h1>{% trans "Two-step verification" %}</h1>
+            <p class="auth-lead">{% trans "Open your authenticator app and enter the 6-digit code it shows for this site." %}</p>
+            {% if error %}
+                <div class="auth-alert" role="alert" id="twofa-error">{{ error }}</div>
+            {% endif %}
+            <form class="auth-form" method="post" action="{% url "auth_two_factor" %}" accept-charset="utf-8" novalidate>
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label for="id_code">{% trans "Verification code" %}</label>
+                    <input id="id_code" class="auth-code-input" type="text" name="code" required autofocus
+                           inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false"
+                           maxlength="20"{% if error %} aria-invalid="true" aria-describedby="twofa-error"{% endif %} />
+                </div>
+                <button type="submit" class="auth-submit">{% trans "Verify" %}</button>
+            </form>
+            <details class="auth-more">
+                <summary>{% trans "Can't use your app?" %}</summary>
+                <p>{% trans "Enter one of your recovery codes in the field above instead (for example abcd-efgh-jkmn). Each code works once." %}</p>
+                <p>{% trans "Lost your phone and your recovery codes? Contact the site administrators." %}</p>
+            </details>
+            {% if has_passkeys %}
+                {% include "auth/passkey_signin.html" %}
+            {% endif %}
+            <p class="auth-switch"><a href="{% url "auth_signin" %}">{% trans "Back to sign in" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,7 +7,7 @@
  * capture phase; images that failed before this deferred script ran are
  * found by their state. The letter comes from the alt text (the user name)
  * and its colours from the theme (--muted, --surface: visible on any card),
- * redrawn when the colour scheme changes.
+ * redrawn when the theme changes.
  */
 (function () {
     'use strict';
@@ -66,15 +66,11 @@
     }
 
     scan();
-    if (window.matchMedia) {
-        var scheme = window.matchMedia('(prefers-color-scheme: dark)');
-        var redraw = function () {
-            broken = broken.filter(function (img) { return img.isConnected; });
-            broken.forEach(function (img) { img.src = letterImage(img.getAttribute('alt')); });
-        };
-        if (scheme.addEventListener) {
-            scheme.addEventListener('change', redraw);
-        }
-    }
+    // The theme script (display_tags.py) announces every change of theme:
+    // the theme switch, or the device setting while the choice is "System".
+    document.addEventListener('osqa:themechange', function () {
+        broken = broken.filter(function (img) { return img.isConnected; });
+        broken.forEach(function (img) { img.src = letterImage(img.getAttribute('alt')); });
+    });
     window.osqaAvatars = {scan: scan};
 })();

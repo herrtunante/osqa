@@ -1,4 +1,4 @@
-{% load extra_tags extra_filters i18n sentry_tags admin_tags %}{% comment %}
+{% load extra_tags extra_filters i18n sentry_tags admin_tags display_tags %}{% comment %}
 The administration layout, used by every admin page (forum/views/admin.py,
 moderation.py) and by module tools (forum_modules/*/templates). Django admin's
 style sheets (dark_mode.css when the site's DARK_MODE setting is on) plus
@@ -6,13 +6,14 @@ media/style/admin.css. Blocks for pages: subtitle (the <title> and the page
 heading), pagename (breadcrumbs), description, adminjs (in <head>) and
 admincontent. The menu comes from admin_menu() in forum/views/admin.py.
 {% endcomment %}<!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}"{% if settings.DARK_MODE %} data-color-scheme="auto"{% endif %}>
+<html lang="{{ LANGUAGE_CODE }}"{% display_attrs %}>
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="csrf-token" content="{{ csrf_token }}"/>
     <meta name="robots" content="noindex"/>
     {% sentry_browser %}
+    {% theme_head %}
     <link rel="stylesheet" href="{% url "django_admin_media" "css/base.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/forms.css" %}" type="text/css"/>
     <link rel="stylesheet" href="{% url "django_admin_media" "css/changelists.css" %}" type="text/css"/>

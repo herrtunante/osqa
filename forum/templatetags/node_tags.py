@@ -143,8 +143,20 @@ def post_controls(post, user):
             edit_url = reverse('edit_' + post_type, kwargs={'id': post.id})
             if user.can_edit_post(post):
                 controls.append(post_control(_('edit'), edit_url))
-            elif post_type == 'question' and user.can_retag_questions():
-                controls.append(post_control(_('retag'), edit_url))
+            else:
+                # Suggested edits (forum/utils/suggested_edits.py), one pending per post.
+                from forum.utils import suggested_edits
+                if suggested_edits.can_suggest(user, post):
+                    if post.id in suggested_edits.pending_post_ids(post):
+                        controls.append(post_control(_('edit pending'), None,
+                                                     title=_("An edit is waiting for review"),
+                                                     extra_classes=['edit-pending']))
+                    else:
+                        controls.append(post_control(_('suggest an edit'), reverse('suggest_edit', kwargs={'id': post.id}),
+                                                     title=_("Suggest an edit: a reviewer checks it before it appears"),
+                                                     extra_classes=['suggest-edit']))
+                if post_type == 'question' and user.can_retag_questions():
+                    controls.append(post_control(_('retag'), edit_url))
         except:
             pass
 
@@ -254,6 +266,29 @@ def _visible_comments(post):
     return grouped.get(post.id, [])
 
 
+def comment_context(c, user, top_scorer=False):
+    """The context of one comment in node/comment.html (also used by the live
+    question page, forum/views/live.py)."""
+    context = {
+        'can_delete': user.can_delete_comment(c),
+        'can_like': user.can_like_comment(c),
+        'can_edit': user.can_edit_comment(c),
+        'can_convert': user.can_convert_comment_to_answer(c)
+    }
+
+    if top_scorer:
+        context['top_scorer'] = True
+
+    if context['can_like']:
+        context['likes'] = _user_vote(user, c) == 1
+
+    context['user'] = c.user
+    context['comment'] = c.comment
+    context['held'] = bool(c.nis.pending_review)
+    context.update(dict(c.__dict__))
+    return context
+
+
 def _comments(post, user):
     all_comments = _visible_comments(post)
 
@@ -265,25 +300,10 @@ def _comments(post, user):
     comments = []
     showing = 0
     for c in all_comments:
-        context = {
-            'can_delete': user.can_delete_comment(c),
-            'can_like': user.can_like_comment(c),
-            'can_edit': user.can_edit_comment(c),
-            'can_convert': user.can_convert_comment_to_answer(c)
-        }
-
-        if c in top_scorers or c.is_reply_to(user):
-            context['top_scorer'] = True
+        top_scorer = c in top_scorers or c.is_reply_to(user)
+        if top_scorer:
             showing += 1
-        
-        if context['can_like']:
-            context['likes'] = _user_vote(user, c) == 1
-
-        context['user'] = c.user
-        context['comment'] = c.comment
-        context['held'] = bool(c.nis.pending_review)
-        context.update(dict(c.__dict__))
-        comments.append(context)
+        comments.append(comment_context(c, user, top_scorer))
 
     # Generate canned comments
     canned_comments = []

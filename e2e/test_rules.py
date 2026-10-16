@@ -2,6 +2,7 @@
 vote, accept, report, comment and award points, the messages people see when
 they may not, and what each action does to scores and reputation."""
 import datetime
+import re
 
 from django.urls import reverse
 
@@ -312,7 +313,8 @@ class RulesTest(E2ETestCase):
         body = Question.objects.get(id=self.question.id).body
         page = self.open(self.carol)
         self.visit(page, self.question.get_absolute_url())
-        self.assertEqual(page.locator('.action-link a').filter(has_text='edit').count(), 0)
+        # no edit link ("suggest an edit" is offered instead)
+        self.assertEqual(page.locator('.action-link a').filter(has_text=re.compile(r'^\s*edit\s*$')).count(), 0)
         with page.expect_navigation():
             page.locator('.action-link a').filter(has_text='retag').first.click()
         self.check_page(page)

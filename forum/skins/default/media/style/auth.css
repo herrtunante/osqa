@@ -317,6 +317,72 @@ ul.auth-rules li {
     font-weight: 600;
 }
 
+/* ---- Passkeys and two-step verification (auth/passkey_signin.html, auth/two_factor_verify.html) ---- */
+
+.auth-passkey[hidden], .auth-passkey-error[hidden] {
+    display: none;
+}
+
+.auth-passkey-button svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.auth-passkey-button:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+.auth-passkey-error {
+    margin: 10px 0 0;
+}
+
+.auth-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 0 16px;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand);
+}
+
+.auth-icon svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.auth-card input.auth-code-input {
+    font-family: var(--mono);
+    font-size: 22px;
+    letter-spacing: 0.2em;
+    text-align: center;
+}
+
+.auth-more {
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.auth-more summary {
+    color: var(--brand);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-more p {
+    margin: 8px 0 0;
+}
+
 /* ---- Why sign in ---- */
 
 .auth-benefits {

@@ -167,6 +167,24 @@
     </section>
     {% endif %}
 
+    {% if edit_items %}
+    <section class="mod-section mod-edits" aria-labelledby="mod-edits-title">
+        <h2 id="mod-edits-title">{% trans "Suggested edits" %} <span class="mod-count">{{ edit_total }}</span></h2>
+        {% for item in edit_items %}{% with suggestion=item.suggestion post=item.post %}
+        <article class="mod-card mod-suggested-edit" id="suggested-edit-{{ suggestion.id }}" tabindex="-1" aria-labelledby="suggested-edit-{{ suggestion.id }}-title">
+            <header class="mod-card-head">
+                <span class="mod-type">{{ post.friendly_name|capfirst }}</span>
+                {% if post.nis.deleted %}<span class="mod-tag mod-tag-held">{% trans "Deleted post" %}</span>{% elif item.conflict %}<span class="mod-tag mod-tag-flag">{% trans "Conflicts with a later edit" %}</span>{% endif %}
+                <h3 class="mod-title" id="suggested-edit-{{ suggestion.id }}-title"><a href="{{ post.get_absolute_url }}">{{ item.question.headline }}</a></h3>
+            </header>
+            <div class="mod-content sugg-diff diff">{{ item.diff }}</div>
+            <p class="mod-why"><strong>{% trans "Edit summary:" %}</strong> {{ suggestion.summary }} &middot; {% blocktrans with name=suggestion.author.username %}suggested by {{ name }}{% endblocktrans %} &middot; {{ suggestion.created_at|date:"Y-m-d H:i" }}</p>
+            {% if item.can_review %}{% include "suggested_edits/_actions.html" with reasons=edit_reasons next_url=inbox_url %}{% endif %}
+        </article>
+        {% endwith %}{% endfor %}
+    </section>
+    {% endif %}
+
     {% if empty %}
     <p class="mod-empty">{% if show == "all" %}{% trans "Nothing is waiting for a moderator. Well done!" %}{% else %}{% trans "Nothing is waiting in this list." %}{% endif %}</p>
     {% endif %}

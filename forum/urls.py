@@ -50,6 +50,7 @@ core_urls = [
     re_path(r'^push/subscribe/$', app.push.subscribe, name='push_subscribe'),
     re_path(r'^push/unsubscribe/$', app.push.unsubscribe, name='push_unsubscribe'),
     re_path(r'^push/settings/$', app.push.push_settings, name='push_settings'),
+    re_path(r'^preferences/theme/$', app.display.set_theme, name='set_theme'),
     re_path(r'^cstyle\.css$', app.meta.custom_css, name='custom_css'),
 
     re_path(r'^m/django_admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_media'),
@@ -70,6 +71,11 @@ core_urls = [
     re_path(r'^%s$' % 'logout/', app.meta.logout, name='logout'),
     re_path(r'^%s(?P<id>\d+)/%s$' % ('answers/', 'edit/'), app.writers.edit_answer, name='edit_answer'),
     re_path(r'^%s(?P<id>\d+)/$' % 'revisions/', app.readers.revisions, name='revisions'),
+    re_path(r'^posts/(?P<id>\d+)/suggest-edit/$', app.suggested_edits.suggest_edit, name='suggest_edit'),
+    re_path(r'^review/suggested-edits/$', app.suggested_edits.review_page, name='suggested_edits'),
+    re_path(r'^review/suggested-edits/undo/$', app.suggested_edits.undo, name='suggested_edit_undo'),
+    re_path(r'^review/suggested-edits/(?P<id>\d+)/$', app.suggested_edits.review_action, name='suggested_edit_review'),
+    re_path(r'^review/suggested-edits/(?P<id>\d+)/improve/$', app.suggested_edits.improve, name='suggested_edit_improve'),
     re_path(r'^%s$' % 'questions/', app.readers.questions, name='questions'),
     re_path(r'^%s%s$' % ('questions/', 'ask/'), app.writers.ask, name='ask'),
     re_path(r'^%s%s$' % ('questions/', 'related_questions/'), app.commands.related_questions, name='related_questions'),
@@ -107,6 +113,7 @@ core_urls = [
 
     re_path(r'^%s(?P<id>\d+)/(?P<slug>[\w-]*)$' % 'question/', redirect, {'url': '/questions/%(id)s/%(slug)s'}),
     re_path(r'^%s(?P<id>\d+)\.md$' % 'questions/', app.agents.question_md, name='question_markdown'),
+    re_path(r'^%s(?P<id>\d+)/updates/$' % 'questions/', app.live.question_updates, name='question_updates'),
     re_path(r'^%s(?P<id>\d+)/?$' % 'questions/', app.readers.question, name='question'),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)/(?P<answer>\d+)$' % 'questions/', app.readers.question),
     re_path(r'^%s(?P<id>\d+)/(?P<slug>.*)$' % 'questions/', app.readers.question, name='question'),
@@ -163,6 +170,17 @@ core_urls = [
     re_path(r'^%s%s(?P<id>\d+)/%s$' % ('account/', 'providers/', 'remove/'), app.auth.remove_external_provider, name='user_remove_external_provider'),
     re_path(r'^%s%s%s$' % ('account/', 'providers/', 'add/'), app.auth.signin_page, name='user_add_external_provider'),
     re_path(r'^%s%s$' %('account/', 'send-validation/'), app.auth.send_validation_email, name='send_validation_email'),
+    # Passkeys and two-step verification (forum/views/security.py).
+    re_path(r'^account/(?P<id>\d+)/security/$', app.security.security_page, name='user_security'),
+    re_path(r'^account/(?P<id>\d+)/security/two-step/disable/$', app.security.totp_disable, name='two_factor_disable'),
+    re_path(r'^account/security/two-step/$', app.security.totp_setup, name='two_factor_setup'),
+    re_path(r'^account/security/recovery-codes/$', app.security.recovery_codes, name='two_factor_recovery_codes'),
+    re_path(r'^account/two-step/$', app.security.verify, name='auth_two_factor'),
+    re_path(r'^account/passkeys/register/options/$', app.security.passkey_register_options, name='passkey_register_options'),
+    re_path(r'^account/passkeys/register/$', app.security.passkey_register, name='passkey_register'),
+    re_path(r'^account/passkey-signin/options/$', app.security.passkey_auth_options, name='passkey_auth_options'),
+    re_path(r'^account/passkey-signin/$', app.security.passkey_auth, name='passkey_auth'),
+    re_path(r'^account/passkeys/(?P<id>\d+)/remove/$', app.security.passkey_remove, name='passkey_remove'),
 
 
     re_path(r'^%s$' % 'admin/', app.admin.dashboard, name='admin_index'),

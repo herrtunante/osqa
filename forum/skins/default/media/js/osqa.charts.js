@@ -1,8 +1,8 @@
 /*
  * Time-series line charts (reputation history, admin statistics) on Flot.
- * Colours come from the skin's CSS variables so charts follow dark mode (tick
- * labels are SVG text, styled by .flot-svg text in the CSS), and
- * the chart is redrawn when its container changes size.
+ * Colours come from the skin's CSS variables so charts follow the theme (tick
+ * labels are SVG text, styled by .flot-svg text in the CSS); the chart is
+ * redrawn when its container changes size and when the theme changes.
  *
  * The time axis is laid out here rather than by Flot's time mode, so it is
  * always readable: the range covers at least a day (points close together
@@ -123,23 +123,28 @@
         var $el = $(placeholder);
         if (!$el.length) return;
         data = data || [];
-        // Read from the chart itself: it inherits the page's variables wherever they are set.
-        var css = getComputedStyle($el[0]);
-        function color(name, fallback) {
-            return css.getPropertyValue(name).trim() || fallback;
-        }
-        // Pages without the skin's variables (the admin) use the page's text colour.
-        var line = color('--brand', '#2c5aa0'), text = color('--muted', getComputedStyle($el[0]).color || '#666'),
-            grid = color('--border', '#ddd');
         var range = timeRange(data);
-        var base = $.extend(true, {
-            colors: [line],
-            xaxis: {color: grid, min: range.min, max: range.max, autoScale: 'none', showTickLabels: 'major'},
-            yaxis: {color: grid, tickDecimals: 0, minTickSize: 1},
-            grid: {borderWidth: 1, borderColor: grid, color: text, hoverable: true},
-            series: {lines: {show: true, lineWidth: 2}, points: {show: false, radius: 2.5, fill: true, fillColor: line}}
-        }, options);
         var series = [{data: data}];
+        var base, text;
+
+        // The colours, read again whenever the theme changes.
+        function themed() {
+            // Read from the chart itself: it inherits the page's variables wherever they are set.
+            var css = getComputedStyle($el[0]);
+            function color(name, fallback) {
+                return css.getPropertyValue(name).trim() || fallback;
+            }
+            // Pages without the skin's variables (the admin) use the page's text colour.
+            var line = color('--brand', '#2c5aa0'), grid = color('--border', '#ddd');
+            text = color('--muted', css.color || '#666');
+            base = $.extend(true, {
+                colors: [line],
+                xaxis: {color: grid, min: range.min, max: range.max, autoScale: 'none', showTickLabels: 'major'},
+                yaxis: {color: grid, tickDecimals: 0, minTickSize: 1},
+                grid: {borderWidth: 1, borderColor: grid, color: text, hoverable: true},
+                series: {lines: {show: true, lineWidth: 2}, points: {show: false, radius: 2.5, fill: true, fillColor: line}}
+            }, options);
+        }
 
         function draw() {
             var width = $el.width();
@@ -156,7 +161,15 @@
                 $el.find('.flot-svg text').css('fill', text);
             }
         }
+        themed();
         draw();
+        // The theme switch, or the device setting while the theme is "System".
+        document.addEventListener('osqa:themechange', function () {
+            if (!$el[0].isConnected) return;
+            themed();
+            $el.empty();
+            draw();
+        });
         if (window.ResizeObserver) {
             // Width and height: a stylesheet applied after the first drawing
             // (a phone's shorter chart) would otherwise cut off the labels.

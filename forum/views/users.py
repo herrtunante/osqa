@@ -17,7 +17,7 @@ from django.utils.encoding import smart_str
 from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
-from forum.utils import email_frequency, security_log
+from forum.utils import display, email_frequency, security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
@@ -585,7 +585,10 @@ def user_preferences(request, user, **kwargs):
         form = UserPreferencesForm(request.POST)
 
         if form.is_valid():
-            user.prop.preferences = form.cleaned_data
+            # Merged: the theme switch keeps its choice in the same dict. The
+            # signed-in user's own object, so this page already shows the change.
+            owner = request.user if request.user.id == user.id else user
+            display.update_preferences(owner, **form.cleaned_data)
             messages.info(request, _('New preferences saved'))
 
     else:

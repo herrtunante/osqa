@@ -1,8 +1,8 @@
 /*
  * Profile and settings pages (templates/user.html and users/*.html):
  * - the reputation graph (#diagram, its points in data-points), drawn with
- *   osqaTimeChart() in the skin's colours and drawn again when the device
- *   switches between light and dark;
+ *   osqaTimeChart() in the skin's colours (it draws itself again when the
+ *   theme changes);
  * - the suspension dialog: the number of days is asked only for "For X days";
  * - "Delete my account": the button works once the username is typed exactly;
  * - settings forms sent back with errors: the error summary gets the focus;
@@ -21,16 +21,7 @@
             return;
         }
         var options = {series: {points: {show: points.length < 60}, lines: {fill: 0.12}}};
-        window.osqaTimeChart($chart, points, options);
-
-        if (window.matchMedia) {
-            var scheme = window.matchMedia('(prefers-color-scheme: dark)');
-            var redraw = function () {
-                $chart.empty();
-                window.osqaTimeChart($chart, points, options);
-            };
-            if (scheme.addEventListener) scheme.addEventListener('change', redraw);
-        }
+        window.osqaTimeChart($chart, points, options);  // redrawn by itself when the theme changes
     }
 
     function deleteAccountConfirmation() {

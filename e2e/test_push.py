@@ -229,7 +229,7 @@ class PushNotificationsTest(E2ETestCase):
             page.click('#push-settings .push-kinds button[type=submit]')
         self.check_page(page)
         self.assertEqual(push.kinds_for(self.alice.__class__.objects.get(id=self.alice.id)),
-                         {'answer_mine', 'mention', 'accepted', 'badge'})
+                         {'answer_mine', 'mention', 'accepted', 'badge', 'edit'})
         self.assertTrue(page.is_checked('#push-settings input[value=badge]'))
         self.assertFalse(page.is_checked('#push-settings input[value=comment]'))
 

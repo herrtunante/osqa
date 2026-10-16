@@ -8,7 +8,8 @@
      Enter opens the active option (or submits the search), Escape closes the
      panel and then leaves the field. The last option, "Search for “…”",
      runs the full search.
-   - "/" anywhere outside a text field focuses the box.
+   - "/" anywhere outside a text field focuses the box (unless keyboard
+     shortcuts are turned off: <html data-shortcuts="off">).
    - The clear button empties the field.
 
    Server data is only ever put in the page with textContent (and <mark>
@@ -341,6 +342,8 @@
         // "/" focuses the box, unless typing somewhere else.
         document.addEventListener('keydown', function (event) {
             if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented) return;
+            // A member who turned keyboard shortcuts off (osqa.shortcuts.js).
+            if (document.documentElement.getAttribute('data-shortcuts') === 'off') return;
             var target = event.target;
             if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
             event.preventDefault();

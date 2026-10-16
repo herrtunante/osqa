@@ -10,6 +10,7 @@
 {% load cache %}
 {% load seo_tags %}
 {% load assistant_tags %}
+{% load live_tags %}
 {% block metadescription %}{{ question.meta_description }}{% endblock %}
 {% block metakeywords %}{{question.tagname_meta_generator}}{% endblock %}
 {% block meta %}
@@ -131,7 +132,7 @@
             </h3>
             </div>
             {% endif %}
-            <div id="question-table" class="post question-post {% post_classes question %}">
+            <div id="question-table" class="post question-post {% post_classes question %}" data-post-id="{{ question.id }}" data-rev="{{ question.active_revision_id }}">
                 <div class="vote-buttons post-votes">
                     {% vote_buttons question request.user %}
                     {% favorite_mark question request.user %}
@@ -142,10 +143,7 @@
                         {{ question.html|safe }}
                     </div>
                     <div id="question-tags" class="tags-container tags post-tags">
-                        {% for tag in question.tagname_list %}
-                            <a href="{% url "tag_questions" tag|urlencode %}" class="post-tag tag-link-{{ tag }}"
-                                title="{% blocktrans with tag as tagname %}see questions tagged '{{ tagname }}'{% endblocktrans %}" rel="tag">{{ tag }}</a>
-                        {% endfor %}
+                        {% include "node/question_tags.html" %}
                     </div>
                     {% wiki_symbol request.user question %}
                     <div class="post-footer">
@@ -185,35 +183,13 @@
                 {{ answers.paginator.page_numbers }}
 
                 {% for answer in answers.paginator.page %}
-                    <a name="{{ answer.id }}"></a>
-                    <article id="answer-container-{{ answer.id }}" class="answer post answer-card {% post_classes answer %}{% if answer.id == focused_answer_id %} focusedAnswer{% endif %}" aria-label="{% blocktrans with name=answer.author.username %}Answer by {{ name }}{% endblocktrans %}">
-                        <div class="vote-buttons post-votes">
-                            {% vote_buttons answer request.user %}
-                            {% accept_button answer request.user %}
-                        </div>
-                        <div class="item-right post-main">
-                            <p class="accepted-badge">{% trans "Accepted answer" %}</p>
-                            {% review_notice answer request.user %}
-                            <div class="answer-body post-body">
-                                {{ answer.html|safe }}
-                            </div>
-                            {% wiki_symbol request.user answer %}
-                            <div class="post-footer">
-                                <div class="answer-controls post-controls">
-                                    {% post_controls answer request.user %}
-                                </div>
-                                <div class="post-update-info-container">
-                                    {% contributors_info answer %}
-                                </div>
-                            </div>
-                            {% comments answer request.user %}
-                        </div>
-                    </article>
+                    {% include "node/answer.html" %}
                 {% endfor %}
                 <div class="paginator-container-left">
                     {{ answers.paginator.page_numbers }}
                 </div>
             {% endif %}
+            {% live_updates question %}
             {% ai_suggestion question request.user %}
         <form id="fmanswer" action="{% url "answer" question.id %}" method="post">
             {% csrf_token %}

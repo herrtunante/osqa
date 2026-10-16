@@ -21,6 +21,18 @@ try:
 except:
     pass
 
+class SuggestedEditsLink(ui.Include):
+    """Members who review suggested edits (not moderators: the moderation
+    inbox counts them) see a link with the number waiting, when there are any."""
+    def can_render(self, context):
+        from forum.utils import review, suggested_edits
+        request = context.get('request')
+        user = getattr(request, 'user', None)
+        if user is None or review.is_moderator(user) or not suggested_edits.is_reviewer(user):
+            return False
+        return suggested_edits.pending_count() > 0
+
+
 ui.register(ui.HEADER_LINKS,
             ui.Link(_lazy('faq'), ui.Url('faq'), weight=400, name='FAQ'),
             ui.Link(_lazy('about'), ui.Url('about'), weight=300, name='ABOUT'),
@@ -42,9 +54,13 @@ ui.register(ui.HEADER_LINKS,
                     post_code=lambda u, c: get_score_badge(u),
                     weight=100, name='ACCOUNT'),
             ui.Include('inbox/bell.html', visibility=ui.Visibility.AUTHENTICATED, weight=150, name='NOTIFICATIONS'),
+            # Light / Dark / System (empty while the site's dark mode is off).
+            ui.Include('display/theme_menu.html', visibility=ui.Visibility.AUTHENTICATED, weight=160, name='THEME'),
 
             # The moderation inbox, with the number of items waiting.
             ui.Include('moderation/header_link.html', visibility=ui.Visibility.STAFF, weight=60, name='MODERATION'),
+            SuggestedEditsLink('suggested_edits/header_link.html', visibility=ui.Visibility.AUTHENTICATED, weight=65,
+                               name='SUGGESTED_EDITS'),
             ui.Link(
                     visibility=ui.Visibility.STAFF,
                     text=_lazy('support queue'),
@@ -104,6 +120,13 @@ ui.register(ui.USER_MENU,
                 span_attrs={'class': 'user-auth'},
                 weight=100,
                 name='AUTH_SETTINGS'
+            ),
+            ui.UserMenuItem(
+                label=_lazy("passkeys and two-step verification"),
+                url=lambda u, c: reverse('user_security', kwargs={'id': c['user'].id}),
+                span_attrs={'class': 'user-security'},
+                weight=150,
+                name='SECURITY_SETTINGS'
             ),
             ui.UserMenuItem(
                 label=_lazy("email notification settings"),

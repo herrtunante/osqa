@@ -255,3 +255,35 @@ def post_approved(action, new):
 
 from forum.actions import ApprovePostAction  # noqa: E402
 ApprovePostAction.hook(post_approved)
+
+
+
+# Suggested edits (forum/utils/suggested_edits.py): the member who suggested
+# an edit hears whether it was approved or rejected (and why), as often as
+# they want activity emails.
+def suggested_edit_reviewed(action, new):
+    from forum.models import SuggestedEdit
+    from forum.utils.suggested_edits import reason_label
+    approved = isinstance(action, SuggestedEditAction)
+    if approved:
+        suggestion = SuggestedEdit.objects.filter(action_id=action.id).first()
+        reviewer = action.real_user
+    else:
+        extra = action.extra if isinstance(action.extra, dict) else {}
+        suggestion = SuggestedEdit.objects.filter(id=extra.get('suggestion')).first()
+        reviewer = action.user
+    if suggestion is None or reviewer is None:
+        return
+    users = filter_subscribers(User.objects.filter(id=suggestion.author_id,
+                                                   subscription_settings__enable_notifications=True))
+    post = action.node.leaf
+    deliver(users, PendingEmail.EDIT_APPROVED if approved else PendingEmail.EDIT_REJECTED,
+            "notifications/suggested_edit.html",
+            {'suggestion': suggestion, 'node': post, 'reviewer': reviewer,
+             'outcome': 'approved' if approved else 'rejected', 'reason': reason_label(suggestion.reason),
+             'email_kind': 'suggested_edit'},
+            node=post, actor=reviewer)
+
+from forum.actions import SuggestedEditAction, RejectSuggestedEditAction  # noqa: E402
+SuggestedEditAction.hook(suggested_edit_reviewed)
+RejectSuggestedEditAction.hook(suggested_edit_reviewed)

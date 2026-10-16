@@ -1,0 +1,58 @@
+{% load i18n extra_tags email_tags %}
+{% comment %}To the member who suggested an edit (forum/utils/suggested_edits.py) when a reviewer
+   approves or rejects it: outcome is "approved" or "rejected" (with reason and suggestion.comment).
+   Sent through deliver() by forum/subscriptions.py.{% endcomment %}
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    question = node.absolute_parent
+    question_title = smart_str(question.title)
+    reviewer_name = smart_str(reviewer.username)
+    post_url = settings.APP_URL + node.get_absolute_url()
+    reason_text = smart_str(reason)
+    reviewer_comment = smart_str(suggestion.comment)
+    edit_summary = smart_str(suggestion.summary)
+{% enddeclare %}
+
+{% email %}
+    {% if outcome == "approved" %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your edit was approved: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}{{ reviewer_name }} approved the edit you suggested. Thanks for improving the post!{% endblocktrans %}{% endpreheader %}
+    {% else %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your edit was not approved: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}{{ reviewer_name }} reviewed the edit you suggested and rejected it.{% endblocktrans %}{% endpreheader %}
+    {% endif %}
+
+    {% htmlcontent notifications/base.html %}
+        {% declare %}
+            question_link = html.hyperlink(post_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        {% if outcome == "approved" %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Good news: {{ reviewer_name }} approved the edit you suggested to {{ question_link }}. It is now part of the post, credited to you in its revision history.{% endblocktrans %}</p>
+        {% include "notifications/_quote.html" with text=edit_summary %}
+        {% trans "View the post" as cta %}{% include "notifications/_button.html" with url=post_url label=cta %}
+        {% else %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}{{ reviewer_name }} reviewed the edit you suggested to {{ question_link }} and rejected it, for this reason: {{ reason_text }}{% endblocktrans %}</p>
+        {% if reviewer_comment %}{% include "notifications/_quote.html" with text=reviewer_comment %}{% endif %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Edits that fix mistakes, make the post clearer or add missing details are the most likely to be approved." %}</p>
+        {% trans "View the post" as cta %}{% include "notifications/_button.html" with url=post_url label=cta %}
+        {% endif %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% if outcome == "approved" %}{% blocktrans %}Good news: {{ reviewer_name }} approved the edit you suggested to {{ question_link }}. It is now part of the post, credited to you in its revision history.{% endblocktrans %}
+
+> {{ edit_summary }}
+{% else %}{% blocktrans %}{{ reviewer_name }} reviewed the edit you suggested to {{ question_link }} and rejected it, for this reason: {{ reason_text }}{% endblocktrans %}
+{% if reviewer_comment %}
+> {{ reviewer_comment }}
+{% endif %}
+{% trans "Edits that fix mistakes, make the post clearer or add missing details are the most likely to be approved." %}
+{% endif %}
+{% trans "View the post" %}:
+{{ post_url }}
+{% endtextcontent %}
+
+{% endemail %}

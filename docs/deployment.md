@@ -31,9 +31,9 @@ committed and is mounted into the container in Docker setups. Set:
 | Setting | Example | Why |
 |---|---|---|
 | `DATABASES` | see below | Database connection |
-| `APP_URL` | `'https://forum.example.org'` | The public address, without a trailing slash. With `https://`, secure cookies and HSTS are switched on |
+| `APP_URL` | `'https://forum.example.org'` | The public address, without a trailing slash. With `https://`, secure cookies and HSTS are switched on. Passkeys are bound to its host name and work only when the site is opened at this address over HTTPS (or `localhost`) |
 | `ALLOWED_HOSTS` | `('forum.example.org',)` | Host names the site answers to |
-| `SECRET_KEY` (or env `OSQA_SECRET_KEY`) | a 50-character random string | Signs sessions and links. Generate with `python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'`. Changing it signs everybody out |
+| `SECRET_KEY` (or env `OSQA_SECRET_KEY`) | a 50-character random string | Signs sessions and links. Generate with `python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'`. Changing it signs everybody out and makes two-step verification secrets unreadable (members then sign in with a recovery code): to rotate it, put the old key in `SECRET_KEY_FALLBACKS` until members have set up their app again |
 | `TRUSTED_PROXY_COUNT` (or env `OSQA_TRUSTED_PROXIES`) | `1` | Number of reverse proxies in front. The visitor's IP and HTTPS are then read from `X-Forwarded-For` / `X-Forwarded-Proto`, and HTTP is redirected to HTTPS. Leave `0` if visitors reach gunicorn directly |
 | `CACHES` | memcached, see the `.dist` file | Shared cache |
 | `TIME_ZONE` | `'Europe/Rome'` | Dates are stored in this zone. **When moving an existing forum, keep the old value**, or every date shifts |

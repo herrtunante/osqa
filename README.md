@@ -196,6 +196,7 @@ of posts) and why it is there:
 - **Flagged posts**: posts members reported, with each reason;
 - **Reported users**: accounts members reported ("report user");
 - **AI moderation reports** from the `ai` module.
+- **Suggested edits** waiting for review (see below).
 
 One click acts on an item: **Approve** (or **Dismiss** for flags and
 reports), **Delete**, **Delete as spam** (a dialog offers to suspend the
@@ -203,6 +204,29 @@ author and delete their other posts as well), and **Suspend** the author.
 Every action is an ordinary forum action (reputation, activity log, undelete
 and unsuspend work as usual), and the last one can be undone from the inbox.
 The cards work from the keyboard (j / k move between them) and on a phone.
+
+### Suggested edits
+
+Members who can't edit others' posts yet (below **Admin > Minimum reputation
+config > Minimum reputation to edit others posts**) see **suggest an edit**
+instead of "edit" on questions and answers. The edit page is the same (title,
+tags, body) with a required edit summary and a note that the edit will be
+reviewed. A post has at most one pending suggestion (others see "edit
+pending"), and a member may suggest **Suggested edits per member per day**
+(Admin > Moderation settings, 5 by default; **Suggested edits** turns the
+feature off).
+
+Members who may edit others' posts and moderators review them on **Review
+suggested edits** (`/review/suggested-edits/`; reviewers get a "review edits"
+link with the count in the header, moderators also see them in the inbox): an
+inline diff, then **Approve**, **Improve** (edit further, then approve) or
+**Reject** with a reason. Approving creates an ordinary revision credited to
+the suggester (the reviewer is named in its summary and activity) and gives
+them **Rep gain by approved suggested edit** (2, at most **Max rep by
+suggested edits**, 1000, in all; Admin > Reputation gains). If the post was
+edited since, changes to other fields are kept and a conflicting change
+supersedes the suggestion. The suggester gets a notification and an email
+(following their email frequency). The last review can be undone.
 
 ### Reviewing new members' first posts
 
@@ -369,6 +393,23 @@ again. The site must be served over HTTPS.
   (dropped after 10 in a row). `/metrics` counts `push_sent` and `push_failed`.
   Uses [pywebpush](https://github.com/web-push-libs/pywebpush) (MPL-2.0).
 
+### Live question pages
+
+An open question page follows the thread without reloading: vote counts and
+accepted marks change in place, new comments appear with a short highlight,
+and new answers and edits wait behind a "2 new answers · Show" banner (read
+out politely by screen readers). Someone writing an answer is told when
+another answer comes in; their draft is left alone. The page asks
+`/questions/<id>/updates/` every 20 seconds while the tab is visible (not
+when hidden, after 30 minutes without activity or for search engines); an
+unchanged question answers `304 Not Modified` without a database query of
+its own, so idle pages cost almost nothing. Behind a proxy or CDN, don't
+cache that URL (it is `private, no-cache`).
+
+Saving an edit after someone else changed the post doesn't overwrite their
+version: the edit page comes back with your text, who changed the post and a
+link to the revisions; saving again replaces their version.
+
 ## Security and logging
 
 - **Sign-in:** after 5 wrong passwords an account's password sign-in pauses for
@@ -378,6 +419,28 @@ again. The site must be served over HTTPS.
 - **Passwords:** Django's validators (at least 8 characters, not common, not
   numeric only, not similar to the username or email). Change them with
   `AUTH_PASSWORD_VALIDATORS`. Changing a password signs out the account's other sessions.
+- **Passkeys and two-step verification:** on "Passkeys and two-step
+  verification" in their settings, members add passkeys (fingerprint, face,
+  screen lock or security key; WebAuthn with `webauthn`/py_webauthn) and can turn
+  on codes from an authenticator app (TOTP; QR code drawn on the server with
+  `segno`) with 10 one-time recovery codes.
+  - The sign-in page offers "Sign in with a passkey" (and passkeys in the
+    username field's autofill) where the browser supports them. A passkey
+    sign-in requires user verification and counts as two-step verification.
+  - With an app set up, every other sign-in (password, Google/GitHub/Facebook,
+    LDAP, email links) asks for a code before the person is signed in; codes
+    are accepted 30 seconds either side, once each, and wrong ones are limited
+    like wrong passwords.
+  - Turning the app off or making new recovery codes needs a code or the
+    password. Administrators can turn it off for a member who lost their phone
+    and codes (from the member's settings page).
+  - *Require two-step verification for staff* (Admin > Security, off by
+    default) sends moderators and administrators without it to set it up when
+    they open an admin page (a passkey sign-in also counts).
+  - Stored: app secrets encrypted with a key derived from `SECRET_KEY`
+    (rotate with `SECRET_KEY_FALLBACKS`), recovery codes as salted SHA-256,
+    passkeys' public keys and signature counters. Passkeys work only at
+    `APP_URL`'s host over HTTPS (or `localhost`).
 - **Posting limits:** questions, answers and comments per user per hour
   (moderators exempt).
 - **Headers:** Content-Security-Policy, Permissions-Policy, plus Django's
@@ -408,6 +471,8 @@ again. The site must be served over HTTPS.
 - All the limits above are under Admin > Security.
 - **Security log** (`log/security.log`, logger `forum.security`), one line per event:
   - failed and paused sign-ins;
+  - passkeys added, removed and used (and counter errors), two-step
+    verification turned on or off, wrong codes and recovery codes used;
   - sign-in link requests and uses;
   - password changes;
   - pages refused to signed-in users;
@@ -697,9 +762,26 @@ the start of its section 2 (`--brand`, `--accent`, ...) are the quickest way
 to re-brand the site. Admin > Custom CSS is loaded
 last and can override them, e.g. `:root { --brand: #00704a; }`.
 
-Visitors whose device is set to dark mode get a dark colour scheme; turn it off
-under Admin > View settings > "Dark mode" if your custom CSS assumes a light
-background. jQuery 3.7, jQuery UI 1.14 (tag and user suggestions), Flot 4.2
+Visitors choose a theme, Light, Dark or System (the default: it follows the
+device's dark mode setting), in the footer, and members also from the header.
+The choice applies at once, without a flash of the other theme on the next
+page, and is kept in an `osqa_theme` cookie and, for members, with their
+preferences; the admin pages follow it. Turn dark mode off under Admin > View
+settings > "Dark mode" if your custom CSS assumes a light background (the
+switch then disappears). In custom CSS, write dark rules as
+`:root[data-theme="dark"] .my-class { ... }`: `data-theme` on `<html>` is
+always the resolved theme, "light" or "dark". (Rules written for the old
+`@media (prefers-color-scheme: dark) { :root[data-color-scheme="auto"] ... }`
+still apply while a visitor's theme is System.)
+
+Keyboard shortcuts: `?` lists them, `/` searches, `g` then `h`/`q`/`t`/`u`/`n`
+goes to the home page, questions, tags, users or notifications, `a` asks a
+question, `j`/`k` move through a list of questions (Enter opens one) or the
+posts of a question page (`u`/`d` vote). They never apply while typing, and
+members can turn them off in their preferences (this also turns off `j`/`k`
+in the moderation inbox).
+
+jQuery 3.7, jQuery UI 1.14 (tag and user suggestions), Flot 4.2
 (charts) and highlight.js 11.11 are served from the skin (`media/vendor/`), so
 pages load no third-party scripts unless Google search, Analytics or a provider
 login is configured. Post HTML is sanitized with nh3 and turned into plain text

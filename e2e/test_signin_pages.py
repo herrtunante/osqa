@@ -177,7 +177,8 @@ class SignInPagesTest(E2ETestCase):
     def test_providers_are_labelled_buttons_when_enabled(self):
         page = self.open()
         self.visit(page, '/account/signin/')
-        self.assertEqual(page.locator('.auth-providers, .auth-divider').count(), 0)
+        # only the passkey button's own divider
+        self.assertEqual(page.locator('.auth-providers, .auth-divider:not(.auth-passkey .auth-divider)').count(), 0)
 
         self.enable_providers()
         for path in ('/account/signin/', '/account/local/register/'):
@@ -187,7 +188,7 @@ class SignInPagesTest(E2ETestCase):
                 self.assertEqual(buttons.all_inner_texts(), ['Continue with Google', 'Continue with GitHub'])
                 self.assertEqual(page.locator('.auth-providers a svg').count(), 2)
                 self.assertEqual(page.get_by_role('link', name='Continue with Facebook').count(), 0)
-                self.assertEqual(page.locator('.auth-divider').inner_text().strip().lower(), 'or')
+                self.assertEqual(page.locator('.auth-divider').first.inner_text().strip().lower(), 'or')
                 # Full width: as wide as the fields below.
                 provider = page.get_by_role('link', name='Continue with GitHub').bounding_box()
                 field = page.locator('#id_username').bounding_box()

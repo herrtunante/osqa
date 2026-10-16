@@ -4033,6 +4033,96 @@ time.relative-time {
     border-style: dashed;
 }
 
+/* Live question page (osqa.live.js): the "2 new answers · Show" banner at
+   the bottom of the screen, new and edited posts highlighted for a moment,
+   the note above the answer form when an answer comes in while one is
+   being written. */
+.live-banner {
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    z-index: 60;
+    max-width: calc(100% - 32px);
+    transform: translateX(-50%);
+}
+
+.live-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px 6px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 4px 16px rgba(16, 24, 40, .18);
+    font-weight: 600;
+}
+
+.live-banner-dot {
+    color: var(--muted);
+}
+
+.live-banner .live-show {
+    min-height: 36px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    color: var(--surface);
+}
+
+.live-banner .live-show:hover {
+    background: var(--brand-dark);
+}
+
+@keyframes osqa-live-new {
+    from { background-color: var(--highlight-bg); box-shadow: 0 0 0 3px var(--warn-border); }
+}
+
+.question-page .live-new {
+    animation: osqa-live-new 3s ease-out;
+}
+
+.question-page .comment.live-new {
+    border-left: 3px solid var(--warn-border-strong);
+}
+
+.question-page .live-new:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.live-writing {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--info-border);
+    border-left: 4px solid var(--brand);
+    border-radius: 8px;
+    background: var(--brand-soft);
+    color: var(--text);
+}
+
+.live-writing a {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .question-page .live-new {
+        animation: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .live-banner {
+        width: calc(100% - 32px);
+    }
+
+    .live-banner .live-show {
+        margin-left: auto;
+    }
+}
+
 /* Post layout: votes beside the content. */
 .question-page .post {
     display: grid;
@@ -5050,137 +5140,146 @@ ul.question-tags-list .tag-number {
 
 /* ---- Dark mode ------------------------------------------------------ */
 
-/* Follows the device setting; Admin > View settings > "Dark mode" turns it off. */
-@media (prefers-color-scheme: dark) {
-    :root[data-color-scheme="auto"] {
-        color-scheme: dark;
-        --brand: #79b0ff;
-        --brand-dark: #a8cbff;
-        --brand-soft: #1a2a42;
-        /* White text (the Ask button) needs 4.5:1 on these. */
-        --accent: #cf430c;
-        --accent-dark: #c2410c;
-        --success: #3fb950;
-        --success-soft: #11251a;
-        --danger-soft: #3a1d1f;
-        --danger-text: #ff8b84;
-        --accent-soft: #3a2316;
-        --warn-bg: #2b2412;
-        --warn-bg-strong: #3a3015;
-        --warn-border: #5b4a1c;
-        --warn-border-strong: #7a6220;
-        --warn-text: #f0cf6c;
-        --highlight-bg: #2a2614;
-        --info-border: #2b3f5e;
-        --code-bg: #0f141b;
-        --code-inline-bg: #222a35;
-        --quote-text: #c3ccd6;
-        --hover-overlay: rgba(255, 255, 255, .08);
-        --text: #e6edf3;
-        --muted: #9ba7b4;
-        --border: #30363d;
-        --border-subtle: #262c34;
-        --border-strong: #46505c;
-        --surface: #161b22;
-        --background: #0d1117;
-        --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .35);
-        --hl-keyword: #ff7b72;
-        --hl-string: #a5d6ff;
-        --hl-comment: #8b949e;
-        --hl-number: #79c0ff;
-        --hl-title: #d2a8ff;
-        --hl-builtin: #ffa657;
-        --hl-addition: #aff5b4;
-        --hl-addition-bg: #033a16;
-        --hl-deletion: #ffdcd7;
-        --hl-deletion-bg: #67060c;
-        --button-bg: #2f6fd6;
-        --button-bg-hover: #3b7ee8;
-    }
+/* Every dark rule starts with :root[data-theme="dark"], here and in the later
+   sections, so dark mode is one set of rules for both ways of getting it.
+   data-theme on <html> is always "light" or "dark" (the resolved theme): the
+   server writes the visitor's choice (theme switch: user.prop.preferences or
+   the osqa_theme cookie), and for "System" the inline script of {% theme_head %}
+   (forum/templatetags/display_tags.py) sets it from prefers-color-scheme before
+   the first paint and again whenever the device setting changes. Admin > View
+   settings > "Dark mode" off: no data-theme, always light. */
+:root[data-theme="light"] {
+    color-scheme: light;
+}
 
-    /* White text needs a deeper blue/green than the link colours. Outline-style
-       buttons (.plain-button) keep their own colours. */
-    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes,
-            .paginator .curr):not(.dialog-no):not(.search-type):not(.account-delete-button):not(.plain-button) {
-        border-color: var(--button-bg);
-        background-color: var(--button-bg);
-        color: #fff;
-    }
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --brand: #79b0ff;
+    --brand-dark: #a8cbff;
+    --brand-soft: #1a2a42;
+    /* White text (the Ask button) needs 4.5:1 on these. */
+    --accent: #cf430c;
+    --accent-dark: #c2410c;
+    --success: #3fb950;
+    --success-soft: #11251a;
+    --danger-soft: #3a1d1f;
+    --danger-text: #ff8b84;
+    --accent-soft: #3a2316;
+    --warn-bg: #2b2412;
+    --warn-bg-strong: #3a3015;
+    --warn-border: #5b4a1c;
+    --warn-border-strong: #7a6220;
+    --warn-text: #f0cf6c;
+    --highlight-bg: #2a2614;
+    --info-border: #2b3f5e;
+    --code-bg: #0f141b;
+    --code-inline-bg: #222a35;
+    --quote-text: #c3ccd6;
+    --hover-overlay: rgba(255, 255, 255, .08);
+    --text: #e6edf3;
+    --muted: #9ba7b4;
+    --border: #30363d;
+    --border-subtle: #262c34;
+    --border-strong: #46505c;
+    --surface: #161b22;
+    --background: #0d1117;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .35);
+    --hl-keyword: #ff7b72;
+    --hl-string: #a5d6ff;
+    --hl-comment: #8b949e;
+    --hl-number: #79c0ff;
+    --hl-title: #d2a8ff;
+    --hl-builtin: #ffa657;
+    --hl-addition: #aff5b4;
+    --hl-addition-bg: #033a16;
+    --hl-deletion: #ffdcd7;
+    --hl-deletion-bg: #67060c;
+    --button-bg: #2f6fd6;
+    --button-bg-hover: #3b7ee8;
+}
 
-    :root[data-color-scheme="auto"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):not(.account-delete-button):not(.plain-button):hover {
-        border-color: var(--button-bg-hover);
-        background-color: var(--button-bg-hover);
-    }
+/* White text needs a deeper blue/green than the link colours. Outline-style
+   buttons (.plain-button) keep their own colours. */
+:root[data-theme="dark"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes,
+        .paginator .curr):not(.dialog-no):not(.search-type):not(.account-delete-button):not(.plain-button) {
+    border-color: var(--button-bg);
+    background-color: var(--button-bg);
+    color: #fff;
+}
 
-    :root[data-color-scheme="auto"] .tags a:hover, :root[data-color-scheme="auto"] a.post-tag:hover {
-        background: var(--button-bg);
-        color: #fff;
-    }
+:root[data-theme="dark"] :is(input[type="submit"], input[type="button"], button, .submit, a.button, .dialog-yes):not(.dialog-no):not(.account-delete-button):not(.plain-button):hover {
+    border-color: var(--button-bg-hover);
+    background-color: var(--button-bg-hover);
+}
 
-    :root[data-color-scheme="auto"] .short-summary .status.answered-accepted,
-    :root[data-color-scheme="auto"] .short-summary .status.answered-accepted .item-count {
-        border-color: #238636;
-        background: #238636;
-        color: #fff;
-    }
+:root[data-theme="dark"] .tags a:hover, :root[data-theme="dark"] a.post-tag:hover {
+    background: var(--button-bg);
+    color: #fff;
+}
 
-    /* Legacy style.css colours that modern.css does not otherwise touch. */
-    :root[data-color-scheme="auto"] a.medal, :root[data-color-scheme="auto"] .medal {
-        color: var(--warn-text);
-    }
+:root[data-theme="dark"] .short-summary .status.answered-accepted,
+:root[data-theme="dark"] .short-summary .status.answered-accepted .item-count {
+    border-color: #238636;
+    background: #238636;
+    color: #fff;
+}
 
-    :root[data-color-scheme="auto"] .badges a {
-        color: var(--brand);
-    }
+/* Legacy style.css colours that modern.css does not otherwise touch. */
+:root[data-theme="dark"] a.medal, :root[data-theme="dark"] .medal {
+    color: var(--warn-text);
+}
 
-    :root[data-color-scheme="auto"] .wmd-preview, :root[data-color-scheme="auto"] .deleted {
-        background-color: var(--code-bg);
-    }
+:root[data-theme="dark"] .badges a {
+    color: var(--brand);
+}
 
-    :root[data-color-scheme="auto"] .deleted {
-        background-color: var(--danger-soft);
-    }
+:root[data-theme="dark"] .wmd-preview, :root[data-theme="dark"] .deleted {
+    background-color: var(--code-bg);
+}
 
-    :root[data-color-scheme="auto"] .darkred, :root[data-color-scheme="auto"] span.form-error,
-    :root[data-color-scheme="auto"] ul.errorlist li, :root[data-color-scheme="auto"] .error {
-        color: var(--danger-text);
-    }
+:root[data-theme="dark"] .deleted {
+    background-color: var(--danger-soft);
+}
 
-    :root[data-color-scheme="auto"] .notify p.darkred {
-        color: inherit;
-    }
+:root[data-theme="dark"] .darkred, :root[data-theme="dark"] span.form-error,
+:root[data-theme="dark"] ul.errorlist li, :root[data-theme="dark"] .error {
+    color: var(--danger-text);
+}
 
-    :root[data-color-scheme="auto"] .score, :root[data-color-scheme="auto"] .accept_rate,
-    :root[data-color-scheme="auto"] .questions-count span, :root[data-color-scheme="auto"] .tickLabel,
-    :root[data-color-scheme="auto"] .post-score, :root[data-color-scheme="auto"] .scoreNumber,
-    :root[data-color-scheme="auto"] .favorite-count, :root[data-color-scheme="auto"] .comment-score {
-        color: var(--text);
-    }
+:root[data-theme="dark"] .notify p.darkred {
+    color: inherit;
+}
 
-    :root[data-color-scheme="auto"] .answer-votes,
-    :root[data-color-scheme="auto"] a.sidebar_button, :root[data-color-scheme="auto"] .user-action-1,
-    :root[data-color-scheme="auto"] .answer-title-link a, :root[data-color-scheme="auto"] .post-type-2 a,
-    :root[data-color-scheme="auto"] .post-type-4 a, :root[data-color-scheme="auto"] .post-type-8 a,
-    :root[data-color-scheme="auto"] .community-wiki {
-        color: var(--text);
-    }
+:root[data-theme="dark"] .score, :root[data-theme="dark"] .accept_rate,
+:root[data-theme="dark"] .questions-count span, :root[data-theme="dark"] .tickLabel,
+:root[data-theme="dark"] .post-score, :root[data-theme="dark"] .scoreNumber,
+:root[data-theme="dark"] .favorite-count, :root[data-theme="dark"] .comment-score {
+    color: var(--text);
+}
 
-    :root[data-color-scheme="auto"] a.sidebar_button, :root[data-color-scheme="auto"] .answer-votes,
-    :root[data-color-scheme="auto"] .message, :root[data-color-scheme="auto"] .revision .header {
-        background: var(--code-inline-bg);
-    }
+:root[data-theme="dark"] .answer-votes,
+:root[data-theme="dark"] a.sidebar_button, :root[data-theme="dark"] .user-action-1,
+:root[data-theme="dark"] .answer-title-link a, :root[data-theme="dark"] .post-type-2 a,
+:root[data-theme="dark"] .post-type-4 a, :root[data-theme="dark"] .post-type-8 a,
+:root[data-theme="dark"] .community-wiki {
+    color: var(--text);
+}
 
-    :root[data-color-scheme="auto"] .revision .author {
-        background: var(--brand-soft);
-    }
+:root[data-theme="dark"] a.sidebar_button, :root[data-theme="dark"] .answer-votes,
+:root[data-theme="dark"] .message, :root[data-theme="dark"] .revision .header {
+    background: var(--code-inline-bg);
+}
 
-    :root[data-color-scheme="auto"] .negativeReputation {
-        color: var(--danger-text);
-    }
+:root[data-theme="dark"] .revision .author {
+    background: var(--brand-soft);
+}
 
-    :root[data-color-scheme="auto"] img {
-        color-scheme: light;
-    }
+:root[data-theme="dark"] .negativeReputation {
+    color: var(--danger-text);
+}
+
+:root[data-theme="dark"] img {
+    color-scheme: light;
 }
 
 /* ---- AI duplicate detection on the ask page ------------------------- */
@@ -5624,6 +5723,68 @@ ul.question-tags-list .tag-number {
     display: inline-block; min-width: 18px; height: 18px; margin-left: 2px; padding: 0 5px;
     border-radius: 9px; background: #c62828; color: #fff; font-size: 11px; font-weight: 700;
     line-height: 18px; text-align: center; box-sizing: border-box;
+}
+/* Theme menu (header, members: display/theme_menu.html) and the footer's
+   theme switch (display/theme_switch.html, styled as .language-switch);
+   osqa.theme.js. The button shows the icon of the current choice. */
+.theme-menu { position: relative; display: inline-flex; }
+.theme-menu > summary {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px;
+    padding: 6px; border-radius: 6px; color: var(--muted); list-style: none; cursor: pointer;
+}
+.theme-menu > summary::-webkit-details-marker { display: none; }
+.theme-menu > summary:hover, .theme-menu[open] > summary { background: var(--background); color: var(--text); }
+.theme-menu > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.theme-icon { display: none; }
+:root[data-theme-choice="auto"] .theme-icon-auto, :root[data-theme-choice="light"] .theme-icon-light,
+:root[data-theme-choice="dark"] .theme-icon-dark { display: block; }
+.theme-menu-panel {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 1002; min-width: 168px; margin: 0; padding: 6px;
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, .18); white-space: normal;
+}
+.theme-menu-panel fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.theme-menu-panel legend { padding: 4px 8px; color: var(--muted); font-size: 12px; font-weight: 600; }
+.theme-menu-option {
+    display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 8px; border-radius: 6px;
+    color: var(--text); font-size: 14px; font-weight: normal; cursor: pointer;
+}
+.theme-menu-option:hover { background: var(--hover-overlay); }
+.theme-menu-option input { margin: 0; accent-color: var(--brand); }
+/* Keyboard shortcuts: the list opened with "?" (display/shortcuts_dialog.html)
+   and the question or post that j / k moved to (osqa.shortcuts.js). */
+.shortcuts-dialog {
+    width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; overflow: auto;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .3); white-space: normal;
+}
+.shortcuts-dialog::backdrop { background: rgba(16, 24, 40, .55); }
+.shortcuts-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 12px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.shortcuts-header h2 { margin: 0; font-size: 18px; }
+.shortcuts-dialog .shortcuts-close {
+    min-width: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 8px; background: none;
+    color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer;
+}
+.shortcuts-dialog .shortcuts-close:hover { background: var(--hover-overlay); color: var(--text); }
+.shortcuts-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0 32px; padding: 8px 20px; }
+.shortcuts-groups h3 {
+    margin: 10px 0 4px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.shortcuts-list { margin: 0 0 6px; }
+.shortcuts-list > div { display: flex; align-items: baseline; gap: 12px; padding: 4px 0; }
+.shortcuts-list dt { flex: 0 0 76px; margin: 0; font-weight: normal; }
+.shortcuts-list dd { margin: 0; }
+.shortcuts-dialog kbd {
+    display: inline-block; min-width: 22px; padding: 1px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px;
+    border-radius: 5px; background: var(--code-bg); color: var(--text); font: 600 12px/16px var(--mono); text-align: center;
+}
+.shortcuts-note { margin: 0; padding: 12px 20px 16px; border-top: 1px solid var(--border-subtle); color: var(--muted); font-size: 13px; }
+.shortcuts-note a { text-decoration: underline; }
+.question-row.is-kbd-current, .question-page .post.is-kbd-current {
+    outline: 2px solid var(--brand); outline-offset: 2px; scroll-margin: 80px 0;
 }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -6844,56 +7005,54 @@ a.badge-awardee img.gravatar {
     }
 }
 
-@media (prefers-color-scheme: dark) {
-    /* A light pill behind the logo, so dark lettering stays readable. */
-    :root[data-color-scheme="auto"] #logo img {
-        padding: 3px 8px;
-        border-radius: 10px;
-        background: #eef2f7;
-        box-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
-    }
+/* A light pill behind the logo, so dark lettering stays readable. */
+:root[data-theme="dark"] #logo img {
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: #eef2f7;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.up {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.up {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.down {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.down {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.up:hover {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2379b0ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.up:hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2379b0ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.down:hover {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff9a6b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.down:hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff9a6b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.up.on, :root[data-color-scheme="auto"] a.post-vote.up.on:hover {
-        border-color: var(--button-bg);
-        background-color: var(--button-bg);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.up.on, :root[data-theme="dark"] a.post-vote.up.on:hover {
+    border-color: var(--button-bg);
+    background-color: var(--button-bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] a.post-vote.down.on, :root[data-color-scheme="auto"] a.post-vote.down.on:hover {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] a.post-vote.down.on, :root[data-theme="dark"] a.post-vote.down.on:hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] .question-page a.accept-answer:not(.on) {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] .question-page a.accept-answer:not(.on) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c3ccd6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] .question-page a.accept-answer:not(.on):hover {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233fb950' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] .question-page a.accept-answer:not(.on):hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233fb950' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 9.8'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] .language-switch select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ba7b4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    }
+:root[data-theme="dark"] .language-switch select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ba7b4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
 
-    :root[data-color-scheme="auto"] .badge-hero-icon {
-        border-color: var(--warn-border);
-    }
+:root[data-theme="dark"] .badge-hero-icon {
+    border-color: var(--warn-border);
 }
 
 /* The editor toolbar wraps on narrow screens: wmd.css fixes its height at
@@ -6907,10 +7066,8 @@ a.badge-awardee img.gravatar {
 .scroll-row.fade-end { --fade-right: 56px; }
 
 /* Badge names keep their medal colours in dark mode. */
-@media (prefers-color-scheme: dark) {
-    :root[data-color-scheme="auto"] .badges a.medal {
-        color: inherit;
-    }
+:root[data-theme="dark"] .badges a.medal {
+    color: inherit;
 }
 
 /* ======================================================================
@@ -8501,6 +8658,225 @@ ul.settings-list li + li {
     color: var(--danger-text);
 }
 
+/* Passkeys and two-step verification (users/security.html, two_factor_setup.html, recovery_codes.html). */
+.security-card .security-primary {
+    min-height: 42px;
+    padding: 10px 18px;
+    font-size: 15px;
+}
+
+.security-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.security-item-icon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand);
+}
+
+.security-item-icon svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.security-item-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.security-item-name {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.security-item-meta, .security-empty, .security-note {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.security-empty {
+    margin: 0 0 16px;
+}
+
+.security-passkey-add[hidden], .security-note[hidden], .security-card .auth-error[hidden] {
+    display: none;
+}
+
+.security-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.settings-card .security-inline input[type="text"] {
+    flex: 1 1 220px;
+    width: auto;
+    min-width: 0;
+}
+
+.security-status {
+    padding: 2px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.security-status-on {
+    border-color: var(--success);
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.security-details {
+    margin: 0 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.security-details summary {
+    padding: 12px 14px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.security-details form {
+    padding: 0 14px 14px;
+}
+
+.security-details .settings-actions {
+    margin-top: 4px;
+    padding-top: 14px;
+}
+
+.security-proof-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;
+}
+
+.security-steps {
+    margin: 12px 0 0;
+    padding-left: 22px;
+}
+
+.security-steps > li {
+    margin: 0 0 22px;
+    padding-left: 4px;
+}
+
+.security-steps h3 {
+    margin: 0 0 6px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.security-qr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 24px;
+}
+
+/* A QR code needs dark modules on a light background, also in dark mode. */
+.security-qr-image {
+    flex: none;
+    width: 196px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.security-qr-image svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.security-secret {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.security-secret p {
+    margin: 0 0 8px;
+}
+
+.security-secret-key, .security-codes code {
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--code-bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
+}
+
+.security-secret-key {
+    display: inline-block;
+    margin: 0 0 8px;
+}
+
+.settings-card .auth-field input.security-code-input {
+    max-width: 220px;
+    font-family: var(--mono);
+    font-size: 20px;
+    letter-spacing: 0.2em;
+}
+
+.security-codes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 0;
+    padding-left: 28px;
+}
+
+.security-codes li {
+    margin: 0;
+    color: var(--muted);
+}
+
+.security-success {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-left: 4px solid var(--success);
+    border-radius: 8px;
+    background: var(--success-soft);
+    color: var(--text);
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .security-proof-fields, .security-codes {
+        grid-template-columns: 1fr;
+    }
+
+    .security-qr-image {
+        width: 172px;
+    }
+}
+
 /* Sub-tabs of the email settings page. */
 .settings-subtabs {
     margin: 0;
@@ -9167,6 +9543,25 @@ ul.subscription-items {
     color: var(--danger-text);
     text-decoration: underline;
     text-underline-offset: 2px;
+}
+
+/* "This post was changed while you were editing it" (compose/revision.html). */
+.compose-conflict {
+    margin-bottom: 16px;
+    border-color: var(--warn-border-strong);
+    background: var(--warn-bg);
+}
+
+.compose-conflict p {
+    margin: 0;
+}
+
+.compose-conflict p + p {
+    margin-top: 6px;
+}
+
+.compose-conflict a {
+    color: var(--brand);
 }
 
 .compose-error {
@@ -9965,22 +10360,281 @@ li.tag-chip {
 
 /* ---- Dark mode ---- */
 
-@media (prefers-color-scheme: dark) {
-    :root[data-color-scheme="auto"] .similar-status.is-accepted {
-        border-color: #238636;
-        background: #238636;
-        color: #fff;
+:root[data-theme="dark"] .similar-status.is-accepted {
+    border-color: #238636;
+    background: #238636;
+    color: #fff;
+}
+
+:root[data-theme="dark"] .compose-page #previewer {
+    background: transparent;
+}
+
+:root[data-theme="dark"] .compose-page input:focus-visible,
+:root[data-theme="dark"] .compose-page select:focus-visible,
+:root[data-theme="dark"] .compose-page textarea:focus-visible,
+:root[data-theme="dark"] .tag-chips.is-ready:focus-within {
+    outline-color: rgba(121, 176, 255, .35);
+}
+
+/* ---- Suggested edits (suggest_edit, review page suggested_edits/review.html) ---- */
+
+.action-link .edit-pending {
+    color: var(--muted);
+    cursor: help;
+}
+
+.suggested-edits-link .suggested-edits-count {
+    display: inline-block;
+    min-width: 18px;
+    height: 18px;
+    margin-left: 2px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
+.sugg-review {
+    max-width: 920px;
+}
+
+.sugg-intro, .sugg-count, .sugg-more, .sugg-empty {
+    color: var(--muted);
+}
+
+.sugg-undo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--info-border);
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+}
+
+.sugg-card {
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.sugg-head {
+    margin-bottom: 10px;
+}
+
+.sugg-type {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sugg-card h2.sugg-title {
+    margin: 6px 0 2px;
+    font-size: 17px;
+    overflow-wrap: anywhere;
+}
+
+.sugg-meta, .sugg-summary {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.sugg-summary {
+    margin-bottom: 10px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.sugg-warning, .sugg-note {
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.sugg-warning {
+    border: 1px solid var(--warn-border);
+    background: var(--warn-bg);
+    color: var(--warn-text);
+}
+
+.sugg-note {
+    border: 1px solid var(--info-border);
+    background: var(--brand-soft);
+    color: var(--text);
+}
+
+.sugg-diff {
+    padding: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--background);
+    overflow-wrap: anywhere;
+}
+
+.sugg-diff h2.revision-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.sugg-diff .text {
+    white-space: pre-wrap;
+    font-family: var(--mono);
+    font-size: 13px;
+}
+
+.sugg-diff .tags {
+    margin-top: 8px;
+}
+
+.sugg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.sugg-actions form {
+    margin: 0;
+}
+
+.sugg-actions .sugg-approve, .sugg-improve, .sugg-reject-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.sugg-actions .sugg-approve {
+    border: 1px solid var(--success);
+    background: var(--success);
+    color: #fff;
+    cursor: pointer;
+}
+
+.sugg-improve, .sugg-reject-toggle {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.sugg-reject {
+    flex: 1 1 100%;
+}
+
+.sugg-reject-toggle {
+    width: max-content;
+    list-style: none;
+}
+
+.sugg-reject-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.sugg-reject[open] .sugg-reject-toggle {
+    border-color: var(--danger-text);
+    color: var(--danger-text);
+}
+
+.sugg-reject-form {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.sugg-reject-form fieldset {
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+}
+
+.sugg-reject-form legend {
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.sugg-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.sugg-reason input {
+    flex: none;
+    margin-top: 3px;
+}
+
+.sugg-comment-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.sugg-reject-form textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.sugg-reject-form .sugg-reject-button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--danger-text);
+    border-radius: 6px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (max-width: 640px) {
+    .sugg-card {
+        padding: 12px;
     }
 
-    :root[data-color-scheme="auto"] .compose-page #previewer {
-        background: transparent;
+    .sugg-actions .sugg-approve, .sugg-improve, .sugg-reject-toggle {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 
-    :root[data-color-scheme="auto"] .compose-page input:focus-visible,
-    :root[data-color-scheme="auto"] .compose-page select:focus-visible,
-    :root[data-color-scheme="auto"] .compose-page textarea:focus-visible,
-    :root[data-color-scheme="auto"] .tag-chips.is-ready:focus-within {
-        outline-color: rgba(121, 176, 255, .35);
+    .sugg-approve-form {
+        flex: 1 1 auto;
+        display: flex;
+    }
+
+    .sugg-approve-form .sugg-approve {
+        width: 100%;
+    }
+
+    .sugg-reject-toggle {
+        width: 100%;
     }
 }
 
@@ -11586,6 +12240,11 @@ ul.related-tags li {
     }
 }
 
+/* Keyboard shortcuts turned off in the member's preferences: no "/" hint. */
+:root[data-shortcuts="off"] #searchBar .searchbox-kbd {
+    display: none;
+}
+
 /* ---- Suggestions ------------------------------------------------------ */
 
 #searchBar .searchbox-panel {
@@ -11862,7 +12521,7 @@ div.dialog :focus-visible {
 
 @media print {
     /* Light colours even when the screen is in dark mode. */
-    :root, :root[data-color-scheme="auto"] {
+    :root, :root[data-theme] {
         color-scheme: light;
         --text: #000;
         --muted: #333;

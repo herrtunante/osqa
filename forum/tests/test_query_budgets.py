@@ -131,6 +131,28 @@ class PageQueryBudgetTest(QueryBudgetMixin, OSQATestCase):
         # at most one query per extra author (accept rate, user row), none per post.
         self.assertLessEqual(counts[1] - counts[0], 16, counts)
 
+    def test_live_question_updates(self):
+        # The live question page's poll (forum/views/live.py): the snapshot, the
+        # posts rendered for "Show", and the 304 of an unchanged question.
+        from forum.utils import live
+        url = '/questions/%d/updates/?since=%s' % (self.big.id, live.now_token())
+        self.assertQueryBudget(url, cold=7, warm=6)  # anonymous: includes creating the session
+        self.assertQueryBudget(url, cold=7, warm=5, user=self.viewer)
+        posts = ','.join(str(answer.id) for answer in Answer.objects.filter(parent=self.big)[:3])
+        self.assertQueryBudget('%s&posts=%s,%d' % (url, posts, self.big.id), cold=24, warm=12, user=self.viewer,
+                               label='GET live posts as viewer')
+        for user, budget in ((None, 1), (self.viewer, 2)):
+            self.count_queries('get', url, user=user)  # signs in, if at all
+            etag = self.client.get(url)['ETag']
+            with CaptureQueriesContext(connection) as ctx:
+                response = self.client.get(url, HTTP_IF_NONE_MATCH=etag)
+            self.assertEqual(response.status_code, 304)
+            # The session (and the signed-in user): the middleware's, none of the view's.
+            if REPORT:
+                print('\nQUERIES %-50s 304=%3d' % ('live updates as %s' % user, len(ctx.captured_queries)))
+            else:
+                self.assertLessEqual(len(ctx.captured_queries), budget, _sql(ctx))
+
     def test_tags_users_profile(self):
         self.assertQueryBudget('/tags/', cold=7, warm=6)
         self.assertQueryBudget('/users/', cold=7, warm=6)

@@ -1,0 +1,14 @@
+{% load i18n display_tags %}{% comment %}
+The theme switch in the footer (everyone; only while the site's dark mode is
+on). osqa.theme.js applies a choice at once and saves it (set_theme); without
+JavaScript the button submits the form.
+{% endcomment %}{% if settings.DARK_MODE %}{% theme_options as options %}
+    <form class="language-switch theme-switch" action="{% url "set_theme" %}" method="post" data-theme-switch>{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        <label for="theme-select">{% trans "Theme" %}</label>
+        <select id="theme-select" name="theme">
+            {% for value, label, selected in options %}<option value="{{ value }}"{% if selected %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit">{% trans "Change" %}</button></noscript>
+    </form>
+{% endif %}

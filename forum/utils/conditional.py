@@ -11,6 +11,7 @@ of everything else the page depends on:
 - the session's CSRF secret (CSRF_USE_SESSIONS), so a copy whose token no
   longer matches the session is never reused;
 - the skin media version (a deploy changes the page's asset URLs);
+- the theme chosen with the theme switch (the osqa_theme cookie);
 - the current hour, so relative dates ("2 hours ago") and view counts, which
   change without any of the above, are at most an hour old.
 
@@ -56,9 +57,10 @@ def anonymous_page_etag(request, *parts, shows_messages=True):
     if None in stamps:
         return None
     from forum.views.pwa import version as media_version
+    from forum.utils import display
     raw = '|'.join(str(part) for part in [
         request.get_full_path(), get_language(), request.session.get(CSRF_SESSION_KEY, ''),
-        media_version(), datetime.datetime.now().strftime('%Y%m%d%H'),
+        media_version(), datetime.datetime.now().strftime('%Y%m%d%H'), display.etag_part(request),
     ] + [stamp.isoformat() for stamp in stamps] + list(parts))
     return '"%s"' % hashlib.sha256(raw.encode('utf-8')).hexdigest()[:24]
 

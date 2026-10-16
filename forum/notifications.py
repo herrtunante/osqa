@@ -10,6 +10,7 @@ sees replies to their posts in the forum.
 - accepted answer: the answer's author
 - badge: the person awarded
 - post approved / removed: the author of a post held for review (forum/review_notices.py)
+- suggested edit approved / rejected (with the reason): the member who suggested it
 
 Each one is also pushed to the member's devices if they turned browser push on
 (forum/utils/push.py).
@@ -133,3 +134,25 @@ def post_approved(action, new):
     replay_on_approval(action, {'ask': question_asked, 'answer': answer_posted, 'comment': comment_posted})
 
 ApprovePostAction.hook(post_approved)
+
+
+def suggested_edit_reviewed(action, new):
+    """An edit the member suggested was approved (SuggestedEditAction, whose
+    user is the suggester) or rejected (RejectSuggestedEditAction)."""
+    from forum.utils.suggested_edits import reason_label
+    if isinstance(action, SuggestedEditAction):
+        if action.real_user_id:
+            notify({action.user_id}, Notification.EDIT_APPROVED, action.real_user, action.node)
+        return
+    from forum.models import SuggestedEdit
+    extra = action.extra if isinstance(action.extra, dict) else {}
+    suggestion = SuggestedEdit.objects.filter(id=extra.get('suggestion')).first()
+    if suggestion is not None:
+        text = reason_label(extra.get('reason'))
+        if extra.get('comment'):
+            text = '%s: %s' % (text, extra['comment'])
+        notify({suggestion.author_id}, Notification.EDIT_REJECTED, action.user, action.node, text=text)
+
+from forum.actions import SuggestedEditAction, RejectSuggestedEditAction  # noqa: E402
+SuggestedEditAction.hook(suggested_edit_reviewed)
+RejectSuggestedEditAction.hook(suggested_edit_reviewed)

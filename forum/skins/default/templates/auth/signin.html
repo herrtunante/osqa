@@ -16,6 +16,7 @@
 
 {% block forejs %}
     <script defer src="{% media "/media/js/osqa.password.js" %}"></script>
+    {% if not request.user.is_authenticated %}<script defer src="{% media "/media/js/osqa.passkeys.js" %}"></script>{% endif %}
 {% endblock %}
 
 {% block page_center %}
@@ -60,6 +61,10 @@
                     {% include provider.stack_item_template %}
                 </form>
             {% endfor %}
+
+            {% if not request.user.is_authenticated %}
+                {% include "auth/passkey_signin.html" %}
+            {% endif %}
 
             {% if request.user.is_authenticated and not top_stackitem_providers and not button_providers and not stackitem_providers %}
                 <div class="auth-empty">

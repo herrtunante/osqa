@@ -156,7 +156,7 @@ class ReviewQueueTest(E2ETestCase):
         labels = page.locator('.mod-filters a').all_inner_texts()
         self.assertEqual([' '.join(label.split()) for label in labels],
                          ['Everything 2', 'First posts 1', 'Flagged posts 1', 'Reported users 0',
-                          'AI moderation reports 0'])
+                          'AI moderation reports 0', 'Suggested edits 0'])
         page.locator('body').press('j')
         self.assertEqual(page.evaluate('document.activeElement.className'), 'mod-card mod-review')
         page.keyboard.press('j')

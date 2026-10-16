@@ -244,7 +244,7 @@ def open_user_reports():
 
 
 def inbox_counts():
-    """{'review', 'flags', 'ai', 'users', 'total'}: what waits in the moderation
+    """{'review', 'flags', 'ai', 'users', 'edits', 'total'}: what waits in the moderation
     inbox (cached for a minute, emptied when a moderator acts)."""
     counts = cache.get(COUNTS_CACHE_KEY)
     if counts is None:
@@ -255,6 +255,8 @@ def inbox_counts():
             'ai': ModerationReport.objects.filter(resolved_at=None).count(),
             'users': len(open_user_reports()),
         }
+        from forum.utils import suggested_edits
+        counts['edits'] = suggested_edits.staff_count()
         counts['total'] = sum(counts.values())
         cache.set(COUNTS_CACHE_KEY, counts, COUNTS_CACHE_SECONDS)
     return counts
