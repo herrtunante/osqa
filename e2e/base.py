@@ -77,6 +77,32 @@ WIDER_THAN_SCREEN = '''() => {
 }'''
 
 
+
+# The last keys, clicks, focus moves and dialog calls of each page, printed
+# with the page's state when a test fails (CI keeps only the log).
+TRACE = """(() => {
+    const trace = window.__e2eTrace = [];
+    const name = (el) => !el || !el.tagName ? String(el) :
+        el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
+        (el.getAttribute && el.getAttribute('data-command') ? '[' + el.getAttribute('data-command') + ']' : '');
+    const add = (text) => { trace.push(Math.round(performance.now()) + 'ms ' + text); if (trace.length > 60) trace.shift(); };
+    ['keydown', 'click', 'focusin', 'close', 'cancel'].forEach((type) => document.addEventListener(type, (e) =>
+        add(type + ' ' + (e.key ? e.key + (e.ctrlKey ? '+ctrl' : '') + ' ' : '') + name(e.target) +
+            (e.defaultPrevented ? ' (prevented)' : '')), true));
+    ['showModal', 'show', 'close'].forEach((method) => {
+        const real = HTMLDialogElement.prototype[method];
+        HTMLDialogElement.prototype[method] = function () {
+            add('dialog.' + method + ' ' + name(this) + (this.open ? ' (was open)' : ''));
+            try { return real.apply(this, arguments); }
+            catch (err) { add('  threw ' + err); throw err; }
+        };
+    });
+})();"""
+
+TRACE_DUMP = """() => (window.__e2eTrace || []).concat([
+    'now: focus ' + (document.activeElement ? document.activeElement.outerHTML.slice(0, 100) : '-'),
+    'open dialogs: ' + [...document.querySelectorAll('dialog[open]')].map(d => d.id + (d.matches(':modal') ? ' (modal)' : '')).join(', ')])"""
+
 class _ServeEverythingWithDjango:
     """The live server would serve STATIC_URL itself from STATIC_ROOT; OSQA
     serves those files through its own views, as in production."""
@@ -140,9 +166,13 @@ class E2ETestCase(LiveServerTestCase):
                 except Exception:
                     pass
                 # What the page logged often explains a timeout (CI only keeps the log).
-                if page.problems:
+                try:
+                    trace = page.evaluate(TRACE_DUMP)
+                except Exception:
+                    trace = []
+                if page.problems or trace:
                     sys.stderr.write('\n%s, page %d (%s):\n  %s\n' % (
-                        self.id(), index, page.url, '\n  '.join(page.problems)))
+                        self.id(), index, page.url, '\n  '.join(page.problems + trace)))
         leftovers = [] if failed else [p for page in self._pages for p in page.problems]
         if os.environ.get('E2E_CSS_COVERAGE'):
             from . import css_coverage
@@ -238,6 +268,7 @@ class E2ETestCase(LiveServerTestCase):
             session.create()
             context.add_cookies([{'name': djsettings.SESSION_COOKIE_NAME, 'value': session.session_key,
                                   'url': self.live_server_url}])
+        context.add_init_script(TRACE)
         page = context.new_page()
         if os.environ.get('E2E_CSS_COVERAGE'):
             from . import css_coverage
