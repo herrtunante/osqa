@@ -281,3 +281,17 @@ class EditConflictTest(LiveTestCase):
         self.assertIn('This post was changed while you were editing it', response.content.decode())
         self.assertIn('My other version of this answer text.', response.content.decode())
         self.assertIn('colClasses = "Date"', self.body(self.answer))
+
+
+class SlowMachineConditionalTest(ConditionalTest):
+    """The same budgets when the clock jumps 30 s between the warm-up poll and
+    the counted one, as on a slow CI runner: the settings' in-memory copies
+    must not expire inside a counted request (OSQATestCase keeps them)."""
+
+    def count(self, user, etag):
+        from datetime import datetime, timedelta
+        from unittest import mock
+        from forum.settings import base as settings_base
+        later = datetime.now() + timedelta(seconds=30)
+        with mock.patch.object(settings_base, 'datetime', mock.Mock(now=lambda: later)):
+            return super().count(user, etag)

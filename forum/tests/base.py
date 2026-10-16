@@ -22,6 +22,13 @@ class OSQATestCase(TestCase):
         self.addCleanup(cache.clear)
         from forum.settings.base import Setting
         Setting.forget_values()
+        # ...and keep the values a test reads for the whole test (set_value()
+        # still replaces them): a copy expiring in the middle of a test made
+        # the setting read the database again, inside query budgets, at a
+        # moment that depended on how fast the machine was.
+        values_patcher = mock.patch('forum.settings.base.TMP_MINICACHE_SECONDS', 3600)
+        values_patcher.start()
+        self.addCleanup(values_patcher.stop)
 
         # Action hooks run in a background thread, which can't see the test
         # transaction; run them inline instead.
