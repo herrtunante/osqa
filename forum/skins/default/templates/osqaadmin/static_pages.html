@@ -1,4 +1,4 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 
@@ -7,7 +7,6 @@
 {% block description %}{% trans "Allows you to create a set of static pages" %}{% endblock %}
 
 {% block admincontent %}
-    <h1>{% trans "Select page to edit" %}</h1>
     <ul class="object-tools">
         <li><a class="addlink" href="{% url "admin_new_page" %}">{% trans "New page" %}</a></li>
     </ul>

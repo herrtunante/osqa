@@ -42,6 +42,7 @@ committed and is mounted into the container in Docker setups. Set:
 | `DISABLED_MODULES` | `['recaptcha', 'project_badges']` | Optional modules to switch off |
 | `METRICS_TOKEN` (optional, or env) | a long random string | Turns on Prometheus metrics at `/metrics` (see [Monitoring](#monitoring-with-prometheus)) |
 | `LOG_FORMAT` (optional, or env) | `'json'` | One JSON object per line on standard output (see [Logs](#logs-and-request-ids)) |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (optional, or env) | output of `python manage.py generate_vapid_keys` | Browser push notifications (off unless both keys are set; see the README). The private key is a secret; keep the pair, new keys make every device subscribe again. Needs HTTPS and outbound HTTPS to the push services (`fcm.googleapis.com`, `*.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com`) |
 | `BACKUP_DIR`, `BACKUP_KEEP` (optional) | `'/srv/osqa/backups'`, `14` | Where `backup_site` writes and how many archives it keeps (see [Backups](#backups-and-restore)) |
 
 MySQL / MariaDB connection:

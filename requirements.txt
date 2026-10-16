@@ -20,6 +20,10 @@ mysqlclient==2.3.0
 # Cache backend for CACHES 'PyMemcacheCache' (recommended in production)
 pymemcache==4.0.0
 
+# Browser push notifications (Web Push, RFC 8291 + VAPID; only used when VAPID keys are set).
+# MPL-2.0, maintained by web-push-libs (pulls in py-vapid, http-ece, cryptography, requests).
+pywebpush==2.5.0
+
 # Error reporting to Sentry (optional: only used when SENTRY_DSN is set)
 sentry-sdk==2.72.0
 

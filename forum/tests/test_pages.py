@@ -136,15 +136,12 @@ class LayoutTest(OSQATestCase):
 class AdminInterfaceTest(OSQATestCase):
     def setUp(self):
         super().setUp()
-        from forum import settings
-        self.addCleanup(setattr, settings.DJSTYLE_ADMIN_INTERFACE, '_temp', None)
         admin = self.create_user('admin')
         admin.is_superuser = True
         admin.save()
         self.login(admin)
 
     def test_django_style_admin_assets_are_served(self):
-        self.client.get('/admin/switch_interface/?to=djstyle')
         page = self.client.get('/admin/settings/basic/')
         self.assertCleanPage(page)
         self.assertContains(page, 'href="/m/django_admin/css/base.css"')
@@ -157,14 +154,20 @@ class AdminInterfaceTest(OSQATestCase):
         with self.assertLogs('django.security', level='ERROR'):
             self.assertEqual(self.client.get('/m/django_admin/../../__init__.py').status_code, 400)
 
-    def test_node_manager_in_both_interfaces(self):
-        for interface in ('djstyle', 'default'):
-            with self.subTest(interface=interface):
-                self.client.get('/admin/switch_interface/?to=%s' % interface)
-                page = self.client.get('/admin/tools/nodeman/')
-                self.assertCleanPage(page)
-                self.assertContains(page, 'class="changelist-form-container"')
-                self.assertNotContains(page, "{% static")
+    def test_old_layout_switch_redirects_to_the_dashboard(self):
+        for query in ('?to=default', '?to=djstyle', ''):
+            with self.subTest(query=query):
+                response = self.client.get('/admin/switch_interface/' + query)
+                self.assertRedirects(response, '/admin/')
+        page = self.client.get('/admin/')
+        self.assertNotContains(page, 'switch_interface')
+        self.assertNotContains(page, 'standard interface')
+
+    def test_node_manager(self):
+        page = self.client.get('/admin/tools/nodeman/')
+        self.assertCleanPage(page)
+        self.assertContains(page, 'class="changelist-form-container"')
+        self.assertNotContains(page, "{% static")
 
 
 class ErrorPageTest(OSQATestCase):

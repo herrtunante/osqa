@@ -9,7 +9,9 @@
  *   });
  *
  * The matching_tags / matching_users views answer one "id|name|count|..." row
- * per line; rows are passed around as arrays of those columns.
+ * per line; rows are passed around as arrays of those columns. A tag row
+ * found through a synonym has the synonym as its fourth column: the default
+ * label shows "csv → export (12)" and the value is the tag, "export".
  */
 (function ($) {
     function lastWord(text) {
@@ -20,7 +22,7 @@
         var o = $.extend({
             multiple: false,
             max: 10,
-            label: function (row) { return row[1] + ' (' + row[2] + ')'; },
+            label: function (row) { return (row[3] ? row[3] + ' \u2192 ' : '') + row[1] + ' (' + row[2] + ')'; },
             value: function (row) { return row[1]; },
             select: null
         }, options);

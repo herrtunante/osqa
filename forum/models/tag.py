@@ -70,11 +70,19 @@ class Tag(BaseModel):
         from forum.models.node import Node
         return Node._as_markdown(self.description, 'limitedsyntax')
 
+    def _description_text(self):
+        from django.utils.html import strip_tags
+        return ' '.join(strip_tags(str(self.description_html)).split())
+
     @property
     def description_excerpt(self):
-        from django.utils.html import strip_tags
         from django.utils.text import Truncator
-        return Truncator(' '.join(strip_tags(str(self.description_html)).split())).chars(140)
+        return Truncator(self._description_text()).chars(140)
+
+    @property
+    def description_is_long(self):
+        """Longer than its excerpt: the tag page shows the excerpt and the rest on request."""
+        return len(self._description_text()) > 140
 
 
 class TagSynonym(models.Model):

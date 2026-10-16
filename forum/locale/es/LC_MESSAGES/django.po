@@ -172,6 +172,41 @@ msgstr "publicó"
 msgid "%(user)s published a new page titled %(page)s"
 msgstr "%(user)s publicó una nueva página titulada %(page)s"
 
+msgid "renamed a tag"
+msgstr "renombró una etiqueta"
+
+#, python-format
+msgid "%(user)s renamed the tag %(old)s to %(new)s"
+msgstr "%(user)s renombró la etiqueta %(old)s a %(new)s"
+
+msgid "merged tags"
+msgstr "fusionó etiquetas"
+
+#, python-format
+msgid "%(user)s merged the tag %(source)s into %(target)s"
+msgstr "%(user)s fusionó la etiqueta %(source)s con %(target)s"
+
+msgid "added a tag synonym"
+msgstr "añadió un sinónimo de etiqueta"
+
+#, python-format
+msgid "%(user)s made %(synonym)s a synonym of the tag %(tag)s"
+msgstr "%(user)s convirtió %(synonym)s en sinónimo de la etiqueta %(tag)s"
+
+msgid "removed a tag synonym"
+msgstr "quitó un sinónimo de etiqueta"
+
+#, python-format
+msgid "%(user)s removed the synonym %(synonym)s of the tag %(tag)s"
+msgstr "%(user)s quitó el sinónimo %(synonym)s de la etiqueta %(tag)s"
+
+msgid "edited a tag description"
+msgstr "editó la descripción de una etiqueta"
+
+#, python-format
+msgid "%(user)s edited the description of the tag %(tag)s"
+msgstr "%(user)s editó la descripción de la etiqueta %(tag)s"
+
 msgid "joined"
 msgstr "se unió"
 
@@ -3620,35 +3655,48 @@ msgstr "con su navegador."
 msgid "search"
 msgstr "buscar"
 
-msgid "Site Administration"
-msgstr "Administración del sitio"
-
 msgid "OSQA administration area"
 msgstr "Área de administración de OSQA"
 
-msgid "Switch to django style interface"
-msgstr "Cambiar a la interfaz de estilo Django"
+msgid "Administration Area"
+msgstr "Área de administración"
 
-msgid "Admin menu"
-msgstr "Menú de administración"
+msgid "Account"
+msgstr "Cuenta"
+
+msgid "View site"
+msgstr "Ver el sitio"
+
+#, python-format
+msgid "%(counter)s waiting"
+msgid_plural "%(counter)s waiting"
+msgstr[0] "%(counter)s pendiente"
+msgstr[1] "%(counter)s pendientes"
+msgstr[2] "%(counter)s pendientes"
+
+msgid "Log out"
+msgstr "Cerrar sesión"
+
+msgid "Breadcrumbs"
+msgstr "Ruta de navegación"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Dashboard"
+msgstr "Panel"
 
 msgid "Administration menu"
 msgstr "Menú de administración"
 
-msgid "Maintenance mode"
-msgstr "Modo de mantenimiento"
+msgid "Admin menu"
+msgstr "Menú de administración"
 
-msgid "Support dashboard"
-msgstr "Panel de soporte"
+msgid "Unsaved changes"
+msgstr "Cambios sin guardar"
 
-msgid "Email previews"
-msgstr "Vistas previas de correos"
-
-msgid "Statistics"
-msgstr "Estadísticas"
-
-msgid "Custom Pages"
-msgstr "Páginas personalizadas"
+msgid "Items marked with this icon have unpublished changes."
+msgstr "Los elementos marcados con este icono tienen cambios sin publicar."
 
 msgid "Create User"
 msgstr "Crear usuario"
@@ -3658,9 +3706,6 @@ msgstr "Creación rápida de un nuevo usuario"
 
 msgid "Save"
 msgstr "Guardar"
-
-msgid "Dashboard"
-msgstr "Panel"
 
 msgid "Welcome to the OSQA administration area."
 msgstr "Bienvenido al área de administración de OSQA."
@@ -3716,48 +3761,6 @@ msgstr "Recalcular"
 msgid "Recent activity"
 msgstr "Actividad reciente"
 
-msgid "Administration Area"
-msgstr "Área de administración"
-
-msgid "Welcome,"
-msgstr "Bienvenido,"
-
-msgid "To standard interface"
-msgstr "A la interfaz estándar"
-
-msgid "Back to home page"
-msgstr "Volver a la página de inicio"
-
-msgid "Log out"
-msgstr "Cerrar sesión"
-
-msgid "Home"
-msgstr "Inicio"
-
-msgid "Unpublished changes"
-msgstr "Cambios sin publicar"
-
-msgid "Items marked with this icon have unpublished changes."
-msgstr "Los elementos marcados con este icono tienen cambios sin publicar."
-
-msgid "Workflow settings"
-msgstr "Configuración del flujo de trabajo"
-
-msgid "Forum settings"
-msgstr "Configuración del foro"
-
-msgid "Static content"
-msgstr "Contenido estático"
-
-msgid "Unsaved changes"
-msgstr "Cambios sin guardar"
-
-msgid "Other settings"
-msgstr "Otras opciones de configuración"
-
-msgid "Tools"
-msgstr "Herramientas"
-
 msgid "Editing page"
 msgstr "Edición de página"
 
@@ -3784,6 +3787,9 @@ msgstr "Retirar publicación"
 
 msgid "Publish"
 msgstr "Publicar"
+
+msgid "Email previews"
+msgstr "Vistas previas de correos"
 
 msgid "All email previews"
 msgstr "Todas las vistas previas de correos"
@@ -3824,18 +3830,15 @@ msgstr "Todos los correos que envía el sitio, con publicaciones y personas de e
 msgid "Plain text"
 msgstr "Texto sin formato"
 
-msgid "Site statistics"
-msgstr "Estadísticas del sitio"
-
-msgid "Recalculate scores and reputation"
-msgstr "Recalcular puntuaciones y reputación"
-
 #, python-format
 msgid "%(prefix)s Your email settings are correct: %(app_name)s"
 msgstr "%(prefix)s La configuración de correo electrónico es correcta: %(app_name)s"
 
 msgid "If you see this content your E-Mail settings are correct."
 msgstr "Si ve este contenido, la configuración de correo electrónico es correcta."
+
+msgid "Maintenance mode"
+msgstr "Modo de mantenimiento"
 
 msgid "Maintainance mode allows you to close your site for maintainance, allowing only a predetermined set of ip addresses to access it normally."
 msgstr "El modo de mantenimiento le permite cerrar su sitio por mantenimiento y permitir el acceso normal solo a un conjunto predeterminado de direcciones IP."
@@ -3854,63 +3857,6 @@ msgstr "Abrir sitio"
 
 msgid "Close for maintenance"
 msgstr "Cerrar por mantenimiento"
-
-msgid "Moderation"
-msgstr "Moderación"
-
-msgid "These tools allow you to search for undesired behaviours and cheating patterns."
-msgstr "Estas herramientas le permiten buscar comportamientos no deseados y patrones de trampa."
-
-msgid "Verify:"
-msgstr "Verificar:"
-
-msgid "highest ranking users"
-msgstr "usuarios mejor clasificados"
-
-msgid "newer users"
-msgstr "usuarios más recientes"
-
-msgid "older users"
-msgstr "usuarios más antiguos"
-
-msgid "users with these ids"
-msgstr "usuarios con estos identificadores"
-
-msgid "(Comma separated list of user ids)"
-msgstr "(Lista de identificadores de usuario separados por comas)"
-
-msgid "Go"
-msgstr "Ir"
-
-msgid "Possible cheaters"
-msgstr "Posibles tramposos"
-
-msgid "Validated"
-msgstr "Validado"
-
-msgid "Not validated"
-msgstr "No validado"
-
-msgid "Reputation:"
-msgstr "Reputación:"
-
-msgid "Reputation"
-msgstr "Reputación"
-
-msgid "Affecting actions"
-msgstr "Acciones que afectan"
-
-msgid "Cross ips"
-msgstr "IP cruzadas"
-
-msgid "Cheating score"
-msgstr "Puntuación de trampa"
-
-msgid "Possible fake accounts"
-msgstr "Posibles cuentas falsas"
-
-msgid "out of"
-msgstr "de"
 
 #, python-format
 msgid "%(rep)s reputation"
@@ -3992,9 +3938,6 @@ msgstr "Descartar"
 
 msgid "Reported users"
 msgstr "Usuarios denunciados"
-
-msgid "Account"
-msgstr "Cuenta"
 
 #, python-format
 msgid "%(counter)s report"
@@ -4104,6 +4047,12 @@ msgstr "Cerrar (solo preguntas)"
 msgid "Run the selected action"
 msgstr "Ejecutar la acción seleccionada"
 
+msgid "Go"
+msgstr "Ir"
+
+msgid "Select all"
+msgstr "Seleccionar todo"
+
 msgid "Type"
 msgstr "Tipo"
 
@@ -4209,9 +4158,6 @@ msgstr "Páginas estáticas"
 msgid "Allows you to create a set of static pages"
 msgstr "Le permite crear un conjunto de páginas estáticas"
 
-msgid "Select page to edit"
-msgstr "Seleccione la página que desea editar"
-
 msgid "Pages"
 msgstr "Páginas"
 
@@ -4224,8 +4170,14 @@ msgstr "Aún no hay páginas personalizadas."
 msgid "Create the first page"
 msgstr "Crear la primera página"
 
+msgid "Statistics"
+msgstr "Estadísticas"
+
 msgid "Some simple graphics to help you get a notion of whats going on in your site."
 msgstr "Algunos gráficos sencillos para ayudarle a hacerse una idea de lo que ocurre en su sitio."
+
+msgid "Support dashboard"
+msgstr "Panel de soporte"
 
 msgid "Questions waiting for an answer, response times and answers waiting to be accepted. A question counts as answered once someone other than the asker answers it."
 msgstr "Preguntas en espera de respuesta, tiempos de respuesta y respuestas pendientes de aceptación. Una pregunta cuenta como respondida cuando alguien distinto de quien la formuló la responde."
@@ -4410,6 +4362,76 @@ msgstr "Cambios en la política"
 
 msgid "This policy may change from time to time. Changes are published on this page."
 msgstr "Esta política puede cambiar con el tiempo. Los cambios se publican en esta página."
+
+msgid "Notifications on your devices"
+msgstr "Notificaciones en sus dispositivos"
+
+msgid "Send to my devices"
+msgstr "Enviar a mis dispositivos"
+
+msgid "Devices that get notifications"
+msgstr "Dispositivos que reciben notificaciones"
+
+msgid "Unknown browser"
+msgstr "Navegador desconocido"
+
+#, python-format
+msgid "added %(added)s"
+msgstr "añadido %(added)s"
+
+#, python-format
+msgid "last notification %(sent)s"
+msgstr "última notificación %(sent)s"
+
+#, python-format
+msgid "%(counter)s failed delivery"
+msgid_plural "%(counter)s failed deliveries"
+msgstr[0] "%(counter)s envío fallido"
+msgstr[1] "%(counter)s envíos fallidos"
+msgstr[2] "%(counter)s envíos fallidos"
+
+msgid "(this device)"
+msgstr "(este dispositivo)"
+
+#, python-format
+msgid "Remove %(device)s"
+msgstr "Quitar %(device)s"
+
+msgid "No devices yet. Turn the switch on in each browser where you want notifications."
+msgstr "Aún no hay dispositivos. Active el interruptor en cada navegador donde quiera recibir notificaciones."
+
+msgid "Notifications are on for this device."
+msgstr "Las notificaciones están activadas en este dispositivo."
+
+msgid "Notifications are off for this device."
+msgstr "Las notificaciones están desactivadas en este dispositivo."
+
+msgid "Notifications were not allowed. Press the switch again to be asked again."
+msgstr "No se permitieron las notificaciones. Pulse el interruptor de nuevo para que se le vuelva a preguntar."
+
+msgid "Something went wrong. Please try again later."
+msgstr "Algo salió mal. Vuelva a intentarlo más tarde."
+
+msgid "One moment..."
+msgstr "Un momento..."
+
+msgid "Get notifications on this device"
+msgstr "Recibir notificaciones en este dispositivo"
+
+msgid "Your browser shows a short line such as “bob answered your question” with the question title, and opens it when you tap it. Never the text of posts or comments."
+msgstr "Su navegador muestra una línea breve como «bob respondió a su pregunta» con el título de la pregunta, y la abre al tocarla. Nunca el texto de publicaciones ni comentarios."
+
+msgid "Choose which notifications"
+msgstr "Elegir qué notificaciones"
+
+msgid "This browser can't show notifications from websites. Notifications still appear under the bell at the top of the page."
+msgstr "Este navegador no puede mostrar notificaciones de sitios web. Las notificaciones siguen apareciendo bajo la campana, arriba en la página."
+
+msgid "Notifications are blocked for this site in your browser. To allow them, open the site settings (the icon next to the address), set Notifications to Allow, and reload this page."
+msgstr "Su navegador bloquea las notificaciones de este sitio. Para permitirlas, abra la configuración del sitio (el icono junto a la dirección), ponga Notificaciones en Permitir y vuelva a cargar esta página."
+
+msgid "On iPhone and iPad, notifications work once the forum is on your Home Screen: tap Share, then “Add to Home Screen”, and open the forum from there."
+msgstr "En iPhone y iPad, las notificaciones funcionan cuando el foro está en la pantalla de inicio: toque Compartir, luego «Añadir a pantalla de inicio», y abra el foro desde allí."
 
 msgid "You are offline"
 msgstr "Estás sin conexión"
@@ -4658,6 +4680,21 @@ msgstr[2] "%(counter)s preguntas"
 msgid "subscribe to question RSS feed"
 msgstr "suscribirse al canal RSS de la pregunta"
 
+msgid "About this tag"
+msgstr "Acerca de esta etiqueta"
+
+msgid "Read the full description"
+msgstr "Leer la descripción completa"
+
+msgid "This tag has no description yet."
+msgstr "Esta etiqueta aún no tiene descripción."
+
+msgid "Also called:"
+msgstr "También llamada:"
+
+msgid "Manage tag"
+msgstr "Gestionar etiqueta"
+
 msgid "You follow this tag"
 msgstr "Usted sigue esta etiqueta"
 
@@ -4688,15 +4725,6 @@ msgid_plural "%(counter)s followers"
 msgstr[0] "%(counter)s seguidor"
 msgstr[1] "%(counter)s seguidores"
 msgstr[2] "%(counter)s seguidores"
-
-msgid "Synonyms:"
-msgstr "Sinónimos:"
-
-msgid "edit tag"
-msgstr "editar etiqueta"
-
-msgid "Describe this tag"
-msgstr "Describa esta etiqueta"
 
 #, python-format
 msgid "No questions tagged %(tag_name)s yet"
@@ -4868,12 +4896,19 @@ msgid "Answers and Comments"
 msgstr "Respuestas y comentarios"
 
 #, python-format
-msgid "Edit tag %(name)s"
-msgstr "Editar la etiqueta %(name)s"
+msgid "Manage tag %(name)s"
+msgstr "Gestionar la etiqueta %(name)s"
 
 #, python-format
-msgid "Edit tag <span class=\"tag\">%(name)s</span>"
-msgstr "Editar la etiqueta <span class=\"tag\">%(name)s</span>"
+msgid "Back to questions tagged %(name)s"
+msgstr "Volver a las preguntas etiquetadas como %(name)s"
+
+#, python-format
+msgid "Manage tag <span class=\"tag\">%(name)s</span>"
+msgstr "Gestionar la etiqueta <span class=\"tag\">%(name)s</span>"
+
+msgid "All tag synonyms"
+msgstr "Todos los sinónimos de etiquetas"
 
 msgid "Description"
 msgstr "Descripción"
@@ -4888,8 +4923,15 @@ msgid "Synonyms"
 msgstr "Sinónimos"
 
 #, python-format
-msgid "Questions tagged with a synonym are tagged <strong>%(name)s</strong> instead, and the synonym's page redirects here. If the synonym is an existing tag, its questions are retagged now."
-msgstr "Las preguntas etiquetadas con un sinónimo se etiquetan en su lugar como <strong>%(name)s</strong>, y la página del sinónimo redirige aquí. Si el sinónimo es una etiqueta existente, sus preguntas se reetiquetan ahora."
+msgid "Names that mean <strong>%(name)s</strong>: typed in the tags field they become %(name)s, and their pages redirect here. If a synonym is an existing tag, you are asked to merge it first."
+msgstr "Nombres que significan <strong>%(name)s</strong>: escritos en el campo de etiquetas se convierten en %(name)s, y sus páginas redirigen aquí. Si un sinónimo es una etiqueta existente, se le pedirá fusionarla primero."
+
+msgid "means"
+msgstr "significa"
+
+#, python-format
+msgid "Remove the synonym %(name)s"
+msgstr "Quitar el sinónimo %(name)s"
 
 msgid "e.g. gis-analysis"
 msgstr "p. ej., gis-analysis"
@@ -4900,9 +4942,159 @@ msgstr "Sinónimo"
 msgid "Add synonym"
 msgstr "Añadir sinónimo"
 
+msgid "Rename"
+msgstr "Renombrar"
+
+msgid "Changes the tag on all its questions; followers and synonyms stay with it. Earlier revisions of the questions keep the old name. This can be undone below."
+msgstr "Cambia la etiqueta en todas sus preguntas; los seguidores y los sinónimos se mantienen. Las revisiones anteriores de las preguntas conservan el nombre antiguo. Puede deshacerse más abajo."
+
+msgid "New name"
+msgstr "Nuevo nombre"
+
+msgid "Rename tag"
+msgstr "Renombrar etiqueta"
+
 #, python-format
-msgid "Back to questions tagged %(name)s"
-msgstr "Volver a las preguntas etiquetadas como %(name)s"
+msgid "Keep %(name)s as a synonym (old links and the old name keep working)"
+msgstr "Conservar %(name)s como sinónimo (los enlaces antiguos y el nombre antiguo siguen funcionando)"
+
+msgid "Merge into another tag"
+msgstr "Fusionar con otra etiqueta"
+
+#, python-format
+msgid "Moves the questions, followers and synonyms of %(name)s to the other tag, and %(name)s becomes its synonym. You'll see what changes before confirming; a merge can't be undone."
+msgstr "Pasa las preguntas, seguidores y sinónimos de %(name)s a la otra etiqueta, y %(name)s se convierte en su sinónimo. Verá qué cambia antes de confirmar; una fusión no se puede deshacer."
+
+msgid "Merge into"
+msgstr "Fusionar con"
+
+msgid "Review merge"
+msgstr "Revisar la fusión"
+
+msgid "History"
+msgstr "Historial"
+
+msgid "undone"
+msgstr "deshecho"
+
+msgid "can't be undone"
+msgstr "no se puede deshacer"
+
+msgid "Undo"
+msgstr "Deshacer"
+
+msgid "No changes yet."
+msgstr "Aún no hay cambios."
+
+#, python-format
+msgid "Merge %(source)s into %(target)s"
+msgstr "Fusionar %(source)s con %(target)s"
+
+#, python-format
+msgid "Back to managing %(name)s"
+msgstr "Volver a la gestión de %(name)s"
+
+#, python-format
+msgid "Merge <span class=\"tag\">%(source)s</span> into <span class=\"tag\">%(target)s</span>?"
+msgstr "¿Fusionar <span class=\"tag\">%(source)s</span> con <span class=\"tag\">%(target)s</span>?"
+
+msgid "What will change"
+msgstr "Qué cambiará"
+
+#, python-format
+msgid "%(counter)s question will move to %(target)s."
+msgid_plural "%(counter)s questions will move to %(target)s."
+msgstr[0] "%(counter)s pregunta pasará a %(target)s."
+msgstr[1] "%(counter)s preguntas pasarán a %(target)s."
+msgstr[2] "%(counter)s preguntas pasarán a %(target)s."
+
+#, python-format
+msgid "%(counter)s of them already has %(target)s: it just loses the old tag."
+msgid_plural "%(counter)s of them already have %(target)s: they just lose the old tag."
+msgstr[0] "%(counter)s de ellas ya tiene %(target)s: solo pierde la etiqueta antigua."
+msgstr[1] "%(counter)s de ellas ya tienen %(target)s: solo pierden la etiqueta antigua."
+msgstr[2] "%(counter)s de ellas ya tienen %(target)s: solo pierden la etiqueta antigua."
+
+#, python-format
+msgid "%(counter)s of them is deleted or waiting for review."
+msgid_plural "%(counter)s of them are deleted or waiting for review."
+msgstr[0] "%(counter)s de ellas está eliminada o pendiente de revisión."
+msgstr[1] "%(counter)s de ellas están eliminadas o pendientes de revisión."
+msgstr[2] "%(counter)s de ellas están eliminadas o pendientes de revisión."
+
+#, python-format
+msgid "%(counter)s follower moves to %(target)s"
+msgid_plural "%(counter)s followers move to %(target)s"
+msgstr[0] "%(counter)s seguidor pasa a %(target)s"
+msgstr[1] "%(counter)s seguidores pasan a %(target)s"
+msgstr[2] "%(counter)s seguidores pasan a %(target)s"
+
+#, python-format
+msgid "%(counter)s member ignoring it too"
+msgid_plural "%(counter)s members ignoring it too"
+msgstr[0] "%(counter)s miembro que la ignora también"
+msgstr[1] "%(counter)s miembros que la ignoran también"
+msgstr[2] "%(counter)s miembros que la ignoran también"
+
+#, python-format
+msgid "%(counter)s member had already chosen %(target)s and keeps that choice."
+msgid_plural "%(counter)s members had already chosen %(target)s and keep that choice."
+msgstr[0] "%(counter)s miembro ya había elegido %(target)s y mantiene esa elección."
+msgstr[1] "%(counter)s miembros ya habían elegido %(target)s y mantienen esa elección."
+msgstr[2] "%(counter)s miembros ya habían elegido %(target)s y mantienen esa elección."
+
+msgid "Its synonyms will point to the new tag:"
+msgstr "Sus sinónimos apuntarán a la nueva etiqueta:"
+
+#, python-format
+msgid "%(source)s becomes a synonym of %(target)s: its page redirects there, and typing %(source)s gives %(target)s."
+msgstr "%(source)s se convierte en sinónimo de %(target)s: su página redirige allí, y escribir %(source)s da %(target)s."
+
+msgid "Earlier revisions of the questions keep their tags; each question gets a new revision."
+msgstr "Las revisiones anteriores de las preguntas conservan sus etiquetas; cada pregunta recibe una nueva revisión."
+
+msgid "A merge can't be undone."
+msgstr "Una fusión no se puede deshacer."
+
+msgid "To split the tags again, the questions would have to be retagged one by one."
+msgstr "Para volver a separar las etiquetas, habría que reetiquetar las preguntas una por una."
+
+msgid "Tag synonyms"
+msgstr "Sinónimos de etiquetas"
+
+msgid "All tags"
+msgstr "Todas las etiquetas"
+
+msgid "A synonym is a name that stands for a tag: typed in the tags field it becomes the tag, and its page redirects to the tag's page. To rename or merge a tag, open its page and choose “Manage tag”."
+msgstr "Un sinónimo es un nombre que representa una etiqueta: escrito en el campo de etiquetas se convierte en la etiqueta, y su página redirige a la de la etiqueta. Para renombrar o fusionar una etiqueta, abra su página y elija «Gestionar etiqueta»."
+
+msgid "e.g. csv"
+msgstr "p. ej., csv"
+
+msgid "Stands for the tag"
+msgstr "Representa la etiqueta"
+
+msgid "e.g. export"
+msgstr "p. ej., export"
+
+msgid "Filter synonyms"
+msgstr "Filtrar sinónimos"
+
+msgid "Filter by synonym or tag"
+msgstr "Filtrar por sinónimo o etiqueta"
+
+msgid "Actions"
+msgstr "Acciones"
+
+#, python-format
+msgid "No synonyms match “%(query)s”"
+msgstr "Ningún sinónimo coincide con «%(query)s»"
+
+msgid "No synonyms yet"
+msgstr "Aún no hay sinónimos"
+
+msgid "Show all synonyms"
+msgstr "Mostrar todos los sinónimos"
 
 msgid "Tag list"
 msgstr "Lista de etiquetas"
@@ -5371,8 +5563,8 @@ msgstr "La aceptación de una respuesta"
 msgid "Follow questions automatically"
 msgstr "Seguir preguntas automáticamente"
 
-msgid "Questions you ask or answer are always followed. You can stop following any of them on the \\"
-msgstr "Las preguntas que formula o responde se siguen siempre. Puede dejar de seguir cualquiera de ellas en la pestaña \\"
+msgid "Questions you ask or answer are always followed. You can stop following any of them on the “Questions you follow” tab."
+msgstr "Las preguntas que hace o responde se siguen siempre. Puede dejar de seguir cualquiera en la pestaña «Preguntas que sigue»."
 
 msgid "Questions I view"
 msgstr "Preguntas que veo"
@@ -5732,8 +5924,117 @@ msgstr "sal"
 msgid "hash"
 msgstr "hash"
 
+msgid "New answers to my questions"
+msgstr "Nuevas respuestas a mis preguntas"
+
+msgid "New answers to questions I follow"
+msgstr "Nuevas respuestas a preguntas que sigo"
+
+msgid "Mentions of my @username"
+msgstr "Menciones de mi @usuario"
+
+msgid "My answer is accepted"
+msgstr "Se acepta mi respuesta"
+
+msgid "Badges I earn"
+msgstr "Medallas que gano"
+
+msgid "A moderator approves or removes my post"
+msgstr "Un moderador aprueba o elimina mi publicación"
+
+msgid "Reminders to accept an answer"
+msgstr "Recordatorios para aceptar una respuesta"
+
+#, python-format
+msgid "%(user)s answered your question"
+msgstr "%(user)s respondió a su pregunta"
+
+#, python-format
+msgid "%(user)s answered a question you follow"
+msgstr "%(user)s respondió a una pregunta que sigue"
+
+#, python-format
+msgid "%(user)s commented on your post"
+msgstr "%(user)s comentó su publicación"
+
+#, python-format
+msgid "%(user)s mentioned you"
+msgstr "%(user)s le mencionó"
+
+#, python-format
+msgid "%(user)s accepted your answer"
+msgstr "%(user)s aceptó su respuesta"
+
+#, python-format
+msgid "You earned the %(badge)s badge"
+msgstr "Ha ganado la medalla %(badge)s"
+
+msgid "Your post was approved"
+msgstr "Su publicación fue aprobada"
+
+msgid "A moderator removed your post"
+msgstr "Un moderador eliminó su publicación"
+
+msgid "Did an answer solve your question?"
+msgstr "¿Alguna respuesta resolvió su pregunta?"
+
+msgid "New notification"
+msgstr "Nueva notificación"
+
+#, python-format
+msgid "%(browser)s on %(system)s"
+msgstr "%(browser)s en %(system)s"
+
 msgid "Thanks! Your post will appear once a moderator has reviewed it."
 msgstr "¡Gracias! Su publicación aparecerá cuando un moderador la haya revisado."
+
+msgid "Enter a valid tag name."
+msgstr "Introduzca un nombre de etiqueta válido."
+
+#, python-format
+msgid "The tags of “%(title)s” would be too long with this name."
+msgstr "Las etiquetas de «%(title)s» serían demasiado largas con este nombre."
+
+#, python-format
+msgid "The tag is already called %s."
+msgstr "La etiqueta ya se llama %s."
+
+#, python-format
+msgid "There is already a tag named %s: merge this tag into it instead."
+msgstr "Ya existe una etiqueta llamada %s: fusione esta etiqueta con ella."
+
+#, python-format
+msgid "%(name)s is a synonym of %(tag)s."
+msgstr "%(name)s es un sinónimo de %(tag)s."
+
+#, python-format
+msgid "Tag %(old)s renamed to %(new)s"
+msgstr "Etiqueta %(old)s renombrada a %(new)s"
+
+msgid "Enter the name of the tag to merge into."
+msgstr "Escriba el nombre de la etiqueta con la que fusionar."
+
+#, python-format
+msgid "There is no tag named %s."
+msgstr "No hay ninguna etiqueta llamada %s."
+
+msgid "A tag cannot be merged into itself."
+msgstr "Una etiqueta no se puede fusionar consigo misma."
+
+#, python-format
+msgid "Tag %(old)s merged into %(new)s"
+msgstr "Etiqueta %(old)s fusionada con %(new)s"
+
+msgid "A tag cannot be a synonym of itself."
+msgstr "Una etiqueta no puede ser sinónimo de sí misma."
+
+#, python-format
+msgid "%s is already a synonym."
+msgstr "%s ya es un sinónimo."
+
+#, python-format
+msgid "%s is itself a synonym of another tag."
+msgstr "%s es a su vez sinónimo de otra etiqueta."
 
 msgid "all emails from this site"
 msgstr "todos los correos electrónicos de este sitio"
@@ -5812,6 +6113,27 @@ msgstr "La contraseña no es correcta."
 
 msgid "Your account has been deleted. Your posts remain, without your name."
 msgstr "Su cuenta ha sido eliminada. Sus publicaciones se conservan, sin su nombre."
+
+msgid "Workflow settings"
+msgstr "Configuración del flujo de trabajo"
+
+msgid "Forum settings"
+msgstr "Configuración del foro"
+
+msgid "Static content"
+msgstr "Contenido estático"
+
+msgid "Moderation"
+msgstr "Moderación"
+
+msgid "Custom Pages"
+msgstr "Páginas personalizadas"
+
+msgid "Other settings"
+msgstr "Otras opciones de configuración"
+
+msgid "Tools"
+msgstr "Herramientas"
 
 msgid "Questions Graph"
 msgstr "Gráfico de preguntas"
@@ -6232,6 +6554,21 @@ msgstr "Se han descartado las denuncias sobre %s."
 msgid "Undone."
 msgstr "Deshecho."
 
+msgid "Please sign in first."
+msgstr "Inicie sesión primero."
+
+msgid "Invalid request."
+msgstr "Solicitud no válida."
+
+msgid "This browser's push service is not supported."
+msgstr "El servicio de notificaciones de este navegador no es compatible."
+
+msgid "The device was removed. It gets no more notifications from this site."
+msgstr "Se quitó el dispositivo. Ya no recibe notificaciones de este sitio."
+
+msgid "Your device notification settings are saved."
+msgstr "Se guardó la configuración de notificaciones en dispositivos."
+
 msgid "Most <strong>recently updated</strong> questions"
 msgstr "Preguntas <strong>actualizadas más recientemente</strong>"
 
@@ -6340,11 +6677,43 @@ msgstr[1] "%(count)d preguntas"
 msgstr[2] "%(count)d preguntas"
 
 #, python-format
+msgid "also called %(synonym)s"
+msgstr "también llamada %(synonym)s"
+
+#, python-format
 msgid "%(count)d reputation point"
 msgid_plural "%(count)d reputation points"
 msgstr[0] "%(count)d punto de reputación"
 msgstr[1] "%(count)d puntos de reputación"
 msgstr[2] "%(count)d puntos de reputación"
+
+msgid "The tag description was saved."
+msgstr "Se ha guardado la descripción de la etiqueta."
+
+#, python-format
+msgid "%(synonym)s is now a synonym of %(tag)s."
+msgstr "%(synonym)s es ahora sinónimo de %(tag)s."
+
+#, python-format
+msgid "%s is no longer a synonym."
+msgstr "%s ya no es un sinónimo."
+
+#, python-format
+msgid "The tag %(old)s is now called %(new)s."
+msgstr "La etiqueta %(old)s ahora se llama %(new)s."
+
+msgid "This change can no longer be undone."
+msgstr "Este cambio ya no se puede deshacer."
+
+msgid "The change was undone."
+msgstr "Se deshizo el cambio."
+
+#, python-format
+msgid "%(source)s was merged into %(target)s."
+msgstr "%(source)s se fusionó con %(target)s."
+
+msgid "Enter the tag the synonym stands for."
+msgstr "Escriba la etiqueta que representa el sinónimo."
 
 msgid "sorted by reputation"
 msgstr "ordenados por reputación"
@@ -6468,27 +6837,6 @@ msgstr "Convertida en pregunta"
 #, python-format
 msgid "Your answer is pending until you %s."
 msgstr "Su respuesta quedará pendiente hasta que %s."
-
-msgid "The tag description was saved."
-msgstr "Se ha guardado la descripción de la etiqueta."
-
-msgid "Enter a valid tag name."
-msgstr "Introduzca un nombre de etiqueta válido."
-
-msgid "A tag cannot be a synonym of itself."
-msgstr "Una etiqueta no puede ser sinónimo de sí misma."
-
-#, python-format
-msgid "%s is already a synonym."
-msgstr "%s ya es un sinónimo."
-
-#, python-format
-msgid "%s is itself a synonym of another tag."
-msgstr "%s es a su vez sinónimo de otra etiqueta."
-
-#, python-format
-msgid "%(synonym)s is now a synonym of %(tag)s."
-msgstr "%(synonym)s es ahora sinónimo de %(tag)s."
 
 msgid "AI assistance"
 msgstr "Asistencia de IA"
@@ -7076,9 +7424,6 @@ msgstr "Comprimiendo archivos"
 
 msgid "Nodes"
 msgstr "Nodos"
-
-msgid "Actions"
-msgstr "Acciones"
 
 msgid "Node states"
 msgstr "Estados de nodos"

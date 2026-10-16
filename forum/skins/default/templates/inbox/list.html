@@ -1,5 +1,5 @@
 {% extends "base_content.html" %}
-{% load i18n humanize %}
+{% load i18n humanize push_tags %}
 {% block title %}{% trans "Notifications" %}{% endblock %}
 {% block meta %}<meta name="robots" content="noindex" />{% endblock %}
 {% block content %}
@@ -12,6 +12,7 @@
         </form>
         {% endif %}
     </div>
+    {% push_switch %}
 
     {% if items %}
     <ul class="inbox-list">

@@ -11,6 +11,7 @@
 <div class="list-page tags-page">
 <div class="list-header">
     <h1 class="headQuestions">{% trans "Tag list" %}</h1>
+    {% if can_manage_tags %}<a class="tags-synonyms-link button plain-button" href="{% url "tag_synonyms" %}">{% trans "Synonyms" %}</a>{% endif %}
     <a class="list-ask button plain-button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
 </div>
 <div class="tabBar list-toolbar">

@@ -10,12 +10,16 @@ sees replies to their posts in the forum.
 - accepted answer: the answer's author
 - badge: the person awarded
 - post approved / removed: the author of a post held for review (forum/review_notices.py)
+
+Each one is also pushed to the member's devices if they turned browser push on
+(forum/utils/push.py).
 """
 import datetime
 
 from forum.actions import AnswerAction, CommentAction, AcceptAnswerAction, AskAction, ReviseAction, AwardAction, \
     ApprovePostAction
 from forum.models import Notification, User, Award
+from forum.utils import push
 from forum.utils.mentions import mentioned_user_ids
 
 # Read notifications older than this are deleted when their owner opens the list.
@@ -28,8 +32,11 @@ def notify(user_ids, kind, actor=None, node=None, text=''):
     if not user_ids:
         return []
     users = User.objects.filter(id__in=user_ids, is_active=True).values_list('id', flat=True)
-    return Notification.objects.bulk_create([
+    created = Notification.objects.bulk_create([
         Notification(user_id=user_id, kind=kind, actor=actor, node=node, text=text[:255]) for user_id in users])
+    # Browser push to the devices of those who asked for this kind (off unless VAPID keys are set).
+    push.send_notifications(created)
+    return created
 
 
 def unread_count(user):

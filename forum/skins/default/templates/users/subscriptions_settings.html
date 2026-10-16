@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load extra_tags %}
+{% load extra_tags push_tags %}
 
 <div class="email-settings">
 <section class="settings-card" aria-labelledby="email-master-title">
@@ -21,6 +21,8 @@
     <p class="email-help-link"><a href="{% url "email_help" %}">{% trans "How email notifications work" %}</a>
         &middot; {% trans "Every email also has a link to stop it, no sign-in needed." %}</p>
 </section>
+
+{% push_settings view_user %}
 
 <section class="settings-card email-frequency" aria-labelledby="email-frequency-title">
     <h2 id="email-frequency-title">{% trans "How often should we email you?" %}</h2>
@@ -77,7 +79,7 @@
 
     <fieldset>
         <legend>{% trans "Follow questions automatically" %}</legend>
-        <p class="email-settings-hint">{% trans "Questions you ask or answer are always followed. You can stop following any of them on the \"Questions you follow\" tab." %}</p>
+        <p class="email-settings-hint">{% trans "Questions you ask or answer are always followed. You can stop following any of them on the “Questions you follow” tab." %}</p>
         <label>{{ form.questions_viewed }} {% trans "Questions I view" %}</label>
         <label>{{ form.all_questions_watched_tags }} {% trans "All new questions in tags I follow" %}</label>
         <label>{{ form.all_questions }} {% trans "All new questions" %}</label>

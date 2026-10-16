@@ -116,38 +116,79 @@ class AdministrationTest(E2ETestCase):
         self.visit(anonymous, '/')
         self.assertIn('Open Foris Q&A', anonymous.title())
 
-    def test_admin_pages_in_both_layouts(self):
+    def test_admin_pages(self):
         page = self.open(self.admin)
-        for layout in ('default', 'djstyle'):
-            page.goto(self.url('/admin/switch_interface/?to=%s' % layout))
-            for path in ('/admin/', '/admin/support/', reverse('admin_flagged_posts'), '/admin/maintenance/',
-                         '/admin/tools/createuser/', '/admin/tools/nodeman/', '/admin/settings/security/'):
-                with self.subTest(layout=layout, path=path):
-                    self.visit(page, path)
+        for path in ('/admin/', '/admin/support/', reverse('admin_flagged_posts'), '/admin/maintenance/',
+                     '/admin/tools/createuser/', '/admin/tools/nodeman/', '/admin/settings/security/',
+                     '/admin/statistics/', '/admin/static_pages/', '/admin/email-previews/',
+                     '/admin/test_email_settings/', '/admin/sximporter/'):
+            with self.subTest(path=path):
+                self.visit(page, path)
+                # One layout: the header links back to the site, to the inbox and to sign out.
+                header = page.locator('#header')
+                for name in ('View site', 'Moderation inbox', 'admin', 'Log out'):
+                    self.assertTrue(header.get_by_role('link', name=name).first.is_visible(), name)
+                if path != '/admin/tools/nodeman/':  # the node manager uses the whole width
+                    self.assertTrue(page.locator('#admin-menu').evaluate('details => details.open'))
+                    # The menu sits beside the page, not under it.
+                    menu, main = page.locator('#admin-menu').bounding_box(), page.locator('#content-main').bounding_box()
+                    self.assertLess(menu['x'] + menu['width'], main['x'])
+        # The page being shown is marked in the menu.
+        self.visit(page, '/admin/settings/security/')
+        self.assertEqual(page.locator('#admin-menu a[aria-current="page"]').inner_text(), 'Security')
+        self.assertEqual(page.locator('h1.admin-title').inner_text(), 'Security')
         phone = self.open(self.admin, device='mobile', dark=True)
-        for path in ('/admin/', '/admin/support/', '/admin/settings/basic/'):
+        for path in ('/admin/', '/admin/support/', '/admin/settings/basic/', '/admin/moderation/'):
             with self.subTest(device='mobile', path=path):
                 self.visit(phone, path)
+                # The folded menu comes before the page.
+                menu, main = phone.locator('#admin-menu').bounding_box(), phone.locator('#content-main').bounding_box()
+                self.assertLess(menu['y'] + menu['height'], main['y'] + 1)
+                # The header's links fit on the screen, big enough to tap.
+                for link in phone.locator('#user-tools a').all():
+                    box = link.bounding_box()
+                    self.assertGreaterEqual(box['height'], 32)
+                    self.assertLessEqual(box['x'] + box['width'], 390)
+
+    def test_old_layout_switch_link_goes_to_the_dashboard(self):
+        page = self.open(self.admin)
+        for query in ('?to=default', '?to=djstyle'):
+            response = page.goto(self.url('/admin/switch_interface/' + query))
+            self.assertEqual(response.status, 200)
+            self.assertEqual(page.url, self.url('/admin/'))
+            self.check_page(page)
+        self.assertEqual(page.get_by_role('link', name='To standard interface').count(), 0)
+
+    def test_moderators_menu(self):
+        moderator = self.create_user('moderator', reputation=10, is_staff=True)
+        page = self.open(moderator)
+        self.visit(page, '/admin/moderation/')
+        links = page.locator('#admin-menu a').all_inner_texts()
+        self.assertEqual([t.strip() for t in links], ['Moderation inbox', 'Support dashboard', 'Email previews'])
+        self.assertEqual(page.locator('#admin-menu a[href^="/admin/settings/"]').count(), 0)
 
     def test_admin_on_a_phone_in_dark_mode(self):
-        for layout in ('djstyle', 'default'):
-            self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, layout == 'djstyle')
-            phone = self.open(self.admin, device='mobile', dark=True)
-            with self.subTest(layout=layout):
-                self.visit(phone, '/admin/tools/createuser/')
-                # Dark background, from Django's dark_mode.css or the site's colours.
-                background = phone.evaluate('getComputedStyle(document.body).backgroundColor')
-                rgb = [int(n) for n in background[background.index('(') + 1:-1].split(',')[:3]]
-                self.assertLess(sum(rgb) / 3, 60, 'admin background is not dark: %s' % background)
-                # Labels sit above their fields instead of breaking letter by letter.
-                for label in phone.locator('.admin-form-table th label').all():
-                    box = label.bounding_box()
-                    self.assertGreater(box['width'], 60, label.inner_text())
-                    self.assertLess(box['height'], 40, '%s wraps' % label.inner_text())
-                    self.assertGreater(label.evaluate('l => l.closest("th").getBoundingClientRect().width'), 250)
-                self.assertFalse(phone.locator('#admin-menu').evaluate('details => details.open'))
+        phone = self.open(self.admin, device='mobile', dark=True)
+        self.visit(phone, '/admin/tools/createuser/')
+        # Dark background, from Django's dark_mode.css.
+        background = phone.evaluate('getComputedStyle(document.body).backgroundColor')
+        rgb = [int(n) for n in background[background.index('(') + 1:-1].split(',')[:3]]
+        self.assertLess(sum(rgb) / 3, 60, 'admin background is not dark: %s' % background)
+        # Labels sit above their fields instead of breaking letter by letter.
+        for label in phone.locator('.admin-form-table th label').all():
+            box = label.bounding_box()
+            self.assertGreater(box['width'], 60, label.inner_text())
+            self.assertLess(box['height'], 40, '%s wraps' % label.inner_text())
+            self.assertGreater(label.evaluate('l => l.closest("th").getBoundingClientRect().width'), 250)
+        self.assertFalse(phone.locator('#admin-menu').evaluate('details => details.open'))
+        # Without the dark mode setting the admin stays light.
+        self.set_setting(settings.DARK_MODE, False)
+        light = self.open(self.admin, device='mobile', dark=True)
+        self.visit(light, '/admin/tools/createuser/')
+        background = light.evaluate('getComputedStyle(document.body).backgroundColor')
+        rgb = [int(n) for n in background[background.index('(') + 1:-1].split(',')[:3]]
+        self.assertGreater(sum(rgb) / 3, 200, 'admin background is not light: %s' % background)
 
-        self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, True)
         self.create_question(self.alice, 'How do I export Collect survey data to CSV?')
         phone = self.open(self.admin, device='mobile')
         self.visit(phone, '/admin/tools/nodeman/')

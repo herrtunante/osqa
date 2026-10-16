@@ -10,8 +10,10 @@ from . import agents
 from . import email_prefs
 from . import inbox
 from . import pwa
+from . import push
 from . import search
 from . import moderation
+from . import tags
 
 #from forum.modules.decorators import decorate_all
 

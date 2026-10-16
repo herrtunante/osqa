@@ -523,7 +523,10 @@ class TagSynonymTest(OSQATestCase):
     def test_merging_an_existing_tag(self):
         from forum.models import Tag, MarkedTag
         MarkedTag(tag=Tag.objects.get(name='gis-analysis'), user=self.alice, reason='good').save()
-        self.edit(action='add_synonym', synonym='gis-analysis')
+        # An existing tag as a synonym is a merge: confirmed on the merge page first.
+        response = self.edit(action='add_synonym', synonym='gis-analysis')
+        self.assertRedirects(response, '/tags/gis-analysis/merge/?into=gis', fetch_redirect_response=False)
+        self.client.post('/tags/gis-analysis/merge/', {'into': 'gis'})
 
         question = Question.objects.get(id=self.question.id)
         self.assertEqual(question.tagname_list(), ['gis', 'qgis'])

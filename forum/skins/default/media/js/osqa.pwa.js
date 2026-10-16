@@ -2,12 +2,14 @@
    - registers the service worker at the site root;
    - shows the "you are offline" banner on a saved copy served by the worker;
    - empties the saved pages when the signed-in user changes, so a shared
-     computer doesn't keep showing a signed-out member's pages;
+     computer doesn't keep showing a signed-out member's pages, and stops
+     browser push (osqa.push.js) when another member signs in;
    - on /offline/, lists the saved pages. */
 (function () {
     'use strict';
     var PAGES = 'osqa-pages-v1';
     var USER_KEY = 'osqa-pwa-user';
+    var PUSH_USER_KEY = 'osqa-push-user';
     var script = document.currentScript;
     var user = script ? script.getAttribute('data-user') || '' : '';
     var root = window.scriptUrl || '/';
@@ -29,6 +31,28 @@
         if (previous !== null && previous !== user && window.caches) {
             window.caches.delete(PAGES).catch(function () {});
         }
+        forgetPushIfUserChanged();
+    }
+
+    // Browser push (osqa.push.js) was turned on by PUSH_USER_KEY's member: if
+    // someone else signs in on this browser, it stops, so they don't get the
+    // other member's notifications (signing out stops it too, in sw.js).
+    function forgetPushIfUserChanged() {
+        var owner = null;
+        try {
+            owner = window.localStorage.getItem(PUSH_USER_KEY);
+        } catch (e) {
+            return;
+        }
+        if (!owner || !user || owner === user || !('serviceWorker' in navigator)) return;
+        try {
+            window.localStorage.removeItem(PUSH_USER_KEY);
+        } catch (e) { /* ignore */ }
+        navigator.serviceWorker.getRegistration(root).then(function (reg) {
+            return reg && reg.pushManager ? reg.pushManager.getSubscription() : null;
+        }).then(function (subscription) {
+            return subscription ? subscription.unsubscribe() : null;
+        }).catch(function () {});
     }
 
     function listSavedPages(list) {

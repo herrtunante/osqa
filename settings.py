@@ -1,5 +1,13 @@
 import os.path
 import sys
+import warnings
+
+# Third-party deprecation warnings we can't fix (our own code runs clean with
+# -W error::DeprecationWarning; see README "Upgrading Django"). Remove each
+# filter once the package is updated.
+# google-genai 2.31 uses typing._UnionGenericAlias, deprecated in Python 3.14.
+warnings.filterwarnings('ignore', message="'_UnionGenericAlias' is deprecated",
+                        category=DeprecationWarning, module=r'google\.genai\.')
 
 SITE_ID = 1
 

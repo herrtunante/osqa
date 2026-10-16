@@ -30,6 +30,16 @@
    is emptied when the browser navigates to the sign-out URL, and by
    osqa.pwa.js whenever the signed-in user differs from the one who was
    signed in when the pages were saved (session expired, another account).
+
+   Push notifications (forum/utils/push.py, osqa.push.js)
+   ------------------------------------------------------
+   `push` shows the message the server sent: {title, body, url, tag, icon}
+   (title and body are plain text; url is /notifications/<id>/, which marks
+   the in-site notification read and redirects to the post). Messages with
+   the same tag (one question) replace each other. `notificationclick`
+   brings a forum tab to the front and opens the URL in it, or opens a new
+   window. Only URLs of this site are opened. Signing out (the sign-out
+   navigation above) also unsubscribes this browser from push.
 */
 'use strict';
 
@@ -39,6 +49,9 @@ const STATIC = 'osqa-static-' + VERSION;
 const PAGES = 'osqa-pages-v1';
 const PAGE_CACHE_SIZE = {{ page_cache_size }};
 const OFFLINE_URL = PREFIX + '/offline/';
+const APP_NAME = {{ app_name|safe }};
+const ICON = {{ icon|safe }};
+const NOTIFICATIONS_URL = PREFIX + '/notifications/';
 
 const NEVER = /^\/(admin|nimda|account|notifications|users|upfiles|mcp|export|pending-data|upload|preview|logout|i18n|csp-report)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
 const SIGN_OUT = /^\/account\/signout\/$/;
@@ -92,7 +105,7 @@ self.addEventListener('fetch', event => {
     if (url.origin !== self.location.origin) return;
     const path = sitePath(url);
     if (request.mode === 'navigate' && SIGN_OUT.test(path)) {
-        event.waitUntil(caches.delete(PAGES));
+        event.waitUntil(Promise.all([caches.delete(PAGES), stopPush()]));
         return;
     }
     if (NEVER.test(path)) return;
@@ -175,3 +188,77 @@ async function markedCopy(response) {
     headers.delete('Content-Length');
     return new Response(html, {status: 200, headers: headers});
 }
+
+// -- push notifications ----------------------------------------------------
+
+async function stopPush() {
+    try {
+        const subscription = self.registration.pushManager && await self.registration.pushManager.getSubscription();
+        if (subscription) await subscription.unsubscribe();
+    } catch (error) {
+        // nothing subscribed, or push unavailable
+    }
+}
+
+function siteUrl(url) {
+    // Only this site's pages are opened from a notification.
+    try {
+        const parsed = new URL(url, self.location.origin);
+        if (parsed.origin === self.location.origin && /^https?:$/.test(parsed.protocol)) return parsed.href;
+    } catch (error) {
+        // not a URL
+    }
+    return new URL(NOTIFICATIONS_URL, self.location.origin).href;
+}
+
+function text(value, length) {
+    return typeof value === 'string' ? value.slice(0, length) : '';
+}
+
+self.addEventListener('push', event => {
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch (error) {
+        data = {};
+    }
+    if (!data || typeof data !== 'object') data = {};
+    const options = {
+        body: text(data.body, 200),
+        icon: siteUrl(text(data.icon, 500) || ICON),
+        badge: siteUrl(ICON),
+        tag: text(data.tag, 64) || 'osqa-notification',
+        renotify: true,
+        data: {url: siteUrl(text(data.url, 500) || NOTIFICATIONS_URL), id: Number(data.id) || null},
+    };
+    event.waitUntil(self.registration.showNotification(text(data.title, 100) || APP_NAME, options));
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    const url = siteUrl(event.notification.data && event.notification.data.url);
+    event.waitUntil((async () => {
+        const windows = await self.clients.matchAll({type: 'window', includeUncontrolled: true});
+        const tabs = windows.filter(client => new URL(client.url).origin === self.location.origin);
+        tabs.sort((a, b) => (b.focused ? 1 : 0) - (a.focused ? 1 : 0));
+        for (const tab of tabs) {
+            let opened = null;
+            try {
+                // navigate() works for the tabs this worker controls; opening
+                // /notifications/<id>/ marks the notification read.
+                opened = await tab.navigate(url);
+            } catch (error) {
+                // not controlled by this worker: try the next one
+            }
+            if (opened) {
+                try {
+                    await opened.focus();
+                } catch (error) {
+                    // the browser decides whether a tab may come to the front
+                }
+                return;
+            }
+        }
+        if (self.clients.openWindow) await self.clients.openWindow(url);
+    })());
+});

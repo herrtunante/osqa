@@ -35,7 +35,13 @@ venv/bin/python manage.py runserver
 
 The first account registered through the site becomes the site owner and
 superuser. Site settings (email server, reputation thresholds, ...) are edited
-in the admin pages at `/admin/` and stored in the database.
+in the admin pages at `/admin/` and stored in the database. The admin has one
+layout, built on Django admin's style sheets (light and dark, following the
+site's dark mode setting): a header with links back to the site, to the
+moderation inbox (with the number of items waiting) and to sign out, and a menu
+of every settings page and tool (folded on phones). Settings pages and tools
+that modules add appear in the menu by themselves. Django's model admin is at
+`/nimda/`.
 
 `SECRET_KEY` can also come from the `OSQA_SECRET_KEY` environment variable; the
 site refuses to start without one.
@@ -223,6 +229,39 @@ count); "Also review posts by members below this reputation" (0, off) reviews
 every post of low-reputation members. Moderators and administrators are never
 reviewed. The visibility rules live in `forum/utils/review.py`.
 
+### Moderating tags
+
+Tags drift ("csv" and "csv-export", "earthmap" and "earth-map"). Moderators
+(staff) and administrators tidy them from a tag's page with **Manage tag**
+(`/tags/<name>/edit/`):
+
+- **Description**: the "tag wiki" shown at the top of the tag's page (an
+  excerpt, with the rest behind "Read the full description") and on the tags
+  index.
+- **Synonyms**: names that stand for the tag. Typed in the tags field (ask,
+  edit, retag) they become the tag, tag suggestions show "csv → export", and
+  `/tags/<synonym>/` redirects (301) to the tag. The tag's page says "Also
+  called: ...". If the name is an existing tag, you are sent to the merge page.
+- **Rename**: changes the tag on all its questions; followers, ignored marks
+  and synonyms stay with it, and the old name can be kept as a synonym so old
+  links keep working.
+- **Merge into another tag**: a confirmation page first says what changes
+  ("N questions will move", followers, synonyms). Then the questions get the
+  target tag (never twice), followers and interesting/ignored marks move (a
+  member who had chosen the target keeps that choice), the old tag's synonyms
+  point to the target, the old name becomes a synonym of the target and the
+  old tag is deleted. **A merge can't be undone.**
+
+Every change is an action, attributed to the moderator, shown in their
+activity and in the tag's **History**, where renames, synonyms and
+descriptions can be undone. Questions are retagged through a new revision
+(earlier revisions keep their tags; the question doesn't move up the "active"
+list), deleted questions and posts held for review included; tag counts are
+counted again afterwards and the search index is updated. **Tag synonyms**
+(`/tag-synonyms/`, linked from the tags index and the admin tools) lists all
+synonym → tag pairs, with a form to add one and remove buttons. The rules
+live in `forum/utils/tags.py`.
+
 ## Notifications and support dashboard
 
 - **Bell:** signed-in users see a bell in the header with their unread
@@ -288,6 +327,47 @@ in the footer, and the unsubscribe page offers "Switch to a weekly summary
 instead"; both work without signing in and have an undo button. The summary
 itself has "Stop these summaries" and the usual unsubscribe links and
 `List-Unsubscribe` header. Preview it under Admin > Email previews.
+
+### Browser push notifications
+
+Members can get the bell's notifications as browser notifications (Web Push),
+also when the forum isn't open. It is off, with nothing shown, until the site
+has a VAPID key pair:
+
+```bash
+python manage.py generate_vapid_keys          # lines for settings_local.py
+python manage.py generate_vapid_keys --env    # VAPID_*=... for .env / a Kubernetes Secret
+```
+
+Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (secret) and `VAPID_SUBJECT` (a
+`mailto:` address or `https:` URL the push services can contact; default
+`APP_URL`). Keep the pair: new keys make every device turn notifications on
+again. The site must be served over HTTPS.
+
+- **Turning it on:** "Get notifications on this device" on the notifications
+  page and in Email settings > "Notifications on your devices". The browser
+  asks for permission only when the switch is pressed. Blocked notifications,
+  browsers without Web Push, and iPhones/iPads (where it works only once the
+  forum is added to the Home Screen and opened from there) get an explanation.
+- **What is pushed:** for each new bell notification, if the member ticked
+  that kind: answers to my questions, comments on my posts, mentions and
+  accepted answers (on by default); answers to followed questions, badges,
+  moderator decisions on held posts and accept reminders (off by default).
+  Posts held for review push nothing until approved; suspended members get
+  nothing.
+- **Privacy:** a message holds a short line ("bob answered your question"),
+  the question title (plain text, at most 120 characters) and the link
+  `/notifications/<id>/` (marks it read, then opens the post), never the text
+  of a post or comment. It is encrypted for the browser (RFC 8291) and goes
+  through the browser maker's push service (Google, Mozilla, Apple, Microsoft);
+  only those services' addresses are accepted (more with the
+  `PUSH_SERVICE_HOSTS` setting). Each device is listed in Email
+  settings with a Remove button. Signing out, or another member signing in on
+  the same browser, stops push there.
+- **Delivery:** sent from the action-hook thread with a 5 s timeout; a device
+  the push service reports gone (404/410) is deleted, others count failures
+  (dropped after 10 in a row). `/metrics` counts `push_sent` and `push_failed`.
+  Uses [pywebpush](https://github.com/web-push-libs/pywebpush) (MPL-2.0).
 
 ## Security and logging
 
@@ -395,6 +475,26 @@ for a new one.
   place: create a fresh database with `migrate` and import the old data into it
   (next section).
 
+### Upgrading Django
+
+`requirements.txt` pins Django 5.2 LTS (supported until April 2028). The code
+also runs on Django 6.0: CI tests it on Python 3.14, where deprecation
+warnings are errors, and the models give the same migrations on both versions.
+To move a site to 6.0:
+
+1. Use Python 3.12 or newer and check the database versions in the Django 6.0
+   release notes (PostgreSQL 14 or newer, for example).
+2. Change `Django==5.2.x` to the latest `Django==6.0.x` in `requirements.txt`,
+   `pip install -r requirements.txt`, then run `python manage.py migrate`
+   (no new migrations are expected) and the tests.
+3. Look at the admin pages on a phone: they use Django's admin style sheets,
+   which change between versions.
+
+`settings.py` filters a few deprecation warnings that come from third-party
+packages; remove a filter once the package no longer needs it. Check for new
+warnings in our own code with
+`python -W error::DeprecationWarning -W error::PendingDeprecationWarning manage.py test forum.tests`.
+
 ## Importing a database from the old OSQA (Django 1.6)
 
 The whole procedure (freeze, dump, import, checks, transfer to MySQL, files,
@@ -459,7 +559,8 @@ OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e
 ```
 
 CI (`.github/workflows/tests.yml`) runs `ruff check .`, the
-suite and `makemigrations --check` on Python 3.12 and 3.13.
+suite (deprecation warnings are errors) and `makemigrations --check` on
+Python 3.12 and 3.13 with Django 5.2, and on Python 3.14 with Django 6.0.
 
 ## Modules
 
@@ -640,7 +741,8 @@ changes them; HTTPS (or localhost) is required.
 - Paste or drop images into the editor; drafts of questions and answers are
   saved in the browser until posted.
 - schema.org QAPage structured data and OpenGraph/Twitter link previews.
-- Tag descriptions and synonyms (moderators: "edit tag" on a tag's page).
+- Tag management for moderators: descriptions, synonyms, rename and merge
+  ("Manage tag" on a tag's page; see "Moderating tags").
 - Full-text search with relevance ranking, highlighted snippets and operators
   (phrases, exclusions, tags, `is:`, `user:`); see "Search".
 - Users can download their data (JSON) and delete their account, which

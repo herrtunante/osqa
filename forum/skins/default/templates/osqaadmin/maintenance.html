@@ -1,4 +1,4 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 
@@ -10,7 +10,7 @@
 <form method="POST" action="">
     {% csrf_token %}
     {% if in_maintenance %}
-        <h1>{% trans "Your site is currently running on maintenance mode." %}</h1>
+        <h2 class="admin-section-title">{% trans "Your site is currently running on maintenance mode." %}</h2>
         <p>{% trans "You can adjust the settings below" %}</p>
     {% endif %}
     <table class="admin-form-table">

@@ -1,0 +1,40 @@
+{% load i18n humanize %}{% if push_on %}
+<section class="settings-card push-settings" id="push-settings" aria-labelledby="push-settings-title">
+    <h2 id="push-settings-title">{% trans "Notifications on your devices" %}</h2>
+    {% include "push/switch.html" %}
+
+    <form method="post" action="{% url "push_settings" %}" class="push-kinds">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}" />
+        <fieldset>
+            <legend>{% trans "Send to my devices" %}</legend>
+            {% for key, label, checked in kinds %}
+            <label><input type="checkbox" name="kinds" value="{{ key }}"{% if checked %} checked{% endif %} /> {{ label }}</label>
+            {% endfor %}
+        </fieldset>
+        <div class="settings-actions">
+            <button type="submit" class="submit">{% trans "Save" %}</button>
+        </div>
+    </form>
+
+    <h3 id="push-devices-title">{% trans "Devices that get notifications" %}</h3>
+    {% if devices %}
+    <ul class="push-devices" aria-labelledby="push-devices-title">
+        {% for device in devices %}
+        <li class="push-device" data-endpoint-hash="{{ device.endpoint_hash }}">
+            <span class="push-device-text"><strong>{{ device.label|default:_("Unknown browser") }}</strong>
+                <span class="push-device-meta">{% blocktrans with added=device.created|naturalday %}added {{ added }}{% endblocktrans %}{% if device.last_success %} &middot; {% blocktrans with sent=device.last_success|naturaltime %}last notification {{ sent }}{% endblocktrans %}{% endif %}{% if device.failure_count %} &middot; {% blocktrans count counter=device.failure_count %}{{ counter }} failed delivery{% plural %}{{ counter }} failed deliveries{% endblocktrans %}{% endif %}</span>
+                <span class="push-device-this" hidden>{% trans "(this device)" %}</span></span>
+            <form method="post" action="{% url "push_settings" %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}" />
+                <button type="submit" name="remove" value="{{ device.id }}" class="plain-button" aria-label="{% blocktrans with device=device.label %}Remove {{ device }}{% endblocktrans %}">{% trans "Remove" %}</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="email-settings-empty">{% trans "No devices yet. Turn the switch on in each browser where you want notifications." %}</p>
+    {% endif %}
+</section>
+{% endif %}

@@ -291,7 +291,7 @@ class BlockVarNode(template.Node):
 def do_var(parser, token):
     tokens = token.split_contents()[1:]
 
-    if not len(tokens) or not re.match('^\w+$', tokens[0]):
+    if not len(tokens) or not re.match(r'^\w+$', tokens[0]):
         raise template.TemplateSyntaxError("Expected variable name")
 
     if len(tokens) == 1:
@@ -304,7 +304,7 @@ def do_var(parser, token):
     raise template.TemplateSyntaxError("Invalid number of arguments")
 
 class DeclareNode(template.Node):
-    dec_re = re.compile('^\s*(\w+)\s*(:?=)\s*(.*)$')
+    dec_re = re.compile(r'^\s*(\w+)\s*(:?=)\s*(.*)$')
 
     def __init__(self, block):
         self.block = block

@@ -74,29 +74,64 @@ class AdminPagesTest(SettingMixin, OSQATestCase):
         self.assertEqual(self.sent_mail, [])
 
     def test_dark_mode_follows_the_site_setting(self):
-        for layout in (True, False):
-            self.set(settings.DJSTYLE_ADMIN_INTERFACE, layout)
-            self.set(settings.DARK_MODE, True)
-            response = self.client.get('/admin/')
-            self.assertContains(response, 'data-color-scheme="auto"')
-            if layout:
-                self.assertContains(response, 'css/dark_mode.css')
-            self.set(settings.DARK_MODE, False)
-            response = self.client.get('/admin/')
-            self.assertNotContains(response, 'data-color-scheme')
-            self.assertNotContains(response, 'css/dark_mode.css')
+        self.set(settings.DARK_MODE, True)
+        response = self.client.get('/admin/')
+        self.assertContains(response, 'data-color-scheme="auto"')
+        self.assertContains(response, 'css/dark_mode.css')
+        self.set(settings.DARK_MODE, False)
+        response = self.client.get('/admin/')
+        self.assertNotContains(response, 'data-color-scheme')
+        self.assertNotContains(response, 'css/dark_mode.css')
+
+    def test_one_layout_with_header_and_menu(self):
+        from forum.views.admin import TOOL_LINKS
+        TOOL_LINKS.append(('admin_statistics', 'A module tool'))
+        self.addCleanup(TOOL_LINKS.pop)
+        body = self.client.get('/admin/settings/basic/').content.decode()
+        self.assertIn('href="/m/django_admin/css/base.css"', body)
+        self.assertIn('/media/style/admin.css', body)
+        self.assertNotIn('djstyle', body)
+        header = re.search(r'<header id="header">(.*?)</header>', body, re.S).group(1)
+        for link in ('href="/"', 'href="/admin/moderation/"', 'href="/logout/"', '>admin<'):
+            self.assertIn(link, header)
+        menu = re.search(r'<details id="admin-menu".*?</details>', body, re.S).group(0)
+        # Every settings page, the moderation pages, the core and module tools.
+        from forum.settings.base import Setting
+        for name in Setting.sets:
+            self.assertIn('href="/admin/settings/%s/"' % name, menu)
+        for path in ('/admin/moderation/', '/admin/support/', '/admin/email-previews/', '/admin/static_pages/',
+                     '/admin/maintenance/', '/admin/tools/createuser/', '/admin/tools/nodeman/'):
+            self.assertIn('href="%s"' % path, menu)
+        self.assertIn('A module tool', menu)
+        self.assertIn('href="/admin/settings/basic/" aria-current="page"', menu)
+
+    def test_header_shows_the_moderation_inbox_count(self):
+        from forum.actions import FlagAction
+        question = self.question('Flag me')
+        FlagAction(user=self.create_user('flagger', reputation=500), node=question, extra='spam',
+                   ip='127.0.0.1').save()
+        header = re.search(r'<header id="header">(.*?)</header>', self.client.get('/admin/').content.decode(),
+                           re.S).group(1)
+        self.assertRegex(header, r'Moderation inbox <span class="admin-count"[^>]*>1</span>')
+
+    def test_moderators_get_the_moderation_menu_only(self):
+        self.login(self.create_user('moderator', is_staff=True))
+        body = self.client.get('/admin/moderation/').content.decode()
+        menu = re.search(r'<details id="admin-menu".*?</details>', body, re.S).group(0)
+        self.assertIn('href="/admin/support/"', menu)
+        self.assertNotIn('/admin/settings/', menu)
+        self.assertNotIn('/admin/tools/', menu)
 
     def test_dark_mode_stylesheet_is_served(self):
         response = self.client.get('/m/django_admin/css/dark_mode.css')
         self.assertEqual(response.status_code, 200)
 
     def test_breadcrumbs_have_no_stray_dash(self):
-        self.set(settings.DJSTYLE_ADMIN_INTERFACE, True)
         for path in ('/admin/', '/admin/tools/createuser/', '/admin/tools/nodeman/', '/admin/tools/exporter/',
                      '/admin/tools/importer/', '/admin/sximporter/'):
             with self.subTest(path=path):
                 body = self.client.get(path).content.decode()
-                crumbs = re.search(r'<div class="breadcrumbs">(.*?)</div>', body, re.S).group(1)
+                crumbs = re.search(r'<nav class="breadcrumbs"[^>]*>(.*?)</nav>', body, re.S).group(1)
                 self.assertNotIn(' - ', re.sub(r'\s+', ' ', crumbs))
 
     def test_node_manager_summary_escaped_once(self):

@@ -107,9 +107,22 @@
             announce(format(box.getAttribute('data-removed'), tag));
         }
 
+        // A synonym typed in full ("csv") becomes its tag ("export") when the
+        // suggestions listed it ("csv \u2192 export"); the server resolves
+        // synonyms too, so this only shows the tag that will be saved.
+        function resolve(tag) {
+            var widget = $(entry).data('ui-autocomplete'), found = tag;
+            if (!widget || !widget.menu) return tag;
+            widget.menu.element.children('li').each(function () {
+                var item = $(this).data('ui-autocomplete-item');
+                if (item && item.row && item.row[3] === tag) found = item.row[1];
+            });
+            return found;
+        }
+
         // Typed text not yet turned into a chip.
         function commit() {
-            if (entry.value.trim()) add(entry.value);
+            if (entry.value.trim()) add(split(entry.value).map(resolve).join(' '));
             entry.value = '';
         }
 
@@ -133,7 +146,14 @@
                 select: function (row) {
                     entry.value = '';
                     add(row[1]);
-                    setTimeout(function () { entry.value = ''; entry.focus(); }, 0);
+                    // After the menu has closed; whatever was typed since
+                    // (fast typists, test drivers) is kept, as is focus
+                    // moved to another field.
+                    setTimeout(function () {
+                        if (entry.value.trim() === row[1]) entry.value = '';
+                        var active = document.activeElement;
+                        if (!active || active === document.body || $(active).closest('.osqa-autocomplete').length) entry.focus();
+                    }, 0);
                 }
             });
         }
@@ -162,6 +182,9 @@
         // Pasted (or filled in) text with separators: everything before the last word becomes chips.
         entry.addEventListener('input', function () {
             var value = entry.value;
+            // The word being typed is sent too, whatever happens to the box
+            // before the form goes (blur timers, submit handler order).
+            hidden.value = tags.concat(split(value).filter(function (t) { return tags.indexOf(t) < 0; })).join(' ');
             if (!/[\s,]/.test(value)) return;
             var parts = value.split(/[\s,]+/);
             var rest = /[\s,]$/.test(value) ? '' : parts.pop();

@@ -1,4 +1,4 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n user_tags extra_tags extra_filters %}
 
@@ -169,27 +169,6 @@
             text-decoration: line-through;
         }
 
-        /* Standard interface (no Django changelist CSS): filters above the results. */
-        #CALeft #changelist {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #CALeft #changelist > * {
-            margin-left: 0;
-            margin-right: 0;
-        }
-
-        #CALeft #changelist-filter {
-            order: -1;
-            margin-bottom: 12px;
-        }
-
-        #CALeft #result_list {
-            display: block;
-            overflow-x: auto;
-        }
-
         .col-resizer {
             width: 2px;
             min-width: 2px;
@@ -344,7 +323,7 @@
                                 {% enddeclare %}
                                 {% spaceless %}
                                 <th class="action-checkbox-column">
-                                    <input type="checkbox" id="action-toggle" style="display: inline;" />
+                                    <input type="checkbox" id="action-toggle" style="display: inline;" aria-label="{% trans "Select all" %}" />
                                 </th>                        
                                 <th>{% trans "Type" %}</th>
                                 <th>{% trans "Summary" %}</th>
@@ -440,7 +419,7 @@
                     </li>
                 {% endfor %}
                 <li>
-                    <select id="state-filter-type">
+                    <select id="state-filter-type" aria-label="{% trans "By state" %}">
                         <option value="any"{% if state_filter_type == "any" %} selected="selected"{% endif %}>{% trans "Match any selected" %}</option>
                         <option value="all"{% if state_filter_type == "all" %} selected="selected"{% endif %}>{% trans "Match all selected" %}</option>
                     </select>

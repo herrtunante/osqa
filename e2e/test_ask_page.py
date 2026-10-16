@@ -66,8 +66,14 @@ class AskPageTest(E2ETestCase):
 
         # a word left in the box is added when posting
         tags.press_sequentially('r-lang')
-        page.fill('#id_title', 'Exporting plot data from Collect for use in R')
+        self.assertEqual(tags.input_value(), 'r-lang')
+        self.assertEqual(self.tags_value(page), 'export csv r-lang')  # sent even if never made a chip
+        # the "Similar questions" panel opens as the title is typed: wait for it, so the
+        # click on the button isn't moved by the layout changing
+        with page.expect_response(lambda r: '/questions/related_questions/' in r.url):
+            page.fill('#id_title', 'Exporting plot data from Collect for use in R')
         page.fill('#editor', BODY)
+        self.assertEqual(self.tags_value(page), 'export csv r-lang')
         with page.expect_navigation():
             page.click('#fmask input[name=ask]')
         self.check_page(page)

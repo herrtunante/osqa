@@ -74,6 +74,16 @@ class NotificationEmailTest(EmailFixture):
         self.assertIn('Stop emails about new questions:', text)
 
 
+class SubscribedQuestionsListTest(EmailFixture):
+    def test_list_of_followed_questions(self):
+        # Alice follows her question (asking subscribes); the list shows it.
+        url = reverse('user_questions', kwargs={'mode': 'subscribed-by', 'user': self.alice.id,
+                                                'slug': self.alice.username})
+        self.assertContains(self.client.get(url), 'How do I export survey data to CSV?')
+        self.login(self.bob)
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+
 class UnsubscribeLinkTest(EmailFixture):
     def link(self, scope, question=None):
         return unsubscribe.url(self.alice, scope, question).replace('http://testserver', '')

@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET
 from forum import settings
 
 from forum.feed import RssQuestionFeed
-from forum.models import Node, Question, SearchDocument, Tag, User
+from forum.models import Node, Question, SearchDocument, Tag, TagSynonym, User
 from forum.search import engine
 from forum.search.query import parse, words
 from forum.search.text import highlighter, html_to_text, snippet, stem
@@ -168,11 +168,23 @@ def _suggested_questions(query, kind, word):
 def _suggested_tags(kind, word):
     if kind not in ('any', 'tag') or len(word) < SUGGEST_MIN_LENGTH:
         return []
-    tags = _starting_with_first(Tag.active.all(), 'name', word, ('-used_count', 'name'), SUGGEST_LIMITS['tags'])
-    return [{'name': tag.name, 'url': tag.get_absolute_url(), 'count': tag.used_count,
-             'meta': ngettext('%(count)d question', '%(count)d questions', tag.used_count) % {
-                 'count': tag.used_count}}
-            for tag in tags]
+    limit = SUGGEST_LIMITS['tags']
+    tags = [(tag, None) for tag in _starting_with_first(Tag.active.all(), 'name', word, ('-used_count', 'name'), limit)]
+    if len(tags) < limit:
+        # A synonym typed ("csv") suggests its tag ("export, also called csv").
+        listed = [tag.id for tag, _synonym in tags]
+        for synonym in TagSynonym.objects.filter(source_name__istartswith=word, target__used_count__gte=1).exclude(
+                target_id__in=listed).select_related('target').order_by('source_name')[:limit - len(tags)]:
+            if synonym.target_id not in listed:
+                listed.append(synonym.target_id)
+                tags.append((synonym.target, synonym.source_name))
+    results = []
+    for tag, synonym in tags:
+        meta = ngettext('%(count)d question', '%(count)d questions', tag.used_count) % {'count': tag.used_count}
+        if synonym:
+            meta = '%s · %s' % (_('also called %(synonym)s') % {'synonym': synonym}, meta)
+        results.append({'name': tag.name, 'url': tag.get_absolute_url(), 'count': tag.used_count, 'meta': meta})
+    return results
 
 
 def _avatar_url(user, size=64):

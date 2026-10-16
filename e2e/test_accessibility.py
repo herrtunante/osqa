@@ -170,9 +170,27 @@ class AccessibilityTest(E2ETestCase):
         dana = self.create_user('dana')
         self.check_pages(dana, [dana.get_profile_url(), tab('user_favorites', dana), tab('user_reputation', dana)])
 
+    def test_tag_management_pages(self):
+        """A tag page with its description and synonyms as a moderator, the tag's
+        management page with a history, the merge confirmation page, the
+        synonyms list and the tags index with its "Synonyms" link."""
+        from forum.models import Tag
+        from forum.utils import tags as tagtools
+        collect = Tag.objects.get(name='collect')
+        tagtools.edit_description(collect, 'Questions about **Collect**, the survey designer. ' * 4, self.admin, '127.0.0.1')
+        tagtools.add_synonym(collect, 'collect-survey', self.admin, '127.0.0.1')
+        tagtools.add_synonym(Tag.objects.get(name='export'), 'csv', self.admin, '127.0.0.1')
+        self.check_pages(self.admin, ['/tags/collect/', ('/tags/collect/', '.tag-wiki-more summary'),
+                                      reverse('tag_edit', kwargs={'tag': 'collect'}),
+                                      reverse('tag_merge', kwargs={'tag': 'sepal'}) + '?into=collect',
+                                      reverse('tag_synonyms'), '/tags/'])
+
     def test_administrator_pages(self):
         self.check_pages(self.admin, [self.question.get_absolute_url(), reverse('admin_index'),
-                                      '/admin/settings/basic/'])
+                                      '/admin/settings/basic/', '/admin/support/', '/admin/statistics/',
+                                      '/admin/static_pages/new/', '/admin/email-previews/new-answer/',
+                                      '/admin/tools/createuser/', '/admin/tools/nodeman/'])
+        self.check_pages(self.admin, [(reverse('admin_index'), '#admin-menu > summary')], views=[('mobile', True)])
 
     def test_post_forms(self):
         """The ask page with similar questions open, tags as chips and a preview,
@@ -226,7 +244,7 @@ class AccessibilityTest(E2ETestCase):
         return ['%s (%s%s):\n%s' % (where, device, ', dark' if dark else '', violation) for violation in self.axe(page)]
 
     def test_moderation_inbox(self):
-        """The moderation inbox with an item of every kind (both admin layouts,
+        """The moderation inbox with an item of every kind (the admin menu and
         the "Delete as spam" dialog open), and a post waiting for review as its
         author and a moderator see it."""
         from forum import settings
@@ -242,16 +260,17 @@ class AccessibilityTest(E2ETestCase):
                                         reason='Advertises a product.')
         moderator = self.create_user('moderator', reputation=10, is_staff=True)
         failures = []
-        for layout in ('djstyle', 'default'):
-            self.set_setting(settings.DJSTYLE_ADMIN_INTERFACE, layout == 'djstyle')
-            for device, dark in VIEWS:
-                page = self.open(moderator, device=device, dark=dark)
-                where = 'inbox, %s layout' % layout
-                self.visit(page, reverse('admin_moderation'))
-                failures += self.axe_failures(page, where, device, dark)
-                page.locator('#review-%d' % held.id).get_by_role('button', name='Delete as spam').click()
-                page.wait_for_selector('#spam-review-%d[open]' % held.id)
-                failures += self.axe_failures(page, where + ' with the spam dialog', device, dark)
+        for device, dark in VIEWS:
+            page = self.open(moderator, device=device, dark=dark)
+            where = 'inbox'
+            self.visit(page, reverse('admin_moderation'))
+            failures += self.axe_failures(page, where, device, dark)
+            if device == 'mobile':
+                page.click('#admin-menu > summary')
+                failures += self.axe_failures(page, where + ' with the menu open', device, dark)
+            page.locator('#review-%d' % held.id).get_by_role('button', name='Delete as spam').click()
+            page.wait_for_selector('#spam-review-%d[open]' % held.id)
+            failures += self.axe_failures(page, where + ' with the spam dialog', device, dark)
         for user in (newcomer, moderator):
             failures += ['%s:\n%s' % (path, v) for path in [self.question.get_absolute_url()]
                          for v in self._axe_path(user, path)]

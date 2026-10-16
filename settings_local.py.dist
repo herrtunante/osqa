@@ -71,6 +71,13 @@ SECRET_KEY = ''
 #SENTRY_ENVIRONMENT = 'production'
 #SENTRY_TRACES_SAMPLE_RATE = 0.0   # e.g. 0.1 to trace 10% of requests
 #SENTRY_MAX_EVENTS_PER_VISITOR = 10   # per user or IP per hour, server and browser each
+
+# Browser push notifications (off unless both keys are set). Make a pair with
+#   python manage.py generate_vapid_keys
+# Keep it: a new pair makes every device turn notifications on again.
+#VAPID_PUBLIC_KEY = ''
+#VAPID_PRIVATE_KEY = ''   # secret
+#VAPID_SUBJECT = 'mailto:admin@example.org'   # contact for the push services (default: APP_URL)
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }

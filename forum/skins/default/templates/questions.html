@@ -37,6 +37,31 @@
     </div>
 </div>
 {% if tag %}
+{% if tag.description or tag_synonyms or can_manage_tags %}
+<section class="tag-info tag-wiki" aria-label="{% trans "About this tag" %}">
+    <div class="tag-wiki-body">
+        {% if tag.description %}
+            {% if tag.description_is_long %}
+            <p class="tag-wiki-summary">{{ tag.description_excerpt }}</p>
+            <details class="tag-wiki-more">
+                <summary>{% trans "Read the full description" %}</summary>
+                <div class="tag-description">{{ tag.description_html }}</div>
+            </details>
+            {% else %}
+            <div class="tag-description tag-wiki-summary">{{ tag.description_html }}</div>
+            {% endif %}
+        {% elif can_manage_tags %}
+            <p class="tag-wiki-empty">{% trans "This tag has no description yet." %}</p>
+        {% endif %}
+        {% if tag_synonyms %}
+        <p class="tag-synonyms">{% trans "Also called:" %} {% for name in tag_synonyms %}<span class="tag-synonym">{{ name }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+    </div>
+    {% if can_manage_tags %}
+    <a class="tag-edit-link button plain-button" href="{% url "tag_edit" tag=tag.name %}">{% trans "Manage tag" %}</a>
+    {% endif %}
+</section>
+{% endif %}
 {% tag_follow_state tag request.user as follow %}
 <div class="tag-follow">
     {% if request.user.is_authenticated %}
@@ -63,17 +88,6 @@
         {% if follow.followers %}<span class="tag-followers">{% blocktrans count counter=follow.followers %}{{ counter }} follower{% plural %}{{ counter }} followers{% endblocktrans %}</span>{% endif %}
     </span>
 </div>
-{% if tag.description or request.user.is_superuser or request.user.is_staff %}
-<div class="tag-info">
-    {% if tag.description %}<div class="tag-description">{{ tag.description_html }}</div>{% endif %}
-    {% with synonyms=tag.synonyms.all %}{% if synonyms %}
-    <p class="tag-synonyms">{% trans "Synonyms:" %} {% for s in synonyms %}<span class="tag">{{ s.source_name }}</span>{% endfor %}</p>
-    {% endif %}{% endwith %}
-    {% if request.user.is_superuser or request.user.is_staff %}
-    <a class="tag-edit-link" href="{% url "tag_edit" tag=tag.name %}">{% if tag.description %}{% trans "edit tag" %}{% else %}{% trans "Describe this tag" %}{% endif %}</a>
-    {% endif %}
-</div>
-{% endif %}
 {% endif %}
 <div id="listA">{% for question in questions.paginator.page %}
     {% if show_summary %}

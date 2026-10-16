@@ -47,6 +47,9 @@ core_urls = [
     re_path(r'^manifest\.webmanifest$', app.pwa.manifest, name='manifest'),
     re_path(r'^sw\.js$', app.pwa.service_worker, name='service_worker'),
     re_path(r'^offline/$', app.pwa.offline, name='offline'),
+    re_path(r'^push/subscribe/$', app.push.subscribe, name='push_subscribe'),
+    re_path(r'^push/unsubscribe/$', app.push.unsubscribe, name='push_unsubscribe'),
+    re_path(r'^push/settings/$', app.push.push_settings, name='push_settings'),
     re_path(r'^cstyle\.css$', app.meta.custom_css, name='custom_css'),
 
     re_path(r'^m/django_admin/(?P<path>.*)$', app.meta.django_admin_media, name='django_admin_media'),
@@ -110,7 +113,9 @@ core_urls = [
 
 
     re_path(r'^%s$' % 'tags/', app.readers.tags, name='tags'),
-    re_path(r'^%s(?P<tag>[^/]+)/%s$' % ('tags/', 'edit/'), app.writers.tag_edit, name='tag_edit'),
+    re_path(r'^%s(?P<tag>[^/]+)/%s$' % ('tags/', 'edit/'), app.tags.tag_edit, name='tag_edit'),
+    re_path(r'^%s(?P<tag>[^/]+)/%s$' % ('tags/', 'merge/'), app.tags.tag_merge, name='tag_merge'),
+    re_path(r'^%s$' % 'tag-synonyms/', app.tags.tag_synonyms, name='tag_synonyms'),
     re_path(r'^%s(?P<tag>.*)/$' % 'tags/', app.readers.tag, name='tag_questions'),
     re_path(r'^%s%s(?P<tag>[^/]+)/$' % ('mark-tag/','interesting/'), app.commands.mark_tag, kwargs={'reason':'good','action':'add'}, name='mark_interesting_tag'),
     re_path(r'^%s%s(?P<tag>[^/]+)/$' % ('mark-tag/','ignored/'), app.commands.mark_tag, kwargs={'reason':'bad','action':'add'}, name='mark_ignored_tag'),
@@ -161,6 +166,7 @@ core_urls = [
 
 
     re_path(r'^%s$' % 'admin/', app.admin.dashboard, name='admin_index'),
+    # The admin used to have two layouts; old "switch" links go to the dashboard.
     re_path(r'^%s%s$' % ('admin/', 'switch_interface/'), app.admin.interface_switch, name='admin_switch_interface'),
     re_path(r'^%s%s$' % ('admin/', 'statistics/'), app.admin.statistics, name='admin_statistics'),
     re_path(r'^%s%s$' % ('admin/', 'denormalize/'), app.admin.recalculate_denormalized, name='admin_denormalize'),

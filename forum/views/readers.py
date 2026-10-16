@@ -28,6 +28,7 @@ from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
 from forum.utils import conditional
 from forum.utils import review
+from forum.utils.tags import can_manage_tags
 
 from . import decorators
 
@@ -134,9 +135,11 @@ def questions(request):
 @decorators.render('questions.html')
 def tag(request, tag):
     name = unquote(tag)
-    synonym = TagSynonym.objects.filter(source_name=name).select_related('target').first()
-    if synonym:
-        return HttpResponsePermanentRedirect(synonym.target.get_absolute_url())
+    # One query: a synonym's page redirects to its tag, a tag lists its synonyms ("Also called").
+    synonyms = list(TagSynonym.objects.filter(Q(source_name=name) | Q(target__name=name)).select_related('target'))
+    for synonym in synonyms:
+        if synonym.source_name == name:
+            return HttpResponsePermanentRedirect(synonym.target.get_absolute_url())
 
     try:
         tag = Tag.active.get(name=name)
@@ -158,6 +161,8 @@ def tag(request, tag):
     # The extra tag context we need to pass
     tag_context = {
         'tag' : tag,
+        'tag_synonyms': [synonym.source_name for synonym in sorted(synonyms, key=lambda s: s.source_name)],
+        'can_manage_tags': can_manage_tags(request.user),
     }
 
     # The context returned by the question_list function, contains info about the questions
@@ -195,7 +200,8 @@ def user_questions(request, mode, user, slug):
     elif mode == 'subscribed-by':
         if not (request.user.is_superuser or request.user == user):
             return HttpResponseUnauthorized(request)
-        questions = user.subscriptions
+        # user.subscriptions holds Nodes; the list needs Questions (answer counts).
+        questions = Question.objects.filter(id__in=user.subscriptions.values('id'))
 
         if request.user == user:
             description = _("Questions you subscribed %s")
@@ -287,7 +293,8 @@ def tags(request):
     return pagination.paginated(request, ('tags', TagPaginatorContext()), {
         "tags" : tags,
         "stag" : stag,
-        "keywords" : stag
+        "keywords" : stag,
+        "can_manage_tags": can_manage_tags(request.user),
     })
 
 def update_question_view_times(request, question):

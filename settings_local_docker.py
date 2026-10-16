@@ -17,6 +17,7 @@
 #   OSQA_TRUSTED_PROXIES, SENTRY_*, read by settings.py
 #   LOG_FORMAT             json (default here) or text; LOG_LEVEL INFO
 #   METRICS_TOKEN          enables /metrics
+#   VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT  browser push (manage.py generate_vapid_keys --env)
 #   OSQA_BACKUP_DIR        /app/backups;  OSQA_BACKUP_KEEP  14
 #   OSQA_DEBUG             false
 import os
@@ -103,6 +104,9 @@ LOGGING = {
 }
 
 METRICS_TOKEN = _env('METRICS_TOKEN')
+VAPID_PUBLIC_KEY = _env('VAPID_PUBLIC_KEY')
+VAPID_PRIVATE_KEY = _env('VAPID_PRIVATE_KEY')
+VAPID_SUBJECT = _env('VAPID_SUBJECT')
 BACKUP_DIR = _env('OSQA_BACKUP_DIR', os.path.join(SITE_SRC_ROOT, 'backups'))
 BACKUP_KEEP = int(_env('OSQA_BACKUP_KEEP', '14'))
 for _name in ('SENTRY_DSN', 'SENTRY_FRONTEND_DSN'):

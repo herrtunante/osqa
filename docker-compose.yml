@@ -41,6 +41,10 @@ x-osqa: &osqa
     SENTRY_DSN: ${SENTRY_DSN:-}
     SENTRY_FRONTEND_DSN: ${SENTRY_FRONTEND_DSN:-}
     SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+    # Browser push notifications: off unless both keys are set (manage.py generate_vapid_keys --env).
+    VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+    VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+    VAPID_SUBJECT: ${VAPID_SUBJECT:-}
   volumes:
     - uploads:/app/forum/upfiles
     - backups:/app/backups

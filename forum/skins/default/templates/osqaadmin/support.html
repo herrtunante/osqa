@@ -1,4 +1,4 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 {% load i18n support_tags %}
 
 {% block subtitle %}{% trans "Support dashboard" %}{% endblock %}
@@ -31,7 +31,7 @@
         <div class="support-kpi{% if unanswered %} support-kpi-alert{% endif %}"><span class="support-kpi-value">{{ unanswered|length }}{% if unanswered|length == 100 %}+{% endif %}</span><span class="support-kpi-label">{% trans "waiting for an answer" %}</span></div>
     </div>
 
-    <div class="module support-module">
+    <div class="module support-module" tabindex="0" role="region" aria-label="{% trans "By product tag" %}">
         <table class="support-wide">
             <caption>{% trans "By product tag" %}</caption>
             <thead><tr>

@@ -25,8 +25,10 @@ def init_server(dsn, environment='', release='', traces_sample_rate=0.0, **optio
         dsn=dsn, environment=environment or None, release=release or None,
         traces_sample_rate=traces_sample_rate,
         # No cookies, request bodies, IP addresses or user details;
-        # SentryUserMiddleware adds the user's numeric id.
-        send_default_pii=False, max_request_body_size='never',
+        # SentryUserMiddleware adds the user's numeric id. That is the SDK's
+        # default when neither send_default_pii (deprecated in sentry-sdk
+        # 2.7x, so not passed) nor data_collection is given.
+        max_request_body_size='never',
         before_send=before_send, **options)
     # Requests for other host names (scanners) are not errors of the forum.
     ignore_logger('django.security.DisallowedHost')

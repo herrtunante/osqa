@@ -625,10 +625,22 @@ def matching_tags(request):
     if len(request.GET['q']) == 0:
         raise CommandException(_("Invalid request"))
 
-    possible_tags = Tag.active.filter(name__icontains = request.GET['q'])
-    tag_output = ''
-    for tag in possible_tags:
-        tag_output += "%s|%s|%s\n" % (tag.id, tag.name, tag.used_count)
+    query = request.GET['q'].strip().lower()
+    possible_tags = list(Tag.active.filter(name__icontains=query))
+    listed = set(tag.id for tag in possible_tags)
+    # Synonyms ("csv") give their tag, with the synonym as a fourth column:
+    # the menu shows "csv → export" and picking it puts in "export".
+    synonyms = TagSynonym.objects.filter(source_name__icontains=query, target__used_count__gte=1).exclude(
+        target_id__in=listed).select_related('target').order_by('source_name')
+    rows, exact = [], []
+    for synonym in synonyms:
+        if synonym.target_id in listed:
+            continue
+        listed.add(synonym.target_id)
+        tag = synonym.target
+        (exact if synonym.source_name == query else rows).append(
+            "%s|%s|%s|%s\n" % (tag.id, tag.name, tag.used_count, synonym.source_name))
+    tag_output = ''.join(exact + ["%s|%s|%s\n" % (tag.id, tag.name, tag.used_count) for tag in possible_tags] + rows)
 
     return HttpResponse(tag_output, content_type="text/plain")
 

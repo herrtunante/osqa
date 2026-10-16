@@ -47,29 +47,83 @@ def staff_user_required(fn):
 
     return wrapper
 
+# The admin menu's fixed groups of settings pages (SettingSet names); every
+# other set is listed under "Other settings", so a module's new set shows up
+# without changes here.
+MENU_SETTINGS = (
+    ('basic-sets-menu', _lazy("Basic settings"), ('basic', 'users', 'email', 'paths', 'urls', 'extkeys')),
+    ('workflow-sets-menu', _lazy("Workflow settings"), ('repgain', 'minrep', 'voting', 'accept', 'badges')),
+    ('forum-sets-menu', _lazy("Forum settings"), ('form', 'view', 'moderation')),
+    ('pages-sets-menu', _lazy("Static content"), ('about', 'faq', 'sidebar', 'css', 'headandfoot', 'head')),
+)
+
+
+def _menu_item(request, url, label, **extra):
+    current = request.path == url or (url != reverse('admin_index') and request.path.startswith(url))
+    return dict(extra, url=url, label=label, current=current)
+
+
+def admin_menu(request, unsaved, counts=None):
+    """The admin menu as data: [{'id', 'title', 'items': [{'url', 'label',
+    'current', 'unsaved', 'count'}]}]. Moderators (staff) get the moderation
+    pages only; superusers every settings page and tool, including the tools
+    modules register (admin_tools_page, TOOL_LINKS)."""
+    item = lambda url, label, **extra: _menu_item(request, url, label, **extra)
+    groups = [{'id': 'moderation-menu', 'title': _("Moderation"), 'items': [
+        item(reverse('admin_moderation'), _("Moderation inbox"), count=(counts or {}).get('total')),
+        item(reverse('admin_support'), _("Support dashboard")),
+        item(reverse('admin_email_previews'), _("Email previews")),
+    ]}]
+    if not request.user.is_superuser:
+        return groups
+
+    def set_item(s):
+        return item(reverse('admin_set', args=[s.name]), s.title, unsaved=s.name in unsaved)
+
+    fixed = set()
+    for group_id, title, names in MENU_SETTINGS:
+        fixed.update(names)
+        items = [set_item(Setting.sets[name]) for name in names if name in Setting.sets]
+        if group_id == 'pages-sets-menu':
+            items.insert(0, item(reverse('admin_static_pages'), _("Custom Pages")))
+        groups.append({'id': group_id, 'title': title, 'items': items})
+    others = sorted([s for s in Setting.sets.values() if s.name not in fixed], key=lambda s: s.weight)
+    groups.append({'id': 'other-sets-menu', 'title': _("Other settings"), 'items': [set_item(s) for s in others]})
+    groups.append({'id': 'tools-menu', 'title': _("Tools"), 'items': [
+        item(reverse('admin_maintenance'), _("Maintenance mode")),
+        item(reverse('admin_statistics'), _("Statistics")),
+    ] + [item(url, label) for url, label in admin_tools()]})
+    return [g for g in groups if g['items']]
+
+
+def admin_tools():
+    """(url, label) of the tools: admin_tools_page() views and TOOL_LINKS."""
+    return [(reverse('admin_tools', args=[name]), fn.label) for name, fn in TOOLS.items()] + \
+           [(reverse(url_name), label) for url_name, label in TOOL_LINKS]
+
+
 def admin_page_wrapper(fn, request, *args, **kwargs):
     res = fn(request, *args, **kwargs)
     if isinstance(res, HttpResponse):
         return res
 
     template, context = res
-    context['basetemplate'] = settings.DJSTYLE_ADMIN_INTERFACE and "osqaadmin/djstyle_base.html" or "osqaadmin/base.html"
+    # Templates of older modules extend `basetemplate`; there is one layout.
+    context['basetemplate'] = "osqaadmin/base.html"
     context['allsets'] = Setting.sets
     context['othersets'] = sorted(
-            [s for s in Setting.sets.values() if not s.name in
-            ('basic', 'users', 'email', 'paths', 'extkeys', 'repgain', 'minrep', 'voting', 'accept', 'badges', 'about', 'faq', 'sidebar',
-            'form', 'moderation', 'css', 'headandfoot', 'head', 'view', 'urls')]
-            , key=lambda s: s.weight)
+            [s for s in Setting.sets.values() if s.name not in
+             {name for _id, _title, names in MENU_SETTINGS for name in names}],
+            key=lambda s: s.weight)
+    context['tools'] = admin_tools()
 
-    context['tools'] = [(reverse('admin_tools', args=[name]), fn.label) for name, fn in TOOLS.items()] + \
-                       [(reverse(url_name), label) for url_name, label in TOOL_LINKS]
-
-    # Show the navigation only to moderators and super users
-    if "hide_navigation" not in context:
-        context['hide_navigation'] = not request.user.is_superuser
+    # Pages that need the whole width (the node manager) leave the menu out.
+    context.setdefault('hide_navigation', False)
 
     unsaved = request.session.get('previewing_settings', {})
     context['unsaved'] = set([getattr(settings, s).set.name for s in unsaved.keys() if hasattr(settings, s)])
+    context['moderation_counts'] = counts = review.inbox_counts()
+    context['admin_menu'] = admin_menu(request, context['unsaved'], counts)
 
     return render(request, template, context)
 
@@ -109,11 +163,9 @@ def dashboard(request):
     'flagged_posts': get_flagged_posts(),
     }))
 
-@super_user_required
 def interface_switch(request):
-    if request.GET and request.GET.get('to', None) and request.GET['to'] in ('default', 'djstyle'):
-        settings.DJSTYLE_ADMIN_INTERFACE.set_value(request.GET['to'] == 'djstyle')
-
+    """The old "switch admin layout" link (there is one layout now): bookmarks
+    land on the dashboard."""
     return HttpResponseRedirect(reverse('admin_index'))
 
 @admin_page

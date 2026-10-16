@@ -1,0 +1,14 @@
+{% load i18n extra_tags %}{% if push_on %}
+<div class="push-switch" data-push-switch data-key="{{ public_key }}" data-user="{{ user.pk }}" data-endpoints="{{ endpoint_hashes }}" data-subscribe-url="{% url "push_subscribe" %}" data-unsubscribe-url="{% url "push_unsubscribe" %}" data-msg-on="{% trans "Notifications are on for this device." %}" data-msg-off="{% trans "Notifications are off for this device." %}" data-msg-dismissed="{% trans "Notifications were not allowed. Press the switch again to be asked again." %}" data-msg-failed="{% trans "Something went wrong. Please try again later." %}" data-msg-working="{% trans "One moment..." %}" hidden>
+    <button type="button" class="push-toggle" role="switch" aria-checked="false" aria-describedby="push-help-{{ compact|yesno:"c,s" }}">
+        <span class="push-toggle-track" aria-hidden="true"><span class="push-toggle-thumb"></span></span>
+        <span class="push-toggle-label">{% trans "Get notifications on this device" %}</span>
+    </button>
+    <p class="push-help" id="push-help-{{ compact|yesno:"c,s" }}">{% trans "Your browser shows a short line such as “bob answered your question” with the question title, and opens it when you tap it. Never the text of posts or comments." %}{% if compact %} <a href="{{ user.get_user_subscriptions_url }}#push-settings">{% trans "Choose which notifications" %}</a>{% endif %}</p>
+    <p class="push-status" role="status" aria-live="polite"></p>
+    <p class="push-note push-unsupported" hidden>{% trans "This browser can't show notifications from websites. Notifications still appear under the bell at the top of the page." %}</p>
+    <p class="push-note push-denied" hidden>{% trans "Notifications are blocked for this site in your browser. To allow them, open the site settings (the icon next to the address), set Notifications to Allow, and reload this page." %}</p>
+    <p class="push-note push-ios" hidden>{% trans "On iPhone and iPad, notifications work once the forum is on your Home Screen: tap Share, then “Add to Home Screen”, and open the forum from there." %}</p>
+</div>
+<script src="{% media "/media/js/osqa.push.js" %}" defer></script>
+{% endif %}

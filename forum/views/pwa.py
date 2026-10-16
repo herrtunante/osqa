@@ -139,6 +139,9 @@ def service_worker(request):
         'version': version(),
         'prefix': json.dumps(prefix()),
         'page_cache_size': PAGE_CACHE_SIZE,
+        # Push notifications: the title when a message has none, and the icon.
+        'app_name': json.dumps(str(settings.APP_SHORT_NAME)),
+        'icon': json.dumps(icons()[0]['src']),
     }, content_type='application/javascript; charset=utf-8')
     response['Service-Worker-Allowed'] = prefix() + '/'
     return response

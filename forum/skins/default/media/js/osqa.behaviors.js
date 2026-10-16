@@ -8,7 +8,7 @@
                                              submits the form into that window
                                              ("" for this one), e.g. a preview
 
-   Loaded on every page (base_content.html, osqaadmin/djstyle_base.html);
+   Loaded on every page (base_content.html, osqaadmin/base.html);
    the listeners are on the document, so it may load deferred. */
 (function () {
     'use strict';
