@@ -67,7 +67,9 @@ class PasswordRulesTest(OSQATestCase):
     def test_weak_passwords_are_refused(self):
         self.assertContains(self.register('Ab1'), 'too short')
         self.assertContains(self.register('password123'), 'too common')
-        self.assertContains(self.register('12345678901'), 'entirely numeric')
+        self.assertContains(self.register('12345678'), 'too common')
+        # No composition rules (NIST SP 800-63B): long passwords of any kind are fine.
+        self.assertContains(self.register('x' * 129), 'too long')
         self.assertContains(self.register('carolcarol', username='carolcarol'), 'too similar')
         self.assertFalse(User.objects.exists())
         self.assertEqual(self.register('green-tree-river').status_code, 302)
@@ -96,27 +98,32 @@ class SignInLinkTest(SettingMixin, OSQATestCase):
         known, unknown = self.request('carol@example.com'), self.request('nobody@example.com')
         self.assertContains(known, 'If this address belongs to an account')
         self.assertContains(unknown, 'If this address belongs to an account')
-        self.assertNotContains(unknown, 'not on our database')
+        card = lambda r: re.search(r'<div class="auth-card".*?</p>', r.content.decode(), re.S).group(0)
+        self.assertEqual(card(known), card(unknown))
         self.assertEqual(len(self.sent_mail), 1)
 
     def test_links_are_random_keyed_and_single_use(self):
         carol = self.create_user('carol')
         self.request('carol@example.com')
-        hash = ValidationHash.objects.get(user=carol, type='templogin')
-        self.assertRegex(hash.hash_code, r'^[0-9a-f]{64}$')
+        hash = ValidationHash.objects.get(user=carol, type='pwreset')
+        # Only a digest of the token is stored.
+        self.assertRegex(hash.hash_code, r'^sha256\$[0-9a-f]{64}$')
+        self.assertNotIn(hash.hash_code.split('$')[1], self.sent_mail[0][3])
         # A second request replaces the first link.
+        first = re.search(r'/account/tempsignin/\d+/[^/\s"<]+/', self.sent_mail[-1][3]).group(0)
         self.request('carol@example.com')
-        self.assertFalse(ValidationHash.objects.filter(hash_code=hash.hash_code).exists())
+        self.assertEqual(self.client.get(first).status_code, 410)
         link = re.search(r'/account/tempsignin/\d+/[^/\s"<]+/', self.sent_mail[-1][3]).group(0)
-        self.assertEqual(self.client.get(link).status_code, 302)
-        self.client.logout()
-        self.assertEqual(self.client.get(link).status_code, 404)
+        self.assertEqual(self.client.get(link).status_code, 200)  # opening it uses nothing up
+        self.assertEqual(self.client.get(link).status_code, 200)
+        self.client.post(link, {'password1': 'new-long-secret-9', 'password2': 'new-long-secret-9'})
+        self.assertEqual(self.client.get(link).status_code, 410)
 
     def test_requests_are_limited(self):
         self.create_user('carol')
         for _ in range(3):
             self.request('carol@example.com')
-        self.assertContains(self.request('carol@example.com'), 'Too many sign-in links')
+        self.assertContains(self.request('carol@example.com'), 'Too many password reset emails')
         self.assertEqual(len(self.sent_mail), 3)
 
 
@@ -222,7 +229,8 @@ class SecurityLogTest(OSQATestCase):
             self.command('/users/%d/powers/grant/staff/' % self.alice.id)
             self.client.post(reverse('admin_set', args=['security']), {
                 'LOGIN_FAILURES_LIMIT': 7, 'LOGIN_LOCKOUT_MINUTES': 15, 'PASSWORD_RESETS_PER_HOUR': 3,
-                'QUESTIONS_PER_HOUR': 10, 'ANSWERS_PER_HOUR': 20, 'COMMENTS_PER_HOUR': 40, 'CSP_EXTRA_SOURCES': ''})
+                'QUESTIONS_PER_HOUR': 10, 'ANSWERS_PER_HOUR': 20, 'COMMENTS_PER_HOUR': 40, 'CSP_EXTRA_SOURCES': '',
+                'PASSWORD_MIN_LENGTH': 8})
         self.assertIn("event=permissions_changed ip=127.0.0.1 user=owner(id=%d) account=alice(id=%d) change='grant staff'"
                       % (self.owner.id, self.alice.id), logs.output[0])
         self.assertIn("event=settings_changed", logs.output[1])

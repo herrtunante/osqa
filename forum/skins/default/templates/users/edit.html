@@ -4,6 +4,22 @@
 {% load i18n %}
 {% block title %}{% spaceless %}{% trans "Edit user profile" %}{% endspaceless %}{% endblock %}
 {% block settingscontent %}
+{% if pending_email %}
+<section class="settings-card email-pending" aria-labelledby="email-pending-title" role="status">
+    <h2 id="email-pending-title">{% trans "Confirm your new email address" %}</h2>
+    <p class="settings-lead">{% blocktrans with new=pending_email old=view_user.email %}We sent a link to <strong>{{ new }}</strong>. Your address changes when you open it; until then it stays {{ old }}.{% endblocktrans %}</p>
+    <div class="settings-actions email-pending-actions">
+        <form method="post" action="{% url "auth_pending_email" %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="resend" class="plain-button secondary-button">{% trans "Send the link again" %}</button>
+        </form>
+        <form method="post" action="{% url "auth_pending_email" %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="cancel" class="plain-button danger-outline-button">{% trans "Keep my current address" %}</button>
+        </form>
+    </div>
+</section>
+{% endif %}
 <form class="settings-card" action="{% url "edit_user" view_user.id view_user.username|slugify %}" method="post" novalidate>
     {% csrf_token %}
     <h2>{% trans "Edit profile" %}</h2>

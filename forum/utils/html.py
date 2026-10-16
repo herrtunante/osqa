@@ -64,6 +64,29 @@ def lazy_images(html):
     return IMG_TAG.sub('<img loading="lazy" decoding="async"', html)
 
 
+# How far into a post's HTML its first image may start and still be fetched
+# first (likely in the first screen, so the Largest Contentful Paint).
+PRIORITY_IMAGE_WITHIN = 2000
+
+
+def priority_image(html):
+    """The question page's first image near the top of the post loads at once
+    with high priority (it is often the LCP element); the others stay lazy.
+
+    For stored post HTML (render_markdown()), whose images carry exactly the
+    attributes lazy_images() adds."""
+    match = IMG_TAG.search(html)
+    if not match or match.start() > PRIORITY_IMAGE_WITHIN:
+        return html
+    start = match.start()
+    rest = html[start:]
+    if rest.startswith('<img loading="lazy" '):
+        rest = '<img fetchpriority="high" ' + rest[len('<img loading="lazy" '):]
+    else:
+        rest = '<img fetchpriority="high"' + rest[4:]
+    return html[:start] + rest
+
+
 def sanitize_profile_html(html, links=True):
     """Like sanitize_html, for a user's "about me": never images; links only
     when `links`, and then marked nofollow/ugc so they pass no search ranking."""

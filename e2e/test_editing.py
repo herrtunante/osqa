@@ -47,8 +47,8 @@ class EditingTest(E2ETestCase):
         self.set_setting(settings.UPFILES_FOLDER, folder)
         page = self.open(self.bob)
         self.visit(page, self.question.get_absolute_url())
-        page.click('#wmd-image-button')
-        page.wait_for_selector('#file-upload')
+        page.click('.editor-toolbar [data-command=image]')
+        page.wait_for_selector('#editor-image-dialog #file-upload')
         return page
 
     def upload_folder(self):
@@ -67,7 +67,7 @@ class EditingTest(E2ETestCase):
             const send = window.fetch;
             window.fetch = function() {
                 window.uploadControlsDisabled = Array.from(document.querySelectorAll(
-                    '.wmd-prompt-dialog input[type=button], #file-upload')).every(e => e.disabled);
+                    '#editor-image-dialog button, #file-upload')).every(e => e.disabled);
                 return send.apply(this, arguments);
             };
         }""")
@@ -80,14 +80,17 @@ class EditingTest(E2ETestCase):
         self.assertFalse(page.is_disabled('#file-upload'))
         url = page.input_value('#image-url')
         self.assertRegex(url, r'/upfiles/.+\.png$')
-        stored = [f for f in os.listdir(folder) if f != 'plot-photo.png']
+        # The variants (AVIF/WebP copies, forum/utils/images.py) are in _variants/.
+        stored = [f for f in os.listdir(folder) if f not in ('plot-photo.png', '_variants')]
         self.assertEqual(len(stored), 1)
-        self.assertEqual(page.text_content('.wmd-upload-status'), '')
+        self.assertEqual(page.text_content('.editor-upload-status'), '')
+        # The description is suggested from the file name.
+        self.assertEqual(page.input_value('#image-alt'), 'plot photo')
 
-        # OK puts the image into the post.
-        page.click('.wmd-prompt-dialog input[type=button][value=OK]')
-        page.wait_for_selector('.wmd-prompt-dialog', state='detached')
-        self.assertIn(url, page.input_value('#editor'))
+        # Insert puts the image into the post.
+        page.click('#editor-image-dialog [data-dialog-ok]')
+        page.wait_for_selector('#editor-image-dialog', state='hidden')
+        self.assertIn('![plot photo](%s)' % url, page.input_value('#editor'))
 
         # The uploaded file is served (from the UPFILES_FOLDER setting).
         path = '/upfiles/' + url.split('/upfiles/', 1)[1]
@@ -101,14 +104,14 @@ class EditingTest(E2ETestCase):
 
     def assert_upload_refused(self, page, upload, status, message):
         self.assertEqual(upload.value.status, status)
-        error = page.locator('.wmd-prompt-dialog .upload-error')
+        error = page.locator('#editor-image-dialog .upload-error')
         error.wait_for()
         self.assertIn(message, error.text_content())
         self.assertEqual(error.get_attribute('role'), 'alert')
         # Nothing was put in the address box, and the dialog can be used again.
-        self.assertEqual(page.input_value('#image-url'), 'http://')
+        self.assertEqual(page.input_value('#image-url'), '')
         self.assertFalse(page.is_disabled('#file-upload'))
-        self.assertFalse(page.is_disabled('.wmd-prompt-dialog input[type=button][value=OK]'))
+        self.assertFalse(page.is_disabled('#editor-image-dialog [data-dialog-ok]'))
         # The browser logs the refused request; that is expected here.
         self.assertEqual([p for p in page.problems if '%d' % status not in p], [])
         page.problems.clear()

@@ -84,6 +84,50 @@ class EditorPreviewTest(OSQATestCase):
         self.assertContains(response, 'data-preview-url="%s"' % reverse('markdown_preview'))
         self.assertNotContains(response, 'showdown.js')
 
+    def test_editor_toolbar_is_rendered(self):
+        response = self.client.get(reverse('ask'))
+        self.assertContains(response, 'role="toolbar"')
+        self.assertContains(response, 'data-command="table"')
+        self.assertContains(response, '/media/js/osqa.editor.js')
+        self.assertNotContains(response, 'wmd.js')
+
+
+class MarkdownTablesTest(OSQATestCase):
+    """The editor's table button writes pipe tables; they are rendered and
+    kept by the sanitizer (alignment as align="", never style="")."""
+    TABLE = '| Name | Plots |\n|:-----|------:|\n| *North* | 12 |\n| South | <b onclick="x()">3</b> |\n'
+
+    def test_pipe_table_is_rendered(self):
+        from forum.models.node import render_markdown
+        html = render_markdown('Counts:\n\n' + self.TABLE)
+        self.assertIn('<table>', html)
+        self.assertIn('<thead>', html)
+        self.assertIn('<th align="left">Name</th>', html)
+        self.assertIn('<th align="right">Plots</th>', html)
+        self.assertIn('<td align="left"><em>North</em></td>', html)
+        self.assertIn('<td align="right"><b>3</b></td>', html)
+        self.assertNotIn('onclick', html)
+        self.assertNotIn('style=', html)
+
+    def test_sanitizer_keeps_table_markup(self):
+        html = ('<table><thead><tr><th align="center" style="color:red">a</th></tr></thead>'
+                '<tbody><tr><td align="right" onclick="x()">1</td></tr></tbody></table>')
+        self.assertEqual(sanitize_html(html), '<table><thead><tr><th align="center">a</th></tr></thead>'
+                                              '<tbody><tr><td align="right">1</td></tr></tbody></table>')
+
+    def test_preview_and_saved_post_render_tables_alike(self):
+        bob = self.create_user('bob')
+        html = self.client.post(reverse('markdown_preview'), {'text': self.TABLE}).content.decode()
+        self.assertIn('<th align="right">Plots</th>', html)
+        question = Question(author=bob, title='A question with a table in it', tagnames='gis', body=self.TABLE)
+        question.save()
+        self.assertEqual(html, question.body)
+
+    def test_pipes_in_code_are_not_a_table(self):
+        from forum.models.node import render_markdown
+        html = render_markdown('```\na | b\n--|--\n```\n\nText with `a | b` inline.')
+        self.assertNotIn('<table>', html)
+
 
 class SearchMetadataTest(OSQATestCase):
     def setUp(self):
@@ -154,7 +198,8 @@ class ImageUploadTest(OSQATestCase):
         self.login(self.create_user('alice', reputation=500))
         reply = self.upload(self.PNG, 'screen shot.png')
         self.assertEqual(reply, {'url': '/upfiles/screen_shot.png'})
-        self.assertEqual(os.listdir(self.folder), ['screen_shot.png'])
+        # The variants (forum/utils/images.py) go in their own folder.
+        self.assertEqual(sorted(os.listdir(self.folder)), ['_variants', 'screen_shot.png'])
         # Served from the UPFILES_FOLDER setting, not a fixed folder.
         served = self.client.get(reply['url'])
         self.assertEqual(served.status_code, 200)

@@ -7,3 +7,5 @@
     </button>
     <p class="auth-error auth-passkey-error" role="alert" data-passkey-error hidden></p>
 </div>
+{# Shown before the first paint where osqa.passkeys.js will offer it (no layout shift when it runs). #}
+<script nonce="{{ csp_nonce }}">if (window.PublicKeyCredential && navigator.credentials && window.fetch) { document.currentScript.previousElementSibling.hidden = false; }</script>

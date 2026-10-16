@@ -67,7 +67,7 @@ Step-by-step guides:
 - Email digests and summaries: run `cron/send_email_alerts` once a day (e.g. at 07:00); it
   also sends the weekly summaries on their day, so weekly needs no cron line of its own.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
-- Accept reminders: run `cron/remind_unaccepted` daily (see "Notifications and support dashboard" below).
+- Accept reminders: run `cron/remind_unaccepted` daily (see "Notifications, community health and support dashboard" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
   `cron/suggest_answers` hourly (see "AI assistance" below).
 - Backups: run `manage.py backup_site` daily; monitoring, JSON logs and restores: see "Operations" below.
@@ -103,6 +103,10 @@ manifests are in `docs/k8s/`. See [docs/deployment.md](docs/deployment.md).
 - **Backups:** `manage.py backup_site` writes the database and the uploads
   into a timestamped `.tar.gz` and keeps the last `BACKUP_KEEP`.
   `manage.py restore_site <archive> --dry-run`, then `--confirm`, restores one.
+- **Profiling:** with `SERVER_TIMING=staff` (environment or
+  `settings_local.py`) the pages staff members load carry a `Server-Timing`
+  header (database time and number of queries, template rendering, total),
+  shown by the browser's developer tools; with `DEBUG` every page has it.
 
 ## Languages
 
@@ -153,10 +157,34 @@ marked. The search page explains the operators:
 | `is:answered`, `is:unanswered`, `is:accepted` | by answers |
 | `user:alice` (`user:"Some Name"`) | questions asked by that person |
 
-Results sort by relevance (default), newest, votes or activity. The same
-index serves the MCP `search_forum` tool and "related" searches through
-`forum.utils.similar.search_questions()`, whose providers are blended (the AI
-module's semantic search, when configured, is added to the full-text results).
+Results sort by relevance (default), newest, votes or activity. The page's
+**filters** (a sidebar on desktops, a "Filters" dialog on phones) combine with
+the words and operators and live in the URL, so a search can be shared,
+bookmarked and undone with the back button:
+
+| Parameter | Filter |
+|---|---|
+| `tags=python csv` | every tag (spaces or several `tags=`; synonyms resolved; suggestions as you type) |
+| `status=unanswered`, `answered`, `accepted` | by answers (held or deleted answers don't count) |
+| `closed=hide` | leaves out closed questions |
+| `date=week`, `month`, `year`, or `date=custom&from=2026-01-01&to=2026-03-31` | when the question was asked |
+| `author=alice` | asked by that member (suggestions as you type) |
+| `code=1` | the question or one of its answers has a code block |
+| `min_score=2` | a score of at least 2 |
+
+Active filters show as chips with a remove link each (operators typed in the
+query too) and "Clear all"; the sidebar counts the results per status and
+lists their commonest tags (over at most 1000 matches). When a search finds
+fewer than 3 questions, "Did you mean" offers a spelling built from tag names
+and frequent title words, if it finds more. Results are a list of links:
+`j`/`k` move through them and Enter opens one.
+
+The same index serves the MCP `search_forum` tool (arguments `query`, `limit`
+and the filters `tags`, `status`, `since`) and "related" searches through
+`forum.utils.similar.search_questions(query, limit, filters=None)`, whose
+providers are blended (the AI module's semantic search, when configured, is
+added to the full-text results; providers without `accepts_filters` have
+their results filtered afterwards).
 
 How it works: one `SearchDocument` row per question (`forum/search/`, table
 `forum_searchdocument`) holds the plain text, and is updated whenever a
@@ -286,7 +314,7 @@ counted again afterwards and the search index is updated. **Tag synonyms**
 synonym → tag pairs, with a form to add one and remove buttons. The rules
 live in `forum/utils/tags.py`.
 
-## Notifications and support dashboard
+## Notifications, community health and support dashboard
 
 - **Bell:** signed-in users see a bell in the header with their unread
   notifications:
@@ -298,6 +326,24 @@ live in `forum/utils/tags.py`.
 
   The list is at `/notifications/`. These notifications don't depend on the
   email settings, and opening a question marks its notifications read.
+- **Community health:** the admin dashboard (`/admin/`, for moderators and
+  administrators) answers "how is the community doing?" for the last 7, 30 or
+  90 days (`?days=`), each figure compared with the period before:
+  - new questions, answers and comments;
+  - questions answered within 24 hours and 7 days, median time to the first
+    answer, accepted answers, the unanswered backlog;
+  - new members, how many confirmed their email or posted within 7 days,
+    active (posted or voted) and returning members;
+  - moderation: what waits in the inbox, median times to resolve flags,
+    first post reviews and suggested edits, suspensions, AI reports;
+  - charts: daily activity, time to first answer, growing tags, top
+    answerers and questions by hour of the week, each with a summary
+    sentence and its figures as a table.
+
+  Deleted posts, posts held for review and suspended accounts never count;
+  the page explains every figure under "How these are counted". Figures are
+  cached for 5 minutes ("Refresh now" counts again) and download as CSV
+  (`?format=csv`). Code: `forum/utils/community_health.py`.
 - **Support dashboard:** at Admin > Support dashboard, linked as "support
   queue" in the header for staff and moderators. It shows, for a period and
   optionally one tag:
@@ -412,13 +458,11 @@ link to the revisions; saving again replaces their version.
 
 ## Security and logging
 
+- **Accounts:** sign-up, confirmation, passwords, sessions and deletion are
+  described under [Accounts](#accounts) below.
 - **Sign-in:** after 5 wrong passwords an account's password sign-in pauses for
-  15 minutes, and one IP address may fail 20 times. "Forgot password" links are
-  limited to 3 per address per hour, work once for 24 hours, and the page never
-  says whether an address has an account.
-- **Passwords:** Django's validators (at least 8 characters, not common, not
-  numeric only, not similar to the username or email). Change them with
-  `AUTH_PASSWORD_VALIDATORS`. Changing a password signs out the account's other sessions.
+  15 minutes, and one IP address may fail 20 times. The error never says
+  whether the username exists; the session gets a new key at sign-in.
 - **Passkeys and two-step verification:** on "Passkeys and two-step
   verification" in their settings, members add passkeys (fingerprint, face,
   screen lock or security key; WebAuthn with `webauthn`/py_webauthn) and can turn
@@ -473,8 +517,9 @@ link to the revisions; saving again replaces their version.
   - failed and paused sign-ins;
   - passkeys added, removed and used (and counter errors), two-step
     verification turned on or off, wrong codes and recovery codes used;
-  - sign-in link requests and uses;
-  - password changes;
+  - password reset requests and resets, password changes and failed attempts;
+  - email confirmations, email change requests, confirmations and cancellations;
+  - sign-outs everywhere, sign-ins from new browsers, unconfirmed sign-in attempts;
   - pages refused to signed-in users;
   - permission, reputation and settings changes;
   - maintenance mode;
@@ -512,6 +557,92 @@ into `settings_local.py` to get rotation and the security log.
 Email validation and sign-in links sent before the upgrade stop working, so ask
 for a new one.
 
+### Accounts
+
+What members can do with their account, and the settings for it (Admin >
+Users settings and Admin > Security). The code is in `forum/utils/accounts.py`.
+
+- **Signing up (double opt-in):** after signing up with an email address and
+  password, the member gets a welcome email with a button that confirms the
+  address. The link works once, for 48 hours, and only the newest one works
+  (a random HMAC-SHA256 token; only its SHA-256 is stored). There is no second
+  welcome email after confirming. *Email confirmation for new members*
+  decides what happens meanwhile:
+  - *they must confirm before they can sign in* (default): signing up shows
+    "Check your inbox" (check your email to finish creating your account),
+    signing in sends a new link instead, and an address that already has an
+    account gets the same answer as a new one (its owner gets a "you already
+    have an account" email), so the form tells nobody which addresses are
+    registered;
+  - *they can sign in at once, but must confirm before asking, answering or
+    commenting*: a banner under the header says so, with "Send it again" and
+    "Change the address"; a question or answer written before confirming is
+    published when the link is opened in the same browser (in this mode the
+    sign-up form says when an address is already taken);
+  - *not required*: only the actions ticked under "Require email validation
+    to..." need a confirmed address (that list applies to every member).
+
+  Members who joined before this existed, the site owner, staff, accounts made
+  by administrators or imported, and addresses a sign-in service (Google,
+  GitHub, LDAP) has already verified are never asked. Accounts that never
+  confirm and never post are deleted by `cleanup_inactive_users` after
+  *Delete unconfirmed new accounts after (days)* (7; 0 turns it off). The
+  confirmation page works signed out and never signs anyone in; signed-out
+  members can ask for a new link with their address (`/account/send-validation/`,
+  the same answer for any address).
+- **Passwords** follow NIST SP 800-63B: at least *Minimum password length*
+  characters (8, never less; 15 is recommended without two-step
+  verification), at most 128, any characters, no rules about digits or
+  symbols, no expiry. Common passwords and passwords close to the username or
+  email are refused; *Refuse passwords found in data breaches* (off by
+  default) also checks the Have I Been Pwned list, sending only the first 5
+  characters of the password's SHA-1 (k-anonymity, padded answers), and
+  accepts the password if the service doesn't answer within 3 seconds. The
+  forms list the rules and tick them as the member types, show a strength bar
+  and a show-password button, allow pasting and use
+  `autocomplete="new-password"` / `"current-password"` for password managers.
+  `AUTH_PASSWORD_VALIDATORS` in `settings_local.py` replaces the rules.
+- **Changing the password** needs the current one (wrong ones count like wrong
+  sign-ins). The other sessions of the account are signed out, this one stays,
+  and the member gets a "your password was changed" email (also when an
+  administrator sets it).
+- **Forgot your password?** emails a link to a page where the member chooses a
+  new password; the page answers the same for any address. The link works once,
+  for an hour, and stops working when the password changes or the member signs
+  in; requests are limited per address and IP address (*Account emails per
+  hour*, 3). Opening the link changes nothing (mail scanners open links); with
+  two-step verification on, the page also asks for a code (or a recovery code).
+  After the reset every session is signed out, the member gets an email and
+  signs in with the new password.
+- **Signing in:** "Keep me signed in" (ticked by default) keeps the session for
+  two weeks (`SESSION_COOKIE_AGE`); unticked, it ends when the browser closes.
+  *Email members about sign-ins from a new browser* (off by default) sends an
+  email with the time, browser and IP address the first time a browser signs in
+  to an account (a random id in a long-lived `osqa_device` cookie; the first
+  browser is only remembered).
+- **Signing out** is a POST with the CSRF token (`/logout/` and
+  `/account/signout/` show a button), so no link or image elsewhere can sign
+  people out; "Also sign out on all my other devices" ends every session. The
+  security page has "Sign out of all other sessions". Each session remembers
+  the account's `session_epoch` from its sign-in; raising it ends the others.
+- **Changing the email address:** the account keeps its address until the
+  member opens the link sent to the new one (48 hours). The old, confirmed
+  address gets a notice with a "Cancel the change" button, which keeps it and
+  signs out every session. An administrator's change applies at once and tells
+  the old address.
+- **Deleting the account** (Your data and account) happens at once after the
+  member types their username and their password (and a two-step code if they
+  use it; members without a password sign in again first). Profile, email,
+  sign-in methods, passkeys, two-step verification, push subscriptions,
+  notifications, subscriptions, preferences and sessions are removed, a last
+  email confirms it, and posts stay as by "deleted-user-N" (or are deleted:
+  *Posts of deleted accounts*). Moderators and administrators can't delete
+  their own account; the security log records only the account id.
+- **Account emails** (confirmation, reset, password changed, email change,
+  new sign-in, deletion) use the email layout, have a plain text part, are
+  translatable, appear in Admin > Email previews, never contain a password,
+  and are sent whatever the member's notification settings.
+
 ## Upgrading an existing installation
 
 - Add `SECRET_KEY` to `settings_local.py` (the old built-in key was public).
@@ -536,6 +667,10 @@ for a new one.
 - Migration `0013` adds the search index (MySQL `FULLTEXT` indexes, an FTS5
   table on SQLite). Run `python manage.py rebuild_search_index` once after
   `migrate` to index the existing questions (see "Search").
+- Uploaded images now get AVIF/WebP copies at smaller widths (see "Look and
+  feel"). Run `python manage.py backfill_image_variants --rerender` once
+  (`--dry-run` shows what it would do; running it again skips what is done)
+  to make them for the existing uploads and show them in the existing posts.
 - A database created by the old Django 1.6/South version is not migrated in
   place: create a fresh database with `migrate` and import the old data into it
   (next section).
@@ -741,6 +876,37 @@ forum and cite it, without the `ai` module:
 - `/mcp`: a read-only MCP server (Streamable HTTP) with `search_forum` and
   `get_question`; with the knowledge index built, search is semantic.
 
+### JSON API
+
+A versioned public API at `/api/v1/`, documented at `/api/` (linked from the
+footer, `llms.txt` and the token page) and described as OpenAPI 3.1 at
+`/api/v1/openapi.json`. Both are generated from one registry of endpoints in
+`forum/api/` (`core.py` registry and machinery, `endpoints.py`, `schemas.py`,
+`openapi.py`), so the docs can't drift from the routes.
+
+- **Read** (no token needed, same visibility as the site): questions (filters
+  `tags`, `status`, `since`; `sort` active/newest/votes; cursor pages), one
+  question with answers and comments (HTML and Markdown), answers, tags with
+  synonyms, members (public fields), search (the search page's filters),
+  badges. Lists are `{"data": [...], "next": url|null}` plus a `Link` header;
+  single objects carry an `ETag` (304 on `If-None-Match`).
+- **Write** with a personal access token (`Authorization: Bearer osqa_...`,
+  scope `write`): ask, answer, comment, vote up/down/none, accept/unaccept,
+  follow/unfollow. Everything goes through the same Action classes,
+  reputation rules, email confirmation, hourly posting limits, spam checks
+  and first-posts review as the web site; members a CAPTCHA would be shown to
+  must post on the site.
+- **Tokens**: Settings > API tokens (`/account/<id>/api-tokens/`): name,
+  read or read+write, expiry (30/90/365 days or never), last use; shown once,
+  stored as a SHA-256 digest, revocable; administrators can revoke. The API
+  never uses the session cookie (no CSRF exposure); suspended accounts'
+  tokens are refused; deleting an account deletes its tokens.
+- **Errors** are RFC 9457 `application/problem+json` (types listed on `/api/`).
+- **Admin > Public API**: turn the API or writes off, rate limits per minute
+  (per IP without a token, per token, writes per token; `X-RateLimit-*`
+  headers, 429 with `Retry-After`), and the CORS origins allowed to read it
+  from browsers (default `*`, GET only, never with credentials).
+
 ### Social login
 
 For each provider you want, create an OAuth app and enter its client id and
@@ -784,7 +950,18 @@ in the moderation inbox).
 jQuery 3.7, jQuery UI 1.14 (tag and user suggestions), Flot 4.2
 (charts) and highlight.js 11.11 are served from the skin (`media/vendor/`), so
 pages load no third-party scripts unless Google search, Analytics or a provider
-login is configured. Post HTML is sanitized with nh3 and turned into plain text
+login is configured. jQuery UI is loaded when a suggestion field is first used
+and highlight.js only on pages with code blocks.
+
+Page speed: uploaded images are stored re-encoded (metadata removed) and, next
+to them in `upfiles/_variants/`, as WebP and AVIF (when Pillow supports it) at
+640 and 1280 pixels wide and full width. Posts show them as `<picture>` with
+their width and height, so a phone downloads a small file and nothing jumps
+while the page loads; the first image of a question loads first. Avatars,
+the logo and the search and sign-in pages reserve their space too.
+`e2e/test_web_vitals.py` checks layout shift, largest paint, response time,
+interaction delay, and the number and weight of requests of the main pages on
+a slow phone connection. Post HTML is sanitized with nh3 and turned into plain text
 for emails with html2text.
 
 Admin > "Switch to django style interface" uses Django's own admin stylesheets;
@@ -820,8 +997,15 @@ changes them; HTTPS (or localhost) is required.
   the mentioned user (controlled by the "mentions me" notification setting).
 - Close as duplicate with a link to the original question; moderators can move
   the answers to the original.
-- Paste or drop images into the editor; drafts of questions and answers are
-  saved in the browser until posted.
+- A modern post editor: an accessible toolbar (bold, italic, link, quote,
+  inline code, code block with a language, lists, heading, table, image,
+  undo/redo, help) with tooltips and keyboard shortcuts (Ctrl/Cmd+B, I, K, E;
+  Tab indents lists and code, Escape then Tab leaves the text box), pipe
+  tables, @mention suggestions, a live character/word count with the minimum
+  length, and the server-rendered preview. Paste or drop images (several at
+  once) to upload them; text pasted from web pages, Word or Google Docs is
+  converted to Markdown (Ctrl+Shift+V pastes plain text). Drafts of questions
+  and answers are saved in the browser until posted.
 - schema.org QAPage structured data and OpenGraph/Twitter link previews.
 - Tag management for moderators: descriptions, synonyms, rename and merge
   ("Manage tag" on a tag's page; see "Moderating tags").

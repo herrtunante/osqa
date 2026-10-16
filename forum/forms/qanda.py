@@ -328,6 +328,9 @@ class EditUserForm(DescribedFieldsMixin, forms.Form):
         self.fields['about'].initial = user.about
         self.user = user
         self.fields['email'].widget.attrs.update(autocomplete='email', autocapitalize='none', spellcheck='false')
+        if REQUEST_HOLDER.request is not None and REQUEST_HOLDER.request.user == user:
+            self.fields['email'].help_text = _("Never shown publicly. If you change it, we email a link to the new "
+                                               "address; it is used once you confirm it.")
         self.describe_fields()
 
     def clean_email(self):

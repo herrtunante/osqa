@@ -94,7 +94,7 @@ class AdminToolsTest(AdminTestCase):
         self.menu(page, 'Email previews')
         self.assertEqual(page.url, self.url(reverse('admin_email_previews')))
         listed = page.locator('.email-previews').inner_text()
-        for name in ('New answer', 'Mention', 'Daily digest', 'Welcome', 'Sign-in link'):
+        for name in ('New answer', 'Mention', 'Daily digest', 'Welcome', 'Password reset'):
             self.assertIn(name, listed)
         self.assertIn('New answer to: How do I export survey data to CSV?', listed)
         with page.expect_navigation():

@@ -6,6 +6,7 @@ from django.urls import re_path, include
 from django.conf import settings as djsettings
 from django.contrib import admin
 from forum import views as app
+from forum.views import api as api_views
 from forum.sitemap import OsqaSitemap, index as sitemap_index, sitemap_section_index, sitemap
 from django.utils.translation import gettext_lazy as _lazy
 from django.shortcuts import redirect
@@ -36,6 +37,12 @@ core_urls = [
     re_path(r'^llms\.txt$', app.agents.llms_txt, name='llms_txt'),
     re_path(r'^export/qa\.jsonl$', app.agents.qa_export, name='qa_export'),
     re_path(r'^mcp/?$', app.agents.mcp, name='mcp'),
+    # The JSON API (forum/api/): docs, /api/v1/ endpoints and personal access tokens.
+    re_path(r'^api/$', api_views.docs, name='api_docs'),
+    re_path(r'^api/v1/', include('forum.api.urls')),
+    re_path(r'^account/(?P<id>\d+)/api-tokens/$', api_views.tokens_page, name='user_api_tokens'),
+    re_path(r'^account/(?P<id>\d+)/api-tokens/(?P<token_id>\d+)/revoke/$', api_views.revoke_token,
+            name='user_api_token_revoke'),
     re_path(r'^%s(?P<token>[\w:.-]+)/$' % 'unsubscribe/', app.email_prefs.email_unsubscribe, name='email_unsubscribe'),
     re_path(r'^%s$' % 'help/email/', app.email_prefs.email_help, name='email_help'),
     re_path(r'^%s(?P<tag>[^/]+)/$' % 'follow-tag/', app.email_prefs.follow_tag, name='follow_tag'),
@@ -170,6 +177,12 @@ core_urls = [
     re_path(r'^%s%s(?P<id>\d+)/%s$' % ('account/', 'providers/', 'remove/'), app.auth.remove_external_provider, name='user_remove_external_provider'),
     re_path(r'^%s%s%s$' % ('account/', 'providers/', 'add/'), app.auth.signin_page, name='user_add_external_provider'),
     re_path(r'^%s%s$' %('account/', 'send-validation/'), app.auth.send_validation_email, name='send_validation_email'),
+    # Account lifecycle (forum/utils/accounts.py).
+    re_path(r'^account/check-email/$', app.auth.check_email, name='auth_check_email'),
+    re_path(r'^account/email/confirm/(?P<user>\d+)/(?P<code>[\w$-]+)/$', app.auth.confirm_email_change, name='auth_confirm_email_change'),
+    re_path(r'^account/email/cancel/(?P<user>\d+)/(?P<code>[\w$-]+)/$', app.auth.cancel_email_change, name='auth_cancel_email_change'),
+    re_path(r'^account/email/pending/$', app.auth.pending_email_change, name='auth_pending_email'),
+    re_path(r'^account/sessions/signout-others/$', app.auth.signout_others, name='auth_signout_others'),
     # Passkeys and two-step verification (forum/views/security.py).
     re_path(r'^account/(?P<id>\d+)/security/$', app.security.security_page, name='user_security'),
     re_path(r'^account/(?P<id>\d+)/security/two-step/disable/$', app.security.totp_disable, name='two_factor_disable'),

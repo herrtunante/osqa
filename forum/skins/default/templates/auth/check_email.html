@@ -1,0 +1,36 @@
+{% extends "base_content.html" %}
+{# "Check your inbox": after signing up (when the address must be confirmed before signing in), after asking for a password reset or a new confirmation link. The same page whether or not the address has an account. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Check your inbox" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card" role="status">
+            <div class="auth-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+            </div>
+            <h1>{% trans "Check your inbox" %}</h1>
+            {% if kind == "reset" %}
+                <p class="auth-lead">{% blocktrans count minutes=link_minutes %}If this address belongs to an account, we've sent it a link to choose a new password. The link works once, for {{ minutes }} minute.{% plural %}If this address belongs to an account, we've sent it a link to choose a new password. The link works once, for {{ minutes }} minutes.{% endblocktrans %}</p>
+            {% elif kind == "confirm" %}
+                <p class="auth-lead">{% blocktrans count hours=link_hours %}If this address belongs to an account that isn't confirmed yet, we've sent it a new confirmation link. It works once, for {{ hours }} hour.{% plural %}If this address belongs to an account that isn't confirmed yet, we've sent it a new confirmation link. It works once, for {{ hours }} hours.{% endblocktrans %}</p>
+            {% else %}
+                <p class="auth-lead">{% blocktrans count hours=link_hours %}Check your email to finish creating your account: open the link we sent to the address you entered to confirm it, then sign in. The link works once, for {{ hours }} hour.{% plural %}Check your email to finish creating your account: open the link we sent to the address you entered to confirm it, then sign in. The link works once, for {{ hours }} hours.{% endblocktrans %}</p>
+            {% endif %}
+            <p class="auth-help">{% trans "Nothing arrived after a few minutes? Check your spam folder, and that the address was typed correctly." %}</p>
+            <div class="auth-actions">
+                {% if kind == "reset" %}
+                    <a class="button auth-secondary" href="{% url "auth_request_tempsignin" %}">{% trans "Send another link" %}</a>
+                {% else %}
+                    <a class="button auth-secondary" href="{% url "send_validation_email" %}">{% trans "Send the confirmation link again" %}</a>
+                {% endif %}
+            </div>
+            <p class="auth-switch"><a href="{% url "auth_signin" %}">{% trans "Back to sign in" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -328,6 +328,180 @@ msgstr "%(user)s a suspendu %(users)s %(suspension)s : %(msg)s"
 msgid "Bad behaviour"
 msgstr "Mauvais comportement"
 
+msgid "since must be a date (YYYY-MM-DD) or an ISO 8601 date and time."
+msgstr "since doit être une date (AAAA-MM-JJ) ou une date et heure ISO 8601."
+
+msgid "Not a date."
+msgstr "Ce n'est pas une date."
+
+#, python-format
+msgid "%(name)s must be a whole number from %(min)d to %(max)d."
+msgstr "%(name)s doit être un nombre entier entre %(min)d et %(max)d."
+
+msgid "Out of range."
+msgstr "Hors limites."
+
+#, python-format
+msgid "%(name)s must be one of: %(choices)s."
+msgstr "%(name)s doit valoir l'une de ces valeurs : %(choices)s."
+
+msgid "Unknown value."
+msgstr "Valeur inconnue."
+
+msgid "Send the request body as JSON (Content-Type: application/json)."
+msgstr "Envoyez le corps de la requête en JSON (Content-Type: application/json)."
+
+#, python-format
+msgid "The request body is larger than %d KB."
+msgstr "Le corps de la requête dépasse %d Ko."
+
+msgid "The request body is not valid JSON."
+msgstr "Le corps de la requête n'est pas du JSON valide."
+
+msgid "The request body must be a JSON object."
+msgstr "Le corps de la requête doit être un objet JSON."
+
+#, python-format
+msgid "%s must be a string."
+msgstr "%s doit être une chaîne de caractères."
+
+msgid "Must be a string."
+msgstr "Doit être une chaîne de caractères."
+
+#, python-format
+msgid "%s is required."
+msgstr "%s est obligatoire."
+
+msgid "This field is required."
+msgstr "Ce champ est obligatoire."
+
+msgid "The cursor is not valid for this list; use the next link of a previous page."
+msgstr "Ce curseur n'est pas valide pour cette liste ; utilisez le lien next d'une page précédente."
+
+msgid "Not valid."
+msgstr "Non valide."
+
+msgid "Send the token as \"Authorization: Bearer <token>\"."
+msgstr "Envoyez le jeton sous la forme « Authorization: Bearer <token> »."
+
+msgid "This token is not valid. It may have been revoked."
+msgstr "Ce jeton n'est pas valide. Il a peut-être été révoqué."
+
+#, python-format
+msgid "This token expired on %s. Create a new one on your account page."
+msgstr "Ce jeton a expiré le %s. Créez-en un nouveau sur la page de votre compte."
+
+msgid "This account is suspended, so its tokens can't be used."
+msgstr "Ce compte est suspendu : ses jetons ne peuvent pas être utilisés."
+
+msgid "Confirm your email address before using the API."
+msgstr "Confirmez votre adresse e-mail avant d'utiliser l'API."
+
+msgid "This site doesn't accept changes through the API at the moment."
+msgstr "Ce site n'accepte pas de modifications par l'API pour le moment."
+
+msgid "This needs a personal access token: send \"Authorization: Bearer <token>\"."
+msgstr "Il faut un jeton d'accès personnel : envoyez « Authorization: Bearer <token> »."
+
+#, python-format
+msgid "This token doesn't have the %s scope."
+msgstr "Ce jeton n'a pas la portée %s."
+
+#, python-format
+msgid "Too many requests: at most %(limit)d per minute. Try again in %(seconds)d seconds."
+msgstr "Trop de requêtes : %(limit)d par minute au maximum. Réessayez dans %(seconds)d secondes."
+
+msgid "The administrators of this site have turned the API off."
+msgstr "Les administrateurs de ce site ont désactivé l'API."
+
+#, python-format
+msgid "%(method)s is not allowed here; use %(allowed)s."
+msgstr "%(method)s n'est pas autorisé ici ; utilisez %(allowed)s."
+
+msgid "There is nothing here, or you may not see it."
+msgstr "Il n'y a rien ici, ou vous n'avez pas le droit de le voir."
+
+msgid "Something went wrong on our side."
+msgstr "Un problème est survenu de notre côté."
+
+msgid "q is required: what to look for."
+msgstr "q est obligatoire : ce que vous cherchez."
+
+msgid "Confirm your email address first: open the link we emailed you, or ask for a new one on the site."
+msgstr "Confirmez d'abord votre adresse e-mail : ouvrez le lien que nous vous avons envoyé, ou demandez-en un nouveau sur le site."
+
+#, python-format
+msgid "Members with less than %d reputation points post on the web site, where they answer a CAPTCHA."
+msgstr "Les membres ayant moins de %d points de réputation publient sur le site web, où ils répondent à un CAPTCHA."
+
+msgid "This looks like spam to our spam filter, so it wasn't posted."
+msgstr "Notre filtre anti-spam considère ce contenu comme du spam : il n'a donc pas été publié."
+
+msgid "tags must be a list of names or a string."
+msgstr "tags doit être une liste de noms ou une chaîne de caractères."
+
+msgid "Must be a list of names or a string."
+msgstr "Doit être une liste de noms ou une chaîne de caractères."
+
+msgid "This question is closed: it takes no new answers."
+msgstr "Cette question est fermée : elle n'accepte plus de nouvelles réponses."
+
+#, python-format
+msgid "At least %d characters required on comment body."
+msgstr "Le corps du commentaire doit contenir au moins %d caractères."
+
+msgid "Too short."
+msgstr "Trop court."
+
+#, python-format
+msgid "No more than %d characters on comment body."
+msgstr "Le corps du commentaire ne doit pas dépasser %d caractères."
+
+msgid "Too long."
+msgstr "Trop long."
+
+#, python-format
+msgid "You need %d reputation points to comment on other members' posts."
+msgstr "Il vous faut %d points de réputation pour commenter les messages des autres membres."
+
+msgid "vote must be up, down or none."
+msgstr "vote doit valoir up, down ou none."
+
+msgid "You can't vote on your own posts."
+msgstr "Vous ne pouvez pas voter pour vos propres messages."
+
+#, python-format
+msgid "Voting up needs %(needed)d reputation points (you have %(have)d)."
+msgstr "Voter pour nécessite %(needed)d points de réputation (vous en avez %(have)d)."
+
+#, python-format
+msgid "Voting down needs %(needed)d reputation points (you have %(have)d)."
+msgstr "Voter contre nécessite %(needed)d points de réputation (vous en avez %(have)d)."
+
+#, python-format
+msgid "A vote can't be changed more than %d day after it was cast."
+msgid_plural "A vote can't be changed more than %d days after it was cast."
+msgstr[0] "Un vote ne peut pas être modifié plus de %d jour après avoir été émis."
+msgstr[1] "Un vote ne peut pas être modifié plus de %d jours après avoir été émis."
+
+#, python-format
+msgid "You have used your %d votes for today."
+msgstr "Vous avez utilisé vos %d votes de la journée."
+
+msgid "Accepting answers is turned off on this site."
+msgstr "L'acceptation des réponses est désactivée sur ce site."
+
+msgid "Only the asker (or a moderator) can accept an answer."
+msgstr "Seul l'auteur de la question (ou un modérateur) peut accepter une réponse."
+
+msgid "This question already has an accepted answer."
+msgid_plural "This question has reached the limit of accepted answers."
+msgstr[0] "Cette question a déjà une réponse acceptée."
+msgstr[1] "Cette question a atteint la limite de réponses acceptées."
+
+msgid "The author of this answer has reached the limit of accepted answers in this question."
+msgstr "L'auteur de cette réponse a atteint la limite de réponses acceptées pour cette question."
+
 #, python-format
 msgid "Answers to: %s"
 msgstr "Réponses à : %s"
@@ -617,6 +791,9 @@ msgstr "Profil"
 msgid "Screen name"
 msgstr "Pseudonyme"
 
+msgid "Never shown publicly. If you change it, we email a link to the new address; it is used once you confirm it."
+msgstr "Jamais affichée publiquement. Si vous la modifiez, nous envoyons un lien à la nouvelle adresse ; elle sera utilisée une fois confirmée."
+
 msgid "this email has already been registered, please use another one"
 msgstr "cette adresse e-mail est déjà enregistrée, veuillez en utiliser une autre"
 
@@ -771,6 +948,9 @@ msgstr "assistance"
 msgid "privacy"
 msgstr "confidentialité"
 
+msgid "API"
+msgstr "API"
+
 msgid "edit profile"
 msgstr "modifier le profil"
 
@@ -848,6 +1028,48 @@ msgstr "Les utilisateurs peuvent accepter leur propre réponse"
 
 msgid "Are normal users allowed to accept their own answers.."
 msgstr "Les utilisateurs ordinaires sont-ils autorisés à accepter leurs propres réponses."
+
+msgid "Public API"
+msgstr "API publique"
+
+msgid "The JSON API at /api/v1/ (documented at /api/): who may use it, how often, and from which web sites."
+msgstr "L'API JSON à l'adresse /api/v1/ (documentée sur /api/) : qui peut l'utiliser, à quelle fréquence et depuis quels sites web."
+
+msgid "Turn on the API"
+msgstr "Activer l'API"
+
+msgid "Programs can read public questions, answers, tags, members and badges, and members can create personal access tokens. When off, every API address answers 503 and the token page is hidden."
+msgstr "Les programmes peuvent lire les questions, réponses, étiquettes, membres et badges publics, et les membres peuvent créer des jetons d'accès personnels. Si elle est désactivée, toutes les adresses de l'API répondent 503 et la page des jetons est masquée."
+
+msgid "Allow posting through the API"
+msgstr "Autoriser la publication par l'API"
+
+msgid "Tokens with the write scope may ask, answer, comment, vote, accept answers and follow questions, with the same reputation rules, posting limits and review queue as the web site. When off, only reading works."
+msgstr "Les jetons avec la portée write peuvent poser des questions, répondre, commenter, voter, accepter des réponses et suivre des questions, avec les mêmes règles de réputation, limites de publication et file de vérification que sur le site web. Si c'est désactivé, seule la lecture fonctionne."
+
+msgid "Requests per minute without a token"
+msgstr "Requêtes par minute sans jeton"
+
+msgid "Per IP address. 0 means no limit."
+msgstr "Par adresse IP. 0 signifie aucune limite."
+
+msgid "Requests per minute with a token"
+msgstr "Requêtes par minute avec un jeton"
+
+msgid "Per token. 0 means no limit."
+msgstr "Par jeton. 0 signifie aucune limite."
+
+msgid "Changes per minute with a token"
+msgstr "Modifications par minute avec un jeton"
+
+msgid "Posts, votes, accepts and follows per token, on top of the hourly posting limits in the security settings. 0 means no limit."
+msgstr "Messages, votes, acceptations et suivis par jeton, en plus des limites de publication horaires des paramètres de sécurité. 0 signifie aucune limite."
+
+msgid "Web sites that may read the API from a browser"
+msgstr "Sites web autorisés à lire l'API depuis un navigateur"
+
+msgid "Origins allowed to read the API with JavaScript (CORS), separated by spaces, e.g. https://example.org. * allows every site; empty allows none. Only reading is allowed this way, and never with cookies."
+msgstr "Origines autorisées à lire l'API en JavaScript (CORS), séparées par des espaces, par ex. https://example.org. * autorise tous les sites ; vide n'en autorise aucun. Seule la lecture est permise de cette façon, et jamais avec les cookies."
 
 msgid "Basic settings"
 msgstr "Paramètres de base"
@@ -1487,8 +1709,8 @@ msgstr "Protection de la connexion, limites de publication et en-tête Content-S
 msgid "Failed sign-ins before a pause"
 msgstr "Échecs de connexion avant une pause"
 
-msgid "After this many wrong passwords for one account, signing in to it is paused (the person can still get a sign-in link by email). An IP address may fail four times as often across all accounts. 0 turns this off."
-msgstr "Après ce nombre de mots de passe erronés pour un compte, la connexion à ce compte est suspendue (la personne peut toujours obtenir un lien de connexion par e-mail). Une adresse IP peut échouer quatre fois plus souvent, tous comptes confondus. 0 désactive cette protection."
+msgid "After this many wrong passwords for one account, signing in to it is paused (the person can still reset the password by email). An IP address may fail four times as often across all accounts. 0 turns this off."
+msgstr "Après ce nombre de mots de passe erronés pour un compte, la connexion à ce compte est suspendue (la personne peut toujours réinitialiser son mot de passe par e-mail). Une adresse IP peut échouer quatre fois plus souvent, tous comptes confondus. 0 désactive cette protection."
 
 msgid "Sign-in pause (minutes)"
 msgstr "Pause de connexion (minutes)"
@@ -1496,11 +1718,29 @@ msgstr "Pause de connexion (minutes)"
 msgid "How long signing in is paused after too many wrong passwords."
 msgstr "Durée pendant laquelle la connexion est suspendue après trop de mots de passe erronés."
 
-msgid "Sign-in link emails per hour"
-msgstr "E-mails de lien de connexion par heure"
+msgid "Account emails per hour"
+msgstr "E-mails de compte par heure"
 
-msgid "How many \"forgot password\" sign-in links one email address, or one IP address (four times as many), may request per hour. 0 means no limit."
-msgstr "Nombre de liens de connexion « mot de passe oublié » qu'une adresse e-mail, ou une adresse IP (quatre fois plus), peut demander par heure. 0 signifie aucune limite."
+msgid "How many password reset, email confirmation and email change messages one account or email address, or one IP address (four times as many), may request per hour. 0 means no limit."
+msgstr "Nombre de messages de réinitialisation du mot de passe, de confirmation d'e-mail et de changement d'adresse qu'un compte ou une adresse e-mail, ou une adresse IP (quatre fois plus), peut demander par heure. 0 signifie aucune limite."
+
+msgid "Minimum password length"
+msgstr "Longueur minimale du mot de passe"
+
+msgid "At least 8 (NIST SP 800-63B); 15 is recommended for forums without two-step verification. Passwords may be up to 128 characters, and any characters (spaces, emoji) are allowed; there are no rules about digits or symbols, and passwords never expire."
+msgstr "Au moins 8 (NIST SP 800-63B) ; 15 est recommandé pour les forums sans validation en deux étapes. Les mots de passe peuvent compter jusqu'à 128 caractères, et tous les caractères (espaces, emoji) sont acceptés ; il n'y a pas de règle sur les chiffres ou les symboles, et les mots de passe n'expirent jamais."
+
+msgid "Refuse passwords found in data breaches"
+msgstr "Refuser les mots de passe trouvés dans des fuites de données"
+
+msgid "New passwords are checked against the Have I Been Pwned list of leaked passwords. Only the first 5 characters of the password's SHA-1 hash are sent (k-anonymity), never the password. If the service doesn't answer within 3 seconds, the password is accepted."
+msgstr "Les nouveaux mots de passe sont comparés à la liste des mots de passe divulgués de Have I Been Pwned. Seuls les 5 premiers caractères du hachage SHA-1 du mot de passe sont envoyés (k-anonymat), jamais le mot de passe lui-même. Si le service ne répond pas dans les 3 secondes, le mot de passe est accepté."
+
+msgid "Email members about sign-ins from a new browser"
+msgstr "Prévenir les membres par e-mail des connexions depuis un nouveau navigateur"
+
+msgid "When a member signs in from a browser that has not signed in to their account before, they get an email with the time, browser and IP address, and links to secure the account."
+msgstr "Lorsqu'un membre se connecte depuis un navigateur qui ne s'est encore jamais connecté à son compte, il reçoit un e-mail indiquant l'heure, le navigateur et l'adresse IP, avec des liens pour sécuriser son compte."
 
 msgid "Questions per user per hour"
 msgstr "Questions par utilisateur et par heure"
@@ -1853,11 +2093,44 @@ msgstr "Imposer une adresse e-mail unique"
 msgid "Should each user have an unique email."
 msgstr "Chaque utilisateur doit-il avoir une adresse e-mail unique."
 
+msgid "Email confirmation for new members"
+msgstr "Confirmation de l'e-mail des nouveaux membres"
+
+msgid "Everyone who signs up with an email address gets a link to confirm it (valid for 48 hours). By default they can sign in only after confirming, and the sign-up page answers the same whether or not the address already has an account (its owner gets an email instead). Members who joined before this setting existed, accounts made by administrators or imported, and addresses already confirmed by a sign-in service are not affected."
+msgstr "Toute personne qui s'inscrit avec une adresse e-mail reçoit un lien pour la confirmer (valable 48 heures). Par défaut, elle ne peut se connecter qu'après confirmation, et la page d'inscription répond de la même façon que l'adresse ait déjà un compte ou non (son propriétaire reçoit alors un e-mail). Les membres inscrits avant l'existence de ce paramètre, les comptes créés par les administrateurs ou importés, et les adresses déjà confirmées par un service de connexion ne sont pas concernés."
+
+msgid "They must confirm before they can sign in"
+msgstr "Ils doivent confirmer avant de pouvoir se connecter"
+
+msgid "They can sign in at once, but must confirm before asking, answering or commenting"
+msgstr "Ils peuvent se connecter tout de suite, mais doivent confirmer avant de poser une question, répondre ou commenter"
+
+msgid "Not required (only the actions ticked below need a confirmed address)"
+msgstr "Non obligatoire (seules les actions cochées ci-dessous exigent une adresse confirmée)"
+
+msgid "Delete unconfirmed new accounts after (days)"
+msgstr "Supprimer les nouveaux comptes non confirmés après (jours)"
+
+msgid "The cleanup_inactive_users command (run daily from cron) deletes accounts that signed up but never confirmed their email address within this many days and have no posts or other activity. Only while email confirmation is required. 0 turns it off."
+msgstr "La commande cleanup_inactive_users (lancée chaque jour par cron) supprime les comptes inscrits qui n'ont jamais confirmé leur adresse e-mail dans ce nombre de jours et qui n'ont ni messages ni autre activité. Uniquement lorsque la confirmation de l'e-mail est obligatoire. 0 désactive la suppression."
+
+msgid "Posts of deleted accounts"
+msgstr "Messages des comptes supprimés"
+
+msgid "What happens to the questions, answers and comments of members who delete their account. Their profile and personal data are always removed."
+msgstr "Ce que deviennent les questions, réponses et commentaires des membres qui suppriment leur compte. Leur profil et leurs données personnelles sont toujours supprimés."
+
+msgid "Keep them, shown as by \"deleted-user\" (other people's answers and discussions depend on them)"
+msgstr "Les conserver, affichés comme écrits par « deleted-user » (les réponses et discussions des autres en dépendent)"
+
+msgid "Delete them (moderators can still see deleted posts)"
+msgstr "Les supprimer (les modérateurs peuvent toujours voir les messages supprimés)"
+
 msgid "Require email validation to..."
 msgstr "Exiger la validation de l'e-mail pour..."
 
-msgid "Which actions in this site, users without a valid email will be prevented from doing."
-msgstr "Les actions de ce site que les utilisateurs sans adresse e-mail validée ne pourront pas effectuer."
+msgid "Which actions members without a confirmed email address can't do, whenever they joined. New members also follow the \"Email confirmation for new members\" setting above."
+msgstr "Les actions interdites aux membres sans adresse e-mail confirmée, quelle que soit leur date d'inscription. Les nouveaux membres suivent aussi le paramètre « Confirmation de l'e-mail des nouveaux membres » ci-dessus."
 
 msgid "ask questions"
 msgstr "poser des questions"
@@ -2239,6 +2512,157 @@ msgstr "Notions de base de Markdown"
 msgid "see frequently asked questions"
 msgstr "voir la foire aux questions"
 
+msgid "API documentation"
+msgstr "Documentation de l'API"
+
+msgid "Programs can read this forum's questions, answers, tags and members as JSON, and members can post through it with a personal access token."
+msgstr "Les programmes peuvent lire les questions, réponses, étiquettes et membres de ce forum en JSON, et les membres peuvent publier par ce biais avec un jeton d'accès personnel."
+
+msgid "Basics"
+msgstr "Notions de base"
+
+msgid "Authentication"
+msgstr "Authentification"
+
+msgid "Rate limits"
+msgstr "Limites de requêtes"
+
+msgid "Pages and caching"
+msgstr "Pages et mise en cache"
+
+msgid "Errors"
+msgstr "Erreurs"
+
+msgid "Endpoints"
+msgstr "Points d'accès"
+
+msgid "Objects"
+msgstr "Objets"
+
+msgid "Every address starts with"
+msgstr "Toutes les adresses commencent par"
+
+#, python-format
+msgid "The same reference is available as an <a href=\"%(url)s\">OpenAPI 3.1 document</a>, for code generators and API tools."
+msgstr "La même référence est disponible sous forme de <a href=\"%(url)s\">document OpenAPI 3.1</a>, pour les générateurs de code et les outils d'API."
+
+msgid "Answers are JSON (UTF-8). A list is an object <code>{\"data\": [...], \"next\": \"…\"}</code>; one object is returned as it is."
+msgstr "Les réponses sont en JSON (UTF-8). Une liste est un objet <code>{\"data\": [...], \"next\": \"…\"}</code> ; un objet seul est renvoyé tel quel."
+
+msgid "Every object has its <code>id</code>, its address on the site (<code>url</code>) and, when it has one, its address in the API (<code>api_url</code>)."
+msgstr "Chaque objet a son <code>id</code>, son adresse sur le site (<code>url</code>) et, s'il en a une, son adresse dans l'API (<code>api_url</code>)."
+
+msgid "Dates are ISO 8601 with the site's UTC offset, e.g. <code>2026-03-01T09:30:00+01:00</code>."
+msgstr "Les dates sont au format ISO 8601 avec le décalage UTC du site, par ex. <code>2026-03-01T09:30:00+01:00</code>."
+
+msgid "Posts come with their rendered HTML (<code>html</code>, as shown on the site) and their Markdown source (<code>markdown</code>)."
+msgstr "Les messages sont fournis avec leur HTML rendu (<code>html</code>, tel qu'affiché sur le site) et leur source Markdown (<code>markdown</code>)."
+
+msgid "You see what the site shows you: deleted posts and posts waiting for a moderator are left out, except your own when you send your token."
+msgstr "Vous voyez ce que le site vous montre : les messages supprimés et ceux en attente d'un modérateur sont exclus, sauf les vôtres si vous envoyez votre jeton."
+
+msgid "Reading needs no token. To post, vote or follow questions, and to see your own posts that wait for review, send a personal access token in the Authorization header:"
+msgstr "La lecture ne nécessite pas de jeton. Pour publier, voter ou suivre des questions, et pour voir vos propres messages en attente de vérification, envoyez un jeton d'accès personnel dans l'en-tête Authorization :"
+
+#, python-format
+msgid "Create tokens on your <a href=\"%(url)s\">API tokens</a> page."
+msgstr "Créez des jetons sur votre page <a href=\"%(url)s\">Jetons d'API</a>."
+
+msgid "Sign in, then create tokens in your settings, under API tokens."
+msgstr "Connectez-vous, puis créez des jetons dans vos paramètres, sous Jetons d'API."
+
+msgid "A token is shown once: copy it then. Only a fingerprint of it is stored."
+msgstr "Un jeton n'est affiché qu'une fois : copiez-le à ce moment-là. Seule son empreinte est conservée."
+
+msgid "A token has the <code>read</code> scope, or <code>read</code> and <code>write</code>. It acts as you: the same reputation rules, posting limits, email confirmation and review of first posts apply as on the site."
+msgstr "Un jeton a la portée <code>read</code>, ou <code>read</code> et <code>write</code>. Il agit en votre nom : les mêmes règles de réputation, limites de publication, confirmation de l'e-mail et vérification des premiers messages s'appliquent que sur le site."
+
+msgid "Posting through the API is turned off on this site at the moment."
+msgstr "La publication par l'API est désactivée sur ce site pour le moment."
+
+msgid "Tokens expire after the time you choose, and you can revoke one at any time."
+msgstr "Les jetons expirent au bout de la durée que vous choisissez, et vous pouvez en révoquer un à tout moment."
+
+msgid "The API never uses the sign-in cookie of the site: without a token you are an anonymous visitor, and nothing can be changed."
+msgstr "L'API n'utilise jamais le cookie de connexion du site : sans jeton, vous êtes un visiteur anonyme et rien ne peut être modifié."
+
+#, python-format
+msgid "Without a token: %(n)s requests per minute per IP address."
+msgstr "Sans jeton : %(n)s requêtes par minute et par adresse IP."
+
+msgid "Without a token: no limit."
+msgstr "Sans jeton : aucune limite."
+
+#, python-format
+msgid "With a token: %(n)s requests per minute per token."
+msgstr "Avec un jeton : %(n)s requêtes par minute et par jeton."
+
+msgid "With a token: no limit."
+msgstr "Avec un jeton : aucune limite."
+
+#, python-format
+msgid "Of those, at most %(n)s changes (posts, votes, accepts, follows)."
+msgstr "Dont %(n)s modifications au maximum (messages, votes, acceptations, suivis)."
+
+msgid "Each answer tells where you stand: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> and <code>X-RateLimit-Reset</code> (seconds until the minute starts again). Over the limit, the answer is 429 with <code>Retry-After</code> (seconds). The site's hourly limits on questions, answers and comments also apply (429, <code>posting-limit</code>)."
+msgstr "Chaque réponse indique où vous en êtes : <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> et <code>X-RateLimit-Reset</code> (secondes avant le début de la minute suivante). Au-delà de la limite, la réponse est 429 avec <code>Retry-After</code> (en secondes). Les limites horaires du site pour les questions, réponses et commentaires s'appliquent aussi (429, <code>posting-limit</code>)."
+
+msgid "Lists take <code>limit</code> (1 to 100). <code>next</code> is the address of the next page (also in a <code>Link: &lt;…&gt;; rel=\"next\"</code> header), or null on the last page. Follow it as it is: its <code>cursor</code> stays valid when new posts arrive."
+msgstr "Les listes acceptent <code>limit</code> (de 1 à 100). <code>next</code> est l'adresse de la page suivante (aussi dans un en-tête <code>Link: &lt;…&gt;; rel=\"next\"</code>), ou null sur la dernière page. Suivez-la telle quelle : son <code>cursor</code> reste valable quand de nouveaux messages arrivent."
+
+msgid "Single objects carry an <code>ETag</code>. Send it back in <code>If-None-Match</code> and you get 304 Not Modified when nothing changed."
+msgstr "Les objets seuls portent un <code>ETag</code>. Renvoyez-le dans <code>If-None-Match</code> et vous obtiendrez 304 Not Modified si rien n'a changé."
+
+#, python-format
+msgid "Web pages on other sites can read the API with JavaScript (CORS, GET only, without cookies) from: %(origins)s."
+msgstr "Les pages web d'autres sites peuvent lire l'API en JavaScript (CORS, GET uniquement, sans cookies) depuis : %(origins)s."
+
+msgid "Web pages on other sites can't read the API with JavaScript (CORS is off)."
+msgstr "Les pages web d'autres sites ne peuvent pas lire l'API en JavaScript (CORS est désactivé)."
+
+msgid "Errors are problem details (RFC 9457, <code>application/problem+json</code>): <code>type</code> (one of the addresses below), <code>title</code>, <code>status</code>, <code>detail</code> (what went wrong, in the language of <code>Accept-Language</code>) and, for invalid data, <code>errors</code> per field."
+msgstr "Les erreurs sont des détails de problème (RFC 9457, <code>application/problem+json</code>) : <code>type</code> (l'une des adresses ci-dessous), <code>title</code>, <code>status</code>, <code>detail</code> (ce qui n'a pas fonctionné, dans la langue de <code>Accept-Language</code>) et, pour les données non valides, <code>errors</code> par champ."
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Parameters"
+msgstr "Paramètres"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "required"
+msgstr "obligatoire"
+
+msgid "Request body:"
+msgstr "Corps de la requête :"
+
+#, python-format
+msgid "Answer (%(status)s):"
+msgstr "Réponse (%(status)s) :"
+
+msgid "Errors:"
+msgstr "Erreurs :"
+
+msgid "Everything in"
+msgstr "Tous les champs de"
+
+msgid "and:"
+msgstr "plus :"
+
+msgid "Field"
+msgstr "Champ"
+
+msgid "optional"
+msgstr "facultatif"
+
 msgid "Ask a question"
 msgstr "Poser une question"
 
@@ -2338,6 +2762,58 @@ msgstr "Connectez-vous ou inscrivez-vous pour publier votre question"
 msgid "Post your question"
 msgstr "Publier votre question"
 
+#, python-format
+msgid "%(prefix)s Your %(app_name)s account has been deleted"
+msgstr "%(prefix)s Votre compte %(app_name)s a été supprimé"
+
+msgid "Your personal data has been removed."
+msgstr "Vos données personnelles ont été supprimées."
+
+#, python-format
+msgid "You receive this email because the account %(deleted_name)s at %(app_name)s was deleted. This is the last email we send to this address."
+msgstr "Vous recevez cet e-mail parce que le compte %(deleted_name)s sur %(app_name)s a été supprimé. C'est le dernier e-mail que nous envoyons à cette adresse."
+
+#, python-format
+msgid "Your account %(name)s has been deleted, as you asked. Your profile, email address, sign-in methods, passkeys, subscriptions, notifications and settings are removed, and every browser and device was signed out."
+msgstr "Votre compte %(name)s a été supprimé, comme vous l'avez demandé. Votre profil, votre adresse e-mail, vos méthodes de connexion, vos clés d'accès, vos abonnements, vos notifications et vos paramètres ont été supprimés, et tous les navigateurs et appareils ont été déconnectés."
+
+msgid "Your questions, answers and comments were deleted."
+msgstr "Vos questions, réponses et commentaires ont été supprimés."
+
+msgid "Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they show “deleted-user” instead of your name."
+msgstr "Vos questions, réponses et commentaires restent sur le site, car les réponses et discussions des autres en dépendent, mais ils affichent « deleted-user » à la place de votre nom."
+
+msgid "If you didn't delete your account, contact the site administrators by replying to this email."
+msgstr "Si vous n'avez pas supprimé votre compte, contactez les administrateurs du site en répondant à cet e-mail."
+
+#, python-format
+msgid "%(prefix)s You already have an account on %(app_name)s"
+msgstr "%(prefix)s Vous avez déjà un compte sur %(app_name)s"
+
+msgid "Someone tried to sign up with your email address."
+msgstr "Quelqu'un a essayé de s'inscrire avec votre adresse e-mail."
+
+#, python-format
+msgid "You receive this email because someone tried to sign up at %(app_name)s with this address."
+msgstr "Vous recevez cet e-mail parce que quelqu'un a essayé de s'inscrire sur %(app_name)s avec cette adresse."
+
+#, python-format
+msgid "Someone (maybe you) tried to create a new account with this email address, but it already belongs to your account %(name)s. No new account was created."
+msgstr "Quelqu'un (peut-être vous) a essayé de créer un nouveau compte avec cette adresse e-mail, mais elle appartient déjà à votre compte %(name)s. Aucun nouveau compte n'a été créé."
+
+msgid "Sign in"
+msgstr "Se connecter"
+
+#, python-format
+msgid "Forgot your password? <a href=\"%(reset_url)s\" style=\"%(a_style)s\">Choose a new one</a>. If it wasn't you, you can ignore this email."
+msgstr "Mot de passe oublié ? <a href=\"%(reset_url)s\" style=\"%(a_style)s\">Choisissez-en un nouveau</a>. Si ce n'était pas vous, vous pouvez ignorer cet e-mail."
+
+msgid "Forgot your password? Choose a new one"
+msgstr "Mot de passe oublié ? Choisissez-en un nouveau"
+
+msgid "If it wasn't you, you can ignore this email."
+msgstr "Si ce n'était pas vous, vous pouvez ignorer cet e-mail."
+
 msgid "Authentication settings"
 msgstr "Paramètres d'authentification"
 
@@ -2380,6 +2856,39 @@ msgstr "Soyez averti par e-mail lorsque quelqu'un répond"
 msgid "Earn reputation and badges"
 msgstr "Gagnez de la réputation et des badges"
 
+msgid "Check your inbox"
+msgstr "Consultez votre boîte de réception"
+
+#, python-format
+msgid "If this address belongs to an account, we've sent it a link to choose a new password. The link works once, for %(minutes)s minute."
+msgid_plural "If this address belongs to an account, we've sent it a link to choose a new password. The link works once, for %(minutes)s minutes."
+msgstr[0] "Si cette adresse correspond à un compte, nous lui avons envoyé un lien pour choisir un nouveau mot de passe. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minute."
+msgstr[1] "Si cette adresse correspond à un compte, nous lui avons envoyé un lien pour choisir un nouveau mot de passe. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minutes."
+
+#, python-format
+msgid "If this address belongs to an account that isn't confirmed yet, we've sent it a new confirmation link. It works once, for %(hours)s hour."
+msgid_plural "If this address belongs to an account that isn't confirmed yet, we've sent it a new confirmation link. It works once, for %(hours)s hours."
+msgstr[0] "Si cette adresse correspond à un compte qui n'est pas encore confirmé, nous lui avons envoyé un nouveau lien de confirmation. Il ne fonctionne qu'une fois, pendant %(hours)s heure."
+msgstr[1] "Si cette adresse correspond à un compte qui n'est pas encore confirmé, nous lui avons envoyé un nouveau lien de confirmation. Il ne fonctionne qu'une fois, pendant %(hours)s heures."
+
+#, python-format
+msgid "Check your email to finish creating your account: open the link we sent to the address you entered to confirm it, then sign in. The link works once, for %(hours)s hour."
+msgid_plural "Check your email to finish creating your account: open the link we sent to the address you entered to confirm it, then sign in. The link works once, for %(hours)s hours."
+msgstr[0] "Consultez vos e-mails pour terminer la création de votre compte : ouvrez le lien que nous avons envoyé à l'adresse saisie pour la confirmer, puis connectez-vous. Le lien ne fonctionne qu'une fois, pendant %(hours)s heure."
+msgstr[1] "Consultez vos e-mails pour terminer la création de votre compte : ouvrez le lien que nous avons envoyé à l'adresse saisie pour la confirmer, puis connectez-vous. Le lien ne fonctionne qu'une fois, pendant %(hours)s heures."
+
+msgid "Nothing arrived after a few minutes? Check your spam folder, and that the address was typed correctly."
+msgstr "Rien reçu après quelques minutes ? Vérifiez votre dossier de spam, et que l'adresse a été saisie correctement."
+
+msgid "Send another link"
+msgstr "Envoyer un autre lien"
+
+msgid "Send the confirmation link again"
+msgstr "Renvoyer le lien de confirmation"
+
+msgid "Back to sign in"
+msgstr "Retour à la connexion"
+
 msgid "Finish signing up"
 msgstr "Terminez votre inscription"
 
@@ -2399,6 +2908,9 @@ msgstr "ou"
 msgid "Leave this field empty"
 msgstr "Laissez ce champ vide"
 
+msgid "Next, check your email: open the link we send you to finish creating your account."
+msgstr "Ensuite, consultez vos e-mails : ouvrez le lien que nous vous envoyons pour terminer la création de votre compte."
+
 msgid "Next, we'll email you a link to confirm your address."
 msgstr "Ensuite, nous vous enverrons un lien pour confirmer votre adresse."
 
@@ -2408,20 +2920,223 @@ msgstr "Créer un compte"
 msgid "Already have an account?"
 msgstr "Vous avez déjà un compte ?"
 
-msgid "Sign in"
-msgstr "Se connecter"
-
 msgid "Why create an account?"
 msgstr "Pourquoi créer un compte ?"
+
+msgid "Confirm your email address to start posting."
+msgstr "Confirmez votre adresse e-mail pour commencer à publier."
+
+#, python-format
+msgid "We sent a link to <span class=\"confirm-banner-email\">%(email)s</span>."
+msgstr "Nous avons envoyé un lien à <span class=\"confirm-banner-email\">%(email)s</span>."
+
+msgid "Send it again"
+msgstr "Le renvoyer"
+
+msgid "Change the address"
+msgstr "Changer d'adresse"
+
+msgid "Confirm your email address"
+msgstr "Confirmez votre adresse e-mail"
+
+#, python-format
+msgid "Your email address <span class=\"auth-address\">%(email)s</span> is confirmed."
+msgstr "Votre adresse e-mail <span class=\"auth-address\">%(email)s</span> est confirmée."
+
+#, python-format
+msgid "You asked to change it to <span class=\"auth-address\">%(email)s</span>: use the link we sent there."
+msgstr "Vous avez demandé à la remplacer par <span class=\"auth-address\">%(email)s</span> : utilisez le lien que nous y avons envoyé."
+
+msgid "Go to the questions"
+msgstr "Aller aux questions"
+
+#, python-format
+msgid "We sent a link to <span class=\"auth-address\">%(email)s</span>. Open it to confirm your address; it works once, for %(hours)s hour."
+msgid_plural "We sent a link to <span class=\"auth-address\">%(email)s</span>. Open it to confirm your address; it works once, for %(hours)s hours."
+msgstr[0] "Nous avons envoyé un lien à <span class=\"auth-address\">%(email)s</span>. Ouvrez-le pour confirmer votre adresse ; il ne fonctionne qu'une fois, pendant %(hours)s heure."
+msgstr[1] "Nous avons envoyé un lien à <span class=\"auth-address\">%(email)s</span>. Ouvrez-le pour confirmer votre adresse ; il ne fonctionne qu'une fois, pendant %(hours)s heures."
+
+msgid "Nothing arrived after a few minutes? Check your spam folder, or send a new link (the old one stops working)."
+msgstr "Rien reçu après quelques minutes ? Vérifiez votre dossier de spam, ou demandez un nouveau lien (l'ancien ne fonctionnera plus)."
+
+msgid "Send a new link"
+msgstr "Envoyer un nouveau lien"
+
+msgid "Use another email address"
+msgstr "Utiliser une autre adresse e-mail"
+
+msgid "Enter the email address you signed up with and we'll send you a new confirmation link."
+msgstr "Saisissez l'adresse e-mail utilisée lors de votre inscription et nous vous enverrons un nouveau lien de confirmation."
+
+msgid "Send the confirmation link"
+msgstr "Envoyer le lien de confirmation"
+
+msgid "Already confirmed?"
+msgstr "Déjà confirmée ?"
+
+msgid "Cancel the email change?"
+msgstr "Annuler le changement d'adresse e-mail ?"
+
+#, python-format
+msgid "Someone asked to change the email address of the account <strong>%(name)s</strong> to %(email)s."
+msgstr "Quelqu'un a demandé à remplacer l'adresse e-mail du compte <strong>%(name)s</strong> par %(email)s."
+
+msgid "Cancelling keeps the current address and signs out every browser and device, including any an intruder may be using."
+msgstr "Annuler conserve l'adresse actuelle et déconnecte tous les navigateurs et appareils, y compris ceux qu'un intrus pourrait utiliser."
+
+msgid "Cancel the change and sign out everywhere"
+msgstr "Annuler le changement et se déconnecter partout"
+
+msgid "It was me, keep the change"
+msgstr "C'était moi, conserver le changement"
+
+#, python-format
+msgid "%(prefix)s Confirm your new email address for %(app_name)s"
+msgstr "%(prefix)s Confirmez votre nouvelle adresse e-mail pour %(app_name)s"
+
+msgid "Confirm this address to start using it for your account."
+msgstr "Confirmez cette adresse pour commencer à l'utiliser avec votre compte."
+
+#, python-format
+msgid "You receive this email because someone asked to use this address for an account at %(app_name)s. If it wasn't you, ignore it: nothing changes without this link."
+msgstr "Vous recevez cet e-mail parce que quelqu'un a demandé à utiliser cette adresse pour un compte sur %(app_name)s. Si ce n'était pas vous, ignorez-le : rien ne change sans ce lien."
+
+#, python-format
+msgid "You asked to use %(new_email)s for your account %(name)s. Confirm it with the button; until then, emails keep going to your old address. The link works once, for %(hours)s hour."
+msgid_plural "You asked to use %(new_email)s for your account %(name)s. Confirm it with the button; until then, emails keep going to your old address. The link works once, for %(hours)s hours."
+msgstr[0] "Vous avez demandé à utiliser %(new_email)s pour votre compte %(name)s. Confirmez-la avec le bouton ; en attendant, les e-mails continuent d'arriver à votre ancienne adresse. Le lien ne fonctionne qu'une fois, pendant %(hours)s heure."
+msgstr[1] "Vous avez demandé à utiliser %(new_email)s pour votre compte %(name)s. Confirmez-la avec le bouton ; en attendant, les e-mails continuent d'arriver à votre ancienne adresse. Le lien ne fonctionne qu'une fois, pendant %(hours)s heures."
+
+msgid "Confirm new address"
+msgstr "Confirmer la nouvelle adresse"
+
+#, python-format
+msgid "%(prefix)s Your %(app_name)s email address is being changed"
+msgstr "%(prefix)s L'adresse e-mail de votre compte %(app_name)s est en cours de modification"
+
+msgid "If you didn't ask for this, cancel the change."
+msgstr "Si vous n'avez pas demandé ce changement, annulez-le."
+
+#, python-format
+msgid "You receive this security notice because the email address of your account at %(app_name)s is being changed. These notices are always sent."
+msgstr "Vous recevez cet avis de sécurité parce que l'adresse e-mail de votre compte sur %(app_name)s est en cours de modification. Ces avis sont toujours envoyés."
+
+#, python-format
+msgid "Someone signed in to your account %(name)s asked to change its email address to %(new_email_masked)s. The change happens only when the new address is confirmed; until then, your account keeps this address."
+msgstr "Une personne connectée à votre compte %(name)s a demandé à remplacer son adresse e-mail par %(new_email_masked)s. Le changement n'a lieu qu'une fois la nouvelle adresse confirmée ; d'ici là, votre compte conserve cette adresse."
+
+msgid "If this was you, there is nothing to do."
+msgstr "Si c'était vous, vous n'avez rien à faire."
+
+msgid "If it wasn't you, cancel the change: that also signs out every browser and device. Then reset your password."
+msgstr "Si ce n'était pas vous, annulez le changement : cela déconnecte aussi tous les navigateurs et appareils. Réinitialisez ensuite votre mot de passe."
+
+msgid "Cancel the change"
+msgstr "Annuler le changement"
+
+msgid "Email address changed"
+msgstr "Adresse e-mail modifiée"
+
+msgid "Email change cancelled"
+msgstr "Changement d'adresse e-mail annulé"
+
+msgid "This link doesn't work any more"
+msgstr "Ce lien ne fonctionne plus"
+
+#, python-format
+msgid "Your account now uses <span class=\"auth-address\">%(email)s</span>."
+msgstr "Votre compte utilise désormais <span class=\"auth-address\">%(email)s</span>."
+
+msgid "Back to your profile"
+msgstr "Retour à votre profil"
+
+msgid "Your account keeps its email address, and every browser and device was signed out. If you didn't ask for the change, someone may know your password: choose a new one now."
+msgstr "Votre compte conserve son adresse e-mail, et tous les navigateurs et appareils ont été déconnectés. Si vous n'avez pas demandé ce changement, quelqu'un connaît peut-être votre mot de passe : choisissez-en un nouveau dès maintenant."
+
+msgid "Reset your password"
+msgstr "Réinitialiser votre mot de passe"
+
+msgid "This address is already in use"
+msgstr "Cette adresse est déjà utilisée"
+
+msgid "Another account started using this email address in the meantime, so your address was not changed."
+msgstr "Un autre compte a commencé à utiliser cette adresse e-mail entre-temps : votre adresse n'a donc pas été modifiée."
+
+msgid "The change was already confirmed or cancelled, a newer link was sent, or the link has expired (after 48 hours). You can ask for the change again on your profile."
+msgstr "Le changement a déjà été confirmé ou annulé, un lien plus récent a été envoyé, ou le lien a expiré (au bout de 48 heures). Vous pouvez redemander le changement depuis votre profil."
+
+#, python-format
+msgid "%(prefix)s Your %(app_name)s email address was changed"
+msgstr "%(prefix)s L'adresse e-mail de votre compte %(app_name)s a été modifiée"
+
+msgid "An administrator changed the email address of your account."
+msgstr "Un administrateur a modifié l'adresse e-mail de votre compte."
+
+#, python-format
+msgid "You receive this security notice because the email address of your account at %(app_name)s was changed. These notices are always sent."
+msgstr "Vous recevez cet avis de sécurité parce que l'adresse e-mail de votre compte sur %(app_name)s a été modifiée. Ces avis sont toujours envoyés."
+
+#, python-format
+msgid "An administrator of %(app_name)s changed the email address of your account %(name)s to %(new_email_masked)s. Emails from the site now go there."
+msgstr "Un administrateur de %(app_name)s a remplacé l'adresse e-mail de votre compte %(name)s par %(new_email_masked)s. Les e-mails du site y sont désormais envoyés."
+
+msgid "If you didn't expect this, reply to this email or contact the site administrators."
+msgstr "Si vous ne vous y attendiez pas, répondez à cet e-mail ou contactez les administrateurs du site."
+
+msgid "Email address confirmed"
+msgstr "Adresse e-mail confirmée"
+
+#, python-format
+msgid "Confirmation links work once, for %(hours)s hour, and only the newest one works. Ask for a new link below."
+msgid_plural "Confirmation links work once, for %(hours)s hours, and only the newest one works. Ask for a new link below."
+msgstr[0] "Les liens de confirmation ne fonctionnent qu'une fois, pendant %(hours)s heure, et seul le plus récent est valable. Demandez un nouveau lien ci-dessous."
+msgstr[1] "Les liens de confirmation ne fonctionnent qu'une fois, pendant %(hours)s heures, et seul le plus récent est valable. Demandez un nouveau lien ci-dessous."
+
+msgid "Send a new confirmation link"
+msgstr "Envoyer un nouveau lien de confirmation"
+
+msgid "This email address was already confirmed. There's nothing more to do."
+msgstr "Cette adresse e-mail était déjà confirmée. Vous n'avez rien d'autre à faire."
+
+#, python-format
+msgid "Thank you, %(name)s: your email is now validated. Welcome to %(site)s! You can ask questions, answer and comment."
+msgstr "Merci, %(name)s : votre adresse e-mail est maintenant validée. Bienvenue sur %(site)s ! Vous pouvez poser des questions, répondre et commenter."
+
+msgid "Ask your first question"
+msgstr "Poser votre première question"
+
+msgid "Browse the questions"
+msgstr "Parcourir les questions"
 
 msgid "Error:"
 msgstr "Erreur :"
 
-msgid "This e-mail has already been validated"
-msgstr "Cette adresse e-mail a déjà été validée"
+msgid "Too short"
+msgstr "Trop court"
 
-msgid "Already validated"
-msgstr "Déjà validée"
+msgid "Weak: add more words"
+msgstr "Faible : ajoutez des mots"
+
+msgid "Fair"
+msgstr "Moyen"
+
+msgid "Good"
+msgstr "Bon"
+
+msgid "Strong"
+msgstr "Fort"
+
+msgid "Too close to your username or email"
+msgstr "Trop proche de votre nom d'utilisateur ou de votre e-mail"
+
+msgid "Password strength:"
+msgstr "Robustesse du mot de passe :"
+
+msgid "Password reset links work once, for an hour, and stop working when the password changes or you sign in. Ask for a new one."
+msgstr "Les liens de réinitialisation du mot de passe ne fonctionnent qu'une fois, pendant une heure, et cessent de fonctionner si le mot de passe change ou si vous vous connectez. Demandez-en un nouveau."
+
+msgid "The email change has already been confirmed or cancelled, or the link has expired. If you didn't ask for the change, reset your password to be safe."
+msgstr "Le changement d'adresse e-mail a déjà été confirmé ou annulé, ou le lien a expiré. Si vous n'avez pas demandé ce changement, réinitialisez votre mot de passe par précaution."
 
 #, python-format
 msgid "%(prefix)s Confirm your email address for %(app_name)s"
@@ -2435,14 +3150,132 @@ msgid "You receive this email because a confirmation link was requested for your
 msgstr "Vous recevez cet e-mail car un lien de confirmation a été demandé pour votre compte sur %(app_name)s."
 
 #, python-format
-msgid "Please confirm that this is your email address, so %(app_name)s can send you notifications. The link works for 24 hours."
-msgstr "Confirmez qu'il s'agit bien de votre adresse e-mail, pour que %(app_name)s puisse vous envoyer des notifications. Le lien est valable 24 heures."
+msgid "Please confirm that this is your email address. The link works once, for %(hours)s hour; earlier links no longer work."
+msgid_plural "Please confirm that this is your email address. The link works once, for %(hours)s hours; earlier links no longer work."
+msgstr[0] "Veuillez confirmer qu'il s'agit bien de votre adresse e-mail. Le lien ne fonctionne qu'une fois, pendant %(hours)s heure ; les liens précédents ne fonctionnent plus."
+msgstr[1] "Veuillez confirmer qu'il s'agit bien de votre adresse e-mail. Le lien ne fonctionne qu'une fois, pendant %(hours)s heures ; les liens précédents ne fonctionnent plus."
 
 msgid "Confirm your email"
 msgstr "Confirmer votre e-mail"
 
+msgid "Didn't ask for this? You can ignore this email."
+msgstr "Vous n'avez rien demandé ? Vous pouvez ignorer cet e-mail."
+
+#, python-format
+msgid "%(prefix)s New sign-in to your %(app_name)s account"
+msgstr "%(prefix)s Nouvelle connexion à votre compte %(app_name)s"
+
+#, python-format
+msgid "Someone signed in with %(browser)s. Was it you?"
+msgstr "Quelqu'un s'est connecté avec %(browser)s. Était-ce vous ?"
+
+#, python-format
+msgid "You receive this security notice because your account at %(app_name)s was used from a new browser or device. These notices are always sent while the site has them turned on."
+msgstr "Vous recevez cet avis de sécurité parce que votre compte sur %(app_name)s a été utilisé depuis un nouveau navigateur ou appareil. Ces avis sont toujours envoyés tant que le site les a activés."
+
+#, python-format
+msgid "Your account %(name)s was just signed in to from a browser or device that hasn't been used with it before."
+msgstr "Quelqu'un vient de se connecter à votre compte %(name)s depuis un navigateur ou un appareil qui n'avait encore jamais été utilisé avec ce compte."
+
+#, python-format
+msgid "When: %(when)s"
+msgstr "Quand : %(when)s"
+
+#, python-format
+msgid "Browser: %(browser)s"
+msgstr "Navigateur : %(browser)s"
+
+#, python-format
+msgid "IP address: %(ip)s"
+msgstr "Adresse IP : %(ip)s"
+
+msgid "If this was you, you can ignore this email. If it wasn't, someone knows your password: reset it now. That also signs out every browser and device."
+msgstr "Si c'était vous, vous pouvez ignorer cet e-mail. Sinon, quelqu'un connaît votre mot de passe : réinitialisez-le dès maintenant. Cela déconnecte aussi tous les navigateurs et appareils."
+
+#, python-format
+msgid "You can also sign out everywhere else and turn on two-step verification on <a href=\"%(security_url)s\" style=\"%(a_style)s\">your security page</a>."
+msgstr "Vous pouvez aussi vous déconnecter partout ailleurs et activer la validation en deux étapes sur <a href=\"%(security_url)s\" style=\"%(a_style)s\">votre page de sécurité</a>."
+
+msgid "Your security page (sign out everywhere else, two-step verification)"
+msgstr "Votre page de sécurité (déconnexion partout ailleurs, validation en deux étapes)"
+
 msgid "Sign in with a passkey"
 msgstr "Se connecter avec une clé d'accès"
+
+#, python-format
+msgid "%(prefix)s Your %(app_name)s password was changed"
+msgstr "%(prefix)s Le mot de passe de votre compte %(app_name)s a été modifié"
+
+msgid "If you didn't do this, reset your password now."
+msgstr "Si ce n'était pas vous, réinitialisez votre mot de passe dès maintenant."
+
+#, python-format
+msgid "You receive this security notice because the password of your account at %(app_name)s was changed. These notices are always sent."
+msgstr "Vous recevez cet avis de sécurité parce que le mot de passe de votre compte sur %(app_name)s a été modifié. Ces avis sont toujours envoyés."
+
+#, python-format
+msgid "An administrator set a new password for your account %(name)s."
+msgstr "Un administrateur a défini un nouveau mot de passe pour votre compte %(name)s."
+
+#, python-format
+msgid "A password was created for your account %(name)s: you can now also sign in with it."
+msgstr "Un mot de passe a été créé pour votre compte %(name)s : vous pouvez désormais aussi vous connecter avec."
+
+#, python-format
+msgid "The password of your account %(name)s was reset with the link we emailed."
+msgstr "Le mot de passe de votre compte %(name)s a été réinitialisé avec le lien envoyé par e-mail."
+
+#, python-format
+msgid "The password of your account %(name)s was changed."
+msgstr "Le mot de passe de votre compte %(name)s a été modifié."
+
+msgid "Every other browser and device was signed out."
+msgstr "Tous les autres navigateurs et appareils ont été déconnectés."
+
+msgid "If this was you, there is nothing else to do. If it wasn't, reset your password now and check the email address and sign-in methods of your account."
+msgstr "Si c'était vous, vous n'avez rien d'autre à faire. Sinon, réinitialisez votre mot de passe dès maintenant et vérifiez l'adresse e-mail et les méthodes de connexion de votre compte."
+
+msgid "Choose a new password"
+msgstr "Choisissez un nouveau mot de passe"
+
+#, python-format
+msgid "For the account <strong>%(name)s</strong>. Afterwards you are signed out everywhere and sign in with the new password."
+msgstr "Pour le compte <strong>%(name)s</strong>. Vous serez ensuite déconnecté partout et vous vous connecterez avec le nouveau mot de passe."
+
+msgid "Your password isn't changed yet. Please check:"
+msgstr "Votre mot de passe n'a pas encore été modifié. Veuillez vérifier :"
+
+msgid "Code from your authenticator app"
+msgstr "Code de votre application d'authentification"
+
+msgid "Your account uses two-step verification. A recovery code works too."
+msgstr "Votre compte utilise la validation en deux étapes. Un code de récupération fonctionne aussi."
+
+msgid "Remembered it?"
+msgstr "Vous vous en souvenez ?"
+
+#, python-format
+msgid "%(prefix)s Reset your password for %(app_name)s"
+msgstr "%(prefix)s Réinitialisez votre mot de passe pour %(app_name)s"
+
+#, python-format
+msgid "Choose a new password. The link works once, for %(minutes)s minute."
+msgid_plural "Choose a new password. The link works once, for %(minutes)s minutes."
+msgstr[0] "Choisissez un nouveau mot de passe. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minute."
+msgstr[1] "Choisissez un nouveau mot de passe. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minutes."
+
+#, python-format
+msgid "You receive this email because a password reset was requested for your account at %(app_name)s."
+msgstr "Vous recevez cet e-mail parce qu'une réinitialisation du mot de passe a été demandée pour votre compte sur %(app_name)s."
+
+#, python-format
+msgid "Someone (hopefully you) asked to reset the password of your account %(name)s. Use the button to choose a new one. The link works once, for %(minutes)s minute."
+msgid_plural "Someone (hopefully you) asked to reset the password of your account %(name)s. Use the button to choose a new one. The link works once, for %(minutes)s minutes."
+msgstr[0] "Quelqu'un (vous, espérons-le) a demandé à réinitialiser le mot de passe de votre compte %(name)s. Utilisez le bouton pour en choisir un nouveau. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minute."
+msgstr[1] "Quelqu'un (vous, espérons-le) a demandé à réinitialiser le mot de passe de votre compte %(name)s. Utilisez le bouton pour en choisir un nouveau. Le lien ne fonctionne qu'une fois, pendant %(minutes)s minutes."
+
+msgid "Didn't ask for this? You can ignore this email: your password stays the same, and nobody can change it without this link."
+msgstr "Vous n'avez rien demandé ? Vous pouvez ignorer cet e-mail : votre mot de passe reste inchangé, et personne ne peut le modifier sans ce lien."
 
 msgid "Show password"
 msgstr "Afficher le mot de passe"
@@ -2480,41 +3313,14 @@ msgstr "Nouveau ici ?"
 msgid "Create an account"
 msgstr "Créer un compte"
 
-#, python-format
-msgid "%(prefix)s Your sign-in link for %(app_name)s"
-msgstr "%(prefix)s Votre lien de connexion à %(app_name)s"
-
-msgid "Sign in with one click. The link works once, for 24 hours."
-msgstr "Connectez-vous en un clic. Le lien fonctionne une fois, pendant 24 heures."
-
-#, python-format
-msgid "You receive this email because a sign-in link was requested for your account at %(app_name)s."
-msgstr "Vous recevez cet e-mail car un lien de connexion a été demandé pour votre compte sur %(app_name)s."
-
-#, python-format
-msgid "Here is the sign-in link you asked for. It signs you in to %(app_name)s once, and works for 24 hours."
-msgstr "Voici le lien de connexion demandé. Il vous connecte à %(app_name)s une fois et reste valable 24 heures."
-
-msgid "Once you're in, you can set a new password."
-msgstr "Une fois connecté, vous pouvez définir un nouveau mot de passe."
-
-msgid "Didn't ask for this? You can ignore this email: nobody can sign in without the link."
-msgstr "Vous n'avez rien demandé ? Ignorez cet e-mail : personne ne peut se connecter sans le lien."
-
 msgid "Forgot your password?"
 msgstr "Mot de passe oublié ?"
 
-msgid "Enter the email address of your account and we'll send you a link that signs you in. Then you can set a new password. The link works once, for 24 hours."
-msgstr "Saisissez l'adresse e-mail de votre compte et nous vous enverrons un lien qui vous connecte. Vous pourrez ensuite choisir un nouveau mot de passe. Le lien fonctionne une fois, pendant 24 heures."
+msgid "Enter the email address of your account and we'll send you a link to choose a new password. The link works once, for an hour."
+msgstr "Saisissez l'adresse e-mail de votre compte et nous vous enverrons un lien pour choisir un nouveau mot de passe. Le lien ne fonctionne qu'une fois, pendant une heure."
 
-msgid "Email me a sign-in link"
-msgstr "M'envoyer un lien de connexion"
-
-msgid "Remembered it?"
-msgstr "Vous vous en souvenez ?"
-
-msgid "Back to sign in"
-msgstr "Retour à la connexion"
+msgid "Email me a reset link"
+msgstr "Recevoir un lien de réinitialisation par e-mail"
 
 msgid "Two-step verification"
 msgstr "Validation en deux étapes"
@@ -2538,27 +3344,35 @@ msgid "Lost your phone and your recovery codes? Contact the site administrators.
 msgstr "Vous avez perdu votre téléphone et vos codes de récupération ? Contactez les administrateurs du site."
 
 #, python-format
-msgid "%(prefix)s Welcome to %(app_name)s"
-msgstr "%(prefix)s Bienvenue sur %(app_name)s"
+msgid "%(prefix)s Welcome to %(app_name)s: please confirm your email"
+msgstr "%(prefix)s Bienvenue sur %(app_name)s : veuillez confirmer votre e-mail"
 
-msgid "One last step: confirm your email address."
-msgstr "Dernière étape : confirmez votre adresse e-mail."
+msgid "One last step: confirm your email address to finish signing up."
+msgstr "Une dernière étape : confirmez votre adresse e-mail pour terminer votre inscription."
 
 #, python-format
-msgid "You receive this email because someone signed up at %(app_name)s with this address. If it wasn't you, you can ignore it."
-msgstr "Vous recevez cet e-mail car quelqu'un s'est inscrit sur %(app_name)s avec cette adresse. Si ce n'est pas vous, ignorez-le."
+msgid "You receive this email because someone signed up at %(app_name)s with this address. If it wasn't you, ignore it: the account can't be used without confirming, and it is deleted after a few days."
+msgstr "Vous recevez cet e-mail parce que quelqu'un s'est inscrit sur %(app_name)s avec cette adresse. Si ce n'était pas vous, ignorez-le : le compte ne peut pas être utilisé sans confirmation, et il est supprimé au bout de quelques jours."
 
 #, python-format
 msgid "Welcome to %(app_name)s!"
 msgstr "Bienvenue sur %(app_name)s !"
 
 #, python-format
-msgid "Thanks for joining, %(name)s. One last step: confirm your email address, so you can hear about answers to your questions."
-msgstr "Merci de nous avoir rejoints, %(name)s. Dernière étape : confirmez votre adresse e-mail pour être prévenu des réponses à vos questions."
+msgid "Thanks for joining, %(name)s. One last step: confirm that this is your email address."
+msgstr "Merci de nous avoir rejoints, %(name)s. Une dernière étape : confirmez qu'il s'agit bien de votre adresse e-mail."
+
+msgid "Then you can sign in."
+msgstr "Vous pourrez ensuite vous connecter."
+
+msgid "Then you can ask questions, answer and comment, and hear about answers to your questions."
+msgstr "Vous pourrez ensuite poser des questions, répondre, commenter et être averti des réponses à vos questions."
 
 #, python-format
-msgid "Your username is %(name)s. The confirmation link works for 24 hours."
-msgstr "Votre nom d'utilisateur est %(name)s. Le lien de confirmation est valable 24 heures."
+msgid "Your username is %(name)s. The link works once, for %(hours)s hour."
+msgid_plural "Your username is %(name)s. The link works once, for %(hours)s hours."
+msgstr[0] "Votre nom d'utilisateur est %(name)s. Le lien ne fonctionne qu'une fois, pendant %(hours)s heure."
+msgstr[1] "Votre nom d'utilisateur est %(name)s. Le lien ne fonctionne qu'une fois, pendant %(hours)s heures."
 
 msgid "Badges"
 msgstr "Badges"
@@ -2642,6 +3456,9 @@ msgstr "Fermer"
 msgid "Ok"
 msgstr "OK"
 
+msgid "People to mention"
+msgstr "Personnes à mentionner"
+
 msgid "word"
 msgid_plural "words"
 msgstr[0] "mot"
@@ -2706,8 +3523,17 @@ msgstr "Afficher ou masquer l'aperçu en temps réel de l'éditeur Markdown"
 msgid "Nothing to preview yet."
 msgstr "Rien à prévisualiser pour l'instant."
 
+msgid "Only images can be added to a post."
+msgstr "Seules des images peuvent être ajoutées à un message."
+
 msgid "Revision"
 msgstr "Révision"
+
+#, python-format
+msgid "At least %(min)s character"
+msgid_plural "At least %(min)s characters"
+msgstr[0] "Au moins %(min)s caractère"
+msgstr[1] "Au moins %(min)s caractères"
 
 msgid "This post was changed while you were editing it"
 msgstr "Ce message a été modifié pendant que vous le modifiiez"
@@ -2752,6 +3578,111 @@ msgstr "Étiquette %%s retirée"
 msgid "Selected tags"
 msgstr "Étiquettes choisies"
 
+msgid "Formatting"
+msgstr "Mise en forme"
+
+msgid "Bold"
+msgstr "Gras"
+
+msgid "bold text"
+msgstr "texte en gras"
+
+msgid "Italic"
+msgstr "Italique"
+
+msgid "italic text"
+msgstr "texte en italique"
+
+msgid "Link"
+msgstr "Lien"
+
+msgid "Quote"
+msgstr "Citation"
+
+msgid "Inline code"
+msgstr "Code en ligne"
+
+msgid "code"
+msgstr "code"
+
+msgid "Code block"
+msgstr "Bloc de code"
+
+msgid "Bulleted list"
+msgstr "Liste à puces"
+
+msgid "List item"
+msgstr "Élément de liste"
+
+msgid "Numbered list"
+msgstr "Liste numérotée"
+
+msgid "Heading"
+msgstr "Titre"
+
+msgid "Table"
+msgstr "Tableau"
+
+msgid "Column"
+msgstr "Colonne"
+
+msgid "Cell"
+msgstr "Cellule"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Undo"
+msgstr "Annuler"
+
+msgid "Redo"
+msgstr "Rétablir"
+
+msgid "Formatting help (opens in a new tab)"
+msgstr "Aide à la mise en forme (s'ouvre dans un nouvel onglet)"
+
+msgid "Code block language"
+msgstr "Langage du bloc de code"
+
+msgid "Plain text"
+msgstr "Texte brut"
+
+msgid "Markdown text. Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+K link, Ctrl+E code, Ctrl+Shift+V paste as plain text. Tab indents list items and code; press Escape, then Tab, to leave the text box."
+msgstr "Texte Markdown. Raccourcis : Ctrl+B gras, Ctrl+I italique, Ctrl+K lien, Ctrl+E code, Ctrl+Shift+V coller en texte brut. Tab met en retrait les éléments de liste et le code ; appuyez sur Échap, puis Tab, pour quitter la zone de texte."
+
+msgid "Enter a web address."
+msgstr "Saisissez une adresse web."
+
+msgid "Insert a link"
+msgstr "Insérer un lien"
+
+msgid "Web address"
+msgstr "Adresse web"
+
+msgid "Text to show"
+msgstr "Texte à afficher"
+
+msgid "Insert"
+msgstr "Insérer"
+
+msgid "Choose an image or enter its address."
+msgstr "Choisissez une image ou saisissez son adresse."
+
+msgid "Insert an image"
+msgstr "Insérer une image"
+
+msgid "Upload from your device"
+msgstr "Téléverser depuis votre appareil"
+
+msgid "or the image's web address"
+msgstr "ou l'adresse web de l'image"
+
+msgid "Description (alt text)"
+msgstr "Description (texte alternatif)"
+
+msgid "Say what the image shows, for people who can't see it."
+msgstr "Décrivez ce que montre l'image, pour les personnes qui ne peuvent pas la voir."
+
 msgid "Keyboard shortcuts"
 msgstr "Raccourcis clavier"
 
@@ -2766,9 +3697,6 @@ msgstr "Rechercher"
 
 msgid "Go to the home page"
 msgstr "Aller à l'accueil"
-
-msgid "Go to the questions"
-msgstr "Aller aux questions"
 
 msgid "Go to the tags"
 msgstr "Aller aux étiquettes"
@@ -3095,14 +4023,25 @@ msgstr "Les notifications affichées ici ne dépendent pas de vos e-mails. Pour 
 msgid "welcome to "
 msgstr "bienvenue sur "
 
-msgid "Logout"
-msgstr "Déconnexion"
+msgid "Sign out"
+msgstr "Se déconnecter"
 
-msgid "As a registered user you can login with your OpenID, log out of the site or permanently remove your account."
-msgstr "En tant qu'utilisateur inscrit, vous pouvez vous connecter avec votre OpenID, vous déconnecter du site ou supprimer définitivement votre compte."
+#, python-format
+msgid "Sign out of %(site)s?"
+msgstr "Se déconnecter de %(site)s ?"
 
-msgid "Logout now"
-msgstr "Se déconnecter maintenant"
+#, python-format
+msgid "You're signed in as %(name)s."
+msgstr "Vous êtes connecté en tant que %(name)s."
+
+msgid "Also sign out on all my other devices"
+msgstr "Me déconnecter aussi sur tous mes autres appareils"
+
+msgid "Use this if you signed in on a computer that isn't yours, or lost a phone."
+msgstr "Utilisez cette option si vous vous êtes connecté sur un ordinateur qui n'est pas le vôtre, ou si vous avez perdu un téléphone."
+
+msgid "Stay signed in"
+msgstr "Rester connecté"
 
 msgid "Markdown Help"
 msgstr "Aide Markdown"
@@ -3122,14 +4061,20 @@ msgstr "Paragraphes"
 msgid "Links"
 msgstr "Liens"
 
-msgid "Formatting"
-msgstr "Mise en forme"
-
 msgid "Blockquotes"
 msgstr "Citations"
 
 msgid "Lists"
 msgstr "Listes"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Tables"
+msgstr "Tableaux"
+
+msgid "The editor"
+msgstr "L'éditeur"
 
 msgid "For top-level headers underline the text with equal signs.  For second-level headers use dashes to underline."
 msgstr "Pour les titres de premier niveau, soulignez le texte avec des signes égal. Pour les titres de deuxième niveau, soulignez avec des tirets."
@@ -3242,6 +4187,57 @@ msgstr "Un autre élément de liste"
 
 msgid "A third list item"
 msgstr "Un troisième élément de liste"
+
+msgid "Surround code within a sentence with backticks (`). For a block of code, put three backticks on the lines before and after it; the name of the language after the first three gives it the right colours."
+msgstr "Entourez le code au sein d'une phrase avec des accents graves (`). Pour un bloc de code, mettez trois accents graves sur les lignes avant et après ; le nom du langage après les trois premiers lui donne les bonnes couleurs."
+
+msgid "Use the"
+msgstr "Utilisez la fonction"
+
+msgid "function:"
+msgstr ":"
+
+msgid "Separate the cells with vertical bars (|) and put a line of dashes under the header row. A colon on the right of the dashes aligns the column to the right, on both sides centres it."
+msgstr "Séparez les cellules par des barres verticales (|) et mettez une ligne de tirets sous la ligne d'en-tête. Un deux-points à droite des tirets aligne la colonne à droite ; des deux côtés, il la centre."
+
+msgid "Plot"
+msgstr "Parcelle"
+
+msgid "Trees"
+msgstr "Arbres"
+
+msgid "The buttons above the text box add the Markdown for you. Their keyboard shortcuts (Cmd instead of Ctrl on a Mac):"
+msgstr "Les boutons au-dessus de la zone de texte ajoutent le Markdown pour vous. Leurs raccourcis clavier (Cmd au lieu de Ctrl sur Mac) :"
+
+msgid "Keys"
+msgstr "Touches"
+
+msgid "Does"
+msgstr "Action"
+
+msgid "Undo, redo"
+msgstr "Annuler, rétablir"
+
+msgid "Paste as plain text"
+msgstr "Coller en texte brut"
+
+msgid "Post"
+msgstr "Publier"
+
+msgid "Indent or outdent list items and code"
+msgstr "Augmenter ou réduire le retrait des éléments de liste et du code"
+
+msgid "then"
+msgstr "puis"
+
+msgid "Leave the text box (Tab elsewhere leaves it too)"
+msgstr "Quitter la zone de texte (Tab ailleurs la quitte aussi)"
+
+msgid "In the toolbar, the arrow keys move between the buttons. Enter after a list item starts the next one; Enter on an empty item ends the list."
+msgstr "Dans la barre d'outils, les touches fléchées permettent de passer d'un bouton à l'autre. Entrée après un élément de liste en commence un nouveau ; Entrée sur un élément vide termine la liste."
+
+msgid "Paste or drop images into the text box to upload them, or use the image button. Text pasted from a web page or a document keeps its links, bold and italic text, lists, headings, code and tables, written as Markdown."
+msgstr "Collez ou déposez des images dans la zone de texte pour les téléverser, ou utilisez le bouton d'image. Le texte collé depuis une page web ou un document conserve ses liens, le gras et l'italique, les listes, les titres, le code et les tableaux, convertis en Markdown."
 
 msgid "A Lot More"
 msgstr "Bien plus encore"
@@ -3928,8 +4924,8 @@ msgstr "Création rapide d'un nouvel utilisateur"
 msgid "Save"
 msgstr "Enregistrer"
 
-msgid "Welcome to the OSQA administration area."
-msgstr "Bienvenue dans l'espace d'administration d'OSQA."
+msgid "How the community is doing: activity, answers, members and moderation, compared with the period before."
+msgstr "L'état de la communauté : activité, réponses, membres et modération, comparés à la période précédente."
 
 msgid "Quick statistics"
 msgstr "Statistiques rapides"
@@ -4048,8 +5044,138 @@ msgstr "Version texte"
 msgid "Every email the site sends, with sample posts and people, as you would receive it. Nothing is sent."
 msgstr "Tous les e-mails envoyés par le site, avec des messages et des personnes d'exemple, tels que vous les recevriez. Rien n'est envoyé."
 
-msgid "Plain text"
-msgstr "Texte brut"
+msgid "Community health"
+msgstr "Santé de la communauté"
+
+msgid "Period"
+msgstr "Période"
+
+#, python-format
+msgid "%(n)s days"
+msgstr "%(n)s jours"
+
+#, python-format
+msgid "Figures as of %(time)s; they are kept for %(minutes)s minutes."
+msgstr "Chiffres au %(time)s ; ils sont conservés pendant %(minutes)s minutes."
+
+msgid "Refresh now"
+msgstr "Actualiser maintenant"
+
+msgid "Download the figures (CSV)"
+msgstr "Télécharger les chiffres (CSV)"
+
+#, python-format
+msgid "previous %(n)s days: %(value)s"
+msgstr "%(n)s jours précédents : %(value)s"
+
+msgid "Daily activity"
+msgstr "Activité quotidienne"
+
+msgid "Show the figures as a table"
+msgstr "Afficher les chiffres sous forme de tableau"
+
+msgid "Day"
+msgstr "Jour"
+
+msgid "Answers"
+msgstr "Réponses"
+
+msgid "Comments"
+msgstr "Commentaires"
+
+msgid "Time to first answer"
+msgstr "Délai avant la première réponse"
+
+msgid "First answer after"
+msgstr "Première réponse après"
+
+msgid "Top growing tags"
+msgstr "Étiquettes en plus forte hausse"
+
+#, python-format
+msgid "last %(n)s days"
+msgstr "%(n)s derniers jours"
+
+msgid "previous period"
+msgstr "période précédente"
+
+msgid "Tag"
+msgstr "Étiquette"
+
+#, python-format
+msgid "Questions, last %(n)s days"
+msgstr "Questions, %(n)s derniers jours"
+
+msgid "Previous period"
+msgstr "Période précédente"
+
+msgid "Top answerers"
+msgstr "Meilleurs répondeurs"
+
+msgid "Member"
+msgstr "Membre"
+
+msgid "Questions by hour of the week"
+msgstr "Questions par heure de la semaine"
+
+msgid "Server time."
+msgstr "Heure du serveur."
+
+msgid "How these are counted"
+msgstr "Comment ces chiffres sont calculés"
+
+msgid "Periods"
+msgstr "Périodes"
+
+#, python-format
+msgid "Each figure covers the last %(n)s days up to now and is compared with the %(n)s days before. Times are the server's."
+msgstr "Chaque chiffre couvre les %(n)s derniers jours jusqu'à maintenant et est comparé aux %(n)s jours précédents. Les heures sont celles du serveur."
+
+msgid "Posts"
+msgstr "Messages"
+
+msgid "Questions, answers and comments count when everybody can see them: deleted posts, posts held for review, posts under a deleted or held question, and posts by suspended or deactivated accounts are left out."
+msgstr "Les questions, réponses et commentaires sont comptés lorsque tout le monde peut les voir : les messages supprimés, les messages en attente de vérification, les messages sous une question supprimée ou en attente, et les messages de comptes suspendus ou désactivés sont exclus."
+
+msgid "Answered"
+msgstr "Répondues"
+
+msgid "A question is answered by the first answer from someone other than the asker. “Within 24 hours” and “within 7 days” only look at questions at least that old. The median time to first answer is over the questions answered so far."
+msgstr "Une question est considérée comme répondue à la première réponse d'une personne autre que son auteur. « En moins de 24 heures » et « en moins de 7 jours » ne portent que sur les questions au moins aussi anciennes. Le délai médian avant la première réponse est calculé sur les questions déjà répondues."
+
+msgid "Questions asked in the period that have an accepted answer now."
+msgstr "Questions posées pendant la période qui ont maintenant une réponse acceptée."
+
+msgid "Unanswered backlog"
+msgstr "Questions en attente de réponse"
+
+msgid "Open questions (not closed) of any age without an answer from someone else; the previous figure is the backlog when the period began."
+msgstr "Questions ouvertes (non fermées) de tout âge sans réponse d'une autre personne ; le chiffre précédent correspond au nombre en attente au début de la période."
+
+msgid "Members"
+msgstr "Membres"
+
+msgid "Accounts that joined in the period and are not suspended. “Confirmed their email” is as of now; “posted within 7 days” counts a question, answer or comment within a week of joining and only looks at members who joined at least 7 days ago."
+msgstr "Comptes inscrits pendant la période et non suspendus. « Ont confirmé leur e-mail » est évalué à l'instant présent ; « ont publié dans les 7 jours » compte une question, une réponse ou un commentaire dans la semaine suivant l'inscription, et ne porte que sur les membres inscrits depuis au moins 7 jours."
+
+msgid "Active and returning members"
+msgstr "Membres actifs et fidèles"
+
+msgid "Active members posted or voted in the period; returning members were active in the previous period too."
+msgstr "Les membres actifs ont publié ou voté pendant la période ; les membres fidèles étaient aussi actifs pendant la période précédente."
+
+msgid "Moderation"
+msgstr "Modération"
+
+msgid "Waiting items are what the moderation inbox shows now. A flag is resolved when it is dismissed or the post is deleted; a first post review when the post is approved or deleted; a suggested edit when it is approved or rejected. Times are medians over what was resolved in the period."
+msgstr "Les éléments en attente sont ceux que la boîte de modération affiche actuellement. Un signalement est traité lorsqu'il est rejeté ou que le message est supprimé ; une vérification de premier message lorsque le message est approuvé ou supprimé ; une modification suggérée lorsqu'elle est approuvée ou refusée. Les délais sont des médianes sur ce qui a été traité pendant la période."
+
+msgid "Tags and answerers"
+msgstr "Étiquettes et répondeurs"
+
+#, python-format
+msgid "Growing tags were used on more questions in the last %(n)s days than in the %(n)s days before. Top answerers wrote the most answers in the period."
+msgstr "Les étiquettes en hausse ont été utilisées sur plus de questions pendant les %(n)s derniers jours que pendant les %(n)s jours précédents. Les meilleurs répondeurs sont ceux qui ont écrit le plus de réponses pendant la période."
 
 #, python-format
 msgid "%(prefix)s Your email settings are correct: %(app_name)s"
@@ -4281,9 +5407,6 @@ msgstr "OK"
 msgid "Select all"
 msgstr "Tout sélectionner"
 
-msgid "Type"
-msgstr "Type"
-
 msgid "Summary"
 msgstr "Résumé"
 
@@ -4410,18 +5533,12 @@ msgstr "Tableau de bord du support"
 msgid "Questions waiting for an answer, response times and answers waiting to be accepted. A question counts as answered once someone other than the asker answers it."
 msgstr "Questions en attente de réponse, délais de réponse et réponses en attente d'acceptation. Une question est considérée comme répondue dès qu'une personne autre que son auteur y répond."
 
-msgid "Period"
-msgstr "Période"
-
 #, python-format
 msgid "Last %(n)s days"
 msgstr "%(n)s derniers jours"
 
 msgid "All time"
 msgstr "Depuis le début"
-
-msgid "Tag"
-msgstr "Étiquette"
 
 msgid "All questions"
 msgstr "Toutes les questions"
@@ -4446,9 +5563,6 @@ msgstr "Posées"
 
 msgid "Unanswered"
 msgstr "Sans réponse"
-
-msgid "Answered"
-msgstr "Répondues"
 
 msgid "Median first answer"
 msgstr "Première réponse (médiane)"
@@ -4983,6 +6097,50 @@ msgstr "Rechercher des questions"
 msgid "Words, &quot;a phrase&quot;, [tag]..."
 msgstr "Mots, &quot;une expression&quot;, [tag]..."
 
+msgid "Filters"
+msgstr "Filtres"
+
+#, python-format
+msgid "(%(counter)s active)"
+msgid_plural "(%(counter)s active)"
+msgstr[0] "(%(counter)s actif)"
+msgstr[1] "(%(counter)s actifs)"
+
+msgid "Active filters"
+msgstr "Filtres actifs"
+
+msgid "Remove filter:"
+msgstr "Retirer le filtre :"
+
+msgid "Clear all"
+msgstr "Tout effacer"
+
+msgid "Did you mean:"
+msgstr "Vouliez-vous dire :"
+
+msgctxt "asked by"
+msgid "by"
+msgstr "par"
+
+msgid "No questions match your search."
+msgstr "Aucune question ne correspond à votre recherche."
+
+#, python-format
+msgid "Search for &ldquo;%(words)s&rdquo; without the filters"
+msgstr "Rechercher &ldquo;%(words)s&rdquo; sans les filtres"
+
+msgid "Remove some of the filters (tags, people, is:) to see more questions."
+msgstr "Retirez certains filtres (tags, personnes, is:) pour voir plus de questions."
+
+msgid "Try other or fewer words, or check their spelling."
+msgstr "Essayez d’autres mots, ou moins de mots, ou vérifiez leur orthographe."
+
+msgid "The search tips below show how to look for a phrase, leave words out or search in a tag."
+msgstr "Les conseils de recherche ci-dessous montrent comment chercher une expression exacte, exclure des mots ou chercher dans une étiquette."
+
+msgid "and let the community answer it."
+msgstr "et laissez la communauté y répondre."
+
 msgid "Search tips"
 msgstr "Conseils de recherche"
 
@@ -5004,27 +6162,38 @@ msgstr "Uniquement les questions avec réponses, sans réponse, ou avec une rép
 msgid "Only questions asked by this person."
 msgstr "Uniquement les questions posées par cette personne."
 
-#, python-format
-msgid "%(counter)s question found"
-msgid_plural "%(counter)s questions found"
-msgstr[0] "%(counter)s question trouvée"
-msgstr[1] "%(counter)s questions trouvées"
+msgid "Narrow the results by tags, status, date, author, code or score. They combine with the words and operators above, and the page address keeps them: share it or bookmark it."
+msgstr "Affinez les résultats par étiquettes, statut, date, auteur, code ou score. Ces filtres se combinent avec les mots et opérateurs ci-dessus, et l'adresse de la page les conserve : partagez-la ou ajoutez-la à vos favoris."
 
-msgid "No questions match your search."
-msgstr "Aucune question ne correspond à votre recherche."
+msgid "Separate tags with spaces; every tag must match."
+msgstr "Séparez les étiquettes par des espaces ; chaque étiquette doit correspondre."
 
-#, python-format
-msgid "Search for &ldquo;%(words)s&rdquo; without the filters"
-msgstr "Rechercher &ldquo;%(words)s&rdquo; sans les filtres"
+msgid "Common tags in these results"
+msgstr "Étiquettes fréquentes dans ces résultats"
 
-msgid "Remove some of the filters (tags, people, is:) to see more questions."
-msgstr "Retirez certains filtres (tags, personnes, is:) pour voir plus de questions."
+msgid "Add the tag"
+msgstr "Ajouter l'étiquette"
 
-msgid "Try other or fewer words, or check their spelling."
-msgstr "Essayez d’autres mots, ou moins de mots, ou vérifiez leur orthographe."
+msgid "Hide closed questions"
+msgstr "Masquer les questions fermées"
 
-msgid "and let the community answer it."
-msgstr "et laissez la communauté y répondre."
+msgid "closed questions in the results"
+msgstr "questions fermées dans les résultats"
+
+msgid "Any time"
+msgstr "Toutes les dates"
+
+msgid "User name"
+msgstr "Nom d'utilisateur"
+
+msgid "Has code blocks"
+msgstr "Contient des blocs de code"
+
+msgid "Minimum score"
+msgstr "Score minimal"
+
+msgid "Apply filters"
+msgstr "Appliquer les filtres"
 
 msgid "*italic* or _italic_"
 msgstr "*italique* ou _italique_"
@@ -5094,9 +6263,6 @@ msgstr "Par RSS"
 
 msgid "subscribe to answers"
 msgstr "s'abonner aux réponses"
-
-msgid "Answers"
-msgstr "Réponses"
 
 msgid "subscribe to comments and answers"
 msgstr "s'abonner aux commentaires et aux réponses"
@@ -5181,9 +6347,6 @@ msgstr "Gérer l'étiquette <span class=\"tag\">%(name)s</span>"
 msgid "All tag synonyms"
 msgstr "Tous les synonymes d'étiquettes"
 
-msgid "Description"
-msgstr "Description"
-
 msgid "What is this tag for? One or two sentences, Markdown allowed. Shown at the top of the tag's questions and in the tag list."
 msgstr "À quoi sert cette étiquette ? Une ou deux phrases, Markdown autorisé. Affichée en haut des questions de l'étiquette et dans la liste des étiquettes."
 
@@ -5250,9 +6413,6 @@ msgstr "annulé"
 
 msgid "can't be undone"
 msgstr "ne peut pas être annulé"
-
-msgid "Undo"
-msgstr "Annuler"
 
 msgid "No changes yet."
 msgstr "Aucun changement pour l'instant."
@@ -5392,6 +6552,69 @@ msgstr "Pas encore d'étiquettes"
 msgid "Tags are added when questions are asked."
 msgstr "Les étiquettes sont ajoutées quand des questions sont posées."
 
+msgid "API tokens"
+msgstr "Jetons d'API"
+
+msgid "Copy your new token now"
+msgstr "Copiez votre nouveau jeton maintenant"
+
+msgid "This is the only time it is shown. Keep it secret, like a password: whoever has it can use the API as you."
+msgstr "C'est la seule fois où il est affiché. Gardez-le secret, comme un mot de passe : quiconque le possède peut utiliser l'API en votre nom."
+
+msgid "New token"
+msgstr "Nouveau jeton"
+
+msgid "Send it in the Authorization header:"
+msgstr "Envoyez-le dans l'en-tête Authorization :"
+
+#, python-format
+msgid "Personal access tokens let your own programs and scripts use the <a href=\"%(url)s\">API</a> as you. Reading public content needs no token."
+msgstr "Les jetons d'accès personnels permettent à vos propres programmes et scripts d'utiliser l'<a href=\"%(url)s\">API</a> en votre nom. La lecture du contenu public ne nécessite pas de jeton."
+
+msgid "read and write"
+msgstr "lecture et écriture"
+
+msgid "read only"
+msgstr "lecture seule"
+
+#, python-format
+msgid "expired %(date)s"
+msgstr "a expiré le %(date)s"
+
+#, python-format
+msgid "expires %(date)s"
+msgstr "expire le %(date)s"
+
+msgid "never expires"
+msgstr "n'expire jamais"
+
+#, python-format
+msgid "last used %(used)s"
+msgstr "dernière utilisation %(used)s"
+
+msgid "never used"
+msgstr "jamais utilisée"
+
+#, python-format
+msgid "Revoke the token &quot;%(name)s&quot;? Programs using it will stop working."
+msgstr "Révoquer le jeton &quot;%(name)s&quot; ? Les programmes qui l'utilisent cesseront de fonctionner."
+
+msgid "Revoke"
+msgstr "Révoquer"
+
+msgid "No tokens yet."
+msgstr "Aucun jeton pour l'instant."
+
+msgid "Create a token"
+msgstr "Créer un jeton"
+
+#, python-format
+msgid "You have %(n)s tokens, the most an account can have. Revoke one you no longer use to create another."
+msgstr "Vous avez %(n)s jetons, le maximum autorisé par compte. Révoquez-en un que vous n'utilisez plus pour en créer un autre."
+
+msgid "Create token"
+msgstr "Créer le jeton"
+
 msgid "Your data and account"
 msgstr "Vos données et votre compte"
 
@@ -5407,11 +6630,41 @@ msgstr "Télécharger mes données"
 msgid "Delete your account"
 msgstr "Supprimer votre compte"
 
-msgid "Your profile, email address, login methods, subscriptions and settings are removed and you are signed out for good. Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they will show \"deleted-user\" instead of your name."
-msgstr "Votre profil, votre adresse e-mail, vos méthodes de connexion, vos abonnements et vos paramètres sont supprimés et vous êtes définitivement déconnecté. Vos questions, réponses et commentaires restent sur le site, car les réponses et discussions d'autres personnes en dépendent, mais ils afficheront « deleted-user » au lieu de votre nom."
+msgid "Deleting your account happens at once and can't be undone:"
+msgstr "La suppression de votre compte est immédiate et irréversible :"
+
+msgid "Your profile, email address, sign-in methods, passkeys, two-step verification, subscriptions, notifications and settings are removed."
+msgstr "Votre profil, votre adresse e-mail, vos méthodes de connexion, vos clés d'accès, la validation en deux étapes, vos abonnements, vos notifications et vos paramètres sont supprimés."
+
+msgid "You are signed out on every browser and device."
+msgstr "Vous êtes déconnecté sur tous les navigateurs et appareils."
+
+msgid "Your questions, answers and comments are deleted."
+msgstr "Vos questions, réponses et commentaires sont supprimés."
+
+msgid "Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they show \"deleted-user\" instead of your name. You can edit or delete them before deleting your account."
+msgstr "Vos questions, réponses et commentaires restent sur le site, car les réponses et discussions des autres en dépendent, mais ils affichent « deleted-user » à la place de votre nom. Vous pouvez les modifier ou les supprimer avant de supprimer votre compte."
+
+msgid "We send a last email to your address to confirm the deletion."
+msgstr "Nous envoyons un dernier e-mail à votre adresse pour confirmer la suppression."
+
+msgid "You may want to download your data first."
+msgstr "Vous voudrez peut-être d'abord télécharger vos données."
 
 msgid "You are the only administrator. Make someone else an administrator before deleting your account."
 msgstr "Vous êtes le seul administrateur. Nommez quelqu'un d'autre administrateur avant de supprimer votre compte."
+
+msgid "Moderators and administrators can't delete their account. Ask an administrator to remove your moderator or administrator status first."
+msgstr "Les modérateurs et les administrateurs ne peuvent pas supprimer leur compte. Demandez d'abord à un administrateur de vous retirer le statut de modérateur ou d'administrateur."
+
+#, python-format
+msgid "For your security, sign in again first; then you have %(minutes)s minute to delete your account."
+msgid_plural "For your security, sign in again first; then you have %(minutes)s minutes to delete your account."
+msgstr[0] "Pour votre sécurité, reconnectez-vous d'abord ; vous aurez ensuite %(minutes)s minute pour supprimer votre compte."
+msgstr[1] "Pour votre sécurité, reconnectez-vous d'abord ; vous aurez ensuite %(minutes)s minutes pour supprimer votre compte."
+
+msgid "Sign in again"
+msgstr "Se reconnecter"
 
 #, python-format
 msgid "Type your username (<strong>%(name)s</strong>) to confirm"
@@ -5419,6 +6672,9 @@ msgstr "Saisissez votre nom d'utilisateur (<strong>%(name)s</strong>) pour confi
 
 msgid "Your password"
 msgstr "Votre mot de passe"
+
+msgid "A recovery code works too."
+msgstr "Un code de récupération fonctionne aussi."
 
 msgid "This can't be undone."
 msgstr "Cette action est irréversible."
@@ -5428,6 +6684,19 @@ msgstr "Supprimer mon compte"
 
 msgid "Edit user profile"
 msgstr "Modifier le profil utilisateur"
+
+msgid "Confirm your new email address"
+msgstr "Confirmez votre nouvelle adresse e-mail"
+
+#, python-format
+msgid "We sent a link to <strong>%(new)s</strong>. Your address changes when you open it; until then it stays %(old)s."
+msgstr "Nous avons envoyé un lien à <strong>%(new)s</strong>. Votre adresse change lorsque vous l'ouvrez ; d'ici là, elle reste %(old)s."
+
+msgid "Send the link again"
+msgstr "Renvoyer le lien"
+
+msgid "Keep my current address"
+msgstr "Conserver mon adresse actuelle"
 
 msgid "Edit profile"
 msgstr "Modifier le profil"
@@ -5602,13 +6871,6 @@ msgid "Added %(added)s"
 msgstr "Ajoutée %(added)s"
 
 #, python-format
-msgid "last used %(used)s"
-msgstr "dernière utilisation %(used)s"
-
-msgid "never used"
-msgstr "jamais utilisée"
-
-#, python-format
 msgid "Remove the passkey &quot;%(name)s&quot;? You won't be able to sign in with it any more."
 msgstr "Retirer la clé d'accès « %(name)s » ? Vous ne pourrez plus vous connecter avec."
 
@@ -5675,14 +6937,23 @@ msgstr "Protégez votre compte même si quelqu'un connaît votre mot de passe : 
 msgid "Set up an authenticator app"
 msgstr "Configurer une application d'authentification"
 
+msgid "Where you're signed in"
+msgstr "Où vous êtes connecté"
+
+msgid "Signed in on a computer that isn't yours, or lost a phone? Sign out everywhere else: every other browser and device has to sign in again. This one stays signed in. Changing or resetting your password does this too."
+msgstr "Vous vous êtes connecté sur un ordinateur qui n'est pas le vôtre, ou vous avez perdu un téléphone ? Déconnectez-vous partout ailleurs : tous les autres navigateurs et appareils devront se reconnecter. Celui-ci reste connecté. Modifier ou réinitialiser votre mot de passe a le même effet."
+
+msgid "Sign out on every other browser and device?"
+msgstr "Se déconnecter sur tous les autres navigateurs et appareils ?"
+
+msgid "Sign out of all other sessions"
+msgstr "Fermer toutes les autres sessions"
+
 msgid "Code from your app"
 msgstr "Code de votre application"
 
 msgid "or your password"
 msgstr "ou votre mot de passe"
-
-msgid "Back to your profile"
-msgstr "Retour à votre profil"
 
 #, python-format
 msgid "You are changing the settings of %(name)s."
@@ -6221,6 +7492,13 @@ msgstr "FAQ"
 msgid "About"
 msgstr "À propos"
 
+msgid "an unknown browser"
+msgstr "un navigateur inconnu"
+
+#, python-format
+msgid "%(browser)s on %(system)s"
+msgstr "%(browser)s sur %(system)s"
+
 msgid "Sorry, your registration could not be completed. Please try again."
 msgstr "Désolé, votre inscription n'a pas pu être finalisée. Veuillez réessayer."
 
@@ -6238,6 +7516,221 @@ msgstr "Vous avez publié le nombre maximal de réponses pour une heure. Veuille
 
 msgid "You have posted the maximum number of comments for one hour. Please wait a while."
 msgstr "Vous avez publié le nombre maximal de commentaires pour une heure. Veuillez patienter un moment."
+
+#, python-format
+msgid "%d min"
+msgstr "%d min"
+
+#, python-format
+msgid "%.0f h"
+msgstr "%.0f h"
+
+#, python-format
+msgid "%.1f h"
+msgstr "%.1f h"
+
+#, python-format
+msgid "%.1f d"
+msgstr "%.1f j"
+
+#, python-format
+msgid "%(sign)s%(n)d point"
+msgid_plural "%(sign)s%(n)d points"
+msgstr[0] "%(sign)s%(n)d point"
+msgstr[1] "%(sign)s%(n)d points"
+
+msgid "up"
+msgstr "en hausse"
+
+msgid "down"
+msgstr "en baisse"
+
+msgid "no change"
+msgstr "sans changement"
+
+msgid "needs questions at least 7 days old"
+msgstr "nécessite des questions d'au moins 7 jours"
+
+msgid "needs members who joined at least 7 days ago"
+msgstr "nécessite des membres inscrits depuis au moins 7 jours"
+
+msgid "Waiting in the moderation inbox"
+msgstr "En attente dans la boîte de modération"
+
+#, python-format
+msgid "%d first posts"
+msgstr "%d premiers messages"
+
+#, python-format
+msgid "%d flagged posts"
+msgstr "%d messages signalés"
+
+#, python-format
+msgid "%d suggested edits"
+msgstr "%d modifications suggérées"
+
+#, python-format
+msgid "%d reported members"
+msgstr "%d membres signalés"
+
+#, python-format
+msgid "%d automated reports"
+msgstr "%d signalements automatiques"
+
+msgid "Median time to resolve a flag"
+msgstr "Délai médian de traitement d'un signalement"
+
+#, python-format
+msgid "%d flag resolved"
+msgid_plural "%d flags resolved"
+msgstr[0] "%d signalement traité"
+msgstr[1] "%d signalements traités"
+
+msgid "Median time to review a first post"
+msgstr "Délai médian de vérification d'un premier message"
+
+#, python-format
+msgid "%d post reviewed"
+msgid_plural "%d posts reviewed"
+msgstr[0] "%d message vérifié"
+msgstr[1] "%d messages vérifiés"
+
+msgid "Median time to review a suggested edit"
+msgstr "Délai médian de vérification d'une modification suggérée"
+
+#, python-format
+msgid "%d edit reviewed"
+msgid_plural "%d edits reviewed"
+msgstr[0] "%d modification vérifiée"
+msgstr[1] "%d modifications vérifiées"
+
+msgid "Accounts suspended"
+msgstr "Comptes suspendus"
+
+msgid "Automated (AI) reports"
+msgstr "Signalements automatiques (IA)"
+
+#, python-format
+msgid "%d still open"
+msgstr "%d encore ouverts"
+
+msgid "Activity"
+msgstr "Activité"
+
+msgid "New questions"
+msgstr "Nouvelles questions"
+
+msgid "New comments"
+msgstr "Nouveaux commentaires"
+
+msgid "Answering"
+msgstr "Réponses"
+
+msgid "Questions answered within 24 hours"
+msgstr "Questions ayant reçu une réponse en moins de 24 heures"
+
+msgid "Questions answered within 7 days"
+msgstr "Questions ayant reçu une réponse en moins de 7 jours"
+
+msgid "Median time to first answer"
+msgstr "Délai médian avant la première réponse"
+
+msgid "Questions with an accepted answer"
+msgstr "Questions avec une réponse acceptée"
+
+msgid "New members who confirmed their email"
+msgstr "Nouveaux membres ayant confirmé leur e-mail"
+
+msgid "New members who posted within 7 days"
+msgstr "Nouveaux membres ayant publié dans les 7 jours"
+
+msgid "Active members (posted or voted)"
+msgstr "Membres actifs (ont publié ou voté)"
+
+msgid "Returning members"
+msgstr "Membres fidèles"
+
+msgid "under 1 hour"
+msgstr "moins d'une heure"
+
+msgid "1 to 3 hours"
+msgstr "1 à 3 heures"
+
+msgid "3 to 6 hours"
+msgstr "3 à 6 heures"
+
+msgid "6 to 24 hours"
+msgstr "6 à 24 heures"
+
+msgid "1 to 3 days"
+msgstr "1 à 3 jours"
+
+msgid "3 to 7 days"
+msgstr "3 à 7 jours"
+
+msgid "over 7 days"
+msgstr "plus de 7 jours"
+
+msgid "no answer yet"
+msgstr "pas encore de réponse"
+
+#, python-format
+msgid "In the last %(days)d days: %(questions)d questions, %(answers)d answers and %(members)d new members."
+msgstr "Au cours des %(days)d derniers jours : %(questions)d questions, %(answers)d réponses et %(members)d nouveaux membres."
+
+#, python-format
+msgid "Busiest day: %(day)s (%(questions)d questions, %(answers)d answers)."
+msgstr "Jour le plus actif : %(day)s (%(questions)d questions, %(answers)d réponses)."
+
+msgid "No questions were asked in this period."
+msgstr "Aucune question n'a été posée pendant cette période."
+
+#, python-format
+msgid "Of %(total)d questions, %(answered)d have an answer: %(fast)d within 6 hours, %(day)d within a day. %(none)d have no answer yet."
+msgstr "Sur %(total)d questions, %(answered)d ont une réponse : %(fast)d en moins de 6 heures, %(day)d en moins d'une journée. %(none)d n'ont pas encore de réponse."
+
+#, python-format
+msgid "Fastest growing tag: %(name)s, %(cur)d questions (%(prev)d in the previous period)."
+msgstr "Étiquette en plus forte hausse : %(name)s, %(cur)d questions (%(prev)d pendant la période précédente)."
+
+msgid "No tag was used more than in the previous period."
+msgstr "Aucune étiquette n'a été plus utilisée que pendant la période précédente."
+
+#, python-format
+msgid "Top answerer: %(username)s with %(answers)d answer (%(accepted)d accepted)."
+msgid_plural "Top answerer: %(username)s with %(answers)d answers (%(accepted)d accepted)."
+msgstr[0] "Meilleur répondeur : %(username)s avec %(answers)d réponse (%(accepted)d acceptée)."
+msgstr[1] "Meilleur répondeur : %(username)s avec %(answers)d réponses (%(accepted)d acceptées)."
+
+msgid "Nobody answered a question in this period."
+msgstr "Personne n'a répondu à une question pendant cette période."
+
+#, python-format
+msgid "Busiest hour: %(weekday)s %(hour)02d:00 to %(next)02d:00, with %(n)d question."
+msgid_plural "Busiest hour: %(weekday)s %(hour)02d:00 to %(next)02d:00, with %(n)d questions."
+msgstr[0] "Heure la plus active : %(weekday)s de %(hour)02d:00 à %(next)02d:00, avec %(n)d question."
+msgstr[1] "Heure la plus active : %(weekday)s de %(hour)02d:00 à %(next)02d:00, avec %(n)d questions."
+
+#, python-format
+msgid "Last %(days)d days: %(questions)s new questions, %(answered)s answered within 24 hours, median first answer %(median)s, %(members)s new members, %(waiting)s items waiting for moderators."
+msgstr "%(days)d derniers jours : %(questions)s nouvelles questions, %(answered)s avec une réponse en moins de 24 heures, première réponse médiane %(median)s, %(members)s nouveaux membres, %(waiting)s éléments en attente des modérateurs."
+
+msgid "Section"
+msgstr "Section"
+
+msgid "Figure"
+msgstr "Indicateur"
+
+#, python-format
+msgid "Last %d days"
+msgstr "%d derniers jours"
+
+#, python-format
+msgid "Previous %d days"
+msgstr "%d jours précédents"
+
+msgid "Day of the week"
+msgstr "Jour de la semaine"
 
 msgid "As it happens"
 msgstr "Au fil de l'eau"
@@ -6260,14 +7753,8 @@ msgstr "Réponses à vos questions"
 msgid "New answers on questions you follow"
 msgstr "Nouvelles réponses aux questions que vous suivez"
 
-msgid "New comments"
-msgstr "Nouveaux commentaires"
-
 msgid "Accepted answers"
 msgstr "Réponses acceptées"
-
-msgid "New questions"
-msgstr "Nouvelles questions"
 
 msgid "Your suggested edits"
 msgstr "Vos modifications suggérées"
@@ -6345,20 +7832,62 @@ msgstr "Les administrateurs, quand quelqu'un signale un utilisateur."
 msgid "Welcome"
 msgstr "Bienvenue"
 
-msgid "New members, with the link that confirms their email address."
-msgstr "Les nouveaux membres, avec le lien qui confirme leur adresse e-mail."
+msgid "New members, with the link that confirms their email address (double opt-in)."
+msgstr "Nouveaux membres, avec le lien qui confirme leur adresse e-mail (double opt-in)."
 
-msgid "Sign-in link"
-msgstr "Lien de connexion"
+msgid "Password reset"
+msgstr "Réinitialisation du mot de passe"
 
-msgid "Members who ask for a one-time sign-in link."
-msgstr "Les membres qui demandent un lien de connexion à usage unique."
+msgid "Members who use \"Forgot your password?\"."
+msgstr "Membres qui utilisent « Mot de passe oublié ? »."
 
 msgid "Confirm email address"
 msgstr "Confirmer l'adresse e-mail"
 
 msgid "Members who ask for a new confirmation link."
 msgstr "Les membres qui demandent un nouveau lien de confirmation."
+
+msgid "Password changed"
+msgstr "Mot de passe modifié"
+
+msgid "Members whose password was changed, reset or set (a security notice)."
+msgstr "Membres dont le mot de passe a été modifié, réinitialisé ou défini (un avis de sécurité)."
+
+msgid "New sign-in"
+msgstr "Nouvelle connexion"
+
+msgid "Members who sign in from a new browser, when the site has these notices turned on (Security settings)."
+msgstr "Membres qui se connectent depuis un nouveau navigateur, lorsque le site a activé ces avis (paramètres de sécurité)."
+
+msgid "Confirm new email address"
+msgstr "Confirmer la nouvelle adresse e-mail"
+
+msgid "The new address, when a member changes their email address."
+msgstr "La nouvelle adresse, lorsqu'un membre change son adresse e-mail."
+
+msgid "Email address being changed"
+msgstr "Adresse e-mail en cours de modification"
+
+msgid "The old address, when a member changes their email address (with a cancel link)."
+msgstr "L'ancienne adresse, lorsqu'un membre change son adresse e-mail (avec un lien d'annulation)."
+
+msgid "Email address changed by an administrator"
+msgstr "Adresse e-mail modifiée par un administrateur"
+
+msgid "The old address, when an administrator changes a member's address."
+msgstr "L'ancienne adresse, lorsqu'un administrateur change l'adresse d'un membre."
+
+msgid "Account deleted"
+msgstr "Compte supprimé"
+
+msgid "Members who delete their account (the last email)."
+msgstr "Membres qui suppriment leur compte (le dernier e-mail)."
+
+msgid "Account already exists"
+msgstr "Le compte existe déjà"
+
+msgid "The owner of an address someone tried to sign up with, when new members must confirm before signing in."
+msgstr "Le propriétaire d'une adresse avec laquelle quelqu'un a essayé de s'inscrire, lorsque les nouveaux membres doivent confirmer avant de se connecter."
 
 msgid "Test email"
 msgstr "E-mail de test"
@@ -6374,6 +7903,22 @@ msgstr "sel"
 
 msgid "hash"
 msgstr "hachage"
+
+#, python-format
+msgid "This password is too long. It must contain at most %(max_length)d character."
+msgid_plural "This password is too long. It must contain at most %(max_length)d characters."
+msgstr[0] "Ce mot de passe est trop long. Il doit contenir au maximum %(max_length)d caractère."
+msgstr[1] "Ce mot de passe est trop long. Il doit contenir au maximum %(max_length)d caractères."
+
+#, python-format
+msgid "At most %(max_length)d characters"
+msgstr "%(max_length)d caractères au maximum"
+
+msgid "This password has appeared in a data breach, so attackers try it first. Please choose another one."
+msgstr "Ce mot de passe est apparu dans une fuite de données : les attaquants l'essaient donc en premier. Veuillez en choisir un autre."
+
+msgid "Not found in known data breaches"
+msgstr "Absent des fuites de données connues"
 
 msgid "New answers to my questions"
 msgstr "Nouvelles réponses à mes questions"
@@ -6442,10 +7987,6 @@ msgstr "%(user)s a refusé votre modification suggérée"
 
 msgid "New notification"
 msgstr "Nouvelle notification"
-
-#, python-format
-msgid "%(browser)s on %(system)s"
-msgstr "%(browser)s sur %(system)s"
 
 msgid "Thanks! Your post will appear once a moderator has reviewed it."
 msgstr "Merci ! Votre message apparaîtra après la vérification d'un modérateur."
@@ -6589,17 +8130,35 @@ msgstr "vous avez choisi un résumé hebdomadaire de l'activité que vous suivez
 msgid "you suggested an edit to a post"
 msgstr "vous avez suggéré une modification d'un message"
 
+#, python-format
+msgid "Too many wrong passwords. Wait %(minutes)s minutes and try again."
+msgstr "Trop de mots de passe erronés. Attendez %(minutes)s minutes et réessayez."
+
+msgid "The password is not correct."
+msgstr "Le mot de passe est incorrect."
+
+#, python-format
+msgid "Too many wrong codes. Wait %(minutes)s minutes and try again."
+msgstr "Trop de codes erronés. Attendez %(minutes)s minutes et réessayez."
+
+msgid "The code from your authenticator app is not right."
+msgstr "Le code de votre application d'authentification est incorrect."
+
+#, python-format
+msgid "For your security, sign in again, then delete your account within %(minutes)s minutes."
+msgstr "Pour votre sécurité, reconnectez-vous, puis supprimez votre compte dans les %(minutes)s minutes."
+
 msgid "You are the only administrator. Make someone else an administrator first."
 msgstr "Vous êtes le seul administrateur. Nommez d'abord quelqu'un d'autre administrateur."
 
 msgid "Type your username exactly to confirm."
 msgstr "Saisissez exactement votre nom d'utilisateur pour confirmer."
 
-msgid "The password is not correct."
-msgstr "Le mot de passe est incorrect."
+msgid "Your account and your posts have been deleted. We sent a last email to confirm it."
+msgstr "Votre compte et vos messages ont été supprimés. Nous vous avons envoyé un dernier e-mail de confirmation."
 
-msgid "Your account has been deleted. Your posts remain, without your name."
-msgstr "Votre compte a été supprimé. Vos publications restent, sans votre nom."
+msgid "Your account has been deleted. Your posts remain, without your name. We sent a last email to confirm it."
+msgstr "Votre compte a été supprimé. Vos messages restent, sans votre nom. Nous vous avons envoyé un dernier e-mail de confirmation."
 
 msgid "Workflow settings"
 msgstr "Paramètres du flux de travail"
@@ -6609,9 +8168,6 @@ msgstr "Paramètres du forum"
 
 msgid "Static content"
 msgstr "Contenu statique"
-
-msgid "Moderation"
-msgstr "Modération"
 
 msgid "Custom Pages"
 msgstr "Pages personnalisées"
@@ -6714,9 +8270,44 @@ msgstr "Le port 465 (SSL dès la connexion) n'est pas pris en charge : utilisez 
 msgid "The email server could not be reached: check the host name and port, and that the firewall allows outgoing connections to it."
 msgstr "Impossible de joindre le serveur de messagerie : vérifiez le nom d'hôte et le port, et que le pare-feu autorise les connexions sortantes vers lui."
 
+msgid "What the token is for, e.g. “Weekly report script”."
+msgstr "À quoi sert ce jeton, par ex. « Script du rapport hebdomadaire »."
+
+msgid "Access"
+msgstr "Accès"
+
+msgid "Read: questions, answers, tags and members, as you see them"
+msgstr "Lecture : questions, réponses, étiquettes et membres, tels que vous les voyez"
+
+msgid "Read and write: also ask, answer, comment, vote, accept and follow as you"
+msgstr "Lecture et écriture : en plus, poser des questions, répondre, commenter, voter, accepter et suivre en votre nom"
+
+msgid "Expires"
+msgstr "Expiration"
+
+msgid "in 30 days"
+msgstr "dans 30 jours"
+
+msgid "in 90 days"
+msgstr "dans 90 jours"
+
+msgid "in a year"
+msgstr "dans un an"
+
+msgid "never"
+msgstr "jamais"
+
 #, python-format
-msgid "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your password?\" to get a sign-in link by email."
-msgstr "Trop de tentatives de connexion échouées. Attendez %(minutes)s minutes et réessayez, ou utilisez « Mot de passe oublié ? » pour recevoir un lien de connexion par e-mail."
+msgid "You have %d tokens, the most an account can have. Revoke one you no longer use first."
+msgstr "Vous avez %d jetons, le maximum autorisé par compte. Révoquez d'abord un jeton que vous n'utilisez plus."
+
+#, python-format
+msgid "The token “%s” was revoked: programs using it can no longer reach the API."
+msgstr "Le jeton « %s » a été révoqué : les programmes qui l'utilisent ne peuvent plus accéder à l'API."
+
+#, python-format
+msgid "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your password?\" to choose a new password."
+msgstr "Trop de tentatives de connexion échouées. Attendez %(minutes)s minutes et réessayez, ou utilisez « Mot de passe oublié ? » pour choisir un nouveau mot de passe."
 
 msgid "Sorry, these login credentials belong to anoother user. Plese terminate your current session and try again."
 msgstr "Désolé, ces identifiants de connexion appartiennent à un autre utilisateur. Veuillez mettre fin à votre session actuelle et réessayer."
@@ -6736,26 +8327,40 @@ msgstr "Trop de comptes ont été créés récemment depuis votre réseau. Veuil
 msgid "Oops, something went wrong in the middle of this process. Please try again. Note that you need to have cookies enabled for the authentication to work."
 msgstr "Oups, un problème est survenu au cours de ce processus. Veuillez réessayer. Notez que les cookies doivent être activés pour que l'authentification fonctionne."
 
-msgid "Welcome! We've emailed you a link to confirm your address."
-msgstr "Bienvenue ! Nous vous avons envoyé un lien pour confirmer votre adresse e-mail."
-
 msgid "Oops, something went wrong in the middle of this process. Please try again."
 msgstr "Oups, un problème est survenu au cours de ce processus. Veuillez réessayer."
 
-msgid "Too many sign-in links were requested. Please try again in an hour."
-msgstr "Trop de liens de connexion ont été demandés. Veuillez réessayer dans une heure."
+msgid "Too many password reset emails were requested. Please try again in an hour."
+msgstr "Trop d'e-mails de réinitialisation du mot de passe ont été demandés. Veuillez réessayer dans une heure."
 
-msgid "If this address belongs to an account, we have sent it an email with a sign-in link. The link works once, for 24 hours."
-msgstr "Si cette adresse appartient à un compte, nous lui avons envoyé un e-mail contenant un lien de connexion. Le lien ne fonctionne qu'une fois, pendant 24 heures."
+msgid "That code is not right. Enter the newest code from your app, or a recovery code."
+msgstr "Ce code n'est pas correct. Saisissez le code le plus récent de votre application, ou un code de récupération."
 
-msgid "You're signed in with a one-time link. Set a new password below so you can sign in with it next time."
-msgstr "Vous êtes connecté avec un lien à usage unique. Choisissez ci-dessous un nouveau mot de passe pour vous connecter la prochaine fois."
+msgid "Your password has been changed and you were signed out everywhere. Sign in with your new password."
+msgstr "Votre mot de passe a été modifié et vous avez été déconnecté partout. Connectez-vous avec votre nouveau mot de passe."
 
-msgid "A message with an email validation link was just sent to your address."
-msgstr "Un message contenant un lien de validation de l'e-mail vient d'être envoyé à votre adresse."
+msgid "Your email address is already confirmed."
+msgstr "Votre adresse e-mail est déjà confirmée."
 
-msgid "Thank you, your email is now validated."
-msgstr "Merci, votre adresse e-mail est maintenant validée."
+#, python-format
+msgid "We sent a new confirmation link to %(email)s. It works for %(hours)d hours."
+msgstr "Nous avons envoyé un nouveau lien de confirmation à %(email)s. Il est valable %(hours)d heures."
+
+msgid "Too many confirmation emails were sent. Please try again in an hour."
+msgstr "Trop d'e-mails de confirmation ont été envoyés. Veuillez réessayer dans une heure."
+
+msgid "Thank you, your email address is confirmed."
+msgstr "Merci, votre adresse e-mail est confirmée."
+
+#, python-format
+msgid "We sent the confirmation link to %s again."
+msgstr "Nous avons renvoyé le lien de confirmation à %s."
+
+msgid "Too many emails were sent. Please try again in an hour."
+msgstr "Trop d'e-mails ont été envoyés. Veuillez réessayer dans une heure."
+
+msgid "The change of your email address was cancelled."
+msgstr "Le changement de votre adresse e-mail a été annulé."
 
 msgid "New password set"
 msgstr "Nouveau mot de passe défini"
@@ -6766,6 +8371,18 @@ msgstr "Votre mot de passe a été modifié"
 #, python-format
 msgid "You removed the association with %s"
 msgstr "Vous avez supprimé l'association avec %s"
+
+msgid "Welcome! We've emailed you a link to confirm your address. Confirm it to ask, answer and comment."
+msgstr "Bienvenue ! Nous vous avons envoyé par e-mail un lien pour confirmer votre adresse. Confirmez-la pour poser des questions, répondre et commenter."
+
+msgid "Welcome! Your account is ready."
+msgstr "Bienvenue ! Votre compte est prêt."
+
+msgid "Please confirm your email address first. We sent a new link to the address you signed up with."
+msgstr "Veuillez d'abord confirmer votre adresse e-mail. Nous avons envoyé un nouveau lien à l'adresse utilisée lors de votre inscription."
+
+msgid "Please confirm your email address first, with the link we emailed you."
+msgstr "Veuillez d'abord confirmer votre adresse e-mail, avec le lien que nous vous avons envoyé."
 
 #, python-format
 msgid "Welcome back, %s! You're signed in."
@@ -6786,6 +8403,12 @@ msgstr "annuler"
 
 msgid "Sorry, but this account is suspended"
 msgstr "Désolé, mais ce compte est suspendu"
+
+msgid "You're signed out."
+msgstr "Vous êtes déconnecté."
+
+msgid "You're signed out on every other browser and device. This one stays signed in."
+msgstr "Vous êtes déconnecté sur tous les autres navigateurs et appareils. Celui-ci reste connecté."
 
 #, python-format
 msgid ""
@@ -6867,30 +8490,24 @@ msgstr "marquer une question comme favorite"
 msgid "Comment is empty"
 msgstr "Le commentaire est vide"
 
-#, python-format
-msgid "At least %d characters required on comment body."
-msgstr "Le corps du commentaire doit contenir au moins %d caractères."
-
-#, python-format
-msgid "No more than %d characters on comment body."
-msgstr "Le corps du commentaire ne doit pas dépasser %d caractères."
-
 msgid "Sorry, a comment can only be edited during the first 60 minutes after it was posted."
 msgstr "Désolé, un commentaire ne peut être modifié que pendant les 60 minutes qui suivent sa publication."
 
 msgid "edit comments"
 msgstr "modifier des commentaires"
 
+#, python-format
+msgid "Confirm your email address to comment: open the link we emailed you, or %s."
+msgstr "Confirmez votre adresse e-mail pour commenter : ouvrez le lien que nous vous avons envoyé, ou %s."
+
+msgid "send a new link"
+msgstr "demandez un nouveau lien"
+
 msgid "accept answers"
 msgstr "accepter des réponses"
 
 msgid "Sorry but you cannot accept the answer"
 msgstr "Désolé, mais vous ne pouvez pas accepter la réponse"
-
-msgid "This question already has an accepted answer."
-msgid_plural "Sorry but this question has reached the limit of accepted answers."
-msgstr[0] "Cette question a déjà une réponse acceptée."
-msgstr[1] "Désolé, mais cette question a atteint la limite de réponses acceptées."
 
 msgid "The author of this answer already has an accepted answer in this question."
 msgid_plural "Sorry but the author of this answer has reached the limit of accepted answers per question."
@@ -7136,6 +8753,76 @@ msgstr "pertinence"
 msgid "most relevant questions"
 msgstr "questions les plus pertinentes"
 
+msgid "Past week"
+msgstr "Semaine dernière"
+
+msgid "Past month"
+msgstr "Mois dernier"
+
+msgid "Past year"
+msgstr "Année dernière"
+
+msgid "Custom range"
+msgstr "Période personnalisée"
+
+#, python-format
+msgid "Asked %(start)s to %(end)s"
+msgstr "Posées du %(start)s au %(end)s"
+
+#, python-format
+msgid "Asked since %(date)s"
+msgstr "Posées depuis le %(date)s"
+
+#, python-format
+msgid "Asked until %(date)s"
+msgstr "Posées jusqu'au %(date)s"
+
+#, python-format
+msgid "Tag: %(tag)s"
+msgstr "Étiquette : %(tag)s"
+
+#, python-format
+msgid "Asked by %(name)s"
+msgstr "Posées par %(name)s"
+
+msgid "Closed questions hidden"
+msgstr "Questions fermées masquées"
+
+msgid "Has code"
+msgstr "Contient du code"
+
+#, python-format
+msgid "Score at least %(score)d"
+msgstr "Score d'au moins %(score)d"
+
+msgid "Any"
+msgstr "Tous"
+
+msgctxt "search result status"
+msgid "Closed"
+msgstr "Fermée"
+
+msgctxt "search result status"
+msgid "Accepted"
+msgstr "Acceptée"
+
+msgctxt "search result status"
+msgid "Answered"
+msgstr "Répondue"
+
+msgctxt "search result status"
+msgid "Unanswered"
+msgstr "Sans réponse"
+
+msgid "1 result"
+msgstr "1 résultat"
+
+#, python-format
+msgid "About %(count)s result"
+msgid_plural "About %(count)s results"
+msgstr[0] "Environ %(count)s résultat"
+msgstr[1] "Environ %(count)s résultats"
+
 #, python-format
 msgid "questions matching '%(keywords)s'"
 msgstr "questions correspondant à « %(keywords)s »"
@@ -7143,6 +8830,9 @@ msgstr "questions correspondant à « %(keywords)s »"
 #, python-format
 msgid "Search results for %(query)s"
 msgstr "Résultats de recherche pour %(query)s"
+
+msgid "No results"
+msgstr "Aucun résultat"
 
 #, python-format
 msgid "%(count)d answer"
@@ -7165,10 +8855,6 @@ msgid "%(count)d reputation point"
 msgid_plural "%(count)d reputation points"
 msgstr[0] "%(count)d point de réputation"
 msgstr[1] "%(count)d points de réputation"
-
-#, python-format
-msgid "Too many wrong codes. Wait %(minutes)s minutes and try again."
-msgstr "Trop de codes erronés. Attendez %(minutes)s minutes et réessayez."
 
 msgid "That code is not right."
 msgstr "Ce code n'est pas correct."
@@ -7220,9 +8906,6 @@ msgstr "La connexion a pris trop de temps. Veuillez vous reconnecter."
 #, python-format
 msgid "You signed in with a recovery code. You have %(left)s left; you can make new ones on your security page."
 msgstr "Vous vous êtes connecté avec un code de récupération. Il vous en reste %(left)s ; vous pouvez en créer de nouveaux sur votre page de sécurité."
-
-msgid "That code is not right. Enter the newest code from your app, or a recovery code."
-msgstr "Ce code n'est pas correct. Saisissez le code le plus récent de votre application, ou un code de récupération."
 
 msgid "Turn on two-step verification to use the admin pages."
 msgstr "Activez la validation en deux étapes pour utiliser les pages d'administration."
@@ -7326,6 +9009,10 @@ msgstr "utilisateurs"
 
 msgid "Online Users"
 msgstr "Utilisateurs en ligne"
+
+#, python-format
+msgid "Profile updated. We sent a link to %(new)s: your email address changes when you open it. Until then it stays %(old)s."
+msgstr "Profil mis à jour. Nous avons envoyé un lien à %(new)s : votre adresse e-mail change lorsque vous l'ouvrez. D'ici là, elle reste %(old)s."
 
 msgid "Profile updated."
 msgstr "Profil mis à jour."
@@ -8257,6 +9944,12 @@ msgstr "Saisissez votre nom d'utilisateur ou votre e-mail."
 
 msgid "Username or email"
 msgstr "Nom d'utilisateur ou e-mail"
+
+msgid "Keep me signed in"
+msgstr "Rester connecté"
+
+msgid "For two weeks on this device. Leave it unticked on a shared computer."
+msgstr "Pendant deux semaines sur cet appareil. Laissez la case décochée sur un ordinateur partagé."
 
 msgid "Could not contact the login provider. Please try again later."
 msgstr "Impossible de contacter le fournisseur de connexion. Veuillez réessayer plus tard."

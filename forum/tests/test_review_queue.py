@@ -218,13 +218,14 @@ class VisibilityTest(ReviewTestCase):
         self.assertNotIn('quokka', SearchDocument.objects.get(question_id=self.question.id).answers)
         for user, _sees in self.as_viewers():
             with self.subTest(user=user):
-                self.assertNotContains(self.get_as(user, '/search/?q=zanzibar'), TITLE)
+                # Search results mark the words in titles.
+                self.assertNotContains(self.get_as(user, '/search/?q=zanzibar'), '<mark>zanzibar</mark> mapping')
                 self.assertNotContains(self.get_as(user, '/search/suggest/?q=zanzibar'), 'zanzibar mapping')
         self.approve(self.held_question)
         self.approve(self.held_answer)
         self.assertTrue(SearchDocument.objects.filter(question_id=self.held_question.id).exists())
         self.assertIn('quokka', SearchDocument.objects.get(question_id=self.question.id).answers)
-        self.assertContains(self.get_as(None, '/search/?q=zanzibar'), 'zanzibar mapping')
+        self.assertContains(self.get_as(None, '/search/?q=zanzibar'), '<mark>zanzibar</mark> mapping')
 
     def test_feeds_and_sitemap(self):
         for url in ('/feeds/rss/', '/questions/?type=rss', '%s?type=rss&comments=yes' % self.question.get_absolute_url(),

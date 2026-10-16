@@ -20,6 +20,9 @@
                 <li><a href="#md-formatting">{% trans "Formatting" %}</a></li>
                 <li><a href="#md-blockquotes">{% trans "Blockquotes" %}</a></li>
                 <li><a href="#md-lists">{% trans "Lists" %}</a></li>
+                <li><a href="#md-code">{% trans "Code" %}</a></li>
+                <li><a href="#md-tables">{% trans "Tables" %}</a></li>
+                <li><a href="#md-editor">{% trans "The editor" %}</a></li>
             </ul>
         </div>
 
@@ -126,6 +129,52 @@ ___{% trans "This is also bold and italics" %}___</pre></div>
 * {% trans "A third list item" %}</pre></div>
                 <div class="md-result"><span class="md-pane-label">{% trans "Result" %}</span><ul><li>{% trans "A list item" %}</li><li>{% trans "Another list item" %}</li><li>{% trans "A third list item" %}</li></ul></div>
             </div>
+        </section>
+
+        <section class="md-section" id="md-code">
+            <h2>{% trans "Code" %}</h2>
+            <p>{% trans "Surround code within a sentence with backticks (`). For a block of code, put three backticks on the lines before and after it; the name of the language after the first three gives it the right colours." %}</p>
+            <div class="md-example">
+                <div class="md-source"><span class="md-pane-label">{% trans "Markdown" %}</span><pre>{% trans "Use the" %} `read.csv()` {% trans "function:" %}
+
+```r
+data &lt;- read.csv("plots.csv")
+```</pre></div>
+                <div class="md-result"><span class="md-pane-label">{% trans "Result" %}</span><p>{% trans "Use the" %} <code>read.csv()</code> {% trans "function:" %}</p><pre><code class="language-r">data &lt;- read.csv("plots.csv")</code></pre></div>
+            </div>
+        </section>
+
+        <section class="md-section" id="md-tables">
+            <h2>{% trans "Tables" %}</h2>
+            <p>{% trans "Separate the cells with vertical bars (|) and put a line of dashes under the header row. A colon on the right of the dashes aligns the column to the right, on both sides centres it." %}</p>
+            <div class="md-example">
+                <div class="md-source"><span class="md-pane-label">{% trans "Markdown" %}</span><pre>| {% trans "Plot" %} | {% trans "Trees" %} |
+| ---- | ----: |
+| A1   |    12 |
+| B2   |     7 |</pre></div>
+                <div class="md-result"><span class="md-pane-label">{% trans "Result" %}</span><table class="md-table"><thead><tr><th>{% trans "Plot" %}</th><th align="right">{% trans "Trees" %}</th></tr></thead><tbody><tr><td>A1</td><td align="right">12</td></tr><tr><td>B2</td><td align="right">7</td></tr></tbody></table></div>
+            </div>
+        </section>
+
+        <section class="md-section" id="md-editor">
+            <h2>{% trans "The editor" %}</h2>
+            <p>{% trans "The buttons above the text box add the Markdown for you. Their keyboard shortcuts (Cmd instead of Ctrl on a Mac):" %}</p>
+            <table class="md-table md-keys">
+                <thead><tr><th scope="col">{% trans "Keys" %}</th><th scope="col">{% trans "Does" %}</th></tr></thead>
+                <tbody>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>{% trans "Bold" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>{% trans "Italic" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>{% trans "Link" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>{% trans "Inline code" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd>, <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>{% trans "Undo, redo" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></td><td>{% trans "Paste as plain text" %}</td></tr>
+                    <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>{% trans "Post" %}</td></tr>
+                    <tr><td><kbd>Tab</kbd>, <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>{% trans "Indent or outdent list items and code" %}</td></tr>
+                    <tr><td><kbd>Esc</kbd>, {% trans "then" %} <kbd>Tab</kbd></td><td>{% trans "Leave the text box (Tab elsewhere leaves it too)" %}</td></tr>
+                </tbody>
+            </table>
+            <p>{% trans "In the toolbar, the arrow keys move between the buttons. Enter after a list item starts the next one; Enter on an empty item ends the list." %}</p>
+            <p>{% trans "Paste or drop images into the text box to upload them, or use the image button. Text pasted from a web page or a document keeps its links, bold and italic text, lists, headings, code and tables, written as Markdown." %}</p>
         </section>
 
         <section class="md-section" id="md-more">

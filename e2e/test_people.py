@@ -315,13 +315,17 @@ class EmailValidationTest(E2ETestCase):
         with page.expect_navigation():
             page.click('a[href="%s"]' % reverse('send_validation_email'))
         self.check_page(page)
-        self.assertEqual(page.url, self.url(dana.get_profile_url()))
-        self.assertIn('validation link was just sent', page.locator('body').inner_text())
+        # The confirmation page: where the link goes, and a button for a new one (a POST).
+        self.assertIn('dana@example.com', page.locator('.auth-card').inner_text())
+        with page.expect_navigation():
+            page.click('.auth-card button[type=submit]')
+        self.check_page(page)
+        self.assertIn('We sent a new confirmation link', page.locator('body').inner_text())
 
         text = self.mail_to(dana)[-1][3]
         link = re.search(r'https?://\S+?(/account/validate/\d+/[^/\s]+/)', text).group(1)
         self.visit(page, link)
-        self.assertEqual(urlsplit(page.url).path, '/')
+        self.assertEqual(urlsplit(page.url).path, link)
         self.assertIn('your email is now validated', page.locator('body').inner_text())
         self.assertTrue(User.objects.get(id=dana.id).email_isvalid)
         self.visit(page, dana.get_profile_url())

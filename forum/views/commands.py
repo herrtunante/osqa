@@ -20,7 +20,7 @@ from forum.utils.antispam import posting_limit_reached, posting_limit_message
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
 from forum.utils.similar import candidate_questions
-from forum.utils import review
+from forum.utils import html, review
 from forum.models.base import prefetch_denormalized
 from forum.actions import *
 from forum.modules import decorate
@@ -297,6 +297,11 @@ def comment(request, id):
                 data=dict(text=comment_text)).node
     else:
         if not user.can_comment(post):
+            from forum.utils.accounts import validation_required
+            if validation_required(user, 'comment'):
+                raise CommandException(_("Confirm your email address to comment: open the link we emailed you, or "
+                                         "%s.") % html.hyperlink(reverse('send_validation_email'),
+                                                                 _("send a new link")))
             raise NotEnoughRepPointsException( _('comment'))
         if posting_limit_reached(user, 'comment'):
             raise CommandException(posting_limit_message('comment'))

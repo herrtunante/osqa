@@ -279,8 +279,9 @@ class SettingsPagesTest(ProfilePagesTestCase):
         with page.expect_navigation():
             page.locator('form:has(#id_email) input[type=submit]').click()
         self.check_page(page)
-        self.assertEqual(page.url, self.url(self.alice.get_profile_url()))
-        self.assertEqual(User.objects.get(id=self.alice.id).email, 'alice.forest@example.com')
+        # a new address is confirmed first (e2e/test_account_lifecycle.py follows the link)
+        self.assertIn('We sent a link to alice.forest@example.com', page.locator('body').inner_text())
+        self.assertEqual(User.objects.get(id=self.alice.id).email, 'alice@example.com')
 
     def test_settings_menu_leads_to_each_section(self):
         page = self.open(self.alice, device='mobile')

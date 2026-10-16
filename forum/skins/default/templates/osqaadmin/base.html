@@ -35,7 +35,7 @@ admincontent. The menu comes from admin_menu() in forum/views/admin.py.
 <div id="container">
     <header id="header">
         <div id="branding">
-            <a id="site-name" href="{% if user.is_superuser %}{% url "admin_index" %}{% else %}{% url "admin_moderation" %}{% endif %}">
+            <a id="site-name" href="{% url "admin_index" %}">
                 <span class="admin-site">{{ settings.APP_SHORT_NAME }}</span>
                 <span class="admin-area">{% trans "Administration Area" %}</span>
             </a>
@@ -49,7 +49,7 @@ admincontent. The menu comes from admin_menu() in forum/views/admin.py.
     </header>
     <nav class="breadcrumbs" aria-label="{% trans "Breadcrumbs" %}">
         <a href="{% url "index" %}">{% trans "Home" %}</a>
-        {% if user.is_superuser %}&gt; <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a>{% endif %}
+        &gt; <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a>
         <span class="breadcrumb-current">{% block pagename %}{% endblock %}</span>
     </nav>
     <div id="content" class="admin-layout{% if hide_navigation %} admin-wide{% endif %}">
@@ -57,11 +57,10 @@ admincontent. The menu comes from admin_menu() in forum/views/admin.py.
         <nav id="content-related" class="admin-nav" aria-label="{% trans "Administration menu" %}">
             <details id="admin-menu" class="admin-menu" open>
             <summary>{% trans "Admin menu" %}</summary>
-            {% if user.is_superuser %}{% url "admin_index" as dashboard_url %}
+            {% url "admin_index" as dashboard_url %}
             <ul class="admin-menu-home">
                 <li><a href="{{ dashboard_url }}"{% if request.path == dashboard_url %} aria-current="page"{% endif %}>{% trans "Dashboard" %}</a></li>
             </ul>
-            {% endif %}
             {% for group in admin_menu %}
             <div id="{{ group.id }}" class="module">
                 <h2>{{ group.title }}</h2>

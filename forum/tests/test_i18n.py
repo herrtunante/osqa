@@ -77,3 +77,21 @@ class InterfaceLanguageTest(OSQATestCase):
         response = self.client.get('/')
         self.assertEqual(response.cookies['greeting_set'].value, 'True')
         self.assertEqual(response.cookies['greeting_set']['samesite'], 'Lax')
+
+
+class ExtractableStringsTest(OSQATestCase):
+    def test_trans_tags_have_no_escaped_quotes(self):
+        # makemessages cuts {% trans "... \"x\" ..." %} at the escaped quote,
+        # so the text is never translated: use typographic quotes instead.
+        import glob
+        import os
+        import re
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        pattern = re.compile(r'\{%\s*(?:trans|blocktrans)\s+"[^"%]*\\"')
+        found = []
+        for path in glob.glob(os.path.join(root, 'forum*', '**', 'templates', '**', '*.html'), recursive=True):
+            with open(path, encoding='utf-8') as f:
+                for number, line in enumerate(f, 1):
+                    if pattern.search(line):
+                        found.append('%s:%d' % (os.path.relpath(path, root), number))
+        self.assertEqual(found, [])

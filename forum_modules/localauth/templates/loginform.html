@@ -14,4 +14,11 @@
         {% include "auth/password_toggle.html" with input_id="id_password" %}
     </div>
 </div>
+<div class="auth-check">
+    <input type="checkbox" id="id_remember" name="remember" value="1" checked aria-describedby="id_remember-help" />
+    <div>
+        <label for="id_remember">{% trans "Keep me signed in" %}</label>
+        <p class="auth-help" id="id_remember-help">{% trans "For two weeks on this device. Leave it unticked on a shared computer." %}</p>
+    </div>
+</div>
 <button id="blogin" name="blogin" type="submit" class="auth-submit">{% trans "Sign in" %}</button>

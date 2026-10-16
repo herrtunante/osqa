@@ -16,6 +16,7 @@ from .search import SearchDocument
 from .push import PushSubscription
 from .suggested_edit import SuggestedEdit
 from .two_factor import TOTPDevice, RecoveryCode, Passkey
+from .api import ApiToken
 
 from .base import *
 
@@ -27,7 +28,7 @@ __all__ = [
         'ValidationHash', 'AuthKeyUserAssociation', 'SubscriptionSettings', 'KeyValue', 'User',
         'Action', 'ActionRepute', 'Vote', 'Flag', 'Page', 'ModerationReport', 'KnowledgeChunk', 'AISuggestion',
         'Notification', 'QuestionReminder', 'PendingEmail', 'SearchDocument', 'PushSubscription', 'SuggestedEdit',
-        'TOTPDevice', 'RecoveryCode', 'Passkey'
+        'TOTPDevice', 'RecoveryCode', 'Passkey', 'ApiToken'
         ]
 
 

@@ -1,0 +1,30 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}Sent to the NEW address of an email change (forum/utils/accounts.py request_email_change); the account keeps the old address until this link is used.{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Confirm your new email address for {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Confirm this address to start using it for your account." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this email because someone asked to use this address for an account at {{ app_name }}. If it wasn't you, ignore it: nothing changes without this link.{% endblocktrans %}
+        {% fullurl "auth_confirm_email_change" user=recipient.id code=confirm_code as confirm_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username count hours=link_hours|default:48 %}You asked to use {{ new_email }} for your account {{ name }}. Confirm it with the button; until then, emails keep going to your old address. The link works once, for {{ hours }} hour.{% plural %}You asked to use {{ new_email }} for your account {{ name }}. Confirm it with the button; until then, emails keep going to your old address. The link works once, for {{ hours }} hours.{% endblocktrans %}</p>
+        {% trans "Confirm new address" as cta %}{% include "notifications/_button.html" with url=confirm_url label=cta %}
+        {% include "notifications/_link_fallback.html" with url=confirm_url %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this email because someone asked to use this address for an account at {{ app_name }}. If it wasn't you, ignore it: nothing changes without this link.{% endblocktrans %}
+{% blocktrans with name=recipient.username count hours=link_hours|default:48 %}You asked to use {{ new_email }} for your account {{ name }}. Confirm it with the button; until then, emails keep going to your old address. The link works once, for {{ hours }} hour.{% plural %}You asked to use {{ new_email }} for your account {{ name }}. Confirm it with the button; until then, emails keep going to your old address. The link works once, for {{ hours }} hours.{% endblocktrans %}
+
+{% trans "Confirm new address" %}:
+{% fullurl "auth_confirm_email_change" user=recipient.id code=confirm_code %}
+{% endtextcontent %}
+
+{% endemail %}

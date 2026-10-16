@@ -1,0 +1,16 @@
+{% load i18n %}{% if show %}{# {% confirm_banner %} (templatetags/account_tags.py) #}
+<div class="confirm-banner" role="region" aria-labelledby="confirm-banner-title">
+    <div class="confirm-banner-inner">
+        <p class="confirm-banner-text"><strong id="confirm-banner-title">{% trans "Confirm your email address to start posting." %}</strong>
+            {% blocktrans %}We sent a link to <span class="confirm-banner-email">{{ email }}</span>.{% endblocktrans %}</p>
+        <div class="confirm-banner-actions">
+            <form method="post" action="{% url "send_validation_email" %}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <button type="submit" class="plain-button confirm-banner-button">{% trans "Send it again" %}</button>
+            </form>
+            <a href="{% url "edit_user" request.user.id request.user.username|slugify %}">{% trans "Change the address" %}</a>
+        </div>
+    </div>
+</div>
+{% endif %}

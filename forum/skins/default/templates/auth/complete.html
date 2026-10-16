@@ -68,7 +68,7 @@
                     {% include "auth/field.html" with field=form1.recaptcha %}
                 {% endif %}
                 {% if not provider %}
-                    <p class="auth-note">{% trans "Next, we'll email you a link to confirm your address." %}</p>
+                    <p class="auth-note">{% if must_confirm_to_sign_in %}{% trans "Next, check your email: open the link we send you to finish creating your account." %}{% else %}{% trans "Next, we'll email you a link to confirm your address." %}{% endif %}</p>
                 {% endif %}
                 <button type="submit" class="auth-submit" name="bnewaccount" id="bnewaccount" value="1">{% trans "Create account" %}</button>
             </form>

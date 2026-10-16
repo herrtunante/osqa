@@ -31,7 +31,7 @@
 {% block forejs %}
         {% if not question.nis.closed %}
         <script type='text/javascript' src='{% media  "/media/js/osqa.question.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
+        {% include "compose/editor_scripts.html" %}
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 
         {% if embed_youtube_videos %}
@@ -140,7 +140,7 @@
                 <div id="item-right" class="post-main">
                     {% review_notice question request.user %}
                     <div class="question-body post-body">
-                        {{ question.html|safe }}
+                        {{ question.html|priority_image }}
                     </div>
                     <div id="question-tags" class="tags-container tags post-tags">
                         {% include "node/question_tags.html" %}
@@ -203,12 +203,13 @@
                 </h2>
 
                 <div id="description" class="answer-editor">
-                    <div id="wmd-button-bar" class="wmd-panel"></div>
+                    {% include "compose/toolbar.html" %}
                     {{ answer.text }}
                     <div class="preview-toggle editor-footer">
                         <button type="button" id="pre-collapse" class="link-button plain-button" aria-controls="previewer" aria-expanded="true"
                             title="{% trans "Toggle the real time Markdown editor preview" %}">{% trans "toggle preview" %}</button>
-                        <span id="editor-metrics" class="editor-metrics"></span>
+                        {% include "compose/min_length.html" with kind="answer" %}
+                        <span id="editor-metrics" class="editor-metrics" aria-live="off"></span>
                         {% if settings.WIKI_ON %}
                         <span class="editor-wiki">
                             {{ answer.wiki }}

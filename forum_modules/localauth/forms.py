@@ -16,8 +16,10 @@ class ClassicRegisterForm(BotTrapMixin, SignUpFieldsMixin, SetPasswordForm):
     username = UserNameField()
     email = UserEmailField()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, check_email_taken=True, **kwargs):
         super().__init__(*args, **kwargs)
+        # The sign-up view may answer a taken address like a new one instead.
+        self.fields['email'].skip_clean = not check_email_taken
 
         # Try importing the ReCapthca public and private keys, Import Error will be raised in case it has been disabled
         try:

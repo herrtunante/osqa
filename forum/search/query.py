@@ -30,6 +30,7 @@ class ParsedQuery:
         self.users = []
         self.flags = []      # 'answered', 'unanswered', 'accepted'
         self.free_text = []  # the words and phrases as typed, for the ask page title
+        self.operators = []  # (kind, value, start, end) of each applied tag/user/is operator in `raw`
 
     @property
     def has_text(self):
@@ -47,6 +48,15 @@ class ParsedQuery:
     @property
     def title_text(self):
         return ' '.join(self.free_text)[:300]
+
+    def without_operators(self, index=None):
+        """`raw` without its operators (only the `index`-th one if given),
+        spaces collapsed: what a filter chip's remove link searches for."""
+        text = (self.raw or '')[:1000]
+        spans = self.operators if index is None else self.operators[index:index + 1]
+        for kind, value, start, end in sorted(spans, key=lambda s: -s[2]):
+            text = text[:start] + ' ' + text[end:]
+        return ' '.join(text.split())
 
     def highlight_terms(self):
         """Words and phrases (as word lists) to mark in snippets."""
@@ -81,12 +91,14 @@ def parse(raw):
                 query.free_text.append(quoted.strip())
             continue
         if op is not None:
-            _operator(query, op.lower(), op_value.strip(), plain)
+            _operator(query, op.lower(), op_value.strip(), plain, match.span())
             continue
         tag = TAG_BRACKETS.match(bare)
         if tag:
             _add(query.tags, tag.group(1).lower())
-        elif ':' in bare and not bare.startswith(':') and _operator(query, *bare.lower().split(':', 1), plain=None):
+            query.operators.append(('tag', tag.group(1).lower(), match.start(), match.end()))
+        elif ':' in bare and not bare.startswith(':') and _operator(query, *bare.lower().split(':', 1), plain=None,
+                                                                    span=match.span()):
             pass
         elif bare.startswith('-') and len(bare) > 1:
             for word in words(bare[1:]):
@@ -101,16 +113,19 @@ def parse(raw):
     return query
 
 
-def _operator(query, op, value, plain):
+def _operator(query, op, value, plain, span=(0, 0)):
     """Applies `op:value`; False when op isn't an operator (then it is text)."""
     if not value:
         return op in ('tag', 'user', 'is')
     if op == 'tag':
         _add(query.tags, value.lower().strip('[]'))
+        query.operators.append(('tag', value.lower().strip('[]'), span[0], span[1]))
     elif op == 'user':
         _add(query.users, value)
+        query.operators.append(('user', value, span[0], span[1]))
     elif op == 'is' and value in IS_FLAGS:
         _add(query.flags, value)
+        query.operators.append(('is', value, span[0], span[1]))
     elif plain is not None:
         plain.extend(words(value))
         query.free_text.append(value)

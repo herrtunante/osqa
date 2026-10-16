@@ -124,7 +124,9 @@ class SignInPagesTest(E2ETestCase):
             page.click('#bnewaccount')
         self.check_page(page)
         self.assertTrue(User.objects.filter(username='newcomer', email='newcomer@example.com').exists())
-        self.assertIn('newcomer', page.locator('#top').inner_text())
+        # New members confirm their address before signing in (the default).
+        self.assertIn('Check your inbox', page.locator('.auth-card h1').inner_text())
+        self.assertTrue(any('Welcome' in m[1] for m in self.sent_mail))
 
     def test_links_between_the_pages(self):
         page = self.open()

@@ -49,26 +49,38 @@ def candidate_questions(title, limit=10):
     return [q for s, q in ranked if s > 0][:limit]
 
 
-def full_text_questions(query, limit=10):
-    """The core full-text index (forum.search), ranked."""
+def full_text_questions(query, limit=10, filters=None):
+    """The core full-text index (forum.search), ranked; filters applied in SQL."""
     from forum.search.engine import question_provider
-    return question_provider(query, limit)
+    return question_provider(query, limit, filters=filters)
+
+
+full_text_questions.accepts_filters = True
 
 
 # Search engines register a function (query, limit) -> [Question] here: the
 # core full-text index first, then e.g. the AI module's semantic index. Their
 # results are blended (reciprocal rank fusion); keyword matching is the fallback.
+# With filters (forum.search.filters.SearchFilters), a provider whose
+# `accepts_filters` is true gets them; the others' results are filtered after.
 SEARCH_PROVIDERS = [full_text_questions]
 
 # Reciprocal rank fusion constant: a question ranked r by a provider scores 1 / (K + r).
 RRF_K = 60
 
 
-def search_questions(query, limit=10):
+def search_questions(query, limit=10, filters=None):
+    if filters is not None and filters.is_empty:
+        filters = None
     lists = []
     for provider in SEARCH_PROVIDERS:
         try:
-            results = provider(query, limit)
+            if filters is not None and getattr(provider, 'accepts_filters', False):
+                results = provider(query, limit, filters=filters)
+            elif filters is not None:
+                results = filters.restrict(provider(query, limit * 3))[:limit]
+            else:
+                results = provider(query, limit)
         except Exception:
             import logging
             logging.exception("Question search provider failed, using keyword matching")
@@ -76,7 +88,8 @@ def search_questions(query, limit=10):
         if results:
             lists.append(list(results))
     if not lists:
-        return candidate_questions(query, limit)
+        found = candidate_questions(query, limit if filters is None else limit * 3)
+        return found if filters is None else filters.restrict(found)[:limit]
     if len(lists) == 1:
         return lists[0][:limit]
 

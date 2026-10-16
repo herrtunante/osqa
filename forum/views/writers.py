@@ -7,8 +7,6 @@ import datetime
 
 from django.urls import reverse
 from forum.utils.urls import root_relative_reverse
-from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404, JsonResponse
 from django.utils.html import *
@@ -22,7 +20,7 @@ from forum.forms import *
 from forum.models import *
 from forum.models.node import render_markdown
 from forum.utils import html
-from forum.utils.images import process_image, NotAnImage, ImageTooLarge
+from forum.utils.images import store_upload, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils import review
 from forum.utils import live
@@ -72,22 +70,19 @@ def upload(request):
         return refused(_("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, 413)
 
     # The extension is chosen by the client: Pillow decodes the content, and
-    # only the re-encoded image (no metadata, downscaled) is written to disk.
+    # only the re-encoded image (no metadata, downscaled) is written to disk,
+    # with its AVIF/WebP copies (forum.utils.images.store_upload).
     try:
-        data, name = process_image(f, "_".join(f.name.split()), max_side=int(settings.UPLOAD_MAX_IMAGE_SIDE))
+        url = store_upload(f, f.name)
     except ImageTooLarge:
         return refused(_('This image has too many pixels. Please upload a smaller image.'), 400)
     except NotAnImage:
         return refused(file_types, 400)
-
-    try:
-        storage = FileSystemStorage(str(settings.UPFILES_FOLDER), str(settings.UPFILES_ALIAS))
-        new_file_name = storage.save(name, ContentFile(data))
     except Exception:
         logging.exception('File upload failed')
         return refused(_('Error uploading file. Please contact the site administrator. Thank you.'), 500)
 
-    return JsonResponse({'url': str(settings.UPFILES_ALIAS) + new_file_name})
+    return JsonResponse({'url': url})
 
 def ask(request):
     form = None

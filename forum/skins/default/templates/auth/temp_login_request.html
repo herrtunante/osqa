@@ -10,7 +10,7 @@
     <div class="auth-page">
         <div class="auth-card">
             <h1>{% trans "Forgot your password?" %}</h1>
-            <p class="auth-lead">{% blocktrans %}Enter the email address of your account and we'll send you a link that signs you in. Then you can set a new password. The link works once, for 24 hours.{% endblocktrans %}</p>
+            <p class="auth-lead">{% blocktrans %}Enter the email address of your account and we'll send you a link to choose a new password. The link works once, for an hour.{% endblocktrans %}</p>
             {% if form.errors %}
                 <div class="auth-alert" role="alert">
                     {% for field in form %}{% for error in field.errors %}<p><a href="#{{ field.auto_id }}">{{ error }}</a></p>{% endfor %}{% endfor %}
@@ -19,7 +19,7 @@
             <form class="auth-form" action="" method="post" accept-charset="utf-8" novalidate>
                 {% csrf_token %}
                 {% include "auth/field.html" with field=form.email %}
-                <button type="submit" class="auth-submit">{% trans "Email me a sign-in link" %}</button>
+                <button type="submit" class="auth-submit">{% trans "Email me a reset link" %}</button>
             </form>
             <p class="auth-switch">{% trans "Remembered it?" %} <a href="{% url "auth_signin" %}">{% trans "Back to sign in" %}</a></p>
         </div>

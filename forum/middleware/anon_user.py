@@ -34,9 +34,10 @@ class ConnectToSessionMessagesMiddleware(object):
 
     def process_request(self, request):
         from forum.utils.static_files import is_static_request
-        if is_static_request(request):
-            # Files (media, uploads, the service worker): no session, no greeting,
-            # so the response sets no cookie and shared caches may keep it.
+        if is_static_request(request) or request.path_info.startswith('/api/v'):
+            # Files (media, uploads, the service worker) and the JSON API: no
+            # session, no greeting, so the response sets no cookie and shared
+            # caches may keep it.
             return None
         # Django 1.10+: is_authenticated is a property
         if not request.user.is_authenticated:

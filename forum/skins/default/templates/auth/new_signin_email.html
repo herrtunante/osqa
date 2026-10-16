@@ -1,0 +1,42 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}A sign-in from a browser that hadn't signed in to the account before (setting NEW_DEVICE_SIGNIN_EMAIL, forum/utils/accounts.py note_device).{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} New sign-in to your {{ app_name }} account{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}Someone signed in with {{ browser }}. Was it you?{% endblocktrans %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this security notice because your account at {{ app_name }} was used from a new browser or device. These notices are always sent while the site has them turned on.{% endblocktrans %}
+        {% fullurl "auth_request_tempsignin" as reset_url %}
+        {% fullurl "user_security" id=recipient.id as security_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Your account {{ name }} was just signed in to from a browser or device that hasn't been used with it before.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with when=when|date:"DATETIME_FORMAT" %}When: {{ when }}{% endblocktrans %}<br>{% blocktrans %}Browser: {{ browser }}{% endblocktrans %}<br>{% blocktrans %}IP address: {{ ip }}{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If this was you, you can ignore this email. If it wasn't, someone knows your password: reset it now. That also signs out every browser and device." %}</p>
+        {% trans "Reset your password" as cta %}{% include "notifications/_button.html" with url=reset_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}You can also sign out everywhere else and turn on two-step verification on <a href="{{ security_url }}" style="{{ a_style }}">your security page</a>.{% endblocktrans %}</p>
+        {% include "notifications/_link_fallback.html" with url=reset_url %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this security notice because your account at {{ app_name }} was used from a new browser or device. These notices are always sent while the site has them turned on.{% endblocktrans %}
+{% blocktrans with name=recipient.username %}Your account {{ name }} was just signed in to from a browser or device that hasn't been used with it before.{% endblocktrans %}
+
+{% blocktrans with when=when|date:"DATETIME_FORMAT" %}When: {{ when }}{% endblocktrans %}
+{% blocktrans %}Browser: {{ browser }}{% endblocktrans %}
+{% blocktrans %}IP address: {{ ip }}{% endblocktrans %}
+
+{% trans "If this was you, you can ignore this email. If it wasn't, someone knows your password: reset it now. That also signs out every browser and device." %}
+
+{% trans "Reset your password" %}:
+{% fullurl "auth_request_tempsignin" %}
+
+{% trans "Your security page (sign out everywhere else, two-step verification)" %}: {% fullurl "user_security" id=recipient.id %}
+{% endtextcontent %}
+
+{% endemail %}

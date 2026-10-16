@@ -438,7 +438,7 @@ class EmailValidationTest(EmailTestCase):
         self.assertTrue(Award.objects.filter(user=newcomer, badge__cls='ValidatedEmail').exists())
 
         self.visit(page, link)
-        self.assertIn('This e-mail has already been validated', page.locator('body').inner_text())
+        self.assertIn('already confirmed', page.locator('body').inner_text())
         self.assertEqual(User.objects.get(id=newcomer.id).reputation, reputation + int(settings.REP_GAIN_BY_EMAIL_VALIDATION))
 
     def edit_email(self, page, user, email):
@@ -452,19 +452,22 @@ class EmailValidationTest(EmailTestCase):
         alice = self.create_user('alice', reputation=100)
         page = self.open(alice)
         self.edit_email(page, alice, 'alice.forest@example.com')
+        # The address changes once the new one is confirmed; the old one is told.
         alice = User.objects.get(id=alice.id)
-        self.assertFalse(alice.email_isvalid)
-        self.visit(page, alice.get_profile_url())
-        self.assertIn('not validated', page.locator('.user-details').inner_text())
+        self.assertEqual(alice.email, 'alice@example.com')
+        self.assertTrue(alice.email_isvalid)
+        self.assertIn('alice.forest@example.com', page.locator('.email-pending').inner_text())
+        notice = [m for m in self.mail_to(alice) if m[0].email == 'alice@example.com' and 'being changed' in m[1]]
+        self.assertEqual(len(notice), 1)
+        self.assertEqual(notice[0][5], {})  # a security notice: no unsubscribe
 
-        with page.expect_navigation():
-            page.click('a[href="%s"]' % reverse('send_validation_email'))
-        self.check_page(page)
-        to, subject, html, text, media, headers = self.mail_to(alice)[-1]
-        self.assertEqual(to.email, 'alice.forest@example.com')
-        link = re.search(r'http://testserver(/account/validate/\d+/[^/\s]+/)', text).group(1)
+        to, subject, html, text, media, headers = [m for m in self.mail_to(alice)
+                                                   if m[0].email == 'alice.forest@example.com'][-1]
+        link = re.search(r'http://testserver(/account/email/confirm/\d+/[^/\s]+/)', text).group(1)
         self.visit(page, link)
-        self.assertTrue(User.objects.get(id=alice.id).email_isvalid)
+        alice = User.objects.get(id=alice.id)
+        self.assertEqual(alice.email, 'alice.forest@example.com')
+        self.assertTrue(alice.email_isvalid)
         self.visit(page, alice.get_profile_url())
         self.assertNotIn('not validated', page.locator('.user-details').inner_text())
 

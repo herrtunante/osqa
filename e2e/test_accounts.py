@@ -36,8 +36,17 @@ class SignUpAndSignInTest(E2ETestCase):
             page.click('#bnewaccount')
         self.check_page(page)
         newcomer = User.objects.get(username='newcomer')
+        # Not signed in until the address is confirmed with the link in the welcome email.
+        self.assertIn('Check your inbox', page.locator('.auth-card h1').inner_text())
+        self.assertNotIn('newcomer', page.locator('#top').inner_text())
+        welcome = [m for m in self.mail_to(newcomer) if 'Welcome' in m[1]]
+        self.assertEqual(len(welcome), 1)
+        link = re.search(r'http://testserver(/account/validate/\d+/[^/\s]+/)', welcome[0][3]).group(1)
+        self.visit(page, link)
+        self.assertIn('Email address confirmed', page.locator('.auth-card h1').inner_text())
+        self.sign_in(page, 'newcomer', 'green-tree-river-7')
+        self.check_page(page)
         self.assertIn('newcomer', page.locator('#top').inner_text())
-        self.assertTrue(any('Welcome' in m[1] for m in self.mail_to(newcomer)))
 
         page.get_by_role('link', name='logout').click()
         page.wait_for_load_state()
@@ -73,10 +82,8 @@ class SignUpAndSignInTest(E2ETestCase):
 
         text = self.mail_to(carol)[-1][3]
         link = re.search(r'https?://\S+/account/tempsignin/\d+/[^/\s]+/', text).group(0)
-        page.goto(self.url(link[link.index('/account/'):]))
-        page.wait_for_load_state()
-        self.check_page(page)
-        self.assertIn(reverse('user_authsettings', kwargs={'id': carol.id}), page.url)
+        self.visit(page, link[link.index('/account/'):])
+        self.assertIn('Choose a new password', page.locator('h1').inner_text())
 
         page.fill('#id_password1', 'a-new-long-password-9')
         page.fill('#id_password2', 'a-new-long-password-9')
@@ -84,6 +91,7 @@ class SignUpAndSignInTest(E2ETestCase):
             page.locator('form:has(#id_password1) [type=submit]').click()
         self.check_page(page)
         self.assertTrue(User.objects.get(id=carol.id).check_password('a-new-long-password-9'))
+        self.assertIn(reverse('auth_signin'), page.url)  # signs in again with the new password
 
 
 class EmailSettingsTest(E2ETestCase):
@@ -152,6 +160,11 @@ class ProfileTest(E2ETestCase):
         with page.expect_navigation():
             page.locator('form:has(#id_email) input[type=submit]').click()
         self.check_page(page)
+        # The new address is used once confirmed from the email sent to it.
+        self.assertEqual(User.objects.get(id=self.alice.id).email, 'alice@example.com')
+        self.assertIn('alice.forest@example.com', page.locator('.email-pending').inner_text())
+        text = [m for m in self.sent_mail if m[0].email == 'alice.forest@example.com'][-1][3]
+        self.visit(page, re.search(r'http://testserver(/account/email/confirm/\d+/[^/\s]+/)', text).group(1))
         self.assertEqual(User.objects.get(id=self.alice.id).email, 'alice.forest@example.com')
 
     def test_profile_pages_on_a_phone(self):

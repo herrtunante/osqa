@@ -158,6 +158,12 @@ def llms_txt(request):
         '## Machine-readable access', '',
         '- [All answered questions as JSON Lines](%s/export/qa.jsonl): one thread per line, with answers' % base,
         '- [MCP server](%s/mcp): Model Context Protocol (Streamable HTTP) with the tools search_forum and get_question' % base,
+        '- [Search](%s/search/?q=export+csv): the search page; it takes the operators "a phrase", -word, [tag], '
+        'user:name, is:answered/is:unanswered/is:accepted and the filters tags=, status=unanswered|answered|accepted, '
+        'closed=hide, date=week|month|year (or from=/to= YYYY-MM-DD), author=, code=1, min_score=, '
+        'sort=relevance|newest|votes|active (the MCP tool search_forum takes query, tags, status and since)' % base,
+        '- [JSON API](%s/api/): read questions, answers, tags and members (and post with a token); OpenAPI 3.1 at '
+        '%s/api/v1/openapi.json' % (base, base),
         '- [Sitemap](%s/sitemap.xml)' % base,
         '- [Latest questions (RSS)](%s/feeds/rss/)' % base,
         '',
@@ -192,6 +198,12 @@ MCP_TOOLS = [
             'properties': {
                 'query': {'type': 'string', 'description': 'What to look for, in plain words.'},
                 'limit': {'type': 'integer', 'minimum': 1, 'maximum': MAX_SEARCH_RESULTS, 'default': 10},
+                'tags': {'type': 'array', 'items': {'type': 'string'}, 'maxItems': 5,
+                         'description': 'Only questions with every one of these tags.'},
+                'status': {'type': 'string', 'enum': ['unanswered', 'answered', 'accepted'],
+                           'description': 'Only questions without answers, with answers, or with an accepted answer.'},
+                'since': {'type': 'string', 'format': 'date',
+                          'description': 'Only questions asked on or after this date (YYYY-MM-DD).'},
             },
             'required': ['query'],
         },
@@ -216,6 +228,25 @@ class ToolError(Exception):
     pass
 
 
+def tool_filters(arguments):
+    """The search filters of search_forum's arguments (the search page's, forum/search/filters.py)."""
+    from forum.search.filters import STATUSES, SearchFilters, parse_date
+    tags = arguments.get('tags') or []
+    if isinstance(tags, str):
+        tags = [tags]
+    if not isinstance(tags, list) or not all(isinstance(t, str) for t in tags):
+        raise ToolError('tags must be a list of tag names')
+    status = arguments.get('status') or ''
+    if status and status not in STATUSES:
+        raise ToolError('status must be one of %s' % ', '.join(STATUSES))
+    since = None
+    if arguments.get('since'):
+        since = parse_date(arguments['since'])
+        if since is None:
+            raise ToolError('since must be a date (YYYY-MM-DD)')
+    return SearchFilters(tags=tags, status=status, date='custom' if since else '', date_from=since)
+
+
 def call_tool(name, arguments):
     if name == 'search_forum':
         query = str(arguments.get('query', '')).strip()
@@ -225,7 +256,7 @@ def call_tool(name, arguments):
             limit = max(1, min(int(arguments.get('limit', 10)), MAX_SEARCH_RESULTS))
         except (TypeError, ValueError):
             limit = 10
-        results = [question_data(q, with_text=False) for q in search_questions(query, limit)]
+        results = [question_data(q, with_text=False) for q in search_questions(query, limit, tool_filters(arguments))]
         return json.dumps({'results': results}, ensure_ascii=False, indent=1)
     if name == 'get_question':
         try:

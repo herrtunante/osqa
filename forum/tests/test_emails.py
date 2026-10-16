@@ -356,21 +356,27 @@ class EmailChangeTest(EmailTestCase):
                                 {'email': email, 'realname': '', 'website': '', 'city': '', 'birthday': '',
                                  'about': '', 'username': user.username})
 
-    def test_changing_the_email_needs_validation_again(self):
+    def test_changing_the_email_needs_confirming_the_new_address(self):
+        User.objects.filter(id=self.alice.id).update(email_isvalid=True)
         old = ValidationHash.objects.create_new(self.alice, 'email', [self.alice.email])
         self.login(self.alice)
         self.edit(self.alice, 'alice.new@example.com')
         alice = User.objects.get(id=self.alice.id)
-        self.assertEqual(alice.email, 'alice.new@example.com')
-        self.assertFalse(alice.email_isvalid)
-        self.assertFalse(ValidationHash.objects.filter(id=old.id).exists())  # the old address's link is dead
+        # The old address stays (and confirmed) until the new one is confirmed.
+        self.assertEqual(alice.email, 'alice@example.com')
+        self.assertTrue(alice.email_isvalid)
+        self.assertTrue(ValidationHash.objects.filter(id=old.id).exists())
 
-        self.client.get(reverse('send_validation_email'), HTTP_REFERER='http://testserver/')
-        recipient, subject, html, text, media, headers = self.sent_mail[-1]
-        self.assertEqual(recipient.email, 'alice.new@example.com')
-        link = re.search(r'http://testserver(/account/validate/\d+/[^/\s]+/)', text).group(1)
+        to_new = [m for m in self.sent_mail if m[0].email == 'alice.new@example.com']
+        to_old = [m for m in self.sent_mail if m[0].email == 'alice@example.com']
+        self.assertEqual(len(to_new), 1)
+        self.assertEqual(len(to_old), 1)
+        self.assertIn('Cancel the change', to_old[0][3])
+        link = re.search(r'http://testserver(/account/email/confirm/\d+/[^/\s]+/)', to_new[0][3]).group(1)
         self.client.get(link)
-        self.assertTrue(User.objects.get(id=self.alice.id).email_isvalid)
+        alice = User.objects.get(id=self.alice.id)
+        self.assertEqual(alice.email, 'alice.new@example.com')
+        self.assertTrue(alice.email_isvalid)
 
     def test_admin_editing_someone_keeps_their_own_validation_link(self):
         admin = self.create_user('admin', is_superuser=True, is_staff=True, email_isvalid=False)

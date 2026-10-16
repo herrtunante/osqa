@@ -5,11 +5,13 @@ from html import unescape as html_unescape
 from .tag import Tag
 
 import markdown
+from markdown.extensions.tables import TableExtension
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
 from forum.utils.html import sanitize_html, lazy_images
+from forum.utils.images import pictures
 from forum.utils.mentions import link_mentions
 from forum.settings import SUMMARY_LENGTH
 from .utils import PickledObjectField
@@ -21,6 +23,9 @@ MARKDOWN_EXTENSIONS = {
     'limitedsyntax': 'forum.markdownext.mdx_limitedsyntax',
     'settingsparser': 'forum.markdownext.mdx_settingsparser',
     'fenced_code': 'markdown.extensions.fenced_code',
+    # Pipe tables (the editor's table button); alignment as align="" because
+    # the sanitizer drops style attributes.
+    'tables': TableExtension(use_align_attribute=True),
 }
 
 
@@ -50,10 +55,12 @@ def normalize_fences(content):
 
 def render_markdown(content):
     """Turns post Markdown into the sanitized HTML stored for each revision
-    (also used by the editor preview): fenced code, auto links, @mentions,
-    images loaded lazily."""
-    html, mentioned = link_mentions(NodeContent._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code'))
-    return mark_safe(lazy_images(html))
+    (also used by the editor preview): fenced code, pipe tables, auto links,
+    @mentions, uploaded images as <picture> with AVIF/WebP sources and their
+    size (forum.utils.images.pictures), images loaded lazily."""
+    html, mentioned = link_mentions(NodeContent._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code',
+                                                             'tables'))
+    return mark_safe(lazy_images(pictures(html)))
 
 
 class NodeContent(models.Model):

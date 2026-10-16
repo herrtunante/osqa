@@ -13,6 +13,14 @@ def collapse(input):
 
 
 @register.filter
+def priority_image(html):
+    """Post HTML whose first image (near the top) loads at once, with high
+    priority: the question body, often the page's largest paint."""
+    from forum.utils.html import priority_image as prioritize
+    return mark_safe(prioritize(str(html)))
+
+
+@register.filter
 def can_edit_post(user, post):
     return user.can_edit_post(post)
 

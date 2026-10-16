@@ -14,29 +14,27 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.utils.encoding import smart_str
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth import login, logout
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
+from django.utils.text import slugify
 
 from django.contrib import messages
 
 from .writers import manage_pending_data
 
-from forum.actions import EmailValidationAction
 from forum.utils import html
-from forum.views.decorators import login_required
-from forum.modules import decorate
 from forum.forms import PublicRegistrationForm, TemporaryLoginRequestForm, ChangePasswordForm, SetPasswordForm
 from forum.forms.general import DescribedFieldsMixin
 from forum.forms.general import clean_next, username_for_signin
 from forum.http_responses import HttpResponseUnauthorized
-from forum.utils.mail import send_template_email
 from forum.utils.redact import redact_meta
 from forum.authentication.base import InvalidAuthentication
 from forum.authentication import AUTH_PROVIDERS
 from forum.models import User, AuthKeyUserAssociation, ValidationHash
 from forum.actions import UserJoinsAction, UserLoginAction
 from forum.utils.antispam import signup_limit_reached, count_signup
-from forum.utils import security_log, throttle, two_factor
+from forum.utils import accounts, security_log, throttle, two_factor
 from forum import settings
 
 from .vars import ON_SIGNIN_SESSION_ATTR, PENDING_SUBMISSION_SESSION_ATTR
@@ -127,11 +125,13 @@ def process_provider_signin(request, provider):
         # Local accounts also sign in with their email address: count failures
         # against the account, whichever of the two was typed.
         username = username_for_signin(typed) if provider == 'local' else typed
+        if typed is not None:
+            accounts.remember_choice(request, request.POST.get('remember') == '1')
         if username and login_paused(request, username):
             security_log.event('login_paused', request, logging.WARNING, provider=provider, username=username)
             request.session['auth_error'] = _(
                 "Too many failed sign-in attempts. Wait %(minutes)s minutes and try again, or use \"Forgot your "
-                "password?\" to get a sign-in link by email.") % {'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)}
+                "password?\" to choose a new password.") % {'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)}
             request.session[SIGNIN_USERNAME_SESSION_ATTR] = typed
             return HttpResponseRedirect(reverse('auth_signin'))
 
@@ -206,6 +206,8 @@ def external_register(request):
             if User.objects.all().count() == 0:
                 user_.is_superuser = True
                 user_.is_staff = True
+            # Double opt-in, unless the sign-in service confirmed the address (or this is the site owner).
+            user_.email_confirmation_required = not (user_.email_isvalid or user_.is_superuser)
 
             user_.save()
             count_signup(request)
@@ -228,7 +230,9 @@ def external_register(request):
             del request.session['assoc_key']
             del request.session['auth_provider']
 
-            return login_and_forward(request, user_, message=_("Welcome! We've emailed you a link to confirm your address."))
+            if accounts.must_confirm_to_sign_in(user_):
+                return HttpResponseRedirect(reverse('auth_check_email'))
+            return login_and_forward(request, user_, message=welcome_message(user_))
     else:
         auth_provider = request.session.get('auth_provider', None)
         if not auth_provider:
@@ -270,91 +274,174 @@ def external_register(request):
     })
 
 def request_temp_login(request):
+    """"Forgot your password?": emails a link to choose a new password. The
+    answer is the same whether or not the address has an account."""
     if request.method == 'POST':
         form = TemporaryLoginRequestForm(request.POST)
 
         if form.is_valid():
-            email = form.cleaned_data['email']
-            limit = int(settings.PASSWORD_RESETS_PER_HOUR)
-            ip = throttle.client_ip(request)
-            if limit > 0 and (throttle.hit('templogin-email', email, 3600) > limit or
-                              throttle.hit('templogin-ip', ip, 3600) > limit * 4):
-                security_log.event('temp_login_limited', request, logging.WARNING, email=email)
-                messages.error(request, _("Too many sign-in links were requested. Please try again in an hour."))
+            if not accounts.request_password_reset(request, form.cleaned_data['email']):
+                messages.error(request, _("Too many password reset emails were requested. Please try again in an "
+                                          "hour."))
                 return render(request, 'auth/temp_login_request.html', {'form': form})
-
-            for u in form.user_cache:
-                if u.is_suspended():
-                    continue
-                # A fresh link each time; the previous one stops working.
-                ValidationHash.objects.filter(user=u, type='templogin').delete()
-                hash = ValidationHash.objects.create_new(u, 'templogin', [u.id])
-                send_template_email([u], "auth/temp_login_email.html", {'temp_login_code': hash})
-                security_log.event('temp_login_requested', request, account=u)
-
-            messages.info(request, _("If this address belongs to an account, we have sent it an email with a sign-in "
-                                     "link. The link works once, for 24 hours."))
-            return HttpResponseRedirect(reverse('index'))
+            return render(request, 'auth/check_email.html', {
+                'kind': 'reset', 'link_minutes': accounts.RESET_MINUTES})
     else:
         form = TemporaryLoginRequestForm()
 
     return render(request, 'auth/temp_login_request.html', {'form': form})
 
+
+@never_cache
 def temp_signin(request, user, code):
-    user = get_object_or_404(User, id=user)
+    """The link of the password reset email: a form for the new password (and
+    the two-step code, if the member uses it). Opening the link changes
+    nothing, so mail scanners that open links don't use it up; the password
+    is only changed, and the link used up, when the form is sent. Then every
+    session of the account is signed out and the member signs in again."""
+    user = User.objects.filter(id=user).first()
+    if user is None or user.is_suspended() or not accounts.check_reset_link(user, code):
+        return render(request, 'auth/link_invalid.html', {'kind': 'reset'}, status=410)
 
-    if (ValidationHash.objects.validate(code, user, 'templogin', [user.id])):
-        
-        # If the user requests temp_signin he must have forgotten his password. So we mark it as unusable,
-        # but for members with two-step verification only once their code is right (forum/views/security.py).
-        security_log.event('temp_login_used', request, account=user)
-        after = ()
-        if two_factor.is_enabled(user) and not user.is_suspended():
-            after = (two_factor.AFTER_RESET_PASSWORD,)
-        else:
-            user.set_unusable_password()
+    needs_code = two_factor.is_enabled(user)
+    code_error = None
+    if request.method == 'POST':
+        form = SetPasswordForm(request.POST, user=user)
+        result = None
+        if needs_code:
+            result = two_factor.check_code(request, user, request.POST.get('code', ''), 'password_reset')
+            if result == two_factor.PAUSED:
+                code_error = _("Too many wrong codes. Wait %(minutes)s minutes and try again.") % {
+                    'minutes': two_factor.lockout_minutes()}
+            elif result not in (two_factor.OK_TOTP, two_factor.OK_RECOVERY):
+                code_error = _("That code is not right. Enter the newest code from your app, or a recovery code.")
+        if form.is_valid() and not code_error and accounts.check_reset_link(user, code, consume=True):
+            user.set_password(form.cleaned_data['password1'])
             user.save()
-
-        return login_and_forward(request, user, reverse('user_authsettings', kwargs={'id': user.id}),
-                                 _("You're signed in with a one-time link. Set a new password below so you can "
-                                   "sign in with it next time."), after_two_factor=after)
+            accounts.password_changed(request, user, 'reset')
+            if request.user.is_authenticated:
+                logout(request)
+            request.session[SIGNIN_USERNAME_SESSION_ATTR] = user.username
+            messages.info(request, _("Your password has been changed and you were signed out everywhere. Sign in "
+                                     "with your new password."))
+            return HttpResponseRedirect(reverse('auth_signin'))
     else:
-        raise Http404()
+        form = SetPasswordForm(user=user)
+    form.fields['password1'].label = _('New password')
+    form.fields['password2'].label = _('Confirm new password')
+    DescribedFieldsMixin.describe_fields(form)
+    return render(request, 'auth/password_reset.html', {
+        'form': form, 'reset_user': user, 'needs_code': needs_code, 'code_error': code_error,
+        'has_password': user.has_usable_password(),
+    })
+
 
 def send_validation_email(request):
-    if not request.user.is_authenticated:
-        # Linked from the FAQ: sign in first, then come back here.
-        return HttpResponseRedirect('%s?next=%s' % (reverse('auth_signin'), urllib.parse.quote(request.path)))
+    """"Confirm your email address": shows where the link was sent, and sends a
+    new one (POST). Signed-out visitors (who can't sign in before confirming)
+    type their address; the answer is the same whether or not it has an account."""
+    signed_in = request.user.is_authenticated
+    if request.method == 'POST':
+        if signed_in:
+            user = request.user
+            if user.email_isvalid:
+                messages.info(request, _("Your email address is already confirmed."))
+            elif accounts.resend_confirmation(request, user):
+                messages.info(request, _("We sent a new confirmation link to %(email)s. It works for %(hours)d "
+                                         "hours.") % {'email': escape(user.email), 'hours': accounts.CONFIRM_HOURS})
+            else:
+                messages.error(request, _("Too many confirmation emails were sent. Please try again in an hour."))
+            return HttpResponseRedirect(clean_next(request.POST.get('next')) if request.POST.get('next')
+                                        else reverse('send_validation_email'))
+        form = TemporaryLoginRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            if accounts.over_limit(request, 'confirm-email', email.lower()):
+                messages.error(request, _("Too many confirmation emails were sent. Please try again in an hour."))
+            else:
+                for user in User.objects.filter(email__iexact=email, is_active=True, email_isvalid=False):
+                    accounts.send_confirmation(user)
+                    security_log.event('confirmation_sent', request, account=user)
+                return render(request, 'auth/check_email.html', {'kind': 'confirm',
+                                                                  'link_hours': accounts.CONFIRM_HOURS})
     else:
-        # We check if there are some old validation hashes. If there are -- we delete them.
-        try:
-            hash = ValidationHash.objects.get(user=request.user, type='email')
-            hash.delete()
-        except:
-            pass
+        form = TemporaryLoginRequestForm()
 
-        # We don't care if there are previous cashes in the database... In every case we have to create a new one
-        hash = ValidationHash.objects.create_new(request.user, 'email', [request.user.email])
+    return render(request, 'auth/confirm_email.html', {
+        'form': form,
+        'link_hours': accounts.CONFIRM_HOURS,
+        'pending_email': accounts.pending_email(request.user) if signed_in else None,
+    })
 
-        additional_get_params = urllib.parse.urlencode(dict([k, v.encode('utf-8')] for k, v in request.GET.items()))
-        send_template_email([request.user], "auth/mail_validation.html", {
-            'validation_code': hash,
-            'additional_get_params' : additional_get_params
-        })
 
-        messages.info(request, _("A message with an email validation link was just sent to your address."))
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-
-        
-
+@never_cache
 def validate_email(request, user, code):
+    """The link of the welcome / confirmation email. Works signed out too; it
+    never signs anyone in."""
     user = get_object_or_404(User, id=user)
+    result = accounts.confirm_email(request, user, code)
+    if result == 'confirmed' and request.user.is_authenticated and request.user.pk == user.pk:
+        request.user.email_isvalid = True
+        request.user.email_confirmation_required = False
+        pending = request.session.get(PENDING_SUBMISSION_SESSION_ATTR)
+        if pending and not accounts.validation_required(user, pending['type']):
+            # A question or answer written before confirming is published now.
+            messages.info(request, _("Thank you, your email address is confirmed."))
+            return manage_pending_data(request, _('save'), reverse('index'))
+    status = 410 if result == 'invalid' else 200
+    return render(request, 'auth/email_confirmed.html', {
+        'result': result, 'confirmed_user': user,
+        'signed_in_as_them': request.user.is_authenticated and request.user.pk == user.pk,
+        'link_hours': accounts.CONFIRM_HOURS,
+    }, status=status)
 
-    if (ValidationHash.objects.validate(code, user, 'email', [user.email])):
-        EmailValidationAction(user=user, ip=request.META['REMOTE_ADDR']).save()
-        return login_and_forward(request, user, reverse('index'), _("Thank you, your email is now validated."))
-    else:
-        return render(request, 'auth/mail_already_validated.html', { 'user' : user })
+
+@never_cache
+def confirm_email_change(request, user, code):
+    """The link sent to the new address of an email change."""
+    user = get_object_or_404(User, id=user)
+    result = accounts.confirm_email_change(request, user, code)
+    return render(request, 'auth/email_change_result.html', {
+        'result': result, 'changed_user': user,
+        'signed_in_as_them': request.user.is_authenticated and request.user.pk == user.pk,
+    }, status=410 if result == 'invalid' else 200)
+
+
+@never_cache
+def cancel_email_change(request, user, code):
+    """The cancel link sent to the old address. GET only asks, so mail scanners
+    that open links cancel nothing; POST cancels and signs out everywhere."""
+    user = get_object_or_404(User, id=user)
+    new_email = accounts.pending_email(user)
+    if not new_email or not ValidationHash.objects.validate(code, user, 'emailcancel', [new_email], consume=False):
+        return render(request, 'auth/link_invalid.html', {'kind': 'email_cancel'}, status=410)
+    if request.method == 'POST':
+        accounts.cancel_email_change(request, user, code)
+        if request.user.is_authenticated and request.user.pk == user.pk:
+            logout(request)
+        return render(request, 'auth/email_change_result.html', {'result': 'cancelled', 'changed_user': user})
+    return render(request, 'auth/email_change_cancel.html', {
+        'changed_user': user, 'new_email_masked': accounts.mask_email(new_email)})
+
+
+@require_POST
+def pending_email_change(request):
+    """Resend or cancel the confirmation of the member's own new address (edit profile page)."""
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('auth_signin'))
+    user = request.user
+    new_email = accounts.pending_email(user)
+    if new_email and request.POST.get('action') == 'resend':
+        if accounts.request_email_change(request, user, new_email):
+            messages.info(request, _("We sent the confirmation link to %s again.") % escape(new_email))
+        else:
+            messages.error(request, _("Too many emails were sent. Please try again in an hour."))
+    elif new_email:
+        accounts.clear_pending_email(user)
+        security_log.event('email_change_withdrawn', request, account=user)
+        messages.info(request, _("The change of your email address was cancelled."))
+    return HttpResponseRedirect(reverse('edit_user', kwargs={'id': user.id, 'slug': slugify(user.username)}))
+
 
 def auth_settings(request, id):
     user_ = get_object_or_404(User, id=id)
@@ -371,14 +458,17 @@ def auth_settings(request, id):
 
     if request.POST:
         form = FormClass(request.POST, user=user_)
-        if form.is_valid():
+        if 'oldpw' in form.fields and login_paused(request, user_.username):
+            form.is_valid()
+            form.add_error('oldpw', _("Too many wrong passwords. Wait %(minutes)s minutes and try again.") % {
+                'minutes': int(settings.LOGIN_LOCKOUT_MINUTES)})
+        elif form.is_valid():
             is_new_pass = not user_.has_usable_password()
             user_.set_password(form.cleaned_data['password1'])
             user_.save()
-            security_log.event('password_set' if is_new_pass else 'password_changed', request, account=user_)
-            if request.user == user_:
-                # Other sessions of this account are signed out; this one stays.
-                update_session_auth_hash(request, user_)
+            # Other sessions of this account are signed out; this one stays. The member gets an email.
+            accounts.password_changed(request, user_, 'admin' if request.user != user_ else
+                                      'set' if is_new_pass else 'changed')
 
             if is_new_pass:
                 messages.info(request, _("New password set"))
@@ -388,6 +478,9 @@ def auth_settings(request, id):
                 messages.info(request, _("Your password was changed"))
 
             return HttpResponseRedirect(reverse('user_authsettings', kwargs={'id': user_.id}))
+        elif 'oldpw' in form.errors:
+            count_login_failure(request, user_.username)
+            security_log.event('password_change_failed', request, logging.WARNING, account=user_)
     else:
         form = FormClass(user=user_)
 
@@ -429,14 +522,33 @@ def remove_external_provider(request, id):
     association.delete()
     return HttpResponseRedirect(reverse('user_authsettings', kwargs={'id': association.user.id}))
 
+def welcome_message(user):
+    if accounts.needs_confirmation(user):
+        return _("Welcome! We've emailed you a link to confirm your address. Confirm it to ask, answer and comment.")
+    return _("Welcome! Your account is ready.")
+
+
 def login_and_forward(request, user, forward=None, message=None, two_factor_method=None, after_two_factor=()):
     """Signs `user` in and redirects. Members with two-step verification on
     are sent to the code page first, unless `two_factor_method` says how
     they already passed it ('totp', 'recovery' or 'passkey'). `after_two_factor`
     names account changes the code page makes once the code is right
-    (two_factor.AFTER_RESET_PASSWORD)."""
+    (two_factor.AFTER_RESET_PASSWORD). New members who must confirm their
+    address before signing in (EMAIL_CONFIRMATION_MODE 'signin') get a new
+    link instead."""
     if user.is_suspended():
         return forward_suspended_user(request, user)
+
+    if accounts.must_confirm_to_sign_in(user):
+        sent = accounts.resend_confirmation(request, user)
+        security_log.event('login_unconfirmed', request, account=user)
+        request.session.pop(accounts.REMEMBER_SESSION_KEY, None)
+        if sent:
+            messages.info(request, _("Please confirm your email address first. We sent a new link to the address "
+                                     "you signed up with."))
+        else:
+            messages.error(request, _("Please confirm your email address first, with the link we emailed you."))
+        return HttpResponseRedirect(reverse('auth_check_email'))
 
     if two_factor_method is None and two_factor.is_enabled(user):
         two_factor.start_pending(request, user, forward, message, after_two_factor)
@@ -444,7 +556,8 @@ def login_and_forward(request, user, forward=None, message=None, two_factor_meth
         return HttpResponseRedirect(reverse('auth_two_factor'))
 
     user.backend = "django.contrib.auth.backends.ModelBackend"
-    login(request, user)
+    login(request, user)  # a new session key: no session fixation
+    accounts.signed_in(request, user)
     two_factor.clear_pending(request)
     if two_factor_method:
         request.session[two_factor.METHOD_SESSION_KEY] = two_factor_method
@@ -452,8 +565,14 @@ def login_and_forward(request, user, forward=None, message=None, two_factor_meth
     # Store the login action
     UserLoginAction(user=user, ip=request.META['REMOTE_ADDR']).save()
 
+    response = _forward_after_login(request, user, forward, message)
+    accounts.note_device(request, response, user)
+    return response
+
+
+def _forward_after_login(request, user, forward, message):
     if message is None:
-        message = _("Welcome back, %s! You're signed in.") % smart_str(user.username)
+        message = _("Welcome back, %s! You're signed in.") % escape(smart_str(user.username))
 
     messages.info(request, message)
 
@@ -462,7 +581,7 @@ def login_and_forward(request, user, forward=None, message=None, two_factor_meth
 
     pending_data = request.session.get(PENDING_SUBMISSION_SESSION_ATTR, None)
 
-    if pending_data and (user.email_isvalid or pending_data['type'] not in settings.REQUIRE_EMAIL_VALIDATION_TO):
+    if pending_data and not accounts.validation_required(user, pending_data['type']):
         submission_time = datetime.datetime.fromisoformat(pending_data['time'])
         if submission_time < datetime.datetime.now() - datetime.timedelta(minutes=int(settings.HOLD_PENDING_POSTS_MINUTES)):
             del request.session[PENDING_SUBMISSION_SESSION_ATTR]
@@ -518,7 +637,43 @@ def forward_suspended_user(request, user, show_private_msg=True):
     messages.info(request, message)
     return HttpResponseRedirect(reverse('index'))
 
-@decorate.withfn(login_required)
+def check_email(request):
+    """"Check your inbox" after signing up when the address must be confirmed
+    before signing in (also shown when such an account tries to sign in)."""
+    return render(request, 'auth/check_email.html', {'kind': 'signup', 'link_hours': accounts.CONFIRM_HOURS})
+
+
+def _local_next(value):
+    """A path on this site to go to, or '' (clean_next falls back to a full URL)."""
+    value = clean_next(value) if value else ''
+    return value if value.startswith('/') else ''
+
+
 def signout(request):
-    logout(request)
-    return HttpResponseRedirect(reverse('index'))
+    """Signing out is a POST (with the CSRF token), so no link or image on
+    another site can sign people out; GET shows the confirmation page.
+    "everywhere" also ends the member's other sessions."""
+    if request.method != 'POST':
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('index'))
+        return render(request, 'logout.html', {'next': _local_next(request.GET.get('next'))})
+    if request.user.is_authenticated:
+        user = request.user
+        if request.POST.get('everywhere') == '1':
+            accounts.sign_out_everywhere(user)
+            security_log.event('signout_everywhere', request, account=user)
+        logout(request)  # the session is deleted and the cookie gets a new key
+    forward = _local_next(request.POST.get('next')) or reverse('index')
+    messages.info(request, _("You're signed out."))
+    return HttpResponseRedirect(forward)
+
+
+@require_POST
+def signout_others(request):
+    """"Sign out of all other sessions" on the security page."""
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('auth_signin'))
+    accounts.sign_out_everywhere(request.user, request, keep_current=True)
+    security_log.event('signout_other_sessions', request, account=request.user)
+    messages.info(request, _("You're signed out on every other browser and device. This one stays signed in."))
+    return HttpResponseRedirect(reverse('user_security', kwargs={'id': request.user.id}))

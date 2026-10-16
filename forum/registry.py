@@ -79,6 +79,11 @@ class SupportLink(ui.Link):
         return bool(settings.SUPPORT_URL)
 
 
+class ApiLink(ui.Link):
+    def can_render(self, context):
+        return bool(settings.API_ENABLED)
+
+
 ui.register(ui.FOOTER_LINKS,
             ui.Link(
                     text=_lazy('contact'),
@@ -86,6 +91,7 @@ ui.register(ui.FOOTER_LINKS,
                     weight=400),
             SupportLink(_lazy('support'), settings.SUPPORT_URL, attrs={'target': '_blank'}, weight=300),
             ui.Link(_lazy('privacy'), ui.Url('privacy'), weight=200),
+            ApiLink(_lazy('API'), ui.Url('api_docs'), weight=500),
             ui.Link(_lazy('faq'), ui.Url('faq'), weight=100),
             ui.Link(_lazy('about'), ui.Url('about'), weight=0),
 )

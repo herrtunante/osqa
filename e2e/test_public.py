@@ -84,7 +84,7 @@ class PublicPagesTest(E2ETestCase):
         page.locator('#searchBar button[type=submit]').click()
         page.wait_for_load_state()
         self.assertIn('/search/', page.url)
-        self.assertIn('How do I export Collect survey data to CSV?', page.content())
+        self.assertIn('How do I export Collect survey data to CSV?', page.locator('#search-results h2 a').all_inner_texts())
         self.check_page(page)
 
         self.visit(page, '/tags/')

@@ -170,7 +170,8 @@
                 if (button) {
                     button.disabled = false;
                 }
-                if (!quiet(error)) {
+                // The background autofill request was not asked for: it fails silently.
+                if (!quiet(error) && !conditional) {
                     showError(box, error.message);
                 }
             });

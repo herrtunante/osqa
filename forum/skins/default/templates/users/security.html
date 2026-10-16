@@ -109,4 +109,16 @@
         {% endif %}
     {% endif %}
 </section>
+{% if own %}
+<section class="settings-card security-card" aria-labelledby="security-sessions-title">
+    <div class="settings-card-head">
+        <h2 id="security-sessions-title">{% trans "Where you're signed in" %}</h2>
+    </div>
+    <p class="settings-lead">{% blocktrans %}Signed in on a computer that isn't yours, or lost a phone? Sign out everywhere else: every other browser and device has to sign in again. This one stays signed in. Changing or resetting your password does this too.{% endblocktrans %}</p>
+    <form method="post" action="{% url "auth_signout_others" %}" data-confirm="{% trans "Sign out on every other browser and device?" %}">
+        {% csrf_token %}
+        <button type="submit" class="plain-button danger-outline-button">{% trans "Sign out of all other sessions" %}</button>
+    </form>
+</section>
+{% endif %}
 {% endblock %}

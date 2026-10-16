@@ -228,7 +228,9 @@ def passkey_auth(request):
     two_factor.clear_pending(request)
     security_log.event('passkey_login', request, account=user, passkey=passkey.id)
     response = login_and_forward(request, user, two_factor_method='passkey')
-    return JsonResponse({'redirect': response.get('Location') or reverse('index')})
+    reply = JsonResponse({'redirect': response.get('Location') or reverse('index')})
+    reply.cookies.update(response.cookies)  # e.g. the new-browser cookie (forum/utils/accounts.py)
+    return reply
 
 
 # -- the verification step of signing in -------------------------------------------

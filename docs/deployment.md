@@ -193,8 +193,10 @@ optional `alias` locations, behind a CDN, or on a container platform):
 | Skin media without a version (images referenced from CSS) and Django's admin media (`/m/django_admin/`) | `public, max-age=3600` | ETag / Last-Modified, `304 Not Modified` |
 | Skin media with an old version (a page saved before a deploy) | `no-cache` (content of the current file) | ETag |
 | Uploads, `/upfiles/...` (a new upload always gets a new name) | `public, max-age=31536000, immutable` | ETag |
+| Their AVIF/WebP copies, `/upfiles/_variants/...` (written once) | `public, max-age=31536000, immutable` | ETag |
 | The default logo shipped in `forum/upfiles` | `public, max-age=3600` | ETag |
 | Question pages for anonymous visitors without a pending message (once their view is counted), and `/feeds/rss/` | `private, no-cache`, `Vary: Cookie, Accept-Language` | ETag, `304 Not Modified` while nothing on the site changed (at most an hour) |
+| The JSON API, `/api/v1/...` | `public, no-cache` (`private` with a token), `no-store` for writes; `Vary: Authorization, Origin, Accept-Language` | ETag and `304` on single objects |
 | Other pages | none | none |
 
 The version is a hash of the file's content, computed once per process, so
@@ -215,6 +217,27 @@ text ones (`gzip_static on;` would use `.gz` files placed next to them).
 If several app servers are updated one at a time, leave `/m/` to OSQA (drop
 the `alias` for it): nginx can't tell whether `?v=` matches the file on its
 own disk, while OSQA only marks the current version immutable.
+
+#### Images
+
+Every uploaded image is re-encoded (metadata removed, at most
+`UPLOAD_MAX_IMAGE_SIDE` pixels) and stored under its own name; OSQA then
+writes smaller copies next to it in `upfiles/_variants/`: WebP, and AVIF when
+the installed Pillow can write it (`python -c "from PIL import features;
+print(features.check('avif'))"`), at 640 and 1280 pixels wide and full width,
+plus a small `.json` file with the image's size. Posts show uploads as
+`<picture>` elements with those sources and the image's width and height, so
+phones download a small modern file and the page doesn't jump while it loads.
+`_variants/` is part of the uploads folder: keep it on the same persistent
+volume and in the backups. With the nginx `alias` for `/upfiles/` above, nginx
+1.21 or older needs `types { image/avif avif; }` in that location (older
+`mime.types` files don't list AVIF). Images uploaded before this version get
+their copies from `manage.py backfill_image_variants` (see the update steps).
+
+For profiling, `SERVER_TIMING=staff` (environment or `settings_local.py`)
+adds a `Server-Timing` header (database time and queries, template
+rendering, total) to the pages staff members load; the browser's developer
+tools show it under Network > Timing. With `DEBUG` every response has it.
 
 #### Security headers (Content-Security-Policy)
 
@@ -243,6 +266,30 @@ response, so:
   `CONTENT_SECURITY_POLICY = "..."` replaces the whole policy (write `{nonce}`
   where the nonce goes, e.g. `script-src 'self' 'nonce-{nonce}'`).
 
+#### Session and cookie security
+
+With an `https://` `APP_URL`, `settings.py` already sets `SESSION_COOKIE_SECURE`,
+`CSRF_COOKIE_SECURE`, HSTS and (behind a trusted proxy) `SECURE_SSL_REDIRECT`.
+The defaults to keep, or set in `settings_local.py`:
+
+| Setting | Default | Why |
+| --- | --- | --- |
+| `SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE` | `True` on HTTPS | cookies never sent over plain HTTP |
+| `SESSION_COOKIE_HTTPONLY` | `True` | scripts can't read the session cookie |
+| `SESSION_COOKIE_SAMESITE` | `'Lax'` | other sites can't send it with their forms |
+| `SESSION_COOKIE_AGE` | two weeks | "Keep me signed in"; unticked, the session ends with the browser |
+| `CSRF_USE_SESSIONS` | `True` | the CSRF token lives in the session (no csrftoken cookie) |
+| `SECURE_HSTS_SECONDS` | one year on HTTPS | browsers use HTTPS only |
+| `SESSION_ENGINE` | database | sessions can be listed and deleted; the cached_db engine is faster |
+
+Sign-in gives the session a new key (no session fixation), sign-out is a POST
+and deletes the session, and password changes, resets, "sign out of all other
+sessions" and cancelled email changes end the account's other sessions. A
+reverse proxy must pass `X-Forwarded-Proto` (and set `TRUSTED_PROXY_COUNT`) so
+Django knows requests are HTTPS. Password, confirmation and email-change links
+are sent by email: set the email settings (Admin > Email) before opening sign-up,
+and keep `APP_URL` right, since the links are built from it.
+
 ### 5. Scheduled jobs
 
 `crontab -e -u osqa`:
@@ -251,7 +298,7 @@ response, so:
 OSQA=/srv/osqa/app
 PY=/srv/osqa/venv/bin/python
 # Daily digest and daily/weekly summaries (weekly ones go out on their day from this same
-# daily run: no separate weekly line), and dormant (bot) account clean-up
+# daily run: no separate weekly line), and clean-up of dormant (bot) and never-confirmed accounts
 0 7 * * *   cd $OSQA && $PY manage.py send_email_alerts
 45 6 * * *  cd $OSQA && $PY manage.py cleanup_inactive_users
 0 7 * * *   cd $OSQA && $PY manage.py remind_unaccepted
@@ -276,7 +323,12 @@ sudo systemctl restart osqa
 
 Read the README's "Upgrading an existing installation" notes first. When an
 update adds the search index (migration `0013`), also run
-`manage.py rebuild_search_index` once after `migrate`. Take a
+`manage.py rebuild_search_index` once after `migrate`. When it adds image
+variants ([Images](#images)), run
+`manage.py backfill_image_variants --rerender` once (`--dry-run` first shows
+what it would do; it can run again at any time and skips what is done):
+it writes the AVIF/WebP copies of the existing uploads and renders again the
+posts that show them. Take a
 database backup before `migrate`, and run `migrate` in a quiet period on large
 sites, since some migrations add indexes to big tables.
 
@@ -344,6 +396,8 @@ Each run's outcome is exported by `/metrics` (see
 ```bash
 git pull
 docker compose up -d --build         # migrate runs again before web and cron restart
+# Once, after the update that adds image variants (safe to repeat):
+docker compose exec web python manage.py backfill_image_variants --rerender
 ```
 
 ### Moving from the single-service compose file

@@ -2,6 +2,7 @@ from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.contrib.auth import logout
 from forum.models.user import AnonymousUser
 from forum.views.auth import forward_suspended_user
+from forum.utils import accounts
 import logging
 
 class ExtendedUser(AuthenticationMiddleware):
@@ -27,6 +28,14 @@ class ExtendedUser(AuthenticationMiddleware):
                     user = request.user
                     logout(request)
                     return forward_suspended_user(request, user)
+
+                # Signed out everywhere since this session signed in
+                # (forum/utils/accounts.py: password reset, "sign out of
+                # other sessions", a cancelled email change).
+                if not accounts.session_valid(request, request.user):
+                    logout(request)
+                    request.user = AnonymousUser()
+                    return None
 
                 request.user.touch_last_seen()
                 return None

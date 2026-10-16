@@ -1,5 +1,6 @@
 """The site search page (/search/): full-text results with snippets, query
-operators, sort tabs and pagination. See forum/search/.
+operators, filters kept in the URL (forum/search/filters.py) with chips and
+facet counts, "did you mean", sort tabs and pagination. See forum/search/.
 
 suggest (/search/suggest/?q=) feeds the header search box's suggestions."""
 import hashlib
@@ -7,24 +8,32 @@ import json
 import re
 from urllib.parse import quote as urlquote, urlencode
 
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.cache import cache
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.utils.translation import get_language, gettext as _, ngettext
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+from django.utils.translation import get_language, gettext as _, ngettext, pgettext
 from django.views.decorators.http import require_GET
 
 from forum import settings
 
 from forum.feed import RssQuestionFeed
 from forum.models import Node, Question, SearchDocument, Tag, TagSynonym, User
-from forum.search import engine
+from forum.search import engine, spelling
+from forum.search.filters import SearchFilters
 from forum.search.query import parse, words
-from forum.search.text import highlighter, html_to_text, snippet, stem
+from forum.search.text import highlighter, html_to_text, mark, snippet, stem
 from forum.utils import pagination
 from forum.utils.review import hidden_q
 
 from . import decorators
+
+SORTS = ('relevance', 'newest', 'votes', 'active')
+# Fewer results than this: look for a better spelling of the query.
+FEW_RESULTS = 3
 
 
 class SearchPaginatorContext(pagination.PaginatorContext):
@@ -51,12 +60,110 @@ def search(request):
     return search_results(request, keywords)
 
 
+def search_url(q='', filters=None, sort='', **extra):
+    """/search/ with the query text, the filters and the sort in its query string."""
+    params = [('q', q)] if q else []
+    if filters is not None:
+        params += filters.params()
+    if sort:
+        params.append(('sort', sort))
+    params += [(k, v) for k, v in extra.items() if v]
+    return reverse('search') + ('?' + urlencode(params) if params else '')
+
+
+def status_labels():
+    return {'unanswered': _('Unanswered'), 'answered': _('Answered'), 'accepted': _('Accepted answer')}
+
+
+def date_labels():
+    return {'week': _('Past week'), 'month': _('Past month'), 'year': _('Past year'), 'custom': _('Custom range')}
+
+
+def _date_chip(filters):
+    if filters.date != 'custom':
+        return date_labels()[filters.date]
+    if filters.date_from and filters.date_to:
+        return _('Asked %(start)s to %(end)s') % {'start': filters.date_from.isoformat(),
+                                                  'end': filters.date_to.isoformat()}
+    if filters.date_from:
+        return _('Asked since %(date)s') % {'date': filters.date_from.isoformat()}
+    return _('Asked until %(date)s') % {'date': filters.date_to.isoformat()}
+
+
+def filter_chips(query, filters, sort):
+    """The active filters, each with the URL of the search without it: the
+    query's own operators first, then the filters of the form."""
+    chips = []
+    statuses = status_labels()
+    for index, (kind, value, start, end) in enumerate(query.operators):
+        if kind == 'tag':
+            label = _('Tag: %(tag)s') % {'tag': value}
+        elif kind == 'user':
+            label = _('Asked by %(name)s') % {'name': value}
+        else:
+            label = statuses.get(value, value)
+        chips.append({'label': label, 'url': search_url(query.without_operators(index), filters, sort)})
+    q = query.raw
+    for tag in filters.tags:
+        chips.append({'label': _('Tag: %(tag)s') % {'tag': tag}, 'url': search_url(q, filters.without('tags', tag), sort)})
+    for name, active, label in (
+            ('status', filters.status, lambda: statuses[filters.status]),
+            ('closed', filters.hide_closed, lambda: _('Closed questions hidden')),
+            ('date', filters.date, lambda: _date_chip(filters)),
+            ('author', filters.author, lambda: _('Asked by %(name)s') % {'name': filters.author}),
+            ('code', filters.has_code, lambda: _('Has code')),
+            ('min_score', filters.min_score is not None,
+             lambda: _('Score at least %(score)d') % {'score': filters.min_score})):
+        if active:
+            chips.append({'label': label(), 'url': search_url(q, filters.without(name), sort)})
+    return chips
+
+
+def _facet_count(count, capped):
+    return '%d+' % count if capped and count >= engine.FACET_CAP else str(count)
+
+
+def search_facets(query, filters, questions, sort):
+    """Counts for the status options and the commonest tags of the results,
+    over at most engine.FACET_CAP matching questions."""
+    rows = engine.matched_rows(questions)
+    if filters.status or filters.hide_closed:
+        base, _ranked = engine.search(query, filters=filters, skip=('status', 'closed'))
+        base_rows = engine.matched_rows(base)
+    else:
+        base_rows = rows
+    counts = engine.status_facets(base_rows)
+    capped = counts['capped']
+    statuses = status_labels()
+    status_options = [{'value': '', 'label': _('Any'), 'count': _facet_count(counts['total'], capped),
+                       'checked': not filters.status}]
+    status_options += [{'value': value, 'label': statuses[value], 'count': _facet_count(counts[value], capped),
+                        'checked': filters.status == value} for value in ('unanswered', 'answered', 'accepted')]
+    leave_out = set(filters.tags) | set(query.tags)
+    tags = [{'name': name, 'count': _facet_count(n, len(rows) >= engine.FACET_CAP),
+             'url': search_url(query.raw, filters.copy(tags=filters.tags + [name]), sort)}
+            for name, n in engine.tag_facets([row[0] for row in rows], leave_out=leave_out)]
+    return {'status': status_options, 'closed': _facet_count(counts['closed'], capped), 'tags': tags}
+
+
+def did_you_mean(query, filters, count, sort):
+    """{'url', 'html'} of a better spelt query that finds more, or None."""
+    if not (query.has_text or query.operators) or count >= FEW_RESULTS:
+        return None
+    corrected = spelling.suggest(query)
+    if not corrected or corrected.strip().lower() == query.raw.strip().lower():
+        return None
+    questions, _ranked = engine.search(parse(corrected), filters=filters)
+    if questions.count() <= count:
+        return None
+    typed = set(w.lower() for w in query.raw.split())
+    html = ' '.join(('<strong>%s</strong>' if w.lower() not in typed else '%s') % escape(w) for w in corrected.split())
+    return {'url': search_url(corrected, filters, sort), 'html': mark_safe(html), 'text': corrected}
+
+
 def _page_details(questions, query):
-    """For each question on the page: answer counts and a snippet."""
+    """For each question on the page: the marked title, a snippet and its status."""
     ids = [q.id for q in questions]
-    counts = {row['parent_id']: row for row in Node.objects.filter(parent_id__in=ids, node_type='answer').exclude(
-        hidden_q()).values('parent_id').annotate(
-        answers=Count('id'), accepted=Count('id', filter=Q(marked=True)))}
     documents = SearchDocument.objects.in_bulk(ids)
     regex = highlighter(query.highlight_terms())
     results = []
@@ -66,37 +173,67 @@ def _page_details(questions, query):
             text = snippet(regex, document.body, document.answers)
         else:
             text = snippet(regex, html_to_text(question.body))
-        row = counts.get(question.id, {})
-        results.append({'question': question, 'snippet': text,
-                        'answers': row.get('answers', 0), 'accepted': bool(row.get('accepted'))})
+        answers, accepted = question.answer_count, bool(question.accepted_count)
+        if question.nis.closed:
+            status = ('closed', pgettext('search result status', 'Closed'))
+        elif accepted:
+            status = ('accepted', pgettext('search result status', 'Accepted'))
+        elif answers:
+            status = ('answered', pgettext('search result status', 'Answered'))
+        else:
+            status = ('unanswered', pgettext('search result status', 'Unanswered'))
+        results.append({'question': question, 'title': mark(question.headline, regex), 'snippet': text,
+                        'answers': answers, 'accepted': accepted, 'status': status[0], 'status_label': status[1]})
     return results
+
+
+def result_count_text(count):
+    if count == 1:
+        return _('1 result')
+    return ngettext('About %(count)s result', 'About %(count)s results', count) % {'count': intcomma(count)}
 
 
 @decorators.render('search.html', 'questions')
 def search_results(request, keywords):
     query = parse(keywords)
-    context = {'keywords': keywords, 'query': query, 'results': [], 'page_title': _('Search')}
-    if query.is_empty:
+    filters = SearchFilters.from_params(request.GET)
+    sort = request.GET.get('sort') if request.GET.get('sort') in SORTS else ''
+    context = {'keywords': keywords, 'query': query, 'filters': filters, 'sort': sort, 'results': [],
+               'searching': False, 'page_title': _('Search'), 'date_labels': date_labels(),
+               'status_options': [{'value': '', 'label': _('Any'), 'checked': not filters.status}] + [
+                   {'value': value, 'label': label, 'checked': filters.status == value}
+                   for value, label in status_labels().items()]}
+    if query.is_empty and filters.is_empty:
         return context
 
-    questions, ranked = engine.search(query)
+    questions, ranked = engine.search(query, filters=filters)
     if request.GET.get('type') == 'rss':
         questions = questions.order_by('search_rank') if ranked else questions.order_by('-added_at')
-        title = _("questions matching '%(keywords)s'") % {'keywords': keywords}
+        title = _("questions matching '%(keywords)s'") % {'keywords': keywords or search_url('', filters)}
         return RssQuestionFeed(request, questions, title, title)(request)
 
+    plain_text = query.without_operators()
+    chips = filter_chips(query, filters, sort)
     context.update({
-        'questions': questions,
+        'searching': True,
+        'questions': questions.prefetch_cached(fks=('author',), counts=('answer_count', 'accepted_count')),
         'ranked': ranked,
-        'page_title': _("Search results for %(query)s") % {'query': keywords},
-        'feed_url': '%s?%s' % (reverse('search'), urlencode({'q': keywords, 'type': 'rss'})),
+        'page_title': _("Search results for %(query)s") % {'query': keywords} if keywords else _('Search results'),
+        'feed_url': search_url(keywords, filters, type='rss'),
         'ask_url': '%s?%s' % (reverse('ask'), urlencode({'title': query.title_text})) if query.title_text
         else reverse('ask'),
-        'without_filters_url': '%s?%s' % (reverse('search'), urlencode({'q': query.title_text}))
-        if query.has_filters and query.title_text else '',
+        'chips': chips,
+        'clear_all_url': search_url(plain_text, None, sort) if chips else '',
+        'plain_text': plain_text,
     })
+    context['facets'] = search_facets(query, filters, questions, sort)
+    context['status_options'] = context['facets']['status']
     context = pagination.paginated(request, ('questions', SearchPaginatorContext(ranked)), context)
-    context['results'] = _page_details(list(context['questions'].paginator.page), query)
+    paginator = context['questions'].paginator
+    context['results'] = _page_details(list(paginator.page), query)
+    context['result_count'] = paginator.count
+    context['result_count_text'] = result_count_text(paginator.count) if paginator.count else _('No results')
+    context['did_you_mean'] = did_you_mean(query, filters, paginator.count, sort)
     return context
 
 

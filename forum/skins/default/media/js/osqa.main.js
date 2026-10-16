@@ -380,20 +380,27 @@ function init_award_points($dialog) {
         }
     }
 
-    $slider.slider({
-        min: 1, max: user_reputation,
-        slide: function(evt, ui) {
-            $input.val(ui.value);
-            confirm_points(Number(ui.value), evt);
-        }
-    });
+    // jQuery UI is loaded on demand (osqa.autocomplete.js).
+    var sliderReady = false;
+    window.osqaJqueryUI().then(function() {
+        $slider.slider({
+            min: 1, max: user_reputation, value: Number($input.val()) || 1,
+            slide: function(evt, ui) {
+                $input.val(ui.value);
+                confirm_points(Number(ui.value), evt);
+            }
+        });
+        sliderReady = true;
+    }, function() {});
 
     $input.on('change keyup', function(evt) {
         if ($(this).val() > user_reputation) {
             $(this).val(user_reputation);
         }
         confirm_points(Number($(this).val()), evt);
-        $slider.slider('option', 'value', $(this).val());
+        if (sliderReady) {
+            $slider.slider('option', 'value', $(this).val());
+        }
     });
 }
 
@@ -861,38 +868,7 @@ $(function() {
     init_post_widgets(document);
     window.osqaInitPostWidgets = init_post_widgets;
 
-    if ($('#editor').length) {
-        var $editor = $('#editor');
-        var $previewer = $('#previewer');
-        var $container = $('#editor-metrics');
-
-        var initial_whitespace_rExp = /^[^A-Za-zА-Яа-я0-9]+/gi;
-        var non_alphanumerics_rExp = rExp = /[^A-Za-zА-Яа-я0-9]+/gi;
-        var editor_interval = null;
-
-        $editor.focus(function() {
-            if (editor_interval == null) {
-                editor_interval = window.setInterval(function() {
-                    recalc_metrics();
-                }, 200);
-            }
-        });
-
-        function recalc_metrics() {
-            var text = $previewer.text();
-
-            var char_count = text.length;
-            var fullStr = text + " ";
-            var left_trimmedStr = fullStr.replace(initial_whitespace_rExp, "");
-            var cleanedStr = left_trimmedStr.replace(non_alphanumerics_rExp, " ");
-            var splitString = cleanedStr.split(" ");
-            var word_count = splitString.length - 1;
-
-            var metrics = char_count + " " + (char_count == 1 ? messages.character : messages.characters);
-            metrics += " / " + word_count + " " + (word_count == 1 ? messages.word : messages.words);
-            $container.html(metrics);
-        }
-    }
+    // The editor's character and word count is in osqa.editor.js.
 });
 
 //var scriptUrl, interestingTags, ignoredTags, tags, $;

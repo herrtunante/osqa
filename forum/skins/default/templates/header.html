@@ -5,7 +5,7 @@
 	  
 		<div id="logo">
 			<a href="{% url "index" %}">
-				<img src="{% with logo=settings.APP_LOGO|stringformat:"s" %}{% if "://" in logo %}{{ logo }}{% else %}{% url "index" %}{% if logo|slice:":1" == "/" %}{{ logo|slice:"1:" }}{% else %}{{ logo }}{% endif %}{% endif %}{% endwith %}" title="{% trans "back to home page" %}" alt="{{settings.APP_TITLE}} logo"/>
+				<img src="{% with logo=settings.APP_LOGO|stringformat:"s" %}{% if "://" in logo %}{{ logo }}{% else %}{% url "index" %}{% if logo|slice:":1" == "/" %}{{ logo|slice:"1:" }}{% else %}{{ logo }}{% endif %}{% endif %}{% endwith %}" {% logo_size %} title="{% trans "back to home page" %}" alt="{{settings.APP_TITLE}} logo"/>
 
 			</a>
 		</div>

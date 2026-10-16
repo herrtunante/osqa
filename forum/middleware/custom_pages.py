@@ -20,6 +20,8 @@ class CustomPagesFallbackMiddleware(object):
     def process_response(self, request, response):
         if response.status_code != 404:
             return response # No need to check for a flatpage for non-404 responses.
+        if not response.get('Content-Type', '').startswith('text/html'):
+            return response  # A JSON (API) or text 404 stays as it is.
         try:
             return page(request)
         # Return the original response if any errors happened. Because this

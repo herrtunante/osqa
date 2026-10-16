@@ -1,5 +1,9 @@
 /*
- * @username autocomplete in comment boxes and the post editor.
+ * @username autocomplete in comment boxes and the post editor: after "@" and
+ * a letter, up to six members (matching_users); Up/Down choose, Enter or Tab
+ * insert "@username ", Escape closes. The text box points at the list
+ * (aria-controls, aria-activedescendant); in the post editor the insertion
+ * is one undo step (osqa.editor.js).
  */
 (function() {
     var SELECTOR = 'textarea.commentBox, textarea#editor';
@@ -36,6 +40,10 @@
             box.remove();
         }
         box = null;
+        if (target) {
+            target.removeAttribute('aria-activedescendant');
+            target.removeAttribute('aria-controls');
+        }
     }
 
     function close() {
@@ -50,13 +58,16 @@
         }
         box = document.createElement('ul');
         box.className = 'mention-suggestions';
+        box.id = 'mention-suggestions';
         box.setAttribute('role', 'listbox');
+        box.setAttribute('aria-label', (window.messages && messages.mention_suggestions) || 'Members');
         items.forEach(function(item, i) {
             var li = document.createElement('li');
             li.setAttribute('role', 'option');
+            li.id = 'mention-option-' + i;
+            li.setAttribute('aria-selected', i === active ? 'true' : 'false');
             if (i === active) {
                 li.className = 'active';
-                li.setAttribute('aria-selected', 'true');
             }
             var name = document.createElement('span');
             name.textContent = item.name;
@@ -72,9 +83,13 @@
             box.appendChild(li);
         });
         var pos = caretPosition(target);
-        box.style.left = Math.min(pos.left, window.scrollX + document.documentElement.clientWidth - 240) + 'px';
-        box.style.top = pos.top + 'px';
+        var right = window.scrollX + document.documentElement.clientWidth - 8;
         document.body.appendChild(box);
+        box.style.left = Math.max(window.scrollX + 8, Math.min(pos.left, right - box.offsetWidth)) + 'px';
+        box.style.top = pos.top + 'px';
+        target.setAttribute('aria-autocomplete', 'list');
+        target.setAttribute('aria-controls', box.id);
+        target.setAttribute('aria-activedescendant', 'mention-option-' + active);
     }
 
     function choose(i) {
@@ -84,11 +99,16 @@
         }
         var value = target.value, caret = target.selectionStart;
         var insert = '@' + item.username + ' ';
-        target.value = value.slice(0, start) + insert + value.slice(caret);
+        var newValue = value.slice(0, start) + insert + value.slice(caret);
         var newCaret = start + insert.length;
-        target.setSelectionRange(newCaret, newCaret);
-        target.dispatchEvent(new Event('input', {bubbles: true}));
-        target.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true}));
+        if (target.osqaEditor) {
+            target.osqaEditor.apply(newValue, newCaret);
+        } else {
+            target.value = newValue;
+            target.setSelectionRange(newCaret, newCaret);
+            target.dispatchEvent(new Event('input', {bubbles: true}));
+            target.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true}));
+        }
         close();
         target.focus();
     }

@@ -51,7 +51,9 @@ class LocalAuthTest(OSQATestCase):
         self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
-        self.client.get('/account/signout/')
+        self.client.get('/account/signout/')  # only the confirmation page
+        self.assertEqual(self.logged_in_user_id(), str(user.id))
+        self.client.post('/account/signout/')
         self.assertIsNone(self.logged_in_user_id())
 
     def test_sign_in_with_email_address(self):
@@ -110,13 +112,16 @@ class LocalAuthTest(OSQATestCase):
         self.assertIn('value="not-an-address"', page)  # what was typed is kept
         self.assertIn('That username is taken', page)
 
-    def test_temporary_login_link(self):
+    def test_password_reset_link(self):
         user = self.create_user('carol')
         self.client.post('/account/tempsignin/', {'email': 'carol@example.com'})
         self.assertEqual(len(self.sent_mail), 1)
 
         link = re.search(r'/account/tempsignin/\d+/[^/\s"<]+/', self.sent_mail[0][3]).group(0)
-        self.client.get(link)
+        self.assertContains(self.client.get(link), 'Choose a new password')
+        self.client.post(link, {'password1': 'a-new-long-pass-1', 'password2': 'a-new-long-pass-1'})
+        self.assertTrue(User.objects.get(id=user.id).check_password('a-new-long-pass-1'))
+        self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'a-new-long-pass-1'})
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
 

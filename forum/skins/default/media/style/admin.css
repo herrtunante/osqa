@@ -8,7 +8,7 @@
    "Dark mode"). Django's own CSS follows the same attribute.
 
    Sections: palette, layout (header, breadcrumbs, menu, content), messages,
-   buttons and forms, then one per page (dashboard, statistics, static pages,
+   buttons and forms, then one per page (dashboard, community health, statistics, static pages,
    node manager, moderation inbox, support), then phones. */
 
 /* :root[data-theme]: above Django's html[data-theme="light"/"dark"] palettes;
@@ -47,6 +47,13 @@
     --osqa-count-fg: #3b2a00;
     --osqa-radius: 8px;
     --osqa-tap: 32px;
+    /* Community health: chart series, the previous period, better/worse trends. */
+    --osqa-chart-1: #2c5aa0;
+    --osqa-chart-2: #c25e00;
+    --osqa-chart-3: #1e7d4f;
+    --osqa-chart-prev: #9aa6b8;
+    --osqa-good-fg: #1e6b45;
+    --osqa-bad-fg: #b00020;
 }
 
 :root[data-theme="dark"] {
@@ -76,6 +83,12 @@
     --osqa-control-bg: #1b1b1b;
     --osqa-menu-current-bg: #1f3352;
     --osqa-menu-current-fg: #dbe7fb;
+    --osqa-chart-1: #8ab4f8;
+    --osqa-chart-2: #f0a55a;
+    --osqa-chart-3: #5cc98f;
+    --osqa-chart-prev: #5d6878;
+    --osqa-good-fg: #6fd39b;
+    --osqa-bad-fg: #ff8b84;
 }
 
 /* ---- Layout: header ------------------------------------------------------ */
@@ -670,6 +683,383 @@ input[type="file"]::file-selector-button:hover {
 /* Recent activity: names and posts linked inside a sentence are underlined
    (link-in-text-block: the admin's link colour is too close to the text). */
 .action_body a, .node-list .node-states a { text-decoration: underline; }
+
+/* ---- Community health (osqaadmin/health.html, on the dashboard) ---------- */
+
+.health {
+    margin: 0 0 28px;
+}
+
+.health-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: 0 0 8px;
+}
+
+#content-main .health-title {
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: var(--body-loud-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.health-periods ul, .health-tiles, .health-legend, .health-bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.health-periods ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.health-periods li, .health-tiles > li, .health-legend li, .health-bars li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.health-periods a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--osqa-tap);
+    padding: 4px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--body-fg);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.health-periods a[aria-current="page"] {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg);
+    font-weight: 600;
+}
+
+.health-headline {
+    max-width: 75ch;
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.health-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin: 0 0 8px;
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+}
+
+.health-meta form {
+    margin: 0;
+}
+
+.health-meta a {
+    text-decoration: underline;
+}
+
+#content-main .health-group-title {
+    margin: 20px 0 8px;
+    color: var(--body-quiet-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.health-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+    gap: 12px;
+}
+
+.health-tiles > li.health-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+    background: var(--body-bg);
+}
+
+.health-tile-label {
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.health-tile-label a {
+    text-decoration: underline;
+}
+
+.health-tile-value {
+    color: var(--body-fg);
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.health-trend {
+    color: var(--body-fg);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.health-trend.health-good {
+    color: var(--osqa-good-fg);
+}
+
+.health-trend.health-bad {
+    color: var(--osqa-bad-fg);
+}
+
+.health-tile-prev, .health-tile-note {
+    color: var(--body-quiet-color);
+    font-size: 0.75rem;
+}
+
+.health-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 20px;
+    margin: 24px 0 0;
+}
+
+.health-charts > .health-chart {
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+}
+
+.health-charts > .health-chart-wide {
+    grid-column: 1 / -1;
+}
+
+#content-main .health-chart h3 {
+    margin: 0 0 4px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.health-summary {
+    margin: 0 0 10px;
+    padding: 0;
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+}
+
+.health-plot {
+    height: 240px;
+}
+
+.health-legend, .health-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 8px 0 0;
+    padding: 0;
+    font-size: 0.8125rem;
+}
+
+.health-legend li, .health-key {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.health-swatch {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--osqa-chart-1);
+}
+
+.health-swatch-2 { background: var(--osqa-chart-2); }
+.health-swatch-3 { background: var(--osqa-chart-3); }
+.health-swatch-prev { background: var(--osqa-chart-prev); }
+
+.health-bars li.health-bar-row {
+    display: grid;
+    grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 2.75rem;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 0.8125rem;
+}
+
+.health-bar-label {
+    overflow-wrap: anywhere;
+}
+
+.health-bar-track {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    height: 14px;
+}
+
+.health-bar {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--osqa-chart-1);
+}
+
+.health-bars-paired .health-bar {
+    height: 6px;
+}
+
+.health-bar.health-bar-prev, .health-bar-none .health-bar {
+    background: var(--osqa-chart-prev);
+}
+
+.health-bar-count {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.health-heatmap {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(24, minmax(0, 1fr));
+    gap: 2px;
+    align-items: center;
+    font-size: 0.6875rem;
+}
+
+.health-heat-hour, .health-heat-day {
+    color: var(--body-quiet-color);
+    white-space: nowrap;
+}
+
+.health-heat {
+    height: 18px;
+    border-radius: 2px;
+    background: var(--darkened-bg);
+}
+
+.health-heat-1 { background: color-mix(in srgb, var(--osqa-chart-1) 25%, var(--body-bg)); }
+.health-heat-2 { background: color-mix(in srgb, var(--osqa-chart-1) 50%, var(--body-bg)); }
+.health-heat-3 { background: color-mix(in srgb, var(--osqa-chart-1) 75%, var(--body-bg)); }
+.health-heat-4 { background: var(--osqa-chart-1); }
+
+.health-table {
+    margin: 10px 0 0;
+}
+
+.health-table > summary, .health-definitions > summary {
+    display: list-item;
+    min-height: var(--osqa-tap);
+    line-height: var(--osqa-tap);
+    color: var(--link-fg);
+    cursor: pointer;
+}
+
+.health-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.health-scroll table {
+    width: 100%;
+}
+
+.health-scroll .num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.health-scroll th[scope="row"] {
+    white-space: nowrap;
+}
+
+.health-scroll th[scope="row"] a {
+    text-decoration: underline;
+}
+
+.health-hours-table th, .health-hours-table td {
+    padding: 4px 5px;
+    font-size: 0.75rem;
+}
+
+.health-definitions {
+    margin: 20px 0 0;
+    padding: 4px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+}
+
+.health-definitions dl {
+    margin: 4px 0 10px;
+}
+
+.health-definitions dt {
+    margin: 8px 0 2px;
+    font-weight: 600;
+}
+
+.health-definitions dd {
+    max-width: 80ch;
+    margin: 0;
+    color: var(--body-fg);
+}
+
+@media (max-width: 640px) {
+    .health-tiles {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+        gap: 8px;
+    }
+
+    .health-tiles > li.health-tile {
+        padding: 10px 12px;
+    }
+
+    .health-tile-value {
+        font-size: 1.35rem;
+    }
+
+    .health-plot {
+        height: 200px;
+    }
+
+    .health-bars li.health-bar-row {
+        grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) 2.5rem;
+    }
+
+    .health-heatmap {
+        grid-template-columns: 2rem repeat(24, minmax(0, 1fr));
+        gap: 1px;
+    }
+
+    .health-heat {
+        height: 12px;
+    }
+}
 
 /* ---- Statistics ---------------------------------------------------------- */
 
@@ -1527,6 +1917,9 @@ body.osqa-admin {
     --muted: var(--body-quiet-color, #666);
     --border: var(--hairline-color, #ddd);
     --text: var(--body-fg, #333);
+    --chart-1: var(--osqa-chart-1);
+    --chart-2: var(--osqa-chart-2);
+    --chart-3: var(--osqa-chart-3);
 }
 
 /* Phones: comfortable form controls (16px text also stops iOS zooming in on

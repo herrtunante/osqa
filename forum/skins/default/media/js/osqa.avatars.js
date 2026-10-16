@@ -60,7 +60,16 @@
     function scan(root) {
         (root || document).querySelectorAll(SELECTOR + ':not(.gravatar-fallback)').forEach(function (img) {
             if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) {
-                useFallback(img);
+                // "complete" with no pixels is also what an image looks like
+                // while the browser switches to its srcset candidate (2x on
+                // phones): let decode() say whether it really failed.
+                if (img.decode) {
+                    img.decode().catch(function () {
+                        if (img.naturalWidth === 0 && !img.classList.contains('gravatar-fallback')) useFallback(img);
+                    });
+                } else {
+                    useFallback(img);
+                }
             }
         });
     }

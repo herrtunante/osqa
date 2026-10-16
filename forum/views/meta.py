@@ -22,6 +22,7 @@ from forum.views.decorators import login_required
 from forum.forms import FeedbackForm
 from forum.modules import decorate
 from forum.forms import get_next_url
+from forum.forms.general import clean_next
 from forum.models import Badge, Award, User, Page
 from forum.http_responses import HttpResponseNotFound, HttpResponseIntServerError
 from forum.utils.mail import send_template_email
@@ -114,8 +115,10 @@ def privacy(request):
 
 @decorate.withfn(login_required)
 def logout(request):
+    # Only a path on this site: the sign-out form posts it back (forum/views/auth.py signout).
+    next_url = clean_next(request.GET.get('next')) if request.GET.get('next') else ''
     return render(request, 'logout.html', {
-    'next' : get_next_url(request),
+    'next' : next_url if next_url.startswith('/') else '',
     })
 
 @decorators.render('badges.html', 'badges', _lazy('badges'), weight=300)

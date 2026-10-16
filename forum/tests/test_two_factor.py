@@ -312,51 +312,43 @@ class PendingLoginTest(TwoFactorTestCase):
             self.client.post('/account/two-step/', {'code': two_factor.totp(raw)})
         self.assertIsNone(self.logged_in_user_id())
 
-    def test_email_link_sign_in_needs_the_code_too(self):
-        user = self.create_user('carol')
-        raw, _codes = self.enable_totp(user)
-        self.client.post('/account/tempsignin/', {'email': 'carol@example.com'})
-        link = re.search(r'/account/tempsignin/\d+/[^/\s"<]+/', self.sent_mail[0][3]).group(0)
-        response = self.client.get(link)
-        self.assertRedirects(response, '/account/two-step/', fetch_redirect_response=False)
-        self.assertIsNone(self.logged_in_user_id())
-        response = self.client.post('/account/two-step/', {'code': two_factor.totp(raw)})
-        self.assertEqual(self.logged_in_user_id(), str(user.id))
-        # The link's destination (set a new password) is kept.
-        self.assertTrue(response['Location'].startswith('/account/%d/authsettings/' % user.id))
-
     def email_link(self, user):
         self.sent_mail.clear()
         self.client.post('/account/tempsignin/', {'email': user.email})
         return re.search(r'/account/tempsignin/\d+/[^/\s"<]+/', self.sent_mail[0][3]).group(0)
 
-    def test_email_link_changes_nothing_until_the_code_is_right(self):
+    def test_password_reset_needs_the_code_too(self):
         user = self.create_user('carol', password='right-pass')
         raw, _codes = self.enable_totp(user)
-        # Opened, but the code step abandoned (or failed): the password still works.
-        self.client.get(self.email_link(user))
-        self.client.post('/account/two-step/', {'code': 'nope'})
+        link = self.email_link(user)
+        self.assertContains(self.client.get(link), 'id="id_code"')
+        new = {'password1': 'new-long-secret-9', 'password2': 'new-long-secret-9'}
+        # Without the code (or with a wrong one) nothing changes and the link still works.
+        for code in ('', 'nope'):
+            page = self.client.post(link, dict(new, code=code))
+            self.assertContains(page, 'That code is not right')
+            self.assertTrue(User.objects.get(id=user.id).check_password('right-pass'))
+        response = self.client.post(link, dict(new, code=two_factor.totp(raw)))
+        self.assertRedirects(response, '/account/signin/', fetch_redirect_response=False)
+        self.assertTrue(User.objects.get(id=user.id).check_password('new-long-secret-9'))
+        # Not signed in: the member signs in with the new password, and the code again.
         self.assertIsNone(self.logged_in_user_id())
-        self.assertTrue(User.objects.get(id=user.id).check_password('right-pass'))
-        self.client.logout()
-        self.client.post('/account/local/signin/', {'username': 'carol', 'password': 'right-pass'})
-        self.client.post('/account/two-step/', {'code': two_factor.totp(raw)})
-        self.assertEqual(self.logged_in_user_id(), str(user.id))
+        self.assertEqual(self.client.get(link).status_code, 410)  # used up
 
-        # Completed: as for members without two-step verification, the
-        # forgotten password stops working and the member is asked to set one.
-        self.client.logout()
-        self.client.get(self.email_link(user))
-        response = self.client.post('/account/two-step/', {'code': two_factor.totp(raw, time.time() + 30)})
-        self.assertEqual(self.logged_in_user_id(), str(user.id))
-        self.assertTrue(response['Location'].startswith('/account/%d/authsettings/' % user.id))
-        self.assertFalse(User.objects.get(id=user.id).has_usable_password())
+    def test_password_reset_accepts_a_recovery_code(self):
+        user = self.create_user('carol', password='right-pass')
+        _raw, codes = self.enable_totp(user)
+        link = self.email_link(user)
+        self.client.post(link, {'password1': 'new-long-secret-9', 'password2': 'new-long-secret-9', 'code': codes[0]})
+        self.assertTrue(User.objects.get(id=user.id).check_password('new-long-secret-9'))
 
-    def test_email_link_without_two_step_is_unchanged(self):
+    def test_password_reset_without_two_step_has_no_code_field(self):
         user = self.create_user('dave', password='right-pass')
-        self.client.get(self.email_link(user))
-        self.assertEqual(self.logged_in_user_id(), str(user.id))
-        self.assertFalse(User.objects.get(id=user.id).has_usable_password())
+        link = self.email_link(user)
+        self.assertNotContains(self.client.get(link), 'id="id_code"')
+        self.client.post(link, {'password1': 'new-long-secret-9', 'password2': 'new-long-secret-9'})
+        self.assertTrue(User.objects.get(id=user.id).check_password('new-long-secret-9'))
+        self.assertIsNone(self.logged_in_user_id())
 
     def test_oauth_sign_in_needs_the_code_too(self):
         import forum.authentication  # noqa: F401

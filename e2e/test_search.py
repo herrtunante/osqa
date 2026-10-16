@@ -35,7 +35,7 @@ class SearchTest(E2ETestCase):
         marks = page.locator('#search-results .search-snippet mark')
         self.assertTrue(marks.first.is_visible())
         self.assertEqual({m.lower() for m in marks.all_inner_texts()}, {'raster'})
-        self.assertIn('2 questions found', page.locator('.search-count').inner_text())
+        self.assertIn('About 2 results', page.locator('.search-count').inner_text())
 
         # Newest first, then back to relevance, with the sort tabs.
         page.get_by_role('link', name='newest', exact=True).click()

@@ -2,15 +2,23 @@
 
 {% load i18n %}
 {% load user_tags %}
+{% load extra_tags %}
 
 {% block subtitle %}
     {% trans "Dashboard" %}
 {% endblock %}
 {% block description %}
-    {% trans "Welcome to the OSQA administration area." %}
+    {% trans "How the community is doing: activity, answers, members and moderation, compared with the period before." %}
+{% endblock %}
+
+{% block adminjs %}
+<script type="text/javascript" src="{% media "/media/vendor/flot-4.2.6/jquery.flot.min.js" %}"></script>
+<script type="text/javascript" src="{% media "/media/js/osqa.charts.js" %}"></script>
 {% endblock %}
 
 {% block admincontent %}
+    {% include "osqaadmin/health.html" %}
+    {% if user.is_superuser %}
     <div class="dashboard-grid">
     <div class="module dashboard-box">
         <table>
@@ -72,6 +80,7 @@
         </table>
     </div>
     </div>
+    {% endif %}
     <div class="module dashboard-activity">
         <h2>{% trans "Recent activity" %}</h2>
         <table id="result_list">

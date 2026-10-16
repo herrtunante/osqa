@@ -65,9 +65,38 @@ label = _("Force unique email"),
 help_text = _("Should each user have an unique email."),
 required=False))
 
+EMAIL_CONFIRMATION_MODE = Setting('EMAIL_CONFIRMATION_MODE', 'signin', USERS_SET, dict(
+label = _("Email confirmation for new members"),
+help_text = _("Everyone who signs up with an email address gets a link to confirm it (valid for 48 hours). By "
+              "default they can sign in only after confirming, and the sign-up page answers the same whether or "
+              "not the address already has an account (its owner gets an email instead). Members who joined "
+              "before this setting existed, accounts made by administrators or imported, and addresses already "
+              "confirmed by a sign-in service are not affected."),
+widget=RadioSelect,
+choices=(("signin", _("They must confirm before they can sign in")),
+         ("post", _("They can sign in at once, but must confirm before asking, answering or commenting")),
+         ("off", _("Not required (only the actions ticked below need a confirmed address)"))),
+required=False))
+
+UNCONFIRMED_ACCOUNT_DAYS = Setting('UNCONFIRMED_ACCOUNT_DAYS', 7, USERS_SET, dict(
+label = _("Delete unconfirmed new accounts after (days)"),
+help_text = _("The cleanup_inactive_users command (run daily from cron) deletes accounts that signed up but never "
+              "confirmed their email address within this many days and have no posts or other activity. Only while "
+              "email confirmation is required. 0 turns it off.")))
+
+ACCOUNT_DELETION_POSTS = Setting('ACCOUNT_DELETION_POSTS', 'keep', USERS_SET, dict(
+label = _("Posts of deleted accounts"),
+help_text = _("What happens to the questions, answers and comments of members who delete their account. Their "
+              "profile and personal data are always removed."),
+widget=RadioSelect,
+choices=(("keep", _("Keep them, shown as by \"deleted-user\" (other people's answers and discussions depend on them)")),
+         ("delete", _("Delete them (moderators can still see deleted posts)"))),
+required=False))
+
 REQUIRE_EMAIL_VALIDATION_TO = Setting('REQUIRE_EMAIL_VALIDATION_TO', [], USERS_SET, dict(
 label = _("Require email validation to..."),
-help_text = _("Which actions in this site, users without a valid email will be prevented from doing."),
+help_text = _("Which actions members without a confirmed email address can't do, whenever they joined. New "
+              "members also follow the \"Email confirmation for new members\" setting above."),
 widget=CheckboxSelectMultiple,
 choices=(("ask", _("ask questions")), ("answer", _("provide answers")), ("comment", _("make comments")), ("flag", _("report posts"))),
 required=False,

@@ -117,3 +117,26 @@ def dormant_users(days):
     ).exclude(
         Exists(Action.objects.filter(user=OuterRef('pk')).exclude(action_type__in=DORMANT_ACTIONS)),
     ).order_by('date_joined')
+
+
+def unconfirmed_users(days):
+    """New accounts (signed up while email confirmation is required) that
+    never confirmed their address within `days`, and never posted or did
+    anything but sign in. Staff accounts and accounts that existed before
+    confirmation was required are never included."""
+    from datetime import datetime, timedelta
+    from django.db.models import Exists, OuterRef
+    from forum.models import Action, Node, User
+    from forum.utils.accounts import confirmation_mode
+
+    if confirmation_mode() == 'off':
+        return User.objects.none()
+    cutoff = datetime.now() - timedelta(days=days)
+    return User.objects.filter(
+        date_joined__lt=cutoff, email_confirmation_required=True, email_isvalid=False,
+        is_staff=False, is_superuser=False,
+    ).exclude(
+        Exists(Node.objects.filter(author=OuterRef('pk'))),
+    ).exclude(
+        Exists(Action.objects.filter(user=OuterRef('pk')).exclude(action_type__in=DORMANT_ACTIONS)),
+    ).order_by('date_joined')

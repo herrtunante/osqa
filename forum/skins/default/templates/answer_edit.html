@@ -4,7 +4,7 @@
 {% load extra_tags %}
 {% block title %}{% spaceless %}{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit answer" %}{% endif %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
+        {% include "compose/editor_scripts.html" %}
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
 
@@ -38,7 +38,7 @@
             {% if revision_form %}{% include "compose/revision.html" %}{% endif %}
 
             
-            {% include "compose/editor.html" with label=body_label %}
+            {% include "compose/editor.html" with label=body_label kind="answer" %}
 
             {% include "compose/summary.html" %}
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- base_content.html -->
-{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags pwa_tags display_tags %}
+{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags pwa_tags display_tags account_tags %}
 <html lang="{{ LANGUAGE_CODE }}"{% display_attrs %}>
     <head>{% block after_head_js %}{% endblock %}
         <meta charset="utf-8" />
@@ -9,6 +9,12 @@
         {% theme_head %}
         <meta name="csrf-token" content="{{ csrf_token }}" />
         {% sentry_browser %}
+        {# Style sheets before any script: found and fetched first (render-blocking, so as early as possible). #}
+        <link href="{% media "/media/style/osqa.css" %}" rel="stylesheet" type="text/css" />
+        {% if settings.USE_CUSTOM_CSS|or_preview:request %}
+        <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
+        {% endif %}
+        {% block forestyle %}{% endblock %}
         <title>{% block fulltitle %}{% block title %}{% endblock %} - {{ settings.APP_SHORT_NAME }}{% endblock %}</title>
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />
@@ -28,17 +34,10 @@
         <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
         <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.behaviors.js" %}"></script>
-        {# Deferred: only used from ready handlers and later events (tag/user suggestions, date picker). #}
-        <script defer src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
-        <script defer src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
+        {# jQuery UI (tag/user suggestions, the award points slider) is loaded by osqa.autocomplete.js only on pages that use it. #}
+        <script defer src="{% media "/media/js/osqa.autocomplete.js" %}" data-jquery-ui="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}" data-jquery-ui-css="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}"></script>
         <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
-        <link href="{% media "/media/style/osqa.css" %}" rel="stylesheet" type="text/css" />
-        {% if settings.USE_CUSTOM_CSS|or_preview:request %}
-        <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
-        {% endif %}
-        <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}" />
-        {% block forestyle %}{% endblock %}
 
         <script nonce="{{ csp_nonce }}" type="text/javascript">
         /*<![CDATA[*/
@@ -58,6 +57,7 @@
                 ok: "{% trans "Ok" %}",
                 matching_tags_url: "{% url "matching_tags" %}",
                 matching_users_url: "{% url "matching_users" %}",
+                mention_suggestions: "{% trans "People to mention" %}",
                 word: "{% trans "word" %}",
                 words: "{% trans "words" %}",
                 character: "{% trans "character" %}",
@@ -71,10 +71,8 @@
         /*]]>*/
         </script>
         <script type="text/javascript" src="{% media  "/media/js/osqa.main.js" %}"></script>
-        <script defer src="{% media "/media/vendor/highlight-11.11.1/highlight.min.js" %}"></script>
-        <script defer src="{% media "/media/js/osqa.highlight.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.highlight.js" %}" data-highlight-src="{% media "/media/vendor/highlight-11.11.1/highlight.min.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
-        <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.mentions.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.searchbox.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.avatars.js" %}"></script>
@@ -107,6 +105,7 @@
             </div>
         {% endif %}
         {% include "header.html" %}
+        {% confirm_banner %}
         {% block page_center %}
         <div id="wrapper">
             <div id="room">

@@ -11,7 +11,7 @@
     {% include "compose/field_error.html" with field=form.text %}
     <div class="compose-editor">
         <div class="compose-pane compose-write" id="compose-write">
-            <div id="wmd-button-bar" class="wmd-panel"></div>
+            {% include "compose/toolbar.html" %}
             {{ form.text }}
         </div>
         {% trans "hide preview" as hide_preview %}{% trans "show preview" as show_preview %}
@@ -27,6 +27,7 @@
         </div>
     </div>
     <div class="compose-editor-footer">
+        {% include "compose/min_length.html" %}
         <span id="editor-metrics" class="editor-metrics" aria-live="off"></span>
     </div>
 </div>

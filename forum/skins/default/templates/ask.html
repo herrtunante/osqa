@@ -3,7 +3,7 @@
 {% load i18n extra_tags extra_filters %}
 {% block title %}{% spaceless %}{% trans "Ask a question" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
+        {% include "compose/editor_scripts.html" %}
         <script nonce="{{ csp_nonce }}" type="text/javascript">
         var related_questions_url = '{% url "related_questions" %}';
         {% if settings.AI_ASSISTANT %}
@@ -52,7 +52,7 @@
                 <p>{% blocktrans %}
                     After submiting your question, you will be redirected to the login/signup page.
                     Your question will be saved in the current session and will be published after you login with your existing account,
-                    or signup for a new account{% endblocktrans %}{% if "ask"|contained_in:settings.REQUIRE_EMAIL_VALIDATION_TO %}
+                    or signup for a new account{% endblocktrans %}{% if "ask"|contained_in:settings.REQUIRE_EMAIL_VALIDATION_TO or settings.EMAIL_CONFIRMATION_MODE != "off" %}
                     {% trans "and validate your email." %}{% else %}.{% endif %}</p>
             </div>
             {% else %}

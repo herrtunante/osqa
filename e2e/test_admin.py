@@ -164,7 +164,9 @@ class AdministrationTest(E2ETestCase):
         page = self.open(moderator)
         self.visit(page, '/admin/moderation/')
         links = page.locator('#admin-menu a').all_inner_texts()
-        self.assertEqual([t.strip() for t in links], ['Moderation inbox', 'Support dashboard', 'Email previews'])
+        # The dashboard (community health) and the moderation pages; no settings or tools.
+        self.assertEqual([t.strip() for t in links],
+                         ['Dashboard', 'Moderation inbox', 'Support dashboard', 'Email previews'])
         self.assertEqual(page.locator('#admin-menu a[href^="/admin/settings/"]').count(), 0)
 
     def test_admin_on_a_phone_in_dark_mode(self):

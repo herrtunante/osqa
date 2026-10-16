@@ -103,7 +103,8 @@ def true_if_is_super_or_staff(fn):
 def false_if_validation_required_to(item):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            if item in settings.REQUIRE_EMAIL_VALIDATION_TO and not self.email_isvalid:
+            from forum.utils.accounts import validation_required
+            if validation_required(self, item):
                 return False
             else:
                 return fn(self, *args, **kwargs)
@@ -127,6 +128,13 @@ class UserManager(CachedManager):
 class User(BaseModel, DjangoUser):
     is_approved = models.BooleanField(default=False)
     email_isvalid = models.BooleanField(default=False)
+    # Set by the sign-up views: the account must confirm its email address
+    # (setting EMAIL_CONFIRMATION_MODE, forum/utils/accounts.py). Cleared on the
+    # first confirmation; accounts that existed before keep False.
+    email_confirmation_required = models.BooleanField(default=False)
+    # Raised to sign the account out everywhere ("sign out of other sessions",
+    # password reset); sessions remember the value they were signed in with.
+    session_epoch = models.PositiveIntegerField(default=0)
 
     reputation = models.IntegerField(default=0)
     gold = models.PositiveIntegerField(default=0)
@@ -424,10 +432,12 @@ class User(BaseModel, DjangoUser):
         return False
 
     def email_valid_and_can_ask(self):
-        return 'ask' not in settings.REQUIRE_EMAIL_VALIDATION_TO or self.email_isvalid
+        from forum.utils.accounts import validation_required
+        return not validation_required(self, 'ask')
 
     def email_valid_and_can_answer(self):
-        return 'answer' not in settings.REQUIRE_EMAIL_VALIDATION_TO or self.email_isvalid
+        from forum.utils.accounts import validation_required
+        return not validation_required(self, 'answer')
 
     def check_password(self, old_passwd):
         self.__dict__.update(self.__class__.objects.filter(id=self.id).values('password')[0])
@@ -590,7 +600,19 @@ class SubscriptionSettings(models.Model):
 
 from forum.utils.time import one_day_from_now
 
+def _token_digest(token):
+    return 'sha256$' + hashlib.sha256(str(token).encode('utf-8')).hexdigest()
+
+
 class ValidationHashManager(models.Manager):
+    """One-time links (email confirmation, password reset, email change).
+
+    The token in the link is an HMAC-SHA256 keyed with SECRET_KEY over a random
+    seed, the user, the link type and `hash_data` (e.g. the address being
+    confirmed, or the password hash, so a reset link dies when the password
+    changes). Only a SHA-256 digest of the token is stored, so the table
+    alone gives no working links. Each link works once, until `expiration`."""
+
     def _generate_hash(self, user, type, hash_data, seed):
         # Keyed with SECRET_KEY: knowing the seed, user and data is not
         # enough to make a valid link.
@@ -599,9 +621,9 @@ class ValidationHashManager(models.Manager):
 
     def create_new(self, user, type, hash_data=(), expiration=None):
         seed = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
-        hash = self._generate_hash(user, type, hash_data, seed)
+        token = self._generate_hash(user, type, hash_data, seed)
 
-        obj = ValidationHash(hash_code=hash, seed=seed, user=user, type=type)
+        obj = ValidationHash(hash_code=_token_digest(token), seed=seed, user=user, type=type)
 
         if expiration is not None:
             obj.expiration = expiration
@@ -611,29 +633,32 @@ class ValidationHashManager(models.Manager):
         except:
             return None
 
+        obj.token = token  # for the email; never stored
         return obj
 
-    def validate(self, hash, user, type, hash_data=()):
-        try:
-            obj = self.get(hash_code=hash)
-        except:
+    def _find(self, hash):
+        hash = str(hash)
+        obj = self.filter(hash_code=_token_digest(hash)).first()
+        if obj is None:  # a link made before tokens were stored as digests
+            obj = self.filter(hash_code=hash).first()
+        return obj
+
+    def validate(self, hash, user, type, hash_data=(), consume=True):
+        """Whether `hash` is a valid, unexpired link of `type` for `user`.
+        It is used up unless `consume` is False (a page that only shows a form)."""
+        obj = self._find(hash)
+        if obj is None or obj.type != type or obj.user_id != user.id:
             return False
 
-        if obj.type != type:
-            return False
-
-        if obj.user != user:
-            return False
-
-        valid = hmac.compare_digest(obj.hash_code, self._generate_hash(obj.user, type, hash_data, obj.seed))
+        valid = hmac.compare_digest(str(hash), self._generate_hash(user, type, hash_data, obj.seed))
 
         if valid:
             if obj.expiration < datetime.datetime.now():
                 obj.delete()
                 return False
-            else:
+            if consume:
                 obj.delete()
-                return True
+            return True
 
         return False
 
@@ -651,7 +676,7 @@ class ValidationHash(models.Model):
         app_label = 'forum'
 
     def __str__(self):
-        return self.hash_code
+        return getattr(self, 'token', None) or self.hash_code
 
 class AuthKeyUserAssociation(models.Model):
     key = models.CharField(max_length=255, null=False, unique=True)

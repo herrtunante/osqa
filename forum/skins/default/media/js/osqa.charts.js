@@ -10,6 +10,10 @@
  * visitor's time zone, labels are dates (or hours within a day, never
  * seconds), and a narrow chart (a phone) gets fewer ticks.  Values on the
  * y axis are whole numbers.  The x values are epoch milliseconds.
+ *
+ * `data` is one series ([[x, y], ...]) or several ([{label, data}, ...], the
+ * admin dashboard's daily activity), drawn in the colours --chart-1, --chart-2
+ * and --chart-3 (the page shows its own legend).
  */
 (function (window, $) {
     'use strict';
@@ -123,8 +127,11 @@
         var $el = $(placeholder);
         if (!$el.length) return;
         data = data || [];
-        var range = timeRange(data);
-        var series = [{data: data}];
+        var several = data.length > 0 && data[0] && !Array.isArray(data[0]);
+        var series = several ? $.map(data, function (s) { return {data: s.data || [], label: s.label}; }) : [{data: data}];
+        var all = [];
+        $.each(series, function (i, s) { all = all.concat(s.data); });
+        var range = timeRange(all);
         var base, text;
 
         // The colours, read again whenever the theme changes.
@@ -137,8 +144,10 @@
             // Pages without the skin's variables (the admin) use the page's text colour.
             var line = color('--brand', '#2c5aa0'), grid = color('--border', '#ddd');
             text = color('--muted', css.color || '#666');
+            var colors = several ? [color('--chart-1', line), color('--chart-2', '#d9822b'), color('--chart-3', '#2f9e6b')] : [line];
             base = $.extend(true, {
-                colors: [line],
+                colors: colors,
+                legend: {show: false},
                 xaxis: {color: grid, min: range.min, max: range.max, autoScale: 'none', showTickLabels: 'major'},
                 yaxis: {color: grid, tickDecimals: 0, minTickSize: 1},
                 grid: {borderWidth: 1, borderColor: grid, color: text, hoverable: true},

@@ -2,7 +2,7 @@
 <div class="auth-field{% if field.errors %} has-error{% endif %}">
     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
     {% if field.field.rules %}
-    <ul class="auth-help auth-rules" id="{{ field.auto_id }}-help">{% for rule in field.field.rules %}<li>{{ rule }}</li>{% endfor %}</ul>
+    <ul class="auth-help auth-rules" id="{{ field.auto_id }}-help">{% for rule in field.field.rules %}<li{% if rule.key %} data-rule="{{ rule.key }}"{% endif %}>{{ rule }}</li>{% endfor %}</ul>
     {% elif field.help_text %}
     <p class="auth-help" id="{{ field.auto_id }}-help">{{ field.help_text }}</p>
     {% endif %}
@@ -11,6 +11,12 @@
     {% endif %}
     {% if field.field.widget.input_type == "password" %}
     <div class="password-field">{{ field }}{% include "auth/password_toggle.html" with input_id=field.auto_id %}</div>
+    {% if field.field.rules %}{# Filled in by osqa.password.js as the person types: the same rules the server checks. #}
+    <div class="password-meter" data-meter-for="{{ field.auto_id }}" data-text-short="{% trans "Too short" %}" data-text-weak="{% trans "Weak: add more words" %}" data-text-fair="{% trans "Fair" %}" data-text-good="{% trans "Good" %}" data-text-strong="{% trans "Strong" %}" data-text-similar="{% trans "Too close to your username or email" %}" hidden>
+        <div class="password-meter-bar" aria-hidden="true"><span></span></div>
+        <p class="password-meter-text" aria-live="polite"><span class="visually-hidden">{% trans "Password strength:" %} </span><span class="password-meter-label"></span></p>
+    </div>
+    {% endif %}
     {% else %}
     {{ field }}
     {% endif %}

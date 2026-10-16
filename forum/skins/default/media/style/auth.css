@@ -280,6 +280,78 @@ ul.auth-rules li {
     display: block;
 }
 
+/* "Keep me signed in" and other check boxes in the cards. */
+.auth-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: -4px 0 16px;
+    color: var(--text);
+}
+
+.auth-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+}
+
+.auth-check label {
+    font-weight: normal;
+}
+
+/* Result pages: email confirmed, link expired, check your inbox, signed out. */
+.auth-card .auth-icon-success {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.auth-card .auth-icon-warning {
+    background: var(--danger-soft);
+    color: var(--danger-text);
+}
+
+.auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.auth-actions form {
+    margin: 0;
+}
+
+.auth-card .auth-secondary {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    text-align: center;
+}
+
+.auth-card .auth-secondary:hover {
+    border-color: var(--brand);
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.auth-card a.auth-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.auth-address {
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
 /* Bots fill in every field; people never see these. */
 .form-trap {
     position: absolute;

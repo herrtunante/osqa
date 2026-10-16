@@ -4,7 +4,7 @@
 {% load extra_tags %}
 {% block title %}{% spaceless %}{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit question" %}{% endif %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
+        {% include "compose/editor_scripts.html" %}
         <script defer src="{% media "/media/js/osqa.ask.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>

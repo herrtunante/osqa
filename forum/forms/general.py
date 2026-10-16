@@ -218,25 +218,41 @@ class UserNameValidationSumField(StrippedNonEmptyCharField):
         return value
 
 
+class PasswordRule(str):
+    """One line of the password rules; `key` tells osqa.password.js which
+    rule it is ('length', 'common', 'similar', 'breach'), so the strength
+    meter ticks the same rules the server checks."""
+    def __new__(cls, text, key=''):
+        rule = super().__new__(cls, text)
+        rule.key = key
+        return rule
+
+
 def password_rules():
     """The AUTH_PASSWORD_VALIDATORS rules in a few plain words each, for the
     help text of new password fields (the length first)."""
     from django.contrib.auth.password_validation import (
         CommonPasswordValidator, MinimumLengthValidator, NumericPasswordValidator,
         UserAttributeSimilarityValidator, get_default_password_validators)
+    from forum.utils.passwords import BreachedPasswordValidator, MaximumLengthValidator
     rules = []
     for validator in get_default_password_validators():
         if isinstance(validator, MinimumLengthValidator):
-            rules.insert(0, ngettext('At least %(count)d character', 'At least %(count)d characters',
-                                     validator.min_length) % {'count': validator.min_length})
+            rules.insert(0, PasswordRule(ngettext('At least %(count)d character', 'At least %(count)d characters',
+                                                  validator.min_length) % {'count': validator.min_length}, 'length'))
+        elif isinstance(validator, MaximumLengthValidator):
+            continue  # far above what people type; the field's maxlength says it
         elif isinstance(validator, CommonPasswordValidator):
-            rules.append(_('Not a common password'))
+            rules.append(PasswordRule(_('Not a common password'), 'common'))
         elif isinstance(validator, NumericPasswordValidator):
-            rules.append(_('Not only numbers'))
+            rules.append(PasswordRule(_('Not only numbers'), 'numeric'))
         elif isinstance(validator, UserAttributeSimilarityValidator):
-            rules.append(_('Not too close to your username or email'))
+            rules.append(PasswordRule(_('Not too close to your username or email'), 'similar'))
+        elif isinstance(validator, BreachedPasswordValidator):
+            if bool(settings.PASSWORD_BREACH_CHECK):
+                rules.append(PasswordRule(validator.get_help_text(), 'breach'))
         else:
-            rules.append(validator.get_help_text())
+            rules.append(PasswordRule(validator.get_help_text()))
     return rules
 
 
@@ -279,10 +295,19 @@ class SetPasswordForm(forms.Form):
     def __init__(self, data=None, user=None, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
         self.password_user = user
-        # The rules are listed on the sign-up page, and joined into the help text elsewhere.
+        # The rules are listed under the field and ticked as the person types (osqa.password.js).
         rules = password_rules()
         self.fields['password1'].rules = rules
         self.fields['password1'].help_text = ''.join('%s. ' % rule.rstrip('.') for rule in rules).strip()
+        from forum.utils.passwords import MAX_LENGTH, min_length
+        self.fields['password1'].widget.attrs.update({
+            'maxlength': MAX_LENGTH, 'data-password-meter': '', 'data-min-length': min_length(),
+            'data-user-inputs': 'id_username id_email', 'autocapitalize': 'none', 'spellcheck': 'false'})
+        if user is not None:
+            self.fields['password1'].widget.attrs['data-user-words'] = ' '.join(
+                w for w in (getattr(user, 'username', ''), (getattr(user, 'email', '') or '').split('@')[0]) if w)
+        self.fields['password2'].widget.attrs.update({'maxlength': MAX_LENGTH, 'autocapitalize': 'none',
+                                                      'spellcheck': 'false'})
 
     def clean_password1(self):
         """Checks the password against AUTH_PASSWORD_VALIDATORS (length, common

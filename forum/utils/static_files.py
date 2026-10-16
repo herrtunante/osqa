@@ -11,8 +11,10 @@ uploaded files) with HTTP caching.
   old content under a new URL during a rolling deploy) and is revalidated with
   ETag / Last-Modified, answered by 304 Not Modified.
 - Uploaded files are never overwritten (the storage picks a new name), so
-  they get the long cache too; files shipped with OSQA in forum/upfiles (the
-  default logo) may change on upgrade and get the short one.
+  they get the long cache too, as do their AVIF/WebP variants in
+  upfiles/_variants/ (written once, forum.utils.images); files shipped with
+  OSQA in forum/upfiles (the default logo) may change on upgrade and get the
+  short one.
 - CSS, JS, SVG and JSON (text that compresses well, never pages with a CSRF
   token: BREACH) are gzip-compressed when the browser accepts it; the
   compressed bytes are kept in memory per file version.
@@ -36,6 +38,10 @@ from django.utils._os import safe_join
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date, parse_http_date_safe
 from django.views.static import serve
+
+# Not known to every Python's mimetypes (AVIF only from 3.13): image variants.
+mimetypes.add_type('image/avif', '.avif')
+mimetypes.add_type('image/webp', '.webp')
 
 VERSION_PARAM = 'v'
 LONG_CACHE = 'public, max-age=31536000, immutable'

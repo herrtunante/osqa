@@ -95,6 +95,9 @@ class OAuth2LoginTest(OSQATestCase):
         self.assertEqual(response.status_code, 302, response.content[:2000])
         user = User.objects.get(username='carol')
         self.assertTrue(user.email_isvalid)
+        # The provider verified the address: no confirmation, signed in at once
+        # (even though new members must confirm before signing in by default).
+        self.assertFalse(user.email_confirmation_required)
         self.assertEqual(AuthKeyUserAssociation.objects.get(user=user).key, 'google:1234567890')
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
@@ -104,14 +107,20 @@ class OAuth2LoginTest(OSQATestCase):
         self.assertEqual(self.logged_in_user_id(), str(user.id))
 
     def test_github_unverified_email_is_not_validated(self):
+        self.create_user('owner', is_superuser=True, is_staff=True)  # dan is not the first account
         self.fake_http({oauth2.GitHubAuthConsumer.token_url: {'access_token': 'token-1'},
                         oauth2.GitHubAuthConsumer.emails_url: [{'email': 'dan@example.com', 'primary': True, 'verified': False}],
                         oauth2.GitHubAuthConsumer.user_url: {'id': 42, 'login': 'dan', 'name': 'Dan', 'email': 'dan@example.com'}})
         _, query = self.start_login('github')
         self.client.get('/account/github/done/', {'code': 'c', 'state': query['state'][0]})
-        self.register(username='dan', email='dan@example.com', real_name='Dan')
+        response = self.register(username='dan', email='dan@example.com', real_name='Dan')
         user = User.objects.get(username='dan')
         self.assertFalse(user.email_isvalid)
+        # Not verified by GitHub: he confirms by email before signing in.
+        self.assertTrue(user.email_confirmation_required)
+        self.assertEqual(response['Location'], '/account/check-email/')
+        self.assertIsNone(self.logged_in_user_id())
+        self.assertTrue(any('Welcome' in m[1] for m in self.sent_mail))
         self.assertEqual(AuthKeyUserAssociation.objects.get(user=user).key, 'github:42')
 
     def test_wrong_state_is_rejected(self):

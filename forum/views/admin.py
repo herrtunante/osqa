@@ -158,14 +158,41 @@ class ActivityPaginatorContext(pagination.PaginatorContext):
     def __init__(self):
         super (ActivityPaginatorContext, self).__init__('ADMIN_RECENT_ACTIVITY', pagesizes=(20, 40, 80), default_pagesize=40)
 
-@admin_page
+@moderation_page
 def dashboard(request):
-    return ('osqaadmin/dashboard.html', pagination.paginated(request, ("recent_activity", ActivityPaginatorContext()), {
-    'settings_pack': str(settings.SETTINGS_PACK),
-    'statistics': get_statistics(),
-    'recent_activity': get_recent_activity(),
-    'flagged_posts': get_flagged_posts(),
-    }))
+    """Community health (forum/utils/community_health.py) for moderators and
+    administrators, then the site status (administrators) and recent activity.
+    ?days= picks the period, ?format=csv downloads the figures, and a POST with
+    `refresh` recomputes them instead of using the cached ones."""
+    from forum.utils import community_health as health
+    days = health.parse_days(request.GET.get('days'))
+    if request.method == 'POST' and 'refresh' in request.POST:
+        health.figures(days, refresh=True)
+        return HttpResponseRedirect('%s?days=%d' % (reverse('admin_index'), days))
+
+    data = health.figures(days)
+    groups = health.tiles(data, review.inbox_counts())
+    charts = health.chart_data(data)
+    if request.GET.get('format') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="community-health-%dd-%s.csv"' % (
+            days, data['computed_at'].strftime('%Y-%m-%d'))
+        health.write_csv(response, data, groups, charts)
+        return response
+
+    context = {
+        'health': data,
+        'health_groups': groups,
+        'health_charts': charts,
+        'health_headline': health.headline(groups, data),
+        'health_periods': health.PERIODS,
+        'health_cache_minutes': health.CACHE_SECONDS // 60,
+        'recent_activity': get_recent_activity(),
+    }
+    if request.user.is_superuser:
+        context.update(settings_pack=str(settings.SETTINGS_PACK), statistics=get_statistics())
+    return ('osqaadmin/dashboard.html', pagination.paginated(
+        request, ("recent_activity", ActivityPaginatorContext()), context))
 
 def interface_switch(request):
     """The old "switch admin layout" link (there is one layout now): bookmarks

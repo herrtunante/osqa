@@ -12,13 +12,76 @@
  * per line; rows are passed around as arrays of those columns. A tag row
  * found through a synonym has the synonym as its fourth column: the default
  * label shows "csv → export (12)" and the value is the tag, "export".
+ *
+ * jQuery UI (script and style sheet, the data-jquery-ui and data-jquery-ui-css
+ * attributes of this script's tag) is loaded only when a page uses it:
+ * window.osqaJqueryUI() returns a promise of it (also used by the award
+ * points slider). osqaAutocomplete() loads it when one of the fields is first
+ * focused (or typed in), then sets the fields up and looks up what is already
+ * typed; where jQuery UI is already loaded (the admin), the fields are set up
+ * at once.
  */
 (function ($) {
+    var script = document.currentScript;
+    var loading = null;
+
+    function load(tag, attributes) {
+        return new Promise(function (resolve, reject) {
+            var element = document.createElement(tag);
+            Object.keys(attributes).forEach(function (name) { element[name] = attributes[name]; });
+            element.onload = function () { resolve(); };
+            element.onerror = function () { reject(new Error(tag + ' not loaded')); };
+            document.head.appendChild(element);
+        });
+    }
+
+    window.osqaJqueryUI = function () {
+        if (!loading) {
+            if ($.ui && $.fn.autocomplete) {
+                loading = Promise.resolve();
+            } else {
+                var js = script && script.getAttribute('data-jquery-ui');
+                var css = script && script.getAttribute('data-jquery-ui-css');
+                if (!js) {
+                    return Promise.reject(new Error('no jQuery UI'));
+                }
+                loading = Promise.all([
+                    css ? load('link', {rel: 'stylesheet', href: css}) : Promise.resolve(),
+                    load('script', {src: js, async: false})
+                ]).catch(function (error) {
+                    loading = null;
+                    throw error;
+                });
+            }
+        }
+        return loading;
+    };
+
     function lastWord(text) {
         return text.split(/\s+/).pop();
     }
 
     $.fn.osqaAutocomplete = function (url, options) {
+        if (!this.length) {
+            return this;
+        }
+        if (!$.fn.autocomplete) {
+            var $fields = this;
+            $fields.on('focus.osqaAutocomplete input.osqaAutocomplete', function () {
+                $fields.off('.osqaAutocomplete');
+                window.osqaJqueryUI().then(function () {
+                    if (!$.fn.autocomplete) {
+                        return;
+                    }
+                    $fields.osqaAutocomplete(url, options);
+                    var active = document.activeElement;
+                    if (active && $fields.is(active) && active.value) {
+                        $(active).autocomplete('search');
+                    }
+                }, function () { /* fields without suggestions */ });
+            });
+            return this;
+        }
         var o = $.extend({
             multiple: false,
             max: 10,

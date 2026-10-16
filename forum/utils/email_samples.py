@@ -158,15 +158,47 @@ def user_reported(recipient):
 
 
 def welcome(recipient):
-    return {'validation_code': 'sample-validation-code'}
+    return {'validation_code': 'sample-validation-code', 'link_hours': 48}
 
 
-def temp_login(recipient):
-    return {'temp_login_code': 'sample-sign-in-code'}
+def password_reset(recipient):
+    return {'reset_code': 'sample-reset-code', 'link_minutes': 60}
 
 
 def mail_validation(recipient):
-    return {'validation_code': 'sample-validation-code'}
+    return {'validation_code': 'sample-validation-code', 'link_hours': 48}
+
+
+def _security_event():
+    return {'when': datetime.datetime.now(), 'browser': 'Firefox on Windows', 'ip': '203.0.113.7'}
+
+
+def password_changed(recipient):
+    return dict(_security_event(), how='changed')
+
+
+def new_signin(recipient):
+    return _security_event()
+
+
+def email_change_confirm(recipient):
+    return {'confirm_code': 'sample-confirm-code', 'new_email': 'new.address@example.com', 'link_hours': 48}
+
+
+def email_change_notice(recipient):
+    return {'cancel_code': 'sample-cancel-code', 'new_email_masked': 'n•••@example.com', 'link_hours': 48}
+
+
+def email_changed_by_admin(recipient):
+    return {'new_email_masked': 'n•••@example.com'}
+
+
+def account_deleted(recipient):
+    return {'deleted_name': recipient.username, 'posts_deleted': False}
+
+
+def account_exists(recipient):
+    return {}
 
 
 def mail_test(recipient):
@@ -204,12 +236,34 @@ KINDS = {
                  'notifications/feedback.html', feedback),
     'user-reported': (_lazy("User reported"), _lazy("Administrators, when someone reports a user."),
                       'notifications/user_reported.html', user_reported),
-    'welcome': (_lazy("Welcome"), _lazy("New members, with the link that confirms their email address."),
+    'welcome': (_lazy("Welcome"), _lazy("New members, with the link that confirms their email address (double "
+                                        "opt-in)."),
                 'auth/welcome_email.html', welcome),
-    'sign-in-link': (_lazy("Sign-in link"), _lazy("Members who ask for a one-time sign-in link."),
-                     'auth/temp_login_email.html', temp_login),
+    'password-reset': (_lazy("Password reset"), _lazy("Members who use \"Forgot your password?\"."),
+                       'auth/password_reset_email.html', password_reset),
     'confirm-email': (_lazy("Confirm email address"), _lazy("Members who ask for a new confirmation link."),
                       'auth/mail_validation.html', mail_validation),
+    'password-changed': (_lazy("Password changed"),
+                         _lazy("Members whose password was changed, reset or set (a security notice)."),
+                         'auth/password_changed_email.html', password_changed),
+    'new-sign-in': (_lazy("New sign-in"), _lazy("Members who sign in from a new browser, when the site has these "
+                                                "notices turned on (Security settings)."),
+                    'auth/new_signin_email.html', new_signin),
+    'email-change-confirm': (_lazy("Confirm new email address"),
+                             _lazy("The new address, when a member changes their email address."),
+                             'auth/email_change_confirm_email.html', email_change_confirm),
+    'email-change-notice': (_lazy("Email address being changed"),
+                            _lazy("The old address, when a member changes their email address (with a cancel link)."),
+                            'auth/email_change_notice_email.html', email_change_notice),
+    'email-changed-by-admin': (_lazy("Email address changed by an administrator"),
+                               _lazy("The old address, when an administrator changes a member's address."),
+                               'auth/email_changed_by_admin_email.html', email_changed_by_admin),
+    'account-deleted': (_lazy("Account deleted"), _lazy("Members who delete their account (the last email)."),
+                        'auth/account_deleted_email.html', account_deleted),
+    'account-exists': (_lazy("Account already exists"),
+                       _lazy("The owner of an address someone tried to sign up with, when new members must "
+                             "confirm before signing in."),
+                       'auth/account_exists_email.html', account_exists),
     'test-email': (_lazy("Test email"), _lazy("The administrator who tests the email settings."),
                    'osqaadmin/mail_test.html', mail_test),
 }

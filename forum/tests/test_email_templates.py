@@ -30,8 +30,15 @@ CTA = {
     'feedback': ('Reply by email', 'mailto:carol@example.com'),
     'user-reported': ("Review bob's profile", '/users/990001/bob'),
     'welcome': ('Confirm your email', '/account/validate/%(id)d/sample-validation-code/'),
-    'sign-in-link': ('Sign in', '/account/tempsignin/%(id)d/sample-sign-in-code/'),
+    'password-reset': ('Choose a new password', '/account/tempsignin/%(id)d/sample-reset-code/'),
     'confirm-email': ('Confirm your email', '/account/validate/%(id)d/sample-validation-code/'),
+    'password-changed': ('Reset your password', '/account/tempsignin/'),
+    'new-sign-in': ('Reset your password', '/account/tempsignin/'),
+    'email-change-confirm': ('Confirm new address', '/account/email/confirm/%(id)d/sample-confirm-code/'),
+    'email-change-notice': ('Cancel the change', '/account/email/cancel/%(id)d/sample-cancel-code/'),
+    'email-changed-by-admin': (None, None),
+    'account-deleted': (None, None),
+    'account-exists': ('Sign in', '/account/signin/'),
     'test-email': (None, None),
 }
 NOTIFICATIONS = {'new-answer', 'new-comment', 'answer-accepted', 'mention', 'new-question', 'new-member', 'digest',
@@ -118,9 +125,15 @@ class EveryEmailKindTest(OSQATestCase):
         self.assertEqual(subjects['accept-reminder'], 'Did an answer solve "How do I export survey data to CSV?"?')
         self.assertEqual(subjects['feedback'], 'Feedback from carol')
         self.assertEqual(subjects['user-reported'], 'User reported: bob by carol')
-        self.assertEqual(subjects['welcome'], 'Welcome to OSQA')
-        self.assertEqual(subjects['sign-in-link'], 'Your sign-in link for OSQA')
+        self.assertEqual(subjects['welcome'], 'Welcome to OSQA: please confirm your email')
+        self.assertEqual(subjects['password-reset'], 'Reset your password for OSQA')
         self.assertEqual(subjects['confirm-email'], 'Confirm your email address for OSQA')
+        self.assertEqual(subjects['password-changed'], 'Your OSQA password was changed')
+        self.assertEqual(subjects['new-sign-in'], 'New sign-in to your OSQA account')
+        self.assertEqual(subjects['email-change-confirm'], 'Confirm your new email address for OSQA')
+        self.assertEqual(subjects['email-change-notice'], 'Your OSQA email address is being changed')
+        self.assertEqual(subjects['account-deleted'], 'Your OSQA account has been deleted')
+        self.assertEqual(subjects['account-exists'], 'You already have an account on OSQA')
 
     def test_subject_prefix(self):
         settings.EMAIL_SUBJECT_PREFIX.set_value('[Forum]')
@@ -130,9 +143,10 @@ class EveryEmailKindTest(OSQATestCase):
     def test_account_emails_say_why_they_were_sent(self):
         text = email_samples.render('welcome', self.admin)['text']
         self.assertIn('You receive this email because someone signed up at OSQA with this address.', text)
-        self.assertIn('The confirmation link works for 24 hours.', text)
-        html = email_samples.render('sign-in-link', self.admin)['html']
-        self.assertIn('a sign-in link was requested for your account', html)
+        self.assertIn('The link works once, for 48 hours.', text)
+        html = email_samples.render('password-reset', self.admin)['html']
+        self.assertIn('a password reset was requested for your account', html)
+        self.assertIn('These notices are always sent.', email_samples.render('password-changed', self.admin)['text'])
         self.assertIn('Button not working? Copy this link into your browser:', html)
 
     def test_digest_moderator_section_only_for_superusers(self):

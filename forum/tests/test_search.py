@@ -180,7 +180,7 @@ class FallbackTest(SearchFixture):
         self.assertFalse(engine.index_ready())
         self.assertEqual(set(self.ids('raster')), {self.title_match.id, self.body_only.id})
         response = self.client.get('/search/', {'q': 'raster'})
-        self.assertContains(response, 'Raster layers in Earth Map')
+        self.assertContains(response, '<mark>Raster</mark> layers in Earth Map')
 
     def test_search_questions_providers(self):
         from forum.utils import similar
@@ -230,8 +230,8 @@ class SearchPageTest(SearchFixture):
         response = self.client.get('/search/', {'q': 'raster'})
         self.assertCleanPage(response)
         page = response.content.decode()
-        self.assertIn('3 questions found', page)
-        self.assertLess(page.index('Raster layers in Earth Map'), page.index('Exporting survey results'))
+        self.assertIn('About 3 results', page)
+        self.assertLess(page.index('<mark>Raster</mark> layers in Earth Map'), page.index('Exporting survey results'))
         self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt; in the <mark>raster</mark> field.', page)
         self.assertNotIn('<script>alert(1)', page)
         self.assertIn('class="tabsA"', page)
@@ -247,7 +247,7 @@ class SearchPageTest(SearchFixture):
     def test_sort_tabs(self):
         Question.objects.filter(id=self.body_only.id).update(score=10)
         page = self.client.get('/search/', {'q': 'raster', 'sort': 'votes'}).content.decode()
-        self.assertLess(page.index('Exporting survey results'), page.index('Raster layers in Earth Map'))
+        self.assertLess(page.index('Exporting survey results'), page.index('<mark>Raster</mark> layers in Earth Map'))
         page = self.client.get('/search/', {'q': '[collect]'}).content.decode()
         self.assertNotIn('sort=relevance', page)  # nothing to rank by
 
@@ -259,7 +259,7 @@ class SearchPageTest(SearchFixture):
         for q in ('zebra', '[nosuchtag]'):
             response = self.client.get('/search/', {'q': q})
             self.assertCleanPage(response)
-            self.assertContains(response, '0 questions found')
+            self.assertContains(response, 'No results')
             self.assertContains(response, 'No questions match your search.')
         ask = self.client.get('/questions/ask/', {'title': 'raster'}).content.decode()
         self.assertIn('value="raster"', ask)

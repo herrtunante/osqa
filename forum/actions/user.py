@@ -17,8 +17,11 @@ class UserJoinsAction(ActionProxy):
         self.repute(self.user, int(settings.INITIAL_REP))
 
     def process_action(self):
-        hash = ValidationHash.objects.create_new(self.user, 'email', [self.user.email])
-        send_template_email([self.user], "auth/welcome_email.html", {'validation_code': hash})
+        # The welcome email asks to confirm the address (double opt-in);
+        # addresses a sign-in service has already confirmed get none.
+        if self.user.email and not self.user.email_isvalid:
+            from forum.utils.accounts import send_confirmation
+            send_confirmation(self.user, welcome=True)
 
     def describe(self, viewer=None):
         return _("%(user)s %(have_has)s joined the %(app_name)s Q&A community") % {

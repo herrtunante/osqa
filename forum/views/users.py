@@ -12,12 +12,12 @@ from forum.http_responses import HttpResponseUnauthorized
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from urllib.parse import quote as urlquote_plus
-from django.utils.html import strip_tags
+from django.utils.html import escape, strip_tags
 from django.utils.encoding import smart_str
 from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
-from forum.utils import display, email_frequency, security_log
+from forum.utils import accounts, display, email_frequency, security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
@@ -149,14 +149,29 @@ def edit_user(request, id, slug):
         form = EditUserForm(user, request.POST)
         if form.is_valid():
             new_email = sanitize_html(form.cleaned_data['email'])
+            email_change_requested = False
 
-            if new_email != user.email:
+            if new_email != user.email and request.user == user:
+                # The member's own change: the current address stays until the
+                # new one is confirmed, and the current one is told (accounts.py).
+                if new_email == accounts.pending_email(user):
+                    pass  # already waiting for confirmation
+                elif accounts.request_email_change(request, user, new_email):
+                    email_change_requested = True
+                else:
+                    messages.error(request, _("Too many emails were sent. Please try again in an hour."))
+            elif new_email != user.email:
+                # An administrator changes it at once; the old address is told.
+                old_email = user.email
                 user.email = new_email
                 user.email_isvalid = False
+                accounts.clear_pending_email(user)
 
                 # A pending validation link for the old address must stop
                 # working; it belongs to the edited user, not to whoever edits.
                 ValidationHash.objects.filter(user=user, type='email').delete()
+                accounts.notify_email_changed_by_admin(request, user, old_email)
+                security_log.event('email_changed_by_admin', request, account=user)
 
             if settings.EDITABLE_SCREEN_NAME:
                 user.username = sanitize_html(form.cleaned_data['username'])
@@ -171,6 +186,11 @@ def edit_user(request, id, slug):
             user.save()
             EditProfileAction(user=user, ip=request.META['REMOTE_ADDR']).save()
 
+            if email_change_requested:
+                messages.info(request, _("Profile updated. We sent a link to %(new)s: your email address changes "
+                                         "when you open it. Until then it stays %(old)s.") % {
+                    'new': escape(new_email), 'old': escape(user.email)})
+                return HttpResponseRedirect(reverse('edit_user', kwargs={'id': user.id, 'slug': slugify(user.username)}))
             messages.info(request, _("Profile updated."))
             return HttpResponseRedirect(user.get_profile_url())
     else:
@@ -181,6 +201,7 @@ def edit_user(request, id, slug):
     'can_view_private': True,
     'form' : form,
     'gravatar_faq_url' : reverse('faq') + '#gravatar',
+    'pending_email': accounts.pending_email(user) if request.user == user else None,
     })
 
 

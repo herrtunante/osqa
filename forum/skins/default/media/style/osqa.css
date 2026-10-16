@@ -12,9 +12,10 @@
      5. List pages             (was lists.css)
      6. Header search box      (was searchbox.css)
      7. Accessibility, print   (was ui.css)
-     8. Markdown editor        (was js/wmd/wmd.css)
+     8. Markdown editor        (toolbar, dialogs: osqa.editor.js)
      9. Profile menu           (was user.css, screen only)
     10. Markdown help page     (was markdown_help.css)
+    11. API pages              (docs at /api/, API tokens settings page)
 
    Unused rules are found with e2e/css_coverage.py (see e2e/README.md). */
 
@@ -1304,13 +1305,6 @@ div.subscription_tags a:hover {
     color: #FFFFFF;
 }
 
-div.wmd-button {
-    color:white;
-}
-div.wmd-button-bar {
-    float:left;
-}
-
 /* ======================================================================
    2. Modern layout, tokens and components
    ====================================================================== */
@@ -1760,10 +1754,6 @@ textarea, #editor, .wmd-preview {
 .wmd-preview {
     border-radius: 6px;
     padding: 12px;
-}
-
-#wmd-button-bar {
-    overflow-x: auto;
 }
 
 /* ---- Headings, tabs and paging ------------------------------------- */
@@ -2304,6 +2294,64 @@ div.question-body p, div.answer-body p {
     display: none;
 }
 
+/* "Confirm your email address" under the header ({% confirm_banner %}, auth/confirm_banner.html). */
+.confirm-banner {
+    max-width: var(--content-width);
+    margin: 16px auto 0;
+    padding: 0 16px;
+}
+
+.confirm-banner-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 10px 16px;
+    border: 1px solid var(--warn-border);
+    border-radius: var(--radius);
+    background: var(--warn-bg);
+    color: var(--warn-text);
+}
+
+.confirm-banner-text {
+    margin: 0;
+}
+
+.confirm-banner-email {
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.confirm-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.confirm-banner-actions form {
+    margin: 0;
+}
+
+.confirm-banner-actions a, button.confirm-banner-button {
+    color: var(--warn-text);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+button.confirm-banner-button {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+button.confirm-banner-button:hover {
+    border: 0;
+    background: none;
+    color: var(--warn-text);
+}
+
 .offline-page ul {
     margin: 12px 0;
     padding-left: 20px;
@@ -2725,19 +2773,6 @@ div.comment-tools a:hover {
     border-radius: 8px;
     background: var(--surface);
     box-shadow: 0 8px 24px rgba(16, 24, 40, .12);
-}
-
-/* Markdown editor: toolbar attached to the text box. */
-#wmd-button-bar {
-    padding: 2px 4px;
-    border: 1px solid var(--border);
-    border-bottom: 0;
-    border-radius: 8px 8px 0 0;
-    background: var(--background);
-}
-
-#wmd-button-bar + textarea, #wmd-button-bar ~ #editor {
-    border-radius: 0 0 8px 8px;
 }
 
 /* ---- Desktop polish: sidebar, lists, profile ----------------------- */
@@ -3802,112 +3837,6 @@ img[src*="feed-icon-small"] {
     cursor: grab;
 }
 
-/* ---- Markdown editor toolbar ---------------------------------------- */
-
-/* SVG icons instead of the wmd sprite. wmd.js sets the sprite offset inline:
-   0px normal, -20px disabled (undo/redo), -40px hover. */
-#wmd-button-row {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin: 4px 0;
-}
-
-#wmd-button-row li.wmd-button {
-    position: relative;
-    left: auto !important;
-    right: auto !important;
-    width: 30px;
-    height: 30px;
-    margin: 0;
-    border-radius: 6px;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 18px !important;
-    cursor: pointer;
-}
-
-#wmd-button-row li.wmd-button > a {
-    position: absolute;
-    inset: 0;
-    width: auto;
-    height: auto;
-    margin: 0;
-}
-
-#wmd-button-row li.wmd-button[style*=" -40px;"] {
-    background-color: var(--hover-overlay);
-}
-
-#wmd-button-row li.wmd-button[style*=" -20px;"] {
-    opacity: .35;
-    cursor: default;
-}
-
-#wmd-button-row li.wmd-spacer {
-    position: static;
-    width: 1px;
-    height: 18px;
-    margin: 0 6px;
-    background: var(--border);
-}
-
-#wmd-button-row #wmd-help-button {
-    margin-left: auto;
-}
-
-#wmd-button-row #wmd-bold-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 5h6a3.5 3.5 0 010 7H7zM7 12h7a3.5 3.5 0 010 7H7z'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-italic-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 5h8M6 19h8M14 5l-4 14'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-link-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-quote-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h5v5H5zM10 12c0 3-1.5 5-4 6M14 7h5v5h-5zM19 12c0 3-1.5 5-4 6'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-code-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 8l-4 4 4 4M15 8l4 4-4 4'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-image-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Ccircle cx='8.5' cy='10' r='1.5'/%3E%3Cpath d='M21 16l-5-5-8 8'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-olist-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 6h10M10 12h10M10 18h10M4 4.5h1.5V9M4 9h3M4 14.5c.5-1 2.8-1 2.8.5 0 1-2.8 2-2.8 3.5h3'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-ulist-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-heading-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4v16M18 4v16M6 12h12'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-hr-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M8 6h8M8 18h8'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-undo-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-redo-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3'/%3E%3C/svg%3E") !important;
-}
-
-#wmd-button-row #wmd-help-button {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01'/%3E%3C/svg%3E") !important;
-}
-
 /* ---- Question page ---------------------------------------------------- */
 
 /* question.html and node/*.html. Rules are scoped to .question-page (the
@@ -4891,15 +4820,6 @@ time.relative-time {
     border: 1px solid var(--border-strong);
     border-radius: 0 0 8px 8px;
     font-size: 15px;
-}
-
-.question-page .answer-editor #wmd-button-bar {
-    overflow: visible;
-    border-color: var(--border-strong);
-}
-
-.question-page #wmd-button-row {
-    flex-wrap: wrap;
 }
 
 .question-page .editor-footer {
@@ -6011,6 +5931,372 @@ ol.search-results {
     }
 }
 
+/* Filters (the sidebar, a dialog on narrow screens: osqa.searchpage.js),
+ * chips of the active filters, facet counts, "did you mean" and the
+ * results' status badges and meta line. */
+
+.search-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+}
+
+.search-toolbar:not(:has(> :not([hidden]))) {
+    display: none;
+}
+
+.search-filters-toggle {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.search-filters-toggle:hover {
+    background: var(--hover-overlay);
+}
+
+.search-filters-count {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: var(--surface);
+    font-size: 12px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.search-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.search-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px 6px 4px 12px;
+    border: 1px solid var(--info-border);
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--text);
+    font-size: 13px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.search-chip:hover, .search-chip:focus-visible {
+    border-color: var(--brand);
+    color: var(--text);
+}
+
+.search-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1;
+}
+
+.search-chip:hover .search-chip-remove {
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.search-chips-clear {
+    padding: 4px 6px;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+.search-did-you-mean {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.search-did-you-mean a {
+    text-decoration: underline;
+}
+
+.search-result .search-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    flex-basis: 100%;
+}
+
+.search-result .search-result-meta .tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+}
+
+.search-result .search-result-meta .userinfo {
+    margin: 0 0 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.search-status {
+    display: inline-block;
+    padding: 1px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.search-status-accepted {
+    border-color: var(--success);
+    background: var(--success-soft);
+}
+
+.search-status-answered {
+    background: var(--brand-soft);
+    border-color: var(--info-border);
+}
+
+.search-status-closed {
+    border-color: var(--warn-border-strong);
+    background: var(--warn-bg);
+}
+
+.search-filters-title {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.search-filter {
+    min-width: 0;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+}
+
+.search-filter > label, .search-filter legend {
+    display: block;
+    margin: 0 0 4px;
+    padding: 0;
+    font-weight: 600;
+}
+
+.search-filter input[type="text"], .search-filter input[type="number"], .search-filter input[type="date"],
+.search-filter select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.search-filter-hint {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+label.search-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.search-filter-option input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--brand);
+}
+
+.search-filter-closed {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.search-facet-count {
+    margin-left: auto;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--code-inline-bg);
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.search-filter-range {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 8px;
+    margin-top: 8px;
+}
+
+.search-filter-range[hidden] {
+    display: none;
+}
+
+.search-filter-range label {
+    font-weight: normal;
+}
+
+.search-facet-heading {
+    margin: 10px 0 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+ul.search-facet-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.search-facet-tags a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 2px 4px 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--brand);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.search-facet-tags a:hover, .search-facet-tags a:focus-visible {
+    border-color: var(--brand);
+}
+
+.search-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-filters-dialog {
+    width: min(480px, calc(100vw - 16px));
+    max-height: calc(100dvh - 16px);
+    padding: 0;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .3);
+}
+
+.search-filters-dialog::backdrop {
+    background: rgba(16, 24, 40, .55);
+}
+
+.search-filters-dialog-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 8px 8px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface);
+}
+
+.search-filters-dialog-head h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.search-filters-dialog .search-filters-close {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--muted);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.search-filters-dialog .search-filters-close:hover {
+    background: var(--hover-overlay);
+    color: var(--text);
+}
+
+.search-filters-dialog .search-filters {
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.search-filters-dialog .search-filters-title {
+    display: none;
+}
+
+@media (max-width: 960px) {
+    .search-filters-toggle:not([hidden]) {
+        display: inline-flex;
+    }
+
+    .search-filters-home.is-enhanced {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .search-result .search-result-meta .userinfo {
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+
+    .search-filters-dialog .search-filter-actions .submit {
+        flex: 1 1 auto;
+        min-height: 44px;
+    }
+}
+
 /* ---- Phone and dark-mode polish -------------------------------------- */
 
 /* Tab rows that scroll sideways: a fade on each edge where tabs are hidden
@@ -7053,12 +7339,6 @@ a.badge-awardee img.gravatar {
 
 :root[data-theme="dark"] .badge-hero-icon {
     border-color: var(--warn-border);
-}
-
-/* The editor toolbar wraps on narrow screens: wmd.css fixes its height at
-   20px, which drew the second row over the text box. */
-#wmd-button-bar #wmd-button-row, .question-page #wmd-button-row {
-    height: auto !important;
 }
 
 /* A clearer fade on scrolling tab rows. */
@@ -8513,6 +8793,95 @@ ol.activity-list > li + li, ol.reputation-list > li + li, ol.vote-list > li + li
     display: block;
 }
 
+/* Password rules ticked as the person types, and the strength bar (osqa.password.js), on the
+   settings pages and the sign-in pages (auth/field.html). */
+ul.auth-rules li.is-met {
+    color: var(--success);
+}
+
+ul.auth-rules li.is-met::marker {
+    content: "\2713  ";
+}
+
+ul.auth-rules li.is-unmet {
+    color: var(--danger-text);
+}
+
+.password-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.password-meter[hidden] {
+    display: none;
+}
+
+.password-meter-bar {
+    flex: 1;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--border-subtle);
+}
+
+.password-meter-bar span {
+    display: block;
+    width: 8%;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--danger-text);
+    transition: width 0.15s ease;
+}
+
+.password-meter[data-level="1"] .password-meter-bar span {
+    width: 25%;
+    background: var(--danger-text);
+}
+
+.password-meter[data-level="2"] .password-meter-bar span {
+    width: 50%;
+    background: var(--warn-border-strong);
+}
+
+.password-meter[data-level="3"] .password-meter-bar span {
+    width: 75%;
+    background: var(--success);
+}
+
+.password-meter[data-level="4"] .password-meter-bar span {
+    width: 100%;
+    background: var(--success);
+}
+
+.password-meter-text {
+    min-width: 7em;
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .password-meter-bar span {
+        transition: none;
+    }
+}
+
+/* What deleting the account does (users/data.html). */
+.account-delete-list {
+    margin: 0 0 12px;
+    padding-left: 20px;
+    color: var(--text);
+    list-style: disc;
+}
+
+.account-delete-list li {
+    margin: 0 0 4px;
+    list-style: disc;
+}
+
 .settings-avatar {
     display: flex;
     align-items: center;
@@ -9769,18 +10138,6 @@ li.similar-item {
     gap: 12px;
 }
 
-.compose-page #wmd-button-bar {
-    overflow: visible;
-    padding: 2px 6px;
-    border-color: var(--border-strong);
-    border-radius: 8px 8px 0 0;
-}
-
-.compose-page #wmd-button-row {
-    flex-wrap: wrap;
-    margin: 3px 0;
-}
-
 .compose-page #editor {
     display: block;
     min-height: 240px;
@@ -10299,25 +10656,6 @@ li.tag-chip {
     .compose-page #previewer {
         min-height: 240px;
         border-style: solid;
-    }
-
-    /* The toolbar scrolls inside itself rather than taking three rows. */
-    .compose-page #wmd-button-bar {
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
-        scrollbar-width: none;
-    }
-
-    .compose-page #wmd-button-row {
-        flex-wrap: nowrap;
-        width: max-content;
-        min-width: 100%;
-    }
-
-    .compose-page #wmd-button-row li.wmd-button {
-        flex: none;
-        width: 36px;
-        height: 36px;
     }
 
     .compose-page #editor {
@@ -12537,7 +12875,7 @@ div.dialog :focus-visible {
     }
 
     .skip-link, #roof, #searchBar, #top, #nav, #announcement, #custom_header, #custom_footer, #ground,
-    #CARight, .offline-banner, .notify, #command-loader, div.dialog,
+    #CARight, .offline-banner, .confirm-banner, .notify, #command-loader, div.dialog,
     form, .post-votes, .vote-buttons, .post-controls, .comment-tools, .comment-form-container,
     .answer-sort, .jump-to-accepted, .paginator, .paginator-container-left, .code-copy,
     .context-menu-dropdown, .searchbox-panel, .ai-suggestion-actions, #fmanswer {
@@ -12604,102 +12942,332 @@ div.dialog :focus-visible {
 
 /* ======================================================================
    8. Markdown editor
-   Markdown editor (wmd.js) button bar and prompt dialog.
+   The post editor (compose/toolbar.html, osqa.editor.js, osqa.paste.js):
+   toolbar, code language menu, tooltips, link and image dialogs, the
+   preview's tables, the length hint and upload errors.
    ====================================================================== */
 
-#wmd-button-row 
-{
-	position: relative; 
-	margin-left: 5px;
-	margin-right: 5px;
-	margin-bottom: 5px;
-	margin-top: 10px;
-	padding: 0px;  
-	height: 20px;
+.compose-write, .answer-editor {
+    position: relative;
 }
 
-.wmd-spacer
-{
-	width: 1px; 
-	height: 20px; 
-	margin-left: 14px;
-	
-	position: absolute;
-	background-color: Silver;
-	display: inline-block; 
-	list-style: none;
+.editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin: 0;
+    padding: 4px 6px;
+    border: 1px solid var(--border-strong);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: var(--background);
 }
 
-.wmd-button
-{
-	width: 20px; 
-	height: 20px; 
-	margin-left: 5px;
-	margin-right: 5px;
-	
-	position: absolute;
-	background-image: url(../js/wmd/images/wmd-buttons.png);
-	background-repeat: no-repeat;
-	background-position: 0px 0px;
-	display: inline-block; 
-	list-style: none;
+.editor-toolbar ~ #editor {
+    border-radius: 0 0 8px 8px;
 }
 
-.wmd-button > a
-{
-	width: 20px; 
-	height: 20px; 
-	margin-left: 5px;
-	margin-right: 5px;
-	
-	position: absolute;
-	display: inline-block; 
+.editor-button, .editor-button:hover {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
 }
 
-/* sprite button slicing style information */
-#wmd-button-bar #wmd-bold-button    {left: 0px;   background-position: 0px 0;}
-#wmd-button-bar #wmd-italic-button  {left: 25px;  background-position: -20px 0;}
-#wmd-button-bar #wmd-spacer1        {left: 50px;}
-#wmd-button-bar #wmd-link-button    {left: 75px;  background-position: -40px 0;}
-#wmd-button-bar #wmd-quote-button   {left: 100px;  background-position: -60px 0;}
-#wmd-button-bar #wmd-code-button    {left: 125px;  background-position: -80px 0;}
-#wmd-button-bar #wmd-image-button   {left: 150px;  background-position: -100px 0;}
-#wmd-button-bar #wmd-spacer2        {left: 175px;}
-#wmd-button-bar #wmd-olist-button   {left: 200px;  background-position: -120px 0;}
-#wmd-button-bar #wmd-ulist-button   {left: 225px; background-position: -140px 0;}
-#wmd-button-bar #wmd-heading-button {left: 250px; background-position: -160px 0;}
-#wmd-button-bar #wmd-hr-button      {left: 275px; background-position: -180px 0;}
-#wmd-button-bar #wmd-spacer3        {left: 300px;}
-#wmd-button-bar #wmd-undo-button    {left: 325px; background-position: -200px 0;}
-#wmd-button-bar #wmd-redo-button    {left: 350px; background-position: -220px 0;}
-#wmd-button-bar #wmd-help-button    {right: 0px; background-position: -240px 0;}
-
-.wmd-prompt-background
-{
-	background-color: Black;
+.editor-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
-.wmd-prompt-dialog
-{
-	border: 1px solid #999999;
-	background-color: #F5F5F5;
+.editor-button:hover, .editor-button[aria-expanded="true"] {
+    background: var(--hover-overlay);
+    color: var(--text);
 }
 
-.wmd-prompt-dialog > div {
-	font-size: 0.8em;
-	font-family: arial, helvetica, sans-serif;
+.editor-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
 }
 
-.wmd-prompt-dialog > form > input[type="text"] {
-	border: 1px solid #999999;
-	color: black;
+.editor-button[aria-pressed="true"], .editor-button[aria-pressed="true"]:hover {
+    background: var(--brand-soft);
+    color: var(--brand);
 }
 
-.wmd-prompt-dialog > form > input[type="button"]{
-	border: 1px solid #888888;
-	font-family: trebuchet MS, helvetica, sans-serif;
-	font-size: 0.8em;
-	font-weight: bold;
+.editor-button[aria-disabled="true"], .editor-button[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--muted);
+    opacity: .45;
+    cursor: default;
+}
+
+.editor-help {
+    margin-left: auto;
+}
+
+.editor-separator {
+    flex: none;
+    width: 1px;
+    height: 18px;
+    margin: 0 4px;
+    background: var(--border-strong);
+}
+
+/* The code block language menu, under its button. */
+.editor-menu {
+    position: absolute;
+    z-index: 1100;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(110px, 1fr));
+    gap: 2px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 10px 30px rgba(16, 24, 40, .15);
+}
+
+.editor-menu[hidden] {
+    display: none;
+}
+
+.editor-menu [role="menuitem"], .editor-menu [role="menuitem"]:hover {
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+}
+
+.editor-menu [role="menuitem"]:hover, .editor-menu [role="menuitem"]:focus {
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    outline: none;
+}
+
+.editor-menu [role="menuitem"]:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+}
+
+/* One tooltip, placed by osqa.editor.js under the hovered or focused button. */
+.editor-tooltip {
+    position: fixed;
+    z-index: 1300;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--text);
+    color: var(--surface);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.editor-tooltip[hidden] {
+    display: none;
+}
+
+/* Link and image dialogs (<dialog>, moved to the end of the page). */
+.editor-dialog {
+    box-sizing: border-box;
+    width: min(440px, calc(100vw - 32px));
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 20px 50px rgba(16, 24, 40, .25);
+}
+
+.editor-dialog::backdrop {
+    background: rgba(16, 24, 40, .5);
+}
+
+.editor-dialog-title {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.editor-dialog label {
+    display: block;
+    margin: 14px 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.editor-dialog input[type="url"], .editor-dialog input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 15px;
+}
+
+.editor-dialog input[type="file"] {
+    max-width: 100%;
+    font-size: 14px;
+}
+
+.editor-dialog-help, .editor-upload-status {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.editor-upload-status:empty {
+    display: none;
+}
+
+.editor-upload-status.upload-error {
+    padding: 8px 12px;
+    color: var(--danger-text);
+}
+
+.editor-dialog-error {
+    margin: 12px 0 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    font-size: 13px;
+}
+
+.editor-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.editor-dialog-cancel, .editor-dialog-cancel:hover {
+    padding: 9px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+}
+
+.editor-dialog-cancel:hover {
+    background: var(--hover-overlay);
+}
+
+.editor-dialog-ok[disabled], .editor-dialog-cancel[disabled] {
+    opacity: .6;
+    cursor: default;
+}
+
+/* Under the text box: the minimum length and the count. */
+.compose-editor-footer {
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.editor-min-hint {
+    color: var(--muted);
+}
+
+.editor-min-hint.is-short {
+    color: var(--danger-text);
+}
+
+.editor-min-hint.is-met::before {
+    content: "\2713\00a0" / "";
+    color: var(--success);
+}
+
+.editor-metrics {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Upload errors from pasted or dropped images (osqa.paste.js). */
+.upload-errors {
+    margin: 6px 0;
+}
+
+.upload-errors .upload-error {
+    margin: 4px 0;
+}
+
+/* Tables in the preview, as in posts. */
+.wmd-preview table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 0 0 1em;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.wmd-preview th, .wmd-preview td {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.wmd-preview th {
+    background: var(--background);
+    font-weight: 600;
+}
+
+.wmd-preview [align="center"], .question-page .post-body [align="center"] {
+    text-align: center;
+}
+
+.wmd-preview [align="right"], .question-page .post-body [align="right"] {
+    text-align: right;
+}
+
+/* On a phone the toolbar scrolls sideways inside itself, with larger buttons. */
+@media (max-width: 640px) {
+    .editor-toolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+    }
+
+    .editor-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .editor-button, .editor-button:hover {
+        width: 40px;
+        height: 40px;
+    }
+
+    .editor-help {
+        margin-left: 0;
+    }
+
+    .editor-menu {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: calc(100vw - 48px);
+    }
 }
 
 /* ======================================================================
@@ -12943,6 +13511,38 @@ div.dialog.award-rep-points table input, div.dialog.award-rep-points table texta
 .md-result .md-h2 { font-size: 20px; }
 .md-result .md-h3 { font-size: 17px; }
 
+.md-result pre {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--code-bg);
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+.md-table {
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.md-table th, .md-table td {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+}
+
+.md-table [align="right"] {
+    text-align: right;
+}
+
+.md-keys {
+    margin: 10px 0;
+}
+
+.md-keys td:first-child {
+    white-space: nowrap;
+}
+
 @media (max-width: 640px) {
     .md-example {
         grid-template-columns: minmax(0, 1fr);
@@ -12961,4 +13561,192 @@ div.dialog.award-rep-points table input, div.dialog.award-rep-points table texta
 
 .md-help .md-example {
     margin: 10px 0;
+}
+
+/* ======================================================================
+   11. API pages
+   The API documentation (api/docs.html, which also uses the Markdown help
+   page's table of contents) and the API tokens settings page
+   (users/api_tokens.html, with the settings and security cards).
+   ====================================================================== */
+
+.api-docs {
+    max-width: 920px;
+}
+
+.api-docs div {
+    margin: 0;
+}
+
+.api-docs .md-section ul {
+    margin: 8px 0 12px;
+    padding-left: 22px;
+}
+
+.api-docs .md-section li {
+    margin: 4px 0;
+    list-style: disc;
+}
+
+.api-code {
+    margin: 10px 0 14px;
+}
+
+.api-table-wrap {
+    max-width: 100%;
+    margin: 10px 0 14px;
+    overflow-x: auto;
+}
+
+.api-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.api-table caption {
+    padding: 0 0 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.api-table th, .api-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: left;
+    vertical-align: top;
+}
+
+.api-table th {
+    border-bottom-color: var(--border);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.api-table tr:target {
+    background: var(--highlight-bg);
+}
+
+.api-where, .api-required {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.api-required {
+    display: inline;
+    color: var(--accent-dark);
+}
+
+.api-docs .api-index ul {
+    padding: 0;
+}
+
+.api-docs .api-index li {
+    list-style: none;
+    overflow-wrap: anywhere;
+}
+
+.api-index-summary, .api-group-text, .api-op-auth, .api-op-errors {
+    color: var(--muted);
+}
+
+.api-group {
+    margin: 28px 0 4px;
+    font-size: 18px;
+}
+
+.api-op, .api-object {
+    margin: 14px 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    scroll-margin-top: 12px;
+}
+
+.api-op h4, .api-object h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.api-op-summary {
+    font-weight: 600;
+}
+
+.api-method {
+    display: inline-block;
+    min-width: 58px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.api-method-post {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.api-method-delete {
+    background: var(--danger-soft);
+    color: var(--danger-text);
+}
+
+/* The API tokens page. */
+.api-token-copy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 6px;
+}
+
+.api-token-copy .api-token-value {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--code-bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.api-new-token {
+    border-color: var(--success);
+}
+
+.api-token-status:empty {
+    display: none;
+}
+
+.api-token-expired {
+    color: var(--danger-text);
+}
+
+.api-scope-field {
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+}
+
+.api-choice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 6px 0;
+    font-weight: normal;
+}
+
+.api-choice input {
+    flex: none;
+    margin-top: 3px;
 }

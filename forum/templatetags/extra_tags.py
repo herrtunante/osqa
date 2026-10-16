@@ -24,9 +24,12 @@ from django.urls import reverse
 
 register = template.Library()
 
+# Sized (no layout shift), lazy, and twice the pixels on high-density screens.
 GRAVATAR_TEMPLATE = ('<img class="gravatar" width="%(size)s" height="%(size)s" '
 'src="https://secure.gravatar.com/avatar/%(gravatar_hash)s'
 '?s=%(size)s&amp;d=%(default)s&amp;r=%(rating)s" '
+'srcset="https://secure.gravatar.com/avatar/%(gravatar_hash)s'
+'?s=%(size2x)s&amp;d=%(default)s&amp;r=%(rating)s 2x" '
 'alt="%(username)s" loading="lazy" decoding="async" />')
 
 @register.simple_tag
@@ -37,13 +40,53 @@ def gravatar(user, size):
     except (TypeError, AttributeError, KeyError):
         gravatar = user.gravatar
         username = user.username
+    try:
+        size2x = int(size) * 2
+    except (TypeError, ValueError):
+        size2x = size
     return mark_safe(GRAVATAR_TEMPLATE % {
     'size': size,
+    'size2x': size2x,
     'gravatar_hash': gravatar,
     'default': settings.GRAVATAR_DEFAULT_IMAGE,
     'rating': settings.GRAVATAR_ALLOWED_RATING,
     'username': escape(username),
     })
+
+
+_logo_sizes = {}
+
+
+@register.simple_tag
+def logo_size():
+    """width="..." height="..." of the APP_LOGO file (uploaded or bundled), so
+    the header keeps its space while the logo loads; nothing for an outside
+    URL or an unreadable file. Read once per file version."""
+    logo = str(settings.APP_LOGO or '').split('?')[0]
+    alias = str(settings.UPFILES_ALIAS)
+    if not logo.startswith(alias):
+        return ''
+    relative = logo[len(alias):]
+    bundled = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'upfiles')
+    for root in (str(settings.UPFILES_FOLDER), bundled):
+        root = os.path.realpath(root)
+        path = os.path.realpath(os.path.join(root, relative))
+        if path.startswith(root + os.sep) and os.path.isfile(path):
+            break
+    else:
+        return ''
+    key = (path, os.path.getmtime(path))
+    if key not in _logo_sizes:
+        try:
+            from PIL import Image
+            with Image.open(path) as image:
+                size = mark_safe('width="%d" height="%d"' % image.size)
+        except Exception:
+            size = ''
+        if len(_logo_sizes) > 8:
+            _logo_sizes.clear()
+        _logo_sizes[key] = size
+    return _logo_sizes[key]
 
 
 @register.simple_tag

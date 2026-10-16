@@ -7,31 +7,31 @@
     exclude_greeting = True
     exclude_finetune = True
 {% enddeclare %}
-
+{% comment %}The first email of a new member (forum/utils/accounts.py send_confirmation): welcome and the link that confirms the address (double opt-in). There is no second "welcome" email after confirming.{% endcomment %}
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} Welcome to {{ app_name }}{% endblocktrans %}{% endsubject %}
-    {% preheader %}{% trans "One last step: confirm your email address." %}{% endpreheader %}
+    {% subject %}{% blocktrans %}{{ prefix }} Welcome to {{ app_name }}: please confirm your email{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "One last step: confirm your email address to finish signing up." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        {% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, you can ignore it.{% endblocktrans %}
+        {% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, ignore it: the account can't be used without confirming, and it is deleted after a few days.{% endblocktrans %}
         <h1 class="em-h1" style="{{ h1_style }}">{% blocktrans %}Welcome to {{ app_name }}!{% endblocktrans %}</h1>
-        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm your email address, so you can hear about answers to your questions.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm that this is your email address.{% endblocktrans %} {% if must_confirm_to_sign_in %}{% trans "Then you can sign in." %}{% else %}{% trans "Then you can ask questions, answer and comment, and hear about answers to your questions." %}{% endif %}</p>
         {% fullurl "auth_validate_email" user=recipient.id code=validation_code as validate_url %}
         {% trans "Confirm your email" as cta %}{% include "notifications/_button.html" with url=validate_url label=cta %}
-        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Your username is {{ name }}. The confirmation link works for 24 hours.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username count hours=link_hours|default:48 %}Your username is {{ name }}. The link works once, for {{ hours }} hour.{% plural %}Your username is {{ name }}. The link works once, for {{ hours }} hours.{% endblocktrans %}</p>
         {% include "notifications/_link_fallback.html" with url=validate_url %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, you can ignore it.{% endblocktrans %}
+{% blocktrans asvar footer_reason %}You receive this email because someone signed up at {{ app_name }} with this address. If it wasn't you, ignore it: the account can't be used without confirming, and it is deleted after a few days.{% endblocktrans %}
 {% blocktrans %}Welcome to {{ app_name }}!{% endblocktrans %}
 
-{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm your email address, so you can hear about answers to your questions.{% endblocktrans %}
+{% blocktrans with name=recipient.username %}Thanks for joining, {{ name }}. One last step: confirm that this is your email address.{% endblocktrans %} {% if must_confirm_to_sign_in %}{% trans "Then you can sign in." %}{% else %}{% trans "Then you can ask questions, answer and comment, and hear about answers to your questions." %}{% endif %}
 
 {% trans "Confirm your email" %}:
 {% fullurl "auth_validate_email" user=recipient.id code=validation_code %}
 
-{% blocktrans with name=recipient.username %}Your username is {{ name }}. The confirmation link works for 24 hours.{% endblocktrans %}
+{% blocktrans with name=recipient.username count hours=link_hours|default:48 %}Your username is {{ name }}. The link works once, for {{ hours }} hour.{% plural %}Your username is {{ name }}. The link works once, for {{ hours }} hours.{% endblocktrans %}
 {% endtextcontent %}
 
 {% endemail %}

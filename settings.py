@@ -35,6 +35,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'forum.middleware.extended_user.ExtendedUser',
+    # Server-Timing header (db, render, total) with DEBUG, or for staff when SERVER_TIMING is set.
+    'forum.middleware.server_timing.ServerTimingMiddleware',
     'forum.middleware.anon_user.ConnectToSessionMessagesMiddleware',
     'forum.middleware.request_utils.RequestUtils',
     'forum.middleware.cancel.CancelActionMiddleware',
@@ -171,12 +173,24 @@ globals().setdefault('LANGUAGES', [
 LOCALE_PATHS = [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'forum', 'locale')]
 
 # Security defaults; any of them can be set differently in settings_local.py.
+# Passwords follow NIST SP 800-63B (forum/utils/passwords.py): a minimum length
+# from the PASSWORD_MIN_LENGTH site setting (at least 8), at most 128
+# characters, no composition rules, screened against common passwords, the
+# member's own username/email and (site setting PASSWORD_BREACH_CHECK) the
+# Have I Been Pwned list of breached passwords.
 globals().setdefault('AUTH_PASSWORD_VALIDATORS', [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'forum.utils.passwords.MinimumLengthValidator'},
+    {'NAME': 'forum.utils.passwords.MaximumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {'NAME': 'forum.utils.passwords.BreachedPasswordValidator'},
 ])
+# Sessions: "Keep me signed in" on the sign-in page keeps the session for
+# SESSION_COOKIE_AGE (two weeks); otherwise it ends when the browser closes.
+# The cookie is HttpOnly and SameSite=Lax (Django's defaults), Secure on HTTPS.
+globals().setdefault('SESSION_COOKIE_AGE', 14 * 24 * 3600)
+globals().setdefault('SESSION_COOKIE_HTTPONLY', True)
+globals().setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
 # New passwords use PBKDF2; the last two only read hashes from the original
 # OSQA (salted SHA1 and MD5) and are replaced by PBKDF2 at the next sign-in.
 globals().setdefault('PASSWORD_HASHERS', [
@@ -243,6 +257,12 @@ if SENTRY_DSN:
 # token to switch them on; Prometheus sends it as "Authorization: Bearer <token>".
 # Without a token /metrics answers 404.
 METRICS_TOKEN = _setting('METRICS_TOKEN')
+
+# Server-Timing header on the responses to staff members (db time and query
+# count, template rendering, total; forum/middleware/server_timing.py): set to
+# 'staff' (or any value) to profile pages in the browser's developer tools.
+# With DEBUG on every response has it.
+SERVER_TIMING = _setting('SERVER_TIMING')
 
 # LOG_FORMAT = 'json' (or the environment variable): one JSON object per line
 # on standard output instead of the LOGGING above, for containers; see
