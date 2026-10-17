@@ -122,6 +122,15 @@ def png_b64():
         shutil.rmtree(folder)
 
 
+# Closes the dialog and moves the focus at once, as a member who presses
+# Escape and goes straight on does: the dialog's close event comes after, and
+# must not pull the focus back to where the dialog was opened.
+CLOSE_AND_MOVE_ON = '''([dialog, target]) => {
+    document.querySelector(dialog).close();
+    document.querySelector(target).focus();
+    return new Promise(resolve => setTimeout(resolve, 100));
+}'''
+
 class EditorTest(E2ETestCase):
     def setUp(self):
         super().setUp()
@@ -620,6 +629,19 @@ class EditorTest(E2ETestCase):
         folder = os.environ.get('E2E_ARTIFACTS') or os.path.join('tmp', 'e2e')
         os.makedirs(folder, exist_ok=True)
         return folder
+
+    def test_closing_a_dialog_leaves_a_focus_that_moved_on_alone(self):
+        page = self.ask_page()
+        self.button(page, 'link').click()
+        page.locator('#editor-link-dialog').wait_for()
+        page.evaluate(CLOSE_AND_MOVE_ON, ['#editor-link-dialog', '#id_title'])
+        self.assertEqual(page.evaluate('() => document.activeElement.id'), 'id_title')
+        # The dialog still opens and closes as before.
+        self.button(page, 'link').click()
+        page.locator('#editor-link-dialog').wait_for()
+        page.keyboard.press('Escape')
+        page.locator('#editor-link-dialog').wait_for(state='hidden')
+        self.check_page(page)
 
     def test_accessibility_of_the_toolbar_menu_and_dialogs(self):
         failures = []

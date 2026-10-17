@@ -66,7 +66,12 @@
     }
 
     dialog.addEventListener('close', function () {
-        if (opener && opener.focus && document.contains(opener)) {
+        // The close event comes a moment after Escape, by which time the
+        // browser has given the focus back, and the member may already be
+        // somewhere else: move it only if it was lost.
+        var active = document.activeElement;
+        var lost = !active || active === document.body || dialog.contains(active);
+        if (lost && opener && opener.focus && document.contains(opener)) {
             opener.focus();
         }
         opener = null;

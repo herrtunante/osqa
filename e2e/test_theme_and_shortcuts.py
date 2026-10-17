@@ -32,6 +32,15 @@ FIRST_PAINT = '''() => {
 }'''
 
 
+# Closes the dialog and moves the focus at once, as a member who presses
+# Escape and goes straight on does: the dialog's close event comes after, and
+# must not pull the focus back to where the dialog was opened.
+CLOSE_AND_MOVE_ON = '''([dialog, target]) => {
+    document.querySelector(dialog).close();
+    document.querySelector(target).focus();
+    return new Promise(resolve => setTimeout(resolve, 100));
+}'''
+
 class ThemeTest(E2ETestCase):
     def setUp(self):
         super().setUp()
@@ -231,6 +240,17 @@ class ShortcutsTest(E2ETestCase):
         anonymous.wait_for_selector('#shortcuts-dialog[open]')
         self.assertIn('Members can turn them off', anonymous.inner_text('#shortcuts-dialog'))
         self.assertNotIn('notifications', anonymous.inner_text('#shortcuts-dialog'))
+
+    def test_closing_leaves_a_focus_that_moved_on_alone(self):
+        page = self.open(self.bob)
+        self.visit(page, '/questions/')
+        page.focus('#nav_questions')
+        page.keyboard.press('?')
+        page.wait_for_selector('#shortcuts-dialog[open]')
+        page.evaluate(CLOSE_AND_MOVE_ON, ['#shortcuts-dialog', '.theme-menu > summary'])
+        self.assertTrue(page.evaluate("document.activeElement.matches('.theme-menu > summary')"),
+                        'the focus went back to %s' % self.active(page))
+        self.check_page(page)
 
     def test_navigation_keys(self):
         page = self.open(self.bob)

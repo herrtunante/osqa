@@ -172,7 +172,11 @@
             home.appendChild(panel);
         }
         menusIn(null);
-        if (toggle.offsetParent !== null) {
+        // Only when the focus was lost: the close event comes after Escape,
+        // and the member may already be elsewhere.
+        var active = document.activeElement;
+        var lost = !active || active === document.body || dialog.contains(active);
+        if (lost && toggle.offsetParent !== null) {
             toggle.focus();
         }
     });

@@ -611,12 +611,13 @@
             error.hidden = true;
             error.textContent = '';
         }
-        function close() {
+        function close(refocus) {
             ok.removeEventListener('click', confirm);
             cancel.removeEventListener('click', dismiss);
             dialog.removeEventListener('keydown', keys);
             dialog.removeEventListener('close', closed);
             if (dialog.open) dialog.close();
+            if (refocus === false) return;
             if (!returnTo.isConnected) returnTo = ta;
             returnTo.focus({preventScroll: true});
         }
@@ -644,8 +645,11 @@
             }
         }
         function closed() {
-            // Escape (the dialog's cancel) closes it.
-            close();
+            // Escape (the dialog's cancel) closes it. The close event comes a
+            // moment later, when the browser has given the focus back and the
+            // member may have moved on: only pick up a lost focus.
+            var active = document.activeElement;
+            close(!active || active === document.body || dialog.contains(active));
         }
         ok.addEventListener('click', confirm);
         cancel.addEventListener('click', dismiss);
