@@ -24,6 +24,7 @@ from forum.utils.images import store_upload, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
 from forum.utils import review
 from forum.utils import live
+from forum.utils import post_versions
 
 from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
@@ -107,6 +108,7 @@ def ask(request):
                 elif request.user.is_authenticated and request.user.email_valid_and_can_ask():
                     ask_action = AskAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
                     question = ask_action.node
+                    post_versions.save(question, request.POST, question.tagname_list())
 
                     if settings.WIKI_ON and request.POST.get('wiki', False):
                         question.nstate.wiki = ask_action
@@ -141,7 +143,10 @@ def ask(request):
 
     return render(request, 'ask.html', {
         'form' : form,
-        'tab' : 'ask'
+        'tab' : 'ask',
+        # "Applies to version" (forum/utils/post_versions.py), shown as tags are typed.
+        'version_groups': post_versions.form_groups(request.POST.get('tags', '').split(),
+                                                    data=request.POST or None, show_all=True),
         })
 
 def convert_to_question(request, id):
@@ -207,6 +212,8 @@ def _edit_question(request, question, template='question_edit.html', summary='',
 
         if not 'select_revision' in request.POST and form.is_valid() and \
                 not (conflict := live.edit_conflict(request, question, form)):
+            # Stored on the post, not in a revision (forum/utils/post_versions.py).
+            post_versions.save(question, request.POST, form.cleaned_data['tags'].split())
             if form.has_changed():
                 action = action_class(user=request.user, node=question, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -231,6 +238,9 @@ def _edit_question(request, question, template='question_edit.html', summary='',
         'question': question,
         'revision_form': revision_form,
         'form' : form,
+        'version_groups': post_versions.form_groups(
+            request.POST.get('tags', '').split() if request.method == 'POST' else question.tagname_list(),
+            node=question, data=request.POST if request.method == 'POST' else None, show_all=True),
     }
     context.update(live.edit_context(request, question, conflict))
 
@@ -264,6 +274,7 @@ def edit_answer(request, id):
 
         if not 'select_revision' in request.POST and form.is_valid() and \
                 not (conflict := live.edit_conflict(request, answer, form)):
+            post_versions.save(answer, request.POST, post_versions.question_tag_names(answer))
             if form.has_changed():
                 action = ReviseAction(user=request.user, node=answer, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -285,6 +296,9 @@ def edit_answer(request, id):
                               'answer': answer,
                               'revision_form': revision_form,
                               'form': form,
+                              'version_groups': post_versions.form_groups(
+                                  post_versions.question_tag_names(answer), node=answer,
+                                  data=request.POST if request.method == 'POST' else None),
                               **live.edit_context(request, answer, conflict),
                               })
 
@@ -308,6 +322,7 @@ def answer(request, id):
         if request.user.is_authenticated and request.user.email_valid_and_can_answer():
             answer_action = AnswerAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(dict(question=question, **form.cleaned_data))
             answer = answer_action.node
+            post_versions.save(answer, request.POST, question.tagname_list())
 
             if settings.WIKI_ON and request.POST.get('wiki', False):
                 answer.nstate.wiki = answer_action

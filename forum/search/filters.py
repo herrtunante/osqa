@@ -9,6 +9,8 @@ with the query's own operators ([tag], user:, is:).
     author=name   asked by this member
     code=1        the question or one of its answers has a code block
     min_score=n   a score of at least n
+    version=4.1   the question or one of its answers applies to this version
+                  (forum/utils/post_versions.py; of the filter's tags, if any)
 
 Everything is applied in SQL on a Question queryset (apply()); answers held
 for review or deleted don't count (forum/utils/review.py).
@@ -29,7 +31,8 @@ CLOSED_MARK = '(closed)'
 CODE_MARK = '<pre'
 
 # The URL parameters, in the order they are written.
-PARAMS = ('tags', 'status', 'closed', 'date', 'from', 'to', 'author', 'code', 'min_score')
+PARAMS = ('tags', 'status', 'closed', 'date', 'from', 'to', 'author', 'code', 'min_score', 'version')
+MAX_VERSION_LENGTH = 20
 
 
 def _answers(**kwargs):
@@ -46,6 +49,18 @@ def status_q(status):
     if status == 'accepted':
         return Exists(_answers(marked=True))
     return Q()
+
+
+def version_q(name, tag_ids=None):
+    """Q for questions whose own version, or a visible answer's, is `name`
+    (or was confirmed for it), optionally of the tags `tag_ids` only."""
+    from forum.models import Node, NodeVersion
+    versions = NodeVersion.objects.filter(Q(version__name__iexact=name) | Q(confirmed_version__name__iexact=name))
+    if tag_ids:
+        versions = versions.filter(tag_id__in=tag_ids)
+    answers = Node.objects.filter(node_type='answer').exclude(hidden_q()).values('id')
+    return Exists(versions.filter(node_id=OuterRef('pk'))) | Exists(
+        versions.filter(node__parent_id=OuterRef('pk'), node_id__in=answers))
 
 
 def parse_date(value):
@@ -70,7 +85,7 @@ def tag_names(values):
 
 class SearchFilters:
     def __init__(self, tags=(), status='', hide_closed=False, date='', date_from=None, date_to=None, author='',
-                 has_code=False, min_score=None):
+                 has_code=False, min_score=None, version=''):
         self.tags = tag_names(tags)
         self.status = status if status in STATUSES else ''
         self.hide_closed = bool(hide_closed)
@@ -85,6 +100,7 @@ class SearchFilters:
         self.author = (author or '').strip()[:30]
         self.has_code = bool(has_code)
         self.min_score = min_score
+        self.version = ' '.join(str(version or '').split())[:MAX_VERSION_LENGTH]
 
     @classmethod
     def from_params(cls, params):
@@ -108,7 +124,7 @@ class SearchFilters:
                    hide_closed=str(get('closed')).lower() in ('hide', '1', 'true', 'on'),
                    date=str(get('date')).strip().lower(), date_from=parse_date(get('from')), date_to=parse_date(get('to')),
                    author=str(get('author')), has_code=str(get('code')).lower() in ('1', 'true', 'on', 'yes'),
-                   min_score=min_score)
+                   min_score=min_score, version=str(get('version')))
 
     def params(self):
         """[(name, value)] for a URL, only the filters that are set."""
@@ -131,12 +147,14 @@ class SearchFilters:
             out.append(('code', '1'))
         if self.min_score is not None:
             out.append(('min_score', str(self.min_score)))
+        if self.version:
+            out.append(('version', self.version))
         return out
 
     def copy(self, **changes):
         values = dict(tags=self.tags, status=self.status, hide_closed=self.hide_closed, date=self.date,
                       date_from=self.date_from, date_to=self.date_to, author=self.author, has_code=self.has_code,
-                      min_score=self.min_score)
+                      min_score=self.min_score, version=self.version)
         values.update(changes)
         return SearchFilters(**values)
 
@@ -146,13 +164,13 @@ class SearchFilters:
             return self.copy(tags=[t for t in self.tags if value is not None and t != value])
         changes = {'status': {'status': ''}, 'closed': {'hide_closed': False},
                    'date': {'date': '', 'date_from': None, 'date_to': None}, 'author': {'author': ''},
-                   'code': {'has_code': False}, 'min_score': {'min_score': None}}[name]
+                   'code': {'has_code': False}, 'min_score': {'min_score': None}, 'version': {'version': ''}}[name]
         return self.copy(**changes)
 
     @property
     def active_count(self):
         return len(self.tags) + sum(1 for on in (self.status, self.hide_closed, self.date, self.author, self.has_code,
-                                                 self.min_score is not None) if on)
+                                                 self.min_score is not None, self.version) if on)
 
     @property
     def is_empty(self):
@@ -211,6 +229,9 @@ class SearchFilters:
             questions = questions.filter(Q(body__contains=CODE_MARK) | Exists(_answers(body__contains=CODE_MARK)))
         if self.min_score is not None and 'min_score' not in skip:
             questions = questions.filter(score__gte=self.min_score)
+        if self.version and 'version' not in skip:
+            tag_ids = self.tag_ids() if self.tags else None
+            questions = questions.filter(version_q(self.version, tag_ids))
         return questions
 
     def restrict(self, questions):

@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.html import strip_tags
 
 from forum.models import Answer, Comment, QuestionSubscription, TagSynonym, Vote
-from forum.utils import review
+from forum.utils import post_versions, review
 from forum.utils.antispam import links_trusted
 
 from .core import absolute, api_url, iso
@@ -96,7 +96,15 @@ def comment_data(comment, viewer):
     }
 
 
-def answer_data(answer, viewer, comments=None, my_votes=None):
+def versions_data(node_id, versions=None):
+    """The versions a post applies to (forum/utils/post_versions.py); `versions`
+    is a {node id: [PostVersion]} loaded for a page, else one query."""
+    if versions is None:
+        versions = post_versions.for_nodes([node_id])
+    return [pv.data() for pv in versions.get(node_id, ())]
+
+
+def answer_data(answer, viewer, comments=None, my_votes=None, versions=None):
     data = {
         'id': answer.id,
         'question_id': answer.parent_id,
@@ -109,6 +117,7 @@ def answer_data(answer, viewer, comments=None, my_votes=None):
         'html': str(answer.body),
         'markdown': source(answer),
         'held_for_review': _held(answer, viewer),
+        'versions': versions_data(answer.id, versions),
     }
     if comments is not None:
         data['comments'] = [comment_data(c, viewer) for c in comments.get(answer.id, ())]
@@ -144,13 +153,15 @@ def question_detail(question, viewer):
     answers = visible_answers(question, viewer)
     comments = visible_comments([question.id] + [a.id for a in answers], viewer)
     votes = my_votes(viewer, [question.id] + [a.id for a in answers])
+    versions = post_versions.for_nodes([question.id] + [a.id for a in answers])
     data = question_summary(question, viewer)
     data.update({
         'html': str(question.body),
         'markdown': source(question),
         'deleted': bool(question.nis.deleted),
+        'versions': versions_data(question.id, versions),
         'comments': [comment_data(c, viewer) for c in comments.get(question.id, ())],
-        'answers': [answer_data(a, viewer, comments, votes) for a in answers],
+        'answers': [answer_data(a, viewer, comments, votes, versions) for a in answers],
     })
     if votes is not None:
         data['my_vote'] = votes.get(question.id)

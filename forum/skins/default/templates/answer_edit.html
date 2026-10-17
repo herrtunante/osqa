@@ -40,6 +40,8 @@
             
             {% include "compose/editor.html" with label=body_label kind="answer" %}
 
+            {% if not suggesting and not improving %}{% include "compose/versions.html" %}{% endif %}
+
             {% include "compose/summary.html" %}
 
             {% include "compose/wiki.html" %}

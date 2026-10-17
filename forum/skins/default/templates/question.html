@@ -221,6 +221,8 @@
                     <div id="previewer" class="wmd-preview" data-preview-url="{% url "markdown_preview" %}"></div>
                 </div>
 
+                {% include "compose/versions.html" %}
+
                 {% if answer.recaptcha %}
                 <div class="question-captcha">
                     {{ answer.recaptcha.errors }}

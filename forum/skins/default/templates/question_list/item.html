@@ -1,4 +1,4 @@
-{% load i18n humanize extra_filters extra_tags user_tags node_tags %}
+{% load i18n humanize extra_filters extra_tags user_tags node_tags version_tags %}
 {% comment %}One question in a list (home, /questions/, tags, profiles). The counts come
    from the page's prefetch (answer_count, accepted_count) and the author from
    the object cache: nothing here may run a query per row.{% endcomment %}
@@ -30,7 +30,7 @@
         <p class="summary{% if not question_summary %} excerpt{% endif %}">{{ excerpt }}</p>
         {% endif %}{% endwith %}
         <div class="tags">{% for tag in question.tagname_list %}
-            <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" rel="tag">{{ tag }}</a>{% endfor %}
+            <a class="tag-link-{{ tag }}" href="{% url "tag_questions" tag|urlencode %}" rel="tag">{{ tag }}</a>{% endfor %}{% list_version_chips question %}
         </div>
         <div class="userinfo">
             {% if question.last_activity_by %}<span class="userinfo-user">{% user_signature question.last_activity_by signature_type %}</span>{% endif %}

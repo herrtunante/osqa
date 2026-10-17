@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from forum import settings
 from forum.models import Question, Answer, Comment, AISuggestion
-from forum.utils import review
+from forum.utils import post_versions, review
 from forum.utils.similar import search_questions
 
 MCP_PROTOCOL_VERSIONS = ('2025-06-18', '2025-03-26', '2024-11-05')
@@ -108,6 +108,21 @@ def question_data(question, with_text=True, answers=None):
     return data
 
 
+def _versions_md(versions):
+    """The line under a post saying which versions it applies to (forum/utils/post_versions.py)."""
+    parts = []
+    for pv in versions:
+        text = pv.version.label
+        if pv.confirmed is not None:
+            text += ', confirmed for %s' % pv.confirmed.name
+            if pv.confirmed_at:
+                text += ' on %s' % pv.confirmed_at.strftime('%Y-%m-%d')
+        if pv.outdated:
+            text += ' (the current version is %s; this may be outdated)' % pv.current.name
+        parts.append(text)
+    return ['Applies to: %s' % '; '.join(parts), ''] if parts else []
+
+
 def _comments_md(comments):
     return ['> %s (%s)' % (' '.join(source(c).split()), c.author.username) for c in comments]
 
@@ -115,6 +130,7 @@ def _comments_md(comments):
 def question_markdown(question):
     answers = visible_answers(question)
     comments = thread_comments(question)
+    versions = post_versions.for_nodes([question.id] + [a.id for a in answers], question.tagname_list())
     meta = question_data(question, with_text=False, answers=answers)
     lines = ['---']
     for key in ('title', 'url', 'tags', 'status', 'score', 'answer_count', 'asked', 'last_activity', 'duplicate_of'):
@@ -124,14 +140,17 @@ def question_markdown(question):
     if str(settings.APP_COPYRIGHT).strip():
         lines.append('license: %s' % json.dumps(str(settings.APP_COPYRIGHT), ensure_ascii=False))
     lines += ['---', '', '# %s' % question.title, '',
-              'Asked by %s on %s' % (question.author.username, question.added_at.strftime('%Y-%m-%d')), '',
-              source(question), '']
+              'Asked by %s on %s' % (question.author.username, question.added_at.strftime('%Y-%m-%d')), '']
+    lines += _versions_md(versions.get(question.id, ()))
+    lines += [source(question), '']
     lines += _comments_md(comments.get(question.id, ()))
     for answer in answers:
         heading = 'Accepted answer' if answer.nis.accepted else 'Answer'
         lines += ['', '## %s (score %d, by %s on %s)' % (heading, answer.score, answer.author.username,
                                                         answer.added_at.strftime('%Y-%m-%d')),
-                  '', 'Link: %s' % absolute(answer.get_absolute_url()), '', source(answer), '']
+                  '', 'Link: %s' % absolute(answer.get_absolute_url()), '']
+        lines += _versions_md(versions.get(answer.id, ()))
+        lines += [source(answer), '']
         lines += _comments_md(comments.get(answer.id, ()))
     if not answers:
         lines += ['', '_No answers yet._']
@@ -160,8 +179,9 @@ def llms_txt(request):
         '- [MCP server](%s/mcp): Model Context Protocol (Streamable HTTP) with the tools search_forum and get_question' % base,
         '- [Search](%s/search/?q=export+csv): the search page; it takes the operators "a phrase", -word, [tag], '
         'user:name, is:answered/is:unanswered/is:accepted and the filters tags=, status=unanswered|answered|accepted, '
-        'closed=hide, date=week|month|year (or from=/to= YYYY-MM-DD), author=, code=1, min_score=, '
-        'sort=relevance|newest|votes|active (the MCP tool search_forum takes query, tags, status and since)' % base,
+        'closed=hide, date=week|month|year (or from=/to= YYYY-MM-DD), author=, code=1, min_score=, version=, '
+        'sort=relevance|newest|votes|active (the MCP tool search_forum takes query, tags, status, since and version)'
+        % base,
         '- [JSON API](%s/api/): read questions, answers, tags and members (and post with a token); OpenAPI 3.1 at '
         '%s/api/v1/openapi.json' % (base, base),
         '- [Sitemap](%s/sitemap.xml)' % base,
@@ -204,6 +224,9 @@ MCP_TOOLS = [
                            'description': 'Only questions without answers, with answers, or with an accepted answer.'},
                 'since': {'type': 'string', 'format': 'date',
                           'description': 'Only questions asked on or after this date (YYYY-MM-DD).'},
+                'version': {'type': 'string', 'maxLength': 20,
+                            'description': 'Only questions whose question or an answer applies to this version of '
+                                           'the software (e.g. 4.1; of the given tags, if any).'},
             },
             'required': ['query'],
         },
@@ -244,7 +267,8 @@ def tool_filters(arguments):
         since = parse_date(arguments['since'])
         if since is None:
             raise ToolError('since must be a date (YYYY-MM-DD)')
-    return SearchFilters(tags=tags, status=status, date='custom' if since else '', date_from=since)
+    return SearchFilters(tags=tags, status=status, date='custom' if since else '', date_from=since,
+                         version=str(arguments.get('version') or ''))
 
 
 def call_tool(name, arguments):

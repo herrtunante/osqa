@@ -223,6 +223,16 @@ class Wcag22Test(E2ETestCase):
                                          'Use the **CSV export** in the Collect designer:\n\n```\nFile > Export\n```')
         self.create_comment(self.alice, self.answer, 'Thanks, @bob, that worked for me.')
         self.create_comment(self.bob, self.question, 'Which version of Collect do you use?')
+        # Versions (forum/utils/post_versions.py): chips, the outdated notice and, on
+        # alice's own answer, "Still works in 4.1".
+        from forum.models import NodeVersion, Tag
+        from forum.utils import tags as tagtools
+        collect = Tag.objects.get(name='collect')
+        old = tagtools.add_version(collect, '3.26', self.admin, '127.0.0.1')
+        tagtools.add_version(collect, '4.1', self.admin, '127.0.0.1', current=True)
+        own = self.create_answer(self.alice, self.question, 'For Collect 3.26: use **Tools > Export data**.')
+        for answer in (self.answer, own):
+            NodeVersion.objects.create(node=answer, tag=collect, version=old)
         self._as_request(self.alice)
         AcceptAnswerAction(user=self.alice, node=self.answer, ip='127.0.0.1').save()
         for i in range(12):
@@ -256,7 +266,7 @@ class Wcag22Test(E2ETestCase):
 
     def staff_pages(self):
         return [reverse('admin_index'), reverse('admin_moderation'), reverse('suggested_edits'),
-                reverse('admin_support'), '/admin/settings/basic/']
+                reverse('admin_support'), '/admin/settings/basic/', reverse('tag_edit', kwargs={'tag': 'collect'})]
 
     def all_pages(self):
         return ([(None, p) for p in self.public_pages()] + [(self.alice, p) for p in self.member_pages(self.alice)] +

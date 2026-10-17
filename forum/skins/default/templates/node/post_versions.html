@@ -1,0 +1,31 @@
+{% load i18n node_tags %}{# The versions an answer applies to (forum/utils/post_versions.py, {% post_versions %} in node/answer.html: the live question page renders it too). #}
+<div class="post-versions">
+    <p class="post-version-chips">{{ chips }}</p>
+    {% for item in items %}{% with pv=item.pv %}
+    {% if pv.outdated %}
+    <div class="version-notice callout callout-warn" role="note">
+        <p>{% blocktrans with written=pv.version.label current=pv.current.name %}Written for {{ written }} — the current version is {{ current }}. It may be outdated.{% endblocktrans %}</p>
+        {% if item.can_confirm %}
+        <form method="post" action="{% url "confirm_version" post.id %}" class="version-confirm-form">
+            {% csrf_token %}
+            <input type="hidden" name="tag" value="{{ pv.tag_id }}" />
+            <button type="submit" class="plain-button version-confirm-button">{% blocktrans with current=pv.current.name %}Still works in {{ current }}{% endblocktrans %}</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% if pv.confirmed %}
+    <div class="version-confirmed">
+        <p>{% with version=pv.confirmed.label iso=pv.confirmed_at|date:"c" date=pv.confirmed_at|date:"DATE_FORMAT" %}{% if pv.confirmed_by %}{% with url=pv.confirmed_by.get_profile_url name=pv.confirmed_by.username %}{% if pv.confirmed_at %}{% blocktrans %}Confirmed for {{ version }} by <a href="{{ url }}">{{ name }}</a> on <time datetime="{{ iso }}">{{ date }}</time>{% endblocktrans %}{% else %}{% blocktrans %}Confirmed for {{ version }} by <a href="{{ url }}">{{ name }}</a>{% endblocktrans %}{% endif %}{% endwith %}{% elif pv.confirmed_at %}{% blocktrans %}Confirmed for {{ version }} on <time datetime="{{ iso }}">{{ date }}</time>{% endblocktrans %}{% else %}{% blocktrans %}Confirmed for {{ version }}{% endblocktrans %}{% endif %}{% endwith %}</p>
+        {% if item.can_undo %}
+        <form method="post" action="{% url "confirm_version" post.id %}" class="version-undo-form">
+            {% csrf_token %}
+            <input type="hidden" name="tag" value="{{ pv.tag_id }}" />
+            <input type="hidden" name="undo" value="1" />
+            <button type="submit" class="plain-button version-undo-button">{% trans "Undo" %}</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endwith %}{% endfor %}
+</div>

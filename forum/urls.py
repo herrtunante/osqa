@@ -79,6 +79,7 @@ core_urls = [
     re_path(r'^%s(?P<id>\d+)/%s$' % ('answers/', 'edit/'), app.writers.edit_answer, name='edit_answer'),
     re_path(r'^%s(?P<id>\d+)/$' % 'revisions/', app.readers.revisions, name='revisions'),
     re_path(r'^posts/(?P<id>\d+)/suggest-edit/$', app.suggested_edits.suggest_edit, name='suggest_edit'),
+    re_path(r'^posts/(?P<id>\d+)/confirm-version/$', app.post_versions.confirm_version, name='confirm_version'),
     re_path(r'^review/suggested-edits/$', app.suggested_edits.review_page, name='suggested_edits'),
     re_path(r'^review/suggested-edits/undo/$', app.suggested_edits.undo, name='suggested_edit_undo'),
     re_path(r'^review/suggested-edits/(?P<id>\d+)/$', app.suggested_edits.review_action, name='suggested_edit_review'),

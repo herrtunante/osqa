@@ -26,7 +26,7 @@ from forum.search import engine, spelling
 from forum.search.filters import SearchFilters
 from forum.search.query import parse, words
 from forum.search.text import highlighter, html_to_text, mark, snippet, stem
-from forum.utils import pagination
+from forum.utils import pagination, post_versions
 from forum.utils.review import hidden_q
 
 from . import decorators
@@ -113,7 +113,8 @@ def filter_chips(query, filters, sort):
             ('author', filters.author, lambda: _('Asked by %(name)s') % {'name': filters.author}),
             ('code', filters.has_code, lambda: _('Has code')),
             ('min_score', filters.min_score is not None,
-             lambda: _('Score at least %(score)d') % {'score': filters.min_score})):
+             lambda: _('Score at least %(score)d') % {'score': filters.min_score}),
+            ('version', filters.version, lambda: _('Version %(version)s') % {'version': filters.version})):
         if active:
             chips.append({'label': label(), 'url': search_url(q, filters.without(name), sort)})
     return chips
@@ -200,6 +201,8 @@ def search_results(request, keywords):
     sort = request.GET.get('sort') if request.GET.get('sort') in SORTS else ''
     context = {'keywords': keywords, 'query': query, 'filters': filters, 'sort': sort, 'results': [],
                'searching': False, 'page_title': _('Search'), 'date_labels': date_labels(),
+               # Only where tags have versions (forum/utils/post_versions.py).
+               'version_filter': bool(filters.version) or post_versions.active_catalog() is not None,
                'status_options': [{'value': '', 'label': _('Any'), 'checked': not filters.status}] + [
                    {'value': value, 'label': label, 'checked': filters.status == value}
                    for value, label in status_labels().items()]}
@@ -216,7 +219,8 @@ def search_results(request, keywords):
     chips = filter_chips(query, filters, sort)
     context.update({
         'searching': True,
-        'questions': questions.prefetch_cached(fks=('author',), counts=('answer_count', 'accepted_count')),
+        'questions': questions.prefetch_cached(fks=('author',), counts=('answer_count', 'accepted_count'),
+                                               after=(post_versions.prefetch,)),
         'ranked': ranked,
         'page_title': _("Search results for %(query)s") % {'query': keywords} if keywords else _('Search results'),
         'feed_url': search_url(keywords, filters, type='rss'),
