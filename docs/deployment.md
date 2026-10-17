@@ -4,6 +4,8 @@ This guide covers setting up a new, empty forum on a Linux server, with Docker
 Compose, or on another container platform. To move an existing forum from the
 original OSQA (Python 2 / Django 1.6), set the new site up with this guide and
 then follow [upgrading-from-original-osqa.md](upgrading-from-original-osqa.md).
+Before going live with real members, rehearse on a staging copy with
+[staging-checklist.md](staging-checklist.md).
 
 ## What a forum needs
 

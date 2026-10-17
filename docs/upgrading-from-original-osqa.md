@@ -284,7 +284,9 @@ these, because the old values may not fit the new version:
 
 ## 9. Test, then go live
 
-Test on the temporary address:
+The full rehearsal list (real email, sign-in providers, search on MySQL,
+several app processes) is [staging-checklist.md](staging-checklist.md). At the
+least, test on the temporary address:
 
 - [ ] Sign in with an existing account (password), and with Google if configured.
 - [ ] Ask, answer and comment; vote; accept an answer.
