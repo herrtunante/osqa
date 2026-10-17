@@ -4370,6 +4370,10 @@ msgstr "Accepter"
 msgid "Accepted"
 msgstr "Acceptées"
 
+msgctxt "answer state"
+msgid "Accepted"
+msgstr "Acceptée"
+
 msgid "AI"
 msgstr "IA"
 

@@ -4370,6 +4370,10 @@ msgstr "Aceitar"
 msgid "Accepted"
 msgstr "Aceitas"
 
+msgctxt "answer state"
+msgid "Accepted"
+msgstr "Aceita"
+
 msgid "AI"
 msgstr "IA"
 

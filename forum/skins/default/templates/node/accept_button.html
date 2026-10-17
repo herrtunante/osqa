@@ -10,7 +10,7 @@
               {% endif %}"
               bn:on="{% blocktrans with answer.nstate.accepted.by.username as who %}{{ who }} has selected this answer as the correct answer{% endblocktrans %}"
               bn:off="{% trans "mark this answer as the accepted answer" %}"
-       href="{% url "accept_answer" id=answer.id %}" rel="nofollow"><span class="accept-label">{% trans "Accept" %}</span><span class="accept-label-on" aria-hidden="true">{% trans "Accepted" %}</span></a>
+       href="{% url "accept_answer" id=answer.id %}" rel="nofollow"><span class="accept-label">{% trans "Accept" %}</span><span class="accept-label-on" aria-hidden="true">{% trans "Accepted" context "answer state" %}</span></a>
 {% else %}
     {% if answer.nis.accepted %}
       {# Only the asker can change it: an icon, not a link. #}
