@@ -228,6 +228,11 @@ class Wcag22Test(E2ETestCase):
         for i in range(12):
             Question(author=self.bob, title='Filler question number %d about export' % i,
                      body='Body of filler question %d, long enough.' % i, tagnames='export').save()
+        # "Questions for you": alice answers well in export, one filler question was suggested to her.
+        from forum.models import AnswerRequest, Tag, TagExpertise
+        TagExpertise.objects.create(user=self.alice, tag=Tag.objects.get(name='export'), score=9, answers=3)
+        AnswerRequest.objects.create(question=Question.objects.get(title='Filler question number 0 about export'),
+                                     user=self.alice, tag_name='export', tag_answers=3, score=9)
         suggested_edits.create(self.sam, self.answer, {'summary': 'Added the menu path',
                                                        'text': self.answer.body + '\n\nThen choose CSV.'})
         FlagAction(user=self.alice, node=self.answer, extra='Advertising', ip='127.0.0.1').save()
@@ -245,7 +250,7 @@ class Wcag22Test(E2ETestCase):
 
     def member_pages(self, user):
         return [self.question.get_absolute_url(), '/questions/ask/', '/search/?q=export&tags=collect&status=answered',
-                reverse('notifications'), user.get_user_subscriptions_url(),
+                reverse('notifications'), reverse('questions_for_you'), user.get_user_subscriptions_url(),
                 reverse('user_preferences', kwargs={'id': user.id, 'slug': user.username}),
                 reverse('edit_user', kwargs={'id': user.id, 'slug': user.username}),
                 reverse('user_authsettings', kwargs={'id': user.id}),

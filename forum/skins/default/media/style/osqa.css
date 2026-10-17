@@ -5804,6 +5804,8 @@ ul.question-tags-list .tag-number {
 .subscription-settings-note a,
 .notify a,
 .settings-lead a,
+.for-you-note a,
+.for-you-prefs a,
 .sugg-meta a,
 .md-help p a,
 .api-docs p a,
@@ -8965,6 +8967,11 @@ ul.auth-rules li.is-unmet {
     color: var(--text);
 }
 
+/* Preferences: the explanation under "Suggest questions I could answer". */
+.settings-check + .email-settings-hint {
+    margin: 6px 0 16px 28px;
+}
+
 ul.settings-list {
     margin: 0 0 16px;
     padding: 0;
@@ -11397,6 +11404,75 @@ nav.sort-tabs .tabsA a {
     box-shadow: inset 0 0 0 1px var(--border-strong);
     color: var(--muted);
     text-decoration: line-through;
+}
+
+/* ---- Questions for you (questions_for_you.html) --------------------------
+ * Each row is wrapped in .for-you-item: the reason above the questions the
+ * member was asked to answer (.is-requested, tinted like interesting tags)
+ * and the "Not for me" button under it.
+ */
+
+.for-you-item.is-requested {
+    margin: 0 -24px;
+    padding: 0 24px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--brand-soft);
+    box-shadow: inset 3px 0 0 var(--brand);
+}
+
+#listA > .for-you-item:first-child, #listA > .for-you-item:first-child > .question-row {
+    border-top: 0;
+}
+
+.for-you-reason {
+    margin: 0;
+    padding: 12px 0 0;
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.for-you-item.is-requested .question-row {
+    border-top: 0;
+}
+
+.for-you-item.is-requested .question-row:hover {
+    background: transparent;
+}
+
+.for-you-decline {
+    display: flex;
+    justify-content: flex-end;
+    margin: -8px 0 0;
+    padding: 0 0 10px;
+}
+
+.for-you-decline .plain-button {
+    min-height: 28px;
+    padding: 3px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.for-you-decline .plain-button:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
+
+.for-you-note {
+    margin: 12px 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--background);
+    color: var(--text);
+    font-size: 14px;
 }
 
 /* ---- Empty state ------------------------------------------------------- */

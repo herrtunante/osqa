@@ -28,6 +28,8 @@ SCOPES = {
     'members': (_("emails about new members"), _("Stop emails about new members")),
     'digest': (_("the daily digest"), _("Stop the daily digest")),
     'summary': (_("the daily or weekly summary of activity"), _("Stop these summaries")),
+    'answer_requests': (_("questions suggested because of your answers"),
+                        _("Stop suggesting questions to me")),
     # Not unsubscribing: switching to a summary (see SWITCH_SCOPES).
     'daily': (_("a daily summary"), _("Get a daily summary instead")),
     'weekly': (_("a weekly summary"), _("Switch to a weekly summary instead")),
@@ -37,7 +39,7 @@ SCOPES = {
 SWITCH_SCOPES = {'daily': 'd', 'weekly': 'w'}
 
 # Kinds whose emails are sent as things happen, and so can offer a summary instead.
-SUMMARY_OFFER_KINDS = ('question', 'new_question', 'mention', 'member', 'suggested_edit')
+SUMMARY_OFFER_KINDS = ('question', 'new_question', 'mention', 'member', 'suggested_edit', 'answer_request')
 
 # email kind -> (why the person gets it, the specific scope to offer)
 KINDS = {
@@ -51,6 +53,8 @@ KINDS = {
     'summary_weekly': (_("you chose a weekly summary of the activity you follow"), 'summary'),
     # The outcome of an edit the person suggested: no specific link (scope 'question' without a question).
     'suggested_edit': (_("you suggested an edit to a post"), 'question'),
+    # Expert routing (forum/utils/expertise.py).
+    'answer_request': (_("you answered questions in this question's tags"), 'answer_requests'),
 }
 
 
@@ -125,6 +129,10 @@ def apply(user, scope, question=None):
         prefs.send_digest = False
     elif scope == 'summary':
         prefs.email_frequency = 'n'
+    elif scope == 'answer_requests':
+        # Not an email setting: no more suggestions at all (forum/utils/expertise.py).
+        from forum.utils.display import update_preferences
+        update_preferences(user, answer_requests=False)
     elif scope in SWITCH_SCOPES:
         # Someone who switches to a summary wants that summary, even after "unsubscribe from all".
         prefs.email_frequency = SWITCH_SCOPES[scope]
@@ -151,6 +159,9 @@ def undo(user, scope, question=None):
         prefs.send_digest = True
     elif scope == 'summary':
         prefs.email_frequency = 'd'
+    elif scope == 'answer_requests':
+        from forum.utils.display import update_preferences
+        update_preferences(user, answer_requests=True)
     elif scope in SWITCH_SCOPES:
         prefs.email_frequency = 'i'
     prefs.save()

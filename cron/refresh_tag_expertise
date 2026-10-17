@@ -1,0 +1,6 @@
+#!/bin/sh
+# Daily: rebuild each member's expertise per tag (expert routing, "Questions for you").
+# Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py refresh_tag_expertise

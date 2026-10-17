@@ -22,6 +22,14 @@
             <label for="{{ form.keyboard_shortcuts.id_for_label }}">{% trans "Use keyboard shortcuts (press ? on any page to see them)" %}</label>
         </div>
     </fieldset>
+    <fieldset class="settings-fieldset">
+        <legend>{% trans "Questions for you" %}</legend>
+        <div class="settings-check">
+            {{ form.answer_requests }}
+            <label for="{{ form.answer_requests.id_for_label }}">{% trans "Suggest questions I could answer" %}</label>
+        </div>
+        <p class="email-settings-hint">{% url "questions_for_you" as for_you_url %}{% blocktrans %}When a new question is in tags where your answers did well, we may ask you to answer it, a few times a day at most (by notification, and by email as often as you chose). <a href="{{ for_you_url }}">Questions for you</a> lists them.{% endblocktrans %}</p>
+    </fieldset>
     <div class="settings-actions">
         <input type="submit" class="submit" name="save" value="{% trans "Save" %}"/>
     </div>

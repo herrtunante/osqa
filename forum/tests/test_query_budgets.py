@@ -159,6 +159,17 @@ class PageQueryBudgetTest(QueryBudgetMixin, OSQATestCase):
         self.assertQueryBudget(self.users[1].get_profile_url(), cold=23, warm=12)
         self.assertQueryBudget(self.users[1].get_profile_url(), cold=28, warm=17, user=self.users[1])
 
+    def test_for_you_page(self):
+        """"Questions for you": the member's best tags, the list (20 questions in
+        'common', 5 of them routed requests, first) and the reasons of the shown
+        requests in one query each; rows as cheap as on /questions/."""
+        from forum.models import AnswerRequest, Tag, TagExpertise
+        TagExpertise.objects.create(user=self.viewer, tag=Tag.objects.get(name='common'), score=12, answers=5)
+        for question in self.questions[10:15]:
+            AnswerRequest.objects.create(question=question, user=self.viewer, tag_name='common', tag_answers=5,
+                                         score=12)
+        self.assertQueryBudget('/questions/for-you/', cold=19, warm=13, user=self.viewer)
+
     def test_notification_count(self):
         self.assertQueryBudget('/notifications/count/', cold=5, warm=4, user=self.users[1])
 

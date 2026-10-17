@@ -1,0 +1,44 @@
+{% load i18n extra_tags email_tags %}
+{% comment %}Expert routing (forum/utils/expertise.py): a new question suggested to a member because of their
+   answers in its tags. Context: question, reasons (user id -> {'answers': n, 'tag': name}), email_kind.
+   Sent through deliver() by route_question(), so it follows the member's email frequency.{% endcomment %}
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    question_author = smart_str(question.author.username)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
+    for_you_url = settings.APP_URL + reverse('questions_for_you')
+{% enddeclare %}
+
+{% email %}
+    {% declare %}
+        reason = reasons.get(recipient.id) or {'answers': 0, 'tag': ''}
+        tag_answers = reason['answers']
+        tag_name = smart_str(reason['tag'])
+    {% enddeclare %}
+    {% subject %}{% blocktrans %}{{ prefix }} You might know the answer: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}{{ question_author }} asked:{% endblocktrans %} {{ question.html|email_snippet:120 }}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        <p class="em-text" style="{{ p_style }}">{% if tag_answers %}{% blocktrans count counter=tag_answers %}{{ question_author }} asked a question you might know the answer to: you've answered {{ counter }} question tagged {{ tag_name }}.{% plural %}{{ question_author }} asked a question you might know the answer to: you've answered {{ counter }} questions tagged {{ tag_name }}.{% endblocktrans %}{% else %}{% blocktrans %}{{ question_author }} asked a question you might know the answer to.{% endblocktrans %}{% endif %}</p>
+        <h2 class="em-h2" style="{{ h2_style }}margin-top:0;"><a href="{{ question_url }}" class="em-link" style="{{ a_style }}text-decoration:none;">{{ question_title }}</a></h2>
+        {% include "notifications/_quote.html" with text=question.html|email_snippet:400 %}
+        {% trans "Answer the question" as cta %}{% include "notifications/_button.html" with url=question_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Not for you? Say so on <a href="{{ for_you_url }}" class="em-link" style="{{ a_style }}">your questions page</a>, which also lists other open questions in your tags.{% endblocktrans %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% if tag_answers %}{% blocktrans count counter=tag_answers %}{{ question_author }} asked a question you might know the answer to: you've answered {{ counter }} question tagged {{ tag_name }}.{% plural %}{{ question_author }} asked a question you might know the answer to: you've answered {{ counter }} questions tagged {{ tag_name }}.{% endblocktrans %}{% else %}{% blocktrans %}{{ question_author }} asked a question you might know the answer to.{% endblocktrans %}{% endif %}
+
+{{ question_title }}
+
+> {{ question.html|email_snippet:400 }}
+
+{% trans "Answer the question" %}:
+{{ question_url }}
+
+{% trans "Not for you? Say so on your questions page, which also lists other open questions in your tags:" %}
+{{ for_you_url }}
+{% endtextcontent %}
+
+{% endemail %}

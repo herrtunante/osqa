@@ -18,6 +18,7 @@ from . import tags
 from . import suggested_edits
 from . import live
 from . import security
+from . import for_you
 
 #from forum.modules.decorators import decorate_all
 

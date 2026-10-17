@@ -52,6 +52,7 @@ SECTIONS = (
     ('answer', _lazy("New answers on questions you follow")),
     ('comment', _lazy("New comments")),
     ('accepted', _lazy("Accepted answers")),
+    ('answer_request', _lazy("Questions you might know the answer to")),
     ('new_question', _lazy("New questions")),
     ('member', _lazy("New members")),
     ('edits', _lazy("Your suggested edits")),
