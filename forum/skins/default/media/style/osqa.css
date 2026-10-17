@@ -509,10 +509,6 @@ span.form-error {
     margin-left: 5px;
 }
 
-.title-desc {
-    font-size: 90%;
-}
-
 
 .wmd-preview {
     background-color: #F5F5F5;
@@ -5301,13 +5297,9 @@ ul.question-tags-list .tag-number {
     color: var(--warn-text);
 }
 
-.moderation-meta, .moderation-excerpt {
+.moderation-meta {
     color: var(--muted);
     font-size: 13px;
-}
-
-.moderation-post {
-    margin: 6px 0;
 }
 
 .moderation-reason {
@@ -5768,7 +5760,7 @@ ul.question-tags-list .tag-number {
 /* ---- Accessibility (WCAG 2.1 AA, checked by e2e/test_accessibility.py) -- */
 
 /* Legacy style.css greys that are too light on white, or invisible in dark mode. */
-.paginator .text, .title-desc {
+.paginator .text {
     color: var(--muted);
 }
 

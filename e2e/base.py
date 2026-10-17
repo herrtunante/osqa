@@ -302,6 +302,10 @@ class E2ETestCase(LiveServerTestCase):
         # where the tests run; only this site's resources must load.
         if text.startswith('Failed to load resource') and source and not source.startswith(self.live_server_url):
             return
+        # The CSS coverage hooks inject scripts into every frame; the email
+        # preview's sandboxed frame (no allow-scripts) refuses them.
+        if os.environ.get('E2E_CSS_COVERAGE') and text.startswith('Blocked script execution') and 'sandboxed' in text:
+            return
         page.problems.append('console error: %s (%s)' % (text, source))
 
     def visit(self, page, path, status=200):

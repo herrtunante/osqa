@@ -1529,11 +1529,11 @@ input[type="file"]::file-selector-button:hover {
     text-transform: uppercase;
 }
 
-.moderation-meta, .moderation-excerpt {
+.moderation-meta {
     color: var(--body-quiet-color, #666);
 }
 
-.moderation-post, .moderation-reason {
+.moderation-reason {
     margin: 6px 0;
 }
 
