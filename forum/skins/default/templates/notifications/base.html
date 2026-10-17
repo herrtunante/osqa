@@ -1,35 +1,93 @@
-{% load extra_filters extra_tags i18n email_tags %}
-
-{% declare %}
-    p_style = smart_str(settings.EMAIL_PARAGRAPH_STYLE)
-    a_style = smart_str(settings.EMAIL_ANCHOR_STYLE)
-    hr_style = "color:#ccc;border:0;height:1px;background-color:#ccc;margin-bottom:20px;"
-    small_style = "color:#333333;font-family:'Lucida Grande', Trebuchet, Helvetica, sans-serif;font-size:12px;"
-    table_style = "border:20px %s solid;margin:10px auto 10px auto;width:750px;text-align:left;" % settings.EMAIL_BORDER_COLOR
-{% enddeclare %}
-<html>
+{% load extra_filters extra_tags i18n email_tags %}{% email_theme %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+{% comment %}
+The HTML layout of every email. The htmlcontent block of an email (htmlcontent notifications/base.html)
+goes where the content block is. Before it, the email may set in the context:
+  preheader      the preview line mail programs show after the subject (hidden in the message)
+  footer_reason  for account emails (no unsubscribe links): why the person gets the email
+  exclude_greeting / exclude_finetune  leave out "Hi name," / the email settings link
+The layout is tables with inline styles (Outlook, Gmail); the <style> block only adds dark mode and phone
+tweaks for the programs that read it. Buttons: notifications/_button.html, quotes: notifications/_quote.html.
+{% endcomment %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-<base href="{{ settings.APP_URL }}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ subject }}</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+<style>
+:root { color-scheme: light dark; supported-color-schemes: light dark; }
+body { margin: 0 !important; padding: 0 !important; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+.em-button a:hover { background-color: #1f4278 !important; }
+.em-content img { max-width: 100% !important; height: auto !important; }
+@media only screen and (max-width: 620px) {
+  .em-outer { padding: 12px 8px !important; }
+  .em-card { padding: 24px 20px !important; border-radius: 10px !important; }
+  .em-header { padding: 4px 12px 16px 12px !important; }
+  .em-footer { padding: 20px 12px 8px 12px !important; }
+  .em-h1 { font-size: 20px !important; line-height: 28px !important; }
+}
+@media only screen and (max-width: 480px) {
+  .em-button-table { width: 100% !important; }
+  .em-button a { display: block !important; text-align: center !important; }
+}
+@media (prefers-color-scheme: dark) {
+  .em-bg { background-color: #0d1117 !important; }
+  .em-card { background-color: #161b22 !important; border-color: #30363d !important; }
+  .em-text, .em-h1, .em-h2, .em-li { color: #e6edf3 !important; }
+  .em-small, .em-small a, .em-site { color: #9da7b3 !important; }
+  .em-link, .em-content a { color: #79a6f2 !important; }
+  .em-quote { background-color: #1c2430 !important; border-color: #79a6f2 !important; color: #d1d9e0 !important; }
+  .em-button td { background-color: #4a7fd4 !important; }
+  .em-button a { background-color: #4a7fd4 !important; color: #ffffff !important; }
+  .em-logo { background-color: #ffffff !important; border-radius: 6px !important; padding: 4px 6px !important; }
+  .em-rule { border-color: #30363d !important; }
+}
+[data-ogsc] .em-bg { background-color: #0d1117 !important; }
+[data-ogsc] .em-card { background-color: #161b22 !important; border-color: #30363d !important; }
+[data-ogsc] .em-text, [data-ogsc] .em-h1, [data-ogsc] .em-h2, [data-ogsc] .em-li { color: #e6edf3 !important; }
+[data-ogsc] .em-small, [data-ogsc] .em-small a { color: #9da7b3 !important; }
+[data-ogsc] .em-link { color: #79a6f2 !important; }
+[data-ogsc] .em-quote { background-color: #1c2430 !important; color: #d1d9e0 !important; }
+</style>
+<!--[if mso]><style>table, td, p, a, h1, h2, li, span { font-family: Arial, Helvetica, sans-serif !important; }</style><![endif]-->
 </head>
-<body style="margin:0;">
-<center>
-<table style="{{ table_style }}">
-<tbody><tr><td style="padding:20px;">
-<a href="{{ settings.APP_URL }}" style="border: 0;"><img src="{{ settings.APP_URL }}{{ settings.APP_LOGO }}" alt="{{settings.APP_TITLE}}" border="0"/></a>
-<hr style="{{ hr_style }}" />
-{% if not exclude_greeting %}
-<p style="{{ p_style }}">{% trans "Hello" %} {{ recipient.username }},</p>
+<body class="em-bg" style="margin:0;padding:0;width:100%;background-color:{{ bg_color }};">
+{% if preheader %}<div class="em-preheader" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:{{ bg_color }};">{{ preheader }}</div>
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">&#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;</div>{% endif %}
+<table role="presentation" class="em-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:{{ bg_color }};">
+<tr><td class="em-outer" align="center" style="padding:24px 12px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->
+<table role="presentation" class="em-container" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+<tr><td class="em-header" style="padding:4px 4px 16px 4px;text-align:left;">
+<a href="{{ settings.APP_URL }}/" style="text-decoration:none;">{% if logo_url %}<img class="em-logo" src="{{ logo_url }}" height="40" alt="{{ settings.APP_TITLE|default:settings.APP_SHORT_NAME }}" style="display:inline-block;height:40px;width:auto;max-width:220px;border:0;font-family:{{ font_family }};font-size:20px;font-weight:700;line-height:40px;color:{{ brand_color }};vertical-align:middle;">{% else %}<span class="em-site" style="font-family:{{ font_family }};font-size:20px;font-weight:700;line-height:40px;color:{{ brand_color }};">{{ settings.APP_SHORT_NAME }}</span>{% endif %}</a>
+</td></tr>
+<tr><td class="em-card em-content" style="padding:32px;background-color:#ffffff;border:1px solid #d8dee4;border-radius:12px;text-align:left;">
+{% if not exclude_greeting %}<p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Hi {{ name }},{% endblocktrans %}</p>
 {% endif %}
-{% block content %}{% endblock%}
-<p style="{{ p_style }}">{% trans "Thanks" %},<br />{{settings.APP_SHORT_NAME}}</p>
-{% if not exclude_finetune %}
-<p style="{{ p_style }}">{% trans "P.S. You can always fine-tune which notifications you receive" %}
-<a href="{{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}" style="{{ a_style }}">{% trans "here" %}</a>.
-{% endif %}
-</p>
-<hr style="{{ hr_style }}" />
-<p style="{{ p_style }}"><small style="{{ small_style }}">{{ settings.EMAIL_FOOTER_TEXT }}</small></p>
-</td></tr></tbody></table>
-</center>
+{% block content %}{% endblock %}
+</td></tr>
+<tr><td class="em-footer" style="padding:20px 4px 8px 4px;text-align:left;">
+{% if unsubscribe %}<p class="em-small" style="{{ small_style }}">{% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}</p>
+{% if unsubscribe.summary_url %}<p class="em-small" style="{{ small_style }}">{% trans "Too many emails?" %} <a href="{{ unsubscribe.summary_url }}" style="{{ small_a_style }}">{{ unsubscribe.summary_label }}</a></p>
+{% endif %}<p class="em-small" style="{{ small_style }}">{% if unsubscribe.specific_url %}<a href="{{ unsubscribe.specific_url }}" style="{{ small_a_style }}">{{ unsubscribe.specific_label }}</a> &middot;
+{% endif %}<a href="{{ unsubscribe.manage_url }}" style="{{ small_a_style }}">{% trans "Choose which emails you get" %}</a> &middot;
+<a href="{{ unsubscribe.all_url }}" style="{{ small_a_style }}">{% trans "Unsubscribe from all emails" %}</a> &middot;
+<a href="{{ unsubscribe.help_url }}" style="{{ small_a_style }}">{% trans "How email notifications work" %}</a></p>
+{% else %}{% if footer_reason %}<p class="em-small" style="{{ small_style }}">{{ footer_reason }}</p>
+{% endif %}{% if not exclude_finetune %}<p class="em-small" style="{{ small_style }}"><a href="{{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}" style="{{ small_a_style }}">{% trans "Choose which emails you get" %}</a></p>
+{% endif %}{% endif %}<p class="em-small" style="{{ small_style }}"><a href="{{ settings.APP_URL }}/" style="{{ small_a_style }}">{{ settings.APP_SHORT_NAME }}</a>{% if settings.EMAIL_FOOTER_TEXT %} &middot; {{ settings.EMAIL_FOOTER_TEXT }}{% endif %}</p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
 </body>
 </html>

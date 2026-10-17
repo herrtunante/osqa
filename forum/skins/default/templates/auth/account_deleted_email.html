@@ -1,0 +1,30 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}The last email to a member who deleted their account (forum/views/account.py), sent to the address the account had.{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your {{ app_name }} account has been deleted{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Your personal data has been removed." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this email because the account {{ deleted_name }} at {{ app_name }} was deleted. This is the last email we send to this address.{% endblocktrans %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=deleted_name %}Your account {{ name }} has been deleted, as you asked. Your profile, email address, sign-in methods, passkeys, subscriptions, notifications and settings are removed, and every browser and device was signed out.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% if posts_deleted %}{% trans "Your questions, answers and comments were deleted." %}{% else %}{% trans "Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they show “deleted-user” instead of your name." %}{% endif %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If you didn't delete your account, contact the site administrators by replying to this email." %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this email because the account {{ deleted_name }} at {{ app_name }} was deleted. This is the last email we send to this address.{% endblocktrans %}
+{% blocktrans with name=deleted_name %}Your account {{ name }} has been deleted, as you asked. Your profile, email address, sign-in methods, passkeys, subscriptions, notifications and settings are removed, and every browser and device was signed out.{% endblocktrans %}
+
+{% if posts_deleted %}{% trans "Your questions, answers and comments were deleted." %}{% else %}{% trans "Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they show “deleted-user” instead of your name." %}{% endif %}
+
+{% trans "If you didn't delete your account, contact the site administrators by replying to this email." %}
+{% endtextcontent %}
+
+{% endemail %}

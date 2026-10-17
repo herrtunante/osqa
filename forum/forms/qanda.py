@@ -2,12 +2,15 @@ import re
 from datetime import date
 from django import forms
 from forum.models import *
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
+from django.utils.functional import lazy
 
-from django.utils.encoding import smart_unicode
-from general import NextUrlField, UserNameField
+from django.utils.encoding import smart_str
+from .general import DescribedFieldsMixin, NextUrlField, UserNameField
 
 from forum import settings, REQUEST_HOLDER
+from forum.utils.email_frequency import FREQUENCY_CHOICES
 
 from forum.modules import call_all_handlers
 
@@ -15,41 +18,41 @@ import logging
 
 class TitleField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        super(TitleField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.required = True
         self.max_length = 255
         self.widget = forms.TextInput(attrs={'size' : 70, 'autocomplete' : 'off', 'maxlength' : self.max_length})
-        self.label  = _('title')
-        self.help_text = _('please enter a descriptive title for your question')
+        self.label  = _lazy('title')
+        self.help_text = _lazy('please enter a descriptive title for your question')
         self.initial = ''
 
     def clean(self, value):
-        super(TitleField, self).clean(value)
+        super().clean(value)
 
         if len(value) < settings.FORM_MIN_QUESTION_TITLE:
-            raise forms.ValidationError(_('title must be must be at least %s characters') % settings.FORM_MIN_QUESTION_TITLE)
-
+            raise forms.ValidationError(_('title must be at least %s characters') % settings.FORM_MIN_QUESTION_TITLE)
         return value
 
 class EditorField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        super(EditorField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.widget = forms.Textarea(attrs={'id':'editor'})
-        self.label  = _('content')
-        self.help_text = u''
+        # The editor sits under the toolbar without a visible <label>.
+        self.widget = forms.Textarea(attrs={'id': 'editor', 'aria-label': _lazy('content')})
+        self.label  = _lazy('content')
+        self.help_text = ''
         self.initial = ''
 
 
 class QuestionEditorField(EditorField):
     def __init__(self, *args, **kwargs):
-        super(QuestionEditorField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.required = not bool(settings.FORM_EMPTY_QUESTION_BODY)
 
 
     def clean(self, value):
-        super(QuestionEditorField, self).clean(value)
+        super().clean(value)
 
         if not bool(settings.FORM_EMPTY_QUESTION_BODY) and (len(re.sub('[ ]{2,}', ' ', value)) < settings.FORM_MIN_QUESTION_BODY):
             raise forms.ValidationError(_('question content must be at least %s characters') % settings.FORM_MIN_QUESTION_BODY)
@@ -58,11 +61,11 @@ class QuestionEditorField(EditorField):
 
 class AnswerEditorField(EditorField):
     def __init__(self, *args, **kwargs):
-        super(AnswerEditorField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.required = True
 
     def clean(self, value):
-        super(AnswerEditorField, self).clean(value)
+        super().clean(value)
 
         if len(re.sub('[ ]{2,}', ' ', value)) < settings.FORM_MIN_QUESTION_BODY:
             raise forms.ValidationError(_('answer content must be at least %s characters') % settings.FORM_MIN_QUESTION_BODY)
@@ -72,23 +75,24 @@ class AnswerEditorField(EditorField):
 
 class TagNamesField(forms.CharField):
     def __init__(self, user=None, *args, **kwargs):
-        super(TagNamesField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.required = True
         self.widget = forms.TextInput(attrs={'size' : 50, 'autocomplete' : 'off'})
         self.max_length = 255
-        self.label  = _('tags')
-        #self.help_text = _('please use space to separate tags (this enables autocomplete feature)')
-        self.help_text = _('Tags are short keywords, with no spaces within. At least %(min)s and up to %(max)s tags can be used.') % {
-            'min': settings.FORM_MIN_NUMBER_OF_TAGS, 'max': settings.FORM_MAX_NUMBER_OF_TAGS    
-        }
+        self.label  = _lazy('tags')
+        #self.help_text = _lazy('please use space to separate tags (this enables autocomplete feature)')
+        # Formatted when shown, in the visitor's language and with the current settings.
+        self.help_text = lazy(lambda: _('Tags are short keywords, with no spaces within. At least %(min)s and up to %(max)s tags can be used.') % {
+            'min': settings.FORM_MIN_NUMBER_OF_TAGS, 'max': settings.FORM_MAX_NUMBER_OF_TAGS
+        }, str)()
         self.initial = ''
         self.user = user
 
     def clean(self, value):
-        super(TagNamesField, self).clean(value)
+        super().clean(value)
 
-        value = super(TagNamesField, self).clean(value)
+        value = super().clean(value)
         data = value.strip().lower()
 
         split_re = re.compile(r'[ ,]+')
@@ -110,53 +114,51 @@ class TagNamesField(forms.CharField):
             if tag not in list_temp and len(tag.strip()) > 0:
                 list_temp.append(tag)
 
+        # Synonyms ("gis-analysis") are stored as their target tag ("gis").
+        from forum.models import TagSynonym
+        list_temp = TagSynonym.resolve(list_temp)
+
         if settings.LIMIT_TAG_CREATION and not self.user.can_create_tags():
             existent = Tag.objects.filter(name__in=list_temp).values_list('name', flat=True)
 
             if len(existent) < len(list_temp):
-                unexistent = [n for n in list_temp if not n in existent]
+                unexistent = [n for n in list_temp if n not in existent]
                 raise forms.ValidationError(_("You don't have enough reputation to create new tags. The following tags do not exist yet: %s") %
                         ', '.join(unexistent))
 
 
-        return u' '.join(list_temp)
+        return ' '.join(list_temp)
 
 class WikiField(forms.BooleanField):
     def __init__(self, disabled=False, *args, **kwargs):
-        super(WikiField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.required = False
-        self.label  = _('community wiki')
-        self.help_text = _('if you choose community wiki option, the question and answer do not generate points and name of author will not be shown')
+        self.label  = _lazy('community wiki')
+        self.help_text = _lazy('if you choose community wiki option, the question and answer do not generate points and name of author will not be shown')
         if disabled:
             self.widget=forms.CheckboxInput(attrs={'disabled': "disabled"})
     def clean(self,value):
         return value
 
-class EmailNotifyField(forms.BooleanField):
-    def __init__(self, *args, **kwargs):
-        super(EmailNotifyField, self).__init__(*args, **kwargs)
-        self.required = False
-        self.widget.attrs['class'] = 'nomargin'
-
 class SummaryField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        super(SummaryField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.required = False
         self.widget = forms.TextInput(attrs={'size' : 50, 'autocomplete' : 'off'})
         self.max_length = 300
-        self.label  = _('update summary:')
-        self.help_text = _('enter a brief summary of your revision (e.g. fixed spelling, grammar, improved style, this field is optional)')
+        self.label  = _lazy('update summary:')
+        self.help_text = _lazy('enter a brief summary of your revision (e.g. fixed spelling, grammar, improved style, this field is optional)')
 
 
 class FeedbackForm(forms.Form):
-    message = forms.CharField(label=_('Your message:'), max_length=800,widget=forms.Textarea(attrs={'cols':60}))
+    message = forms.CharField(label=_lazy('Your message'), max_length=800,widget=forms.Textarea(attrs={'cols':60}))
     next = NextUrlField()
 
     def __init__(self, user, *args, **kwargs):
-        super(FeedbackForm, self).__init__(*args, **kwargs)
-        if not user.is_authenticated():
-            self.fields['name'] = forms.CharField(label=_('Your name:'), required=False)
-            self.fields['email'] = forms.EmailField(label=_('Email (not shared with anyone):'), required=True)
+        super().__init__(*args, **kwargs)
+        if not user.is_authenticated:
+            self.fields['name'] = forms.CharField(label=_('Your name'), required=False)
+            self.fields['email'] = forms.EmailField(label=_('Email (not shared with anyone)'), required=True)
 
         # Create anti spam fields
         spam_fields = call_all_handlers('create_anti_spam_field')
@@ -171,16 +173,16 @@ class FeedbackForm(forms.Form):
 
 
 
-class AskForm(forms.Form):
+class AskForm(DescribedFieldsMixin, forms.Form):
     title  = TitleField()
     text   = QuestionEditorField()
 
     def __init__(self, data=None, user=None, *args, **kwargs):
-        super(AskForm, self).__init__(data, *args, **kwargs)
+        super().__init__(data, *args, **kwargs)
 
         self.fields['tags']   = TagNamesField(user)
-        
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -193,15 +195,16 @@ class AskForm(forms.Form):
 
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField()
+        self.describe_fields()
 
 class AnswerForm(forms.Form):
     text   = AnswerEditorField()
     wiki   = WikiField()
 
     def __init__(self, data=None, user=None, *args, **kwargs):
-        super(AnswerForm, self).__init__(data, *args, **kwargs)
-        
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        super().__init__(data, *args, **kwargs)
+
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -215,12 +218,13 @@ class AnswerForm(forms.Form):
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField()
 
-class RetagQuestionForm(forms.Form):
+class RetagQuestionForm(DescribedFieldsMixin, forms.Form):
     tags   = TagNamesField()
     # initialize the default values
     def __init__(self, question, *args, **kwargs):
-        super(RetagQuestionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['tags'].initial = question.tagnames
+        self.describe_fields()
 
 class RevisionForm(forms.Form):
     """
@@ -229,24 +233,24 @@ class RevisionForm(forms.Form):
     revision = forms.ChoiceField(widget=forms.Select(attrs={'style' : 'width:520px'}))
 
     def __init__(self, post, *args, **kwargs):
-        super(RevisionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         revisions = post.revisions.all().values_list('revision', 'author__username', 'revised_at', 'summary').order_by('-revised_at')
 
         date_format = '%c'
         self.fields['revision'].choices = [
-            (r[0], u'%s - %s (%s) %s' % (r[0], smart_unicode(r[1]), r[2].strftime(date_format), r[3]))
+            (r[0], '%s - %s (%s) %s' % (r[0], smart_str(r[1]), r[2].strftime(date_format), r[3]))
             for r in revisions]
 
         self.fields['revision'].initial = post.active_revision.revision
 
-class EditQuestionForm(forms.Form):
+class EditQuestionForm(DescribedFieldsMixin, forms.Form):
     title  = TitleField()
     text   = QuestionEditorField()
     summary = SummaryField()
 
     def __init__(self, question, user, revision=None, *args, **kwargs):
-        super(EditQuestionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if revision is None:
             revision = question.active_revision
@@ -257,7 +261,7 @@ class EditQuestionForm(forms.Form):
         self.fields['tags'] = TagNamesField(user)
         self.fields['tags'].initial = revision.tagnames
 
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -270,20 +274,21 @@ class EditQuestionForm(forms.Form):
 
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField(disabled=(question.nis.wiki and not user.can_cancel_wiki(question)), initial=question.nis.wiki)
+        self.describe_fields()
 
-class EditAnswerForm(forms.Form):
+class EditAnswerForm(DescribedFieldsMixin, forms.Form):
     text = AnswerEditorField()
     summary = SummaryField()
 
     def __init__(self, answer, user, revision=None, *args, **kwargs):
-        super(EditAnswerForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if revision is None:
             revision = answer.active_revision
 
         self.fields['text'].initial = revision.body
 
-        if not user.is_authenticated() or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
+        if not user.is_authenticated or (int(user.reputation) < settings.CAPTCHA_IF_REP_LESS_THAN and not (user.is_superuser or user.is_staff)):
             spam_fields = call_all_handlers('create_anti_spam_field')
             if spam_fields:
                 spam_fields = dict(spam_fields)
@@ -293,21 +298,22 @@ class EditAnswerForm(forms.Form):
                 self._anti_spam_fields = spam_fields.keys()
             else:
                 self._anti_spam_fields = []
-        
+
         if settings.WIKI_ON:
             self.fields['wiki'] = WikiField(disabled=(answer.nis.wiki and not user.can_cancel_wiki(answer)), initial=answer.nis.wiki)
+        self.describe_fields()
 
-class EditUserForm(forms.Form):
-    email = forms.EmailField(label=u'Email', help_text=_('this email does not have to be linked to gravatar'), required=True, max_length=75, widget=forms.TextInput(attrs={'size' : 35}))
-    realname = forms.CharField(label=_('Real name'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    website = forms.URLField(label=_('Website'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    city = forms.CharField(label=_('Location'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
-    birthday = forms.DateField(label=_('Date of birth'), help_text=_('will not be shown, used to calculate age, format: YYYY-MM-DD'), required=False, widget=forms.TextInput(attrs={'size' : 35}))
-    about = forms.CharField(label=_('Profile'), required=False, widget=forms.Textarea(attrs={'cols' : 60}))
+class EditUserForm(DescribedFieldsMixin, forms.Form):
+    email = forms.EmailField(label='Email', help_text=_lazy('this email does not have to be linked to gravatar'), required=True, max_length=75, widget=forms.TextInput(attrs={'size' : 35}))
+    realname = forms.CharField(label=_lazy('Real name'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    website = forms.URLField(label=_lazy('Website'), required=False, assume_scheme='http', max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    city = forms.CharField(label=_lazy('Location'), required=False, max_length=255, widget=forms.TextInput(attrs={'size' : 35}))
+    birthday = forms.DateField(label=_lazy('Date of birth'), help_text=_lazy('will not be shown, used to calculate age, format: YYYY-MM-DD'), required=False, widget=forms.TextInput(attrs={'size' : 35}))
+    about = forms.CharField(label=_lazy('Profile'), required=False, widget=forms.Textarea(attrs={'cols' : 60}))
 
     def __init__(self, user, *args, **kwargs):
-        super(EditUserForm, self).__init__(*args, **kwargs)
-        if settings.EDITABLE_SCREEN_NAME or (REQUEST_HOLDER.request.user.is_authenticated() and REQUEST_HOLDER.request.user.is_superuser):
+        super().__init__(*args, **kwargs)
+        if settings.EDITABLE_SCREEN_NAME or (REQUEST_HOLDER.request.user.is_authenticated and REQUEST_HOLDER.request.user.is_superuser):
             self.fields['username'] = UserNameField(label=_('Screen name'))
             self.fields['username'].initial = user.username
             self.fields['username'].user_instance = user
@@ -321,6 +327,11 @@ class EditUserForm(forms.Form):
 
         self.fields['about'].initial = user.about
         self.user = user
+        self.fields['email'].widget.attrs.update(autocomplete='email', autocapitalize='none', spellcheck='false')
+        if REQUEST_HOLDER.request is not None and REQUEST_HOLDER.request.user == user:
+            self.fields['email'].help_text = _("Never shown publicly. If you change it, we email a link to the new "
+                                               "address; it is used once you confirm it.")
+        self.describe_fields()
 
     def clean_email(self):
         if self.user.email != self.cleaned_data['email']:
@@ -333,31 +344,44 @@ class EditUserForm(forms.Form):
                         return self.cleaned_data['email']
                     except User.MultipleObjectsReturned:
                         logging.error("Found multiple users sharing the same email: %s" % self.cleaned_data['email'])
-                        
+
                     raise forms.ValidationError(_('this email has already been registered, please use another one'))
         return self.cleaned_data['email']
-        
+
 
 NOTIFICATION_CHOICES = (
-    ('i', _('Instantly')),
+    ('i', _lazy('Instantly')),
     #('d', _('Daily')),
     #('w', _('Weekly')),
-    ('n', _('No notifications')),
+    ('n', _lazy('No notifications')),
 )
 
 class SubscriptionSettingsForm(forms.ModelForm):
-    enable_notifications = forms.BooleanField(widget=forms.HiddenInput, required=False)
     member_joins = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     new_question = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     new_question_watched_tags = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
     subscribed_questions = forms.ChoiceField(widget=forms.RadioSelect, choices=NOTIFICATION_CHOICES)
+    # How often activity emails come (forum/utils/email_frequency.py). Its radio cards are
+    # outside the <form> element on the page, joined to it with the form attribute.
+    email_frequency = forms.ChoiceField(widget=forms.RadioSelect(attrs={'form': 'email-settings-form'}),
+                                        choices=FREQUENCY_CHOICES, required=False)
 
     class Meta:
         model = SubscriptionSettings
-        fields = ['enable_notifications', 'member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions']
+        # enable_notifications (the master switch) has its own buttons on the page.
+        fields = ['email_frequency', 'member_joins', 'new_question', 'new_question_watched_tags',
+                  'subscribed_questions', 'questions_viewed', 'all_questions_watched_tags', 'all_questions',
+                  'notify_answers', 'notify_comments_own_post', 'notify_comments', 'notify_accepted',
+                  'send_digest', 'notify_reply_to_comments', 'mentions_immediate']
+
+    def clean_email_frequency(self):
+        # Left out of the post (an old page): keep what was chosen.
+        return self.cleaned_data.get('email_frequency') or self.instance.email_frequency
 
 class UserPreferencesForm(forms.Form):
     sticky_sorts = forms.BooleanField(required=False, initial=False)
+    # osqa.shortcuts.js; off: data-shortcuts="off" on <html> (forum/utils/display.py).
+    keyboard_shortcuts = forms.BooleanField(required=False, initial=True)
 
 
 

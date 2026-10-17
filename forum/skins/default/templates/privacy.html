@@ -7,35 +7,33 @@
 {% block forejs %}
 {% endblock %}
 {% block content %}
-<div class="headNormal">
-	{% trans "Privacy policy" %}
-</div>
-<div id="main-body" style="width:100%">
+<div class="page-header"><h1 class="page-title">{% trans "Privacy policy" %}</h1></div>
+<div id="main-body" class="static-content">
     <p>
-		{% trans "general message about privacy" %}
+		{% blocktrans trimmed %}This page explains what information this site collects when you visit it or take part in it, and how that information is used. We collect only what is needed to run the community.{% endblocktrans %}
     </p>
     
-        <h3 class="subtitle">{% trans "Site Visitors" %}</h3>
+        <h2 class="subtitle">{% trans "Site Visitors" %}</h2>
     <p>    
-	{% trans "what technical information is collected about visitors" %}
+	{% blocktrans trimmed %}Like most web sites, this site records technical information about each request, such as your IP address, the pages you visit and your browser type. It is used to keep the site running, to prevent abuse and spam, and to understand how the site is used.{% endblocktrans %}
     </p>
     
-        <h3 class="subtitle">{% trans "Personal Information" %}</h3>
+        <h2 class="subtitle">{% trans "Personal Information" %}</h2>
     <p>   
-		{% trans "details on personal information policies" %}
+		{% blocktrans trimmed %}When you create an account we keep your username, your email address and any profile details you choose to add. Your email address is never shown to other members; it is used to send you the notifications you ask for and to help you get back into your account. Questions, answers, comments and votes you post are public.{% endblocktrans %}
     </p>
    
-        <h3 class="subtitle">{% trans "Other Services" %}</h3>
+        <h2 class="subtitle">{% trans "Other Services" %}</h2>
      <p>   
-	 {% trans "details on sharing data with third parties" %}
+	 {% blocktrans trimmed %}We do not sell or rent your personal information. Avatars are loaded from Gravatar, which receives a hash of your email address; if you sign in with another service, that service tells us who you are. We share information otherwise only when the law requires it.{% endblocktrans %}
     </p>
     
-        <h3 class="subtitle">Cookies</h3>
+        <h2 class="subtitle">{% trans "Cookies" %}</h2>
     <p>
-		{% trans "cookie policy details" %}
+		{% blocktrans trimmed %}This site uses cookies to keep you signed in, to protect forms against forgery and to remember preferences such as your language. They are not used for advertising.{% endblocktrans %}
     </p>
-        <h3 class="subtitle">{% trans "Policy Changes" %}</h3>
-    <p>{% trans "how privacy policies can be changed" %}
+        <h2 class="subtitle">{% trans "Policy Changes" %}</h2>
+    <p>{% blocktrans trimmed %}This policy may change from time to time. Changes are published on this page.{% endblocktrans %}
     </p>
 </div>
 {% endblock %}

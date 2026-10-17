@@ -1,10 +1,8 @@
-from django.conf.urls import patterns, url, include
-from django.utils.translation import ugettext as _
+from django.urls import re_path
 
-from views import state, running, download
+from .views import state, running, download
 
-urlpatterns = patterns('',
-    url(r'^%s%s%s$' % (_('admin/'), _('exporter/'), _('state/')),  state, name='exporter_state'),
-    url(r'^%s(?P<mode>\w+)/%s$' % (_('admin/'), _('running/')),  running, name='exporter_running'),
-    url(r'^%s%s%s$' % (_('admin/'), _('exporter/'), _('download/')),  download, name='exporter_download'),
-)
+urlpatterns = [re_path(r'^%s%s%s$' % ('admin/', 'exporter/', 'state/'),  state, name='exporter_state'),
+    re_path(r'^%s(?P<mode>\w+)/%s$' % ('admin/', 'running/'),  running, name='exporter_running'),
+    re_path(r'^%s%s%s$' % ('admin/', 'exporter/', 'download/'),  download, name='exporter_download'),
+]

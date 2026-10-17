@@ -10,7 +10,9 @@ get_modules_script('startup')
 
 import forum.badges
 import forum.subscriptions
-import forum.registry
+import forum.notifications
+import forum.review_notices  # noqa: F401  (first posts review: author notices)
+import forum.registry  # noqa: F401  (fills the UI registry)
 get_modules_script('registry')
 
 

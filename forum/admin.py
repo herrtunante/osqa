@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 #from django.contrib import admin
 #from models import *
@@ -44,16 +43,16 @@
 #
 #class ActionAdmin(admin.ModelAdmin):
 #    """  admin class"""
-    
+
 #class BookAdmin(admin.ModelAdmin):
 #    """  admin class"""
-    
+
 #class BookAuthorInfoAdmin(admin.ModelAdmin):
 #    """  admin class"""
-    
+
 #class BookAuthorRssAdmin(admin.ModelAdmin):
 #    """  admin class"""
-    
+
 #admin.site.register(Node, NodeAdmin)
 #admin.site.register(Tag, TagAdmin)
 #admin.site.register(QuestionRevision, QuestionRevisionAdmin)

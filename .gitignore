@@ -4,6 +4,21 @@
 .project
 log/django.osqa.log
 tmp/*
-
 osqa.wsgi
 settings_local.py
+/osqa_env/
+/test_venv/
+/venv/
+/cache/
+.claude/settings.local.json
+# Production data dumps and local databases used by scripts/data_import
+importData/
+/*.sql
+/*.db
+/*.sqlite3
+*.log
+__pycache__/
+# Docker Compose configuration (secrets) and backup_site archives
+/.env
+/backups/
+settings_local_extra.py

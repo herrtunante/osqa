@@ -1,0 +1,3 @@
+{% comment %}Quoted post text: include with text=... (plain text, escaped here) or html=... (already safe HTML).{% endcomment %}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 20px 0;">
+<tr><td class="em-quote" style="{{ quote_style }}">{% if html %}{{ html }}{% else %}{{ text|linebreaksbr }}{% endif %}</td></tr>
+</table>

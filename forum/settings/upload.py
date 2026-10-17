@@ -1,6 +1,6 @@
 import os.path
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 UPLOAD_SET = SettingSet('paths', _('File upload settings'), _("File uploads related settings."), 600)
 
@@ -15,3 +15,12 @@ help_text = _("The url alias for uploaded files. Notice that if you change this 
 ALLOW_MAX_FILE_SIZE = Setting('ALLOW_MAX_FILE_SIZE', 2.5, UPLOAD_SET, dict(
 label = _("Max file size"),
 help_text = _("The maximum allowed file size for uploads in mb.")))
+
+UPLOAD_MAX_IMAGE_SIDE = Setting('UPLOAD_MAX_IMAGE_SIDE', 2000, UPLOAD_SET, dict(
+label = _("Max image size in pixels"),
+help_text = _("Uploaded images are reduced so that their longest side is at most this many pixels. Location and other metadata are always removed."),
+min_value = 100))
+
+UPLOADS_PER_HOUR = Setting('UPLOADS_PER_HOUR', 30, UPLOAD_SET, dict(
+label = _("Image uploads per member per hour"),
+help_text = _("Moderators and administrators have no limit. 0 means no limit.")))

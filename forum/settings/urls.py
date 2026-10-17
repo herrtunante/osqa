@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext as _
 
 URLS_SET = SettingSet('urls', _('URL settings'), _("Some settings to tweak behaviour of site urls (experimental)."))
 

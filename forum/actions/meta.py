@@ -1,4 +1,5 @@
-from django.utils.translation import ugettext as _
+from django.utils.html import escape
+from django.utils.translation import gettext as _
 from django.db.models import F
 from forum.models.action import ActionProxy, DummyActionProxy
 from forum.models import Vote, Flag
@@ -44,14 +45,24 @@ class VoteAction(ActionProxy):
 
 class VoteUpAction(VoteAction):
     def repute_users(self):
-        self.repute(self.node.author, int(settings.REP_GAIN_BY_UPVOTED))
+        # MAX_REP_BY_UPVOTE_DAY caps what an author gains from up votes in 24
+        # hours: past it, an up vote still counts in the score but gives no
+        # (or only the remaining) reputation. Only what was given is recorded,
+        # so cancelling such a vote takes back nothing more.
+        author = self.node.author
+        gain = int(settings.REP_GAIN_BY_UPVOTED)
+        cap = int(settings.MAX_REP_BY_UPVOTE_DAY)
+        if cap > 0:
+            gain = min(gain, max(0, cap - author.get_reputation_by_upvoted_today()))
+        if gain:
+            self.repute(author, gain)
 
     def process_action(self):
         self.process_vote_action(1)
         self.user.reset_vote_up_count_cache()
 
     def cancel_action(self):
-        super(VoteUpAction, self).cancel_action()
+        super().cancel_action()
         self.user.reset_vote_up_count_cache()
 
     def describe(self, viewer=None):
@@ -67,7 +78,7 @@ class VoteDownAction(VoteAction):
         self.user.reset_vote_down_count_cache()
 
     def cancel_action(self):
-        super(VoteDownAction, self).cancel_action()
+        super().cancel_action()
         self.user.reset_vote_down_count_cache()
 
     def describe(self, viewer=None):
@@ -97,10 +108,12 @@ class FlagAction(ActionProxy):
         flag.save()
         self.node.reset_flag_count_cache()
 
-        if self.node.flag_count >= int(settings.FLAG_COUNT_TO_HIDE_POST):
+        # Each threshold costs the author once, when the flag that reaches it
+        # is cast; later flags only cost REP_LOST_BY_FLAGGED.
+        if self.node.flag_count == int(settings.FLAG_COUNT_TO_HIDE_POST):
             self.repute(self.node.author, -int(settings.REP_LOST_BY_FLAGGED_3_TIMES))
 
-        if self.node.flag_count >= int(settings.FLAG_COUNT_TO_DELETE_POST):
+        if self.node.flag_count == int(settings.FLAG_COUNT_TO_DELETE_POST):
             self.repute(self.node.author, -int(settings.REP_LOST_BY_FLAGGED_5_TIMES))
             if not self.node.nis.deleted:
                 DeleteAction(node=self.node, user=self.user, extra="BYFLAGGED").save()
@@ -120,7 +133,7 @@ class FlagAction(ActionProxy):
     def describe(self, viewer=None):
         return _("%(user)s flagged %(post_desc)s: %(reason)s") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'post_desc': self.describe_node(viewer, self.node), 'reason': self.extra
+            'post_desc': self.describe_node(viewer, self.node), 'reason': escape(self.extra)
         }
 
 
@@ -178,7 +191,7 @@ class FavoriteAction(ActionProxy):
 class DeleteAction(ActionProxy):
     def process_action(self):
         self.node.mark_deleted(self)
-        
+
         if self.node.node_type == "answer":
             self.node.question.reset_answer_count_cache()
 
@@ -208,8 +221,16 @@ class QuestionViewAction(DummyActionProxy):
     def __init__(self, node, user, ip=None):
         self.viewuser = user
         self.node = node
-        super(QuestionViewAction, self).__init__(ip)
+        super().__init__(ip)
 
     def process_action(self):
-        self.node.extra_count = F('extra_count') + 1
-        self.node.save()
+        # A plain UPDATE: node.save() would also reset the query-cache timestamp
+        # shared by all nodes, discarding every cached count on the site for
+        # each question view. View counts don't affect those counts.
+        node = self.node
+        nodes = type(node).objects.filter(id=node.id)
+        nodes.update(extra_count=F('extra_count') + 1)
+        # Read the stored value back: badges compare it exactly.
+        node.extra_count = nodes.values_list('extra_count', flat=True)[0]
+        node.reset_original_state()
+        node.cache()

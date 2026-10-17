@@ -1,0 +1,33 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}The "Confirm it's you" link for members without a password or two-step verification (forum/views/security.py confirm_identity). Single use, LINK_MINUTES.{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Confirm it's you on {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Open the link to continue changing your account." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this email because someone signed in to your account at {{ app_name }} asked to confirm it's you. These notices are always sent.{% endblocktrans %}
+        {% fullurl "auth_confirm_identity_link" user=recipient.id code=reauth_code as confirm_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with minutes=link_minutes %}Open this link in the browser where you asked for it to confirm it's you. It works once, for {{ minutes }} minutes.{% endblocktrans %}</p>
+        {% trans "Confirm and continue" as cta %}{% include "notifications/_button.html" with url=confirm_url label=cta %}
+        {% include "notifications/_link_fallback.html" with url=confirm_url %}
+        <p class="em-text" style="{{ p_style }}">{% trans "If you didn't ask for this, someone may be using your account: sign out everywhere on your security page." %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this email because someone signed in to your account at {{ app_name }} asked to confirm it's you. These notices are always sent.{% endblocktrans %}
+{% blocktrans with minutes=link_minutes %}Open this link in the browser where you asked for it to confirm it's you. It works once, for {{ minutes }} minutes.{% endblocktrans %}
+
+{% trans "Confirm and continue" %}:
+{% fullurl "auth_confirm_identity_link" user=recipient.id code=reauth_code %}
+
+{% trans "If you didn't ask for this, someone may be using your account: sign out everywhere on your security page." %}
+{% endtextcontent %}
+
+{% endemail %}

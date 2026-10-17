@@ -1,0 +1,36 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}Someone signed up with an address that already has an account, while new members must confirm before signing in: the sign-up page answers as for a new address (no account enumeration) and the owner gets this instead.{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} You already have an account on {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Someone tried to sign up with your email address." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this email because someone tried to sign up at {{ app_name }} with this address.{% endblocktrans %}
+        {% fullurl "auth_signin" as signin_url %}
+        {% fullurl "auth_request_tempsignin" as reset_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Someone (maybe you) tried to create a new account with this email address, but it already belongs to your account {{ name }}. No new account was created.{% endblocktrans %}</p>
+        {% trans "Sign in" as cta %}{% include "notifications/_button.html" with url=signin_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Forgot your password? <a href="{{ reset_url }}" style="{{ a_style }}">Choose a new one</a>. If it wasn't you, you can ignore this email.{% endblocktrans %}</p>
+        {% include "notifications/_link_fallback.html" with url=signin_url %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this email because someone tried to sign up at {{ app_name }} with this address.{% endblocktrans %}
+{% blocktrans with name=recipient.username %}Someone (maybe you) tried to create a new account with this email address, but it already belongs to your account {{ name }}. No new account was created.{% endblocktrans %}
+
+{% trans "Sign in" %}:
+{% fullurl "auth_signin" %}
+
+{% trans "Forgot your password? Choose a new one" %}: {% fullurl "auth_request_tempsignin" %}
+
+{% trans "If it wasn't you, you can ignore this email." %}
+{% endtextcontent %}
+
+{% endemail %}

@@ -1,0 +1,21 @@
+# Scrape job for OSQA's /metrics (add under scrape_configs in prometheus.yml).
+#
+# The counters live in the shared cache, so every web container reports the
+# same site-wide totals: scrape ONE target (the Service / load balancer /
+# one container), not every pod, or sum() counts them several times.
+# /metrics answers on any Host header; keep it off the public proxy
+# (nginx: `location = /metrics { return 404; }`) and reach it internally.
+scrape_configs:
+  - job_name: osqa
+    scrape_interval: 30s
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/osqa-metrics-token   # contains METRICS_TOKEN
+    static_configs:
+      - targets:
+          - osqa.osqa.svc.cluster.local:80   # Kubernetes Service (docs/k8s/service.yaml)
+          # - web:8000                       # Docker Compose (Prometheus on the same network)
+          # - 127.0.0.1:8000                 # a server with gunicorn on localhost
+rule_files:
+  - osqa-alerts.yml   # docs/prometheus/alerts.yml

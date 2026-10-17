@@ -2,12 +2,12 @@ from datetime import datetime, timedelta
 import json
 import time
 
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render_to_response, get_object_or_404
-from django.core.urlresolvers import reverse
+from django.views.decorators.http import require_POST, require_http_methods
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.template import RequestContext
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.db import models
 
 from django.contrib import messages
@@ -17,17 +17,24 @@ from forum.settings.base import Setting
 from forum.forms import MaintenanceModeForm, PageForm, CreateUserForm
 from forum.settings.forms import SettingsSetForm
 from forum.utils import pagination, html
+from forum.utils import security_log
+from forum.utils import review
+from forum.views.security import require_staff_two_factor
 from forum.utils.mail import send_template_email
-from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag
+from forum.models import Question, Answer, User, Node, Action, Page, NodeState, Tag, ModerationReport
 from forum.models.node import NodeMetaClass
 from forum.actions import NewPageAction, EditPageAction, PublishAction, DeleteAction, UserJoinsAction, CloseAction
 from forum import settings
 
 TOOLS = {}
+# Admin pages with a URL of their own (url name, label), listed with the tools.
+TOOL_LINKS = []
 
 def super_user_required(fn):
+    # Staff who must use two-step verification (Admin > Security) set it up first.
+    @require_staff_two_factor
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated() and request.user.is_superuser:
+        if request.user.is_authenticated and request.user.is_superuser:
             return fn(request, *args, **kwargs)
         else:
             return HttpResponseUnauthorized(request)
@@ -35,13 +42,69 @@ def super_user_required(fn):
     return wrapper
 
 def staff_user_required(fn):
+    @require_staff_two_factor
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated() and (request.user.is_staff or request.user.is_superuser):
+        if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
             return fn(request, *args, **kwargs)
         else:
             return HttpResponseUnauthorized(request)
 
     return wrapper
+
+# The admin menu's fixed groups of settings pages (SettingSet names); every
+# other set is listed under "Other settings", so a module's new set shows up
+# without changes here.
+MENU_SETTINGS = (
+    ('basic-sets-menu', _lazy("Basic settings"), ('basic', 'users', 'email', 'paths', 'urls', 'extkeys')),
+    ('workflow-sets-menu', _lazy("Workflow settings"), ('repgain', 'minrep', 'voting', 'accept', 'badges')),
+    ('forum-sets-menu', _lazy("Forum settings"), ('form', 'view', 'moderation')),
+    ('pages-sets-menu', _lazy("Static content"), ('about', 'faq', 'sidebar', 'css', 'headandfoot', 'head')),
+)
+
+
+def _menu_item(request, url, label, **extra):
+    current = request.path == url or (url != reverse('admin_index') and request.path.startswith(url))
+    return dict(extra, url=url, label=label, current=current)
+
+
+def admin_menu(request, unsaved, counts=None):
+    """The admin menu as data: [{'id', 'title', 'items': [{'url', 'label',
+    'current', 'unsaved', 'count'}]}]. Moderators (staff) get the moderation
+    pages only; superusers every settings page and tool, including the tools
+    modules register (admin_tools_page, TOOL_LINKS)."""
+    item = lambda url, label, **extra: _menu_item(request, url, label, **extra)
+    groups = [{'id': 'moderation-menu', 'title': _("Moderation"), 'items': [
+        item(reverse('admin_moderation'), _("Moderation inbox"), count=(counts or {}).get('total')),
+        item(reverse('admin_support'), _("Support dashboard")),
+        item(reverse('admin_email_previews'), _("Email previews")),
+    ]}]
+    if not request.user.is_superuser:
+        return groups
+
+    def set_item(s):
+        return item(reverse('admin_set', args=[s.name]), s.title, unsaved=s.name in unsaved)
+
+    fixed = set()
+    for group_id, title, names in MENU_SETTINGS:
+        fixed.update(names)
+        items = [set_item(Setting.sets[name]) for name in names if name in Setting.sets]
+        if group_id == 'pages-sets-menu':
+            items.insert(0, item(reverse('admin_static_pages'), _("Custom Pages")))
+        groups.append({'id': group_id, 'title': title, 'items': items})
+    others = sorted([s for s in Setting.sets.values() if s.name not in fixed], key=lambda s: s.weight)
+    groups.append({'id': 'other-sets-menu', 'title': _("Other settings"), 'items': [set_item(s) for s in others]})
+    groups.append({'id': 'tools-menu', 'title': _("Tools"), 'items': [
+        item(reverse('admin_maintenance'), _("Maintenance mode")),
+        item(reverse('admin_statistics'), _("Statistics")),
+    ] + [item(url, label) for url, label in admin_tools()]})
+    return [g for g in groups if g['items']]
+
+
+def admin_tools():
+    """(url, label) of the tools: admin_tools_page() views and TOOL_LINKS."""
+    return [(reverse('admin_tools', args=[name]), fn.label) for name, fn in TOOLS.items()] + \
+           [(reverse(url_name), label) for url_name, label in TOOL_LINKS]
+
 
 def admin_page_wrapper(fn, request, *args, **kwargs):
     res = fn(request, *args, **kwargs)
@@ -49,24 +112,24 @@ def admin_page_wrapper(fn, request, *args, **kwargs):
         return res
 
     template, context = res
-    context['basetemplate'] = settings.DJSTYLE_ADMIN_INTERFACE and "osqaadmin/djstyle_base.html" or "osqaadmin/base.html"
+    # Templates of older modules extend `basetemplate`; there is one layout.
+    context['basetemplate'] = "osqaadmin/base.html"
     context['allsets'] = Setting.sets
     context['othersets'] = sorted(
-            [s for s in Setting.sets.values() if not s.name in
-            ('basic', 'users', 'email', 'paths', 'extkeys', 'repgain', 'minrep', 'voting', 'accept', 'badges', 'about', 'faq', 'sidebar',
-            'form', 'moderation', 'css', 'headandfoot', 'head', 'view', 'urls')]
-            , lambda s1, s2: s1.weight - s2.weight)
+            [s for s in Setting.sets.values() if s.name not in
+             {name for _id, _title, names in MENU_SETTINGS for name in names}],
+            key=lambda s: s.weight)
+    context['tools'] = admin_tools()
 
-    context['tools'] = [(name, fn.label) for name, fn in TOOLS.items()]
-
-    # Show the navigation only to moderators and super users
-    if not context.has_key("hide_navigation"):
-        context['hide_navigation'] = not request.user.is_superuser
+    # Pages that need the whole width (the node manager) leave the menu out.
+    context.setdefault('hide_navigation', False)
 
     unsaved = request.session.get('previewing_settings', {})
     context['unsaved'] = set([getattr(settings, s).set.name for s in unsaved.keys() if hasattr(settings, s)])
+    context['moderation_counts'] = counts = review.inbox_counts()
+    context['admin_menu'] = admin_menu(request, context['unsaved'], counts)
 
-    return render_to_response(template, context, context_instance=RequestContext(request))
+    return render(request, template, context)
 
 def admin_page(fn):
     @super_user_required
@@ -95,20 +158,45 @@ class ActivityPaginatorContext(pagination.PaginatorContext):
     def __init__(self):
         super (ActivityPaginatorContext, self).__init__('ADMIN_RECENT_ACTIVITY', pagesizes=(20, 40, 80), default_pagesize=40)
 
-@admin_page
+@moderation_page
 def dashboard(request):
-    return ('osqaadmin/dashboard.html', pagination.paginated(request, ("recent_activity", ActivityPaginatorContext()), {
-    'settings_pack': unicode(settings.SETTINGS_PACK),
-    'statistics': get_statistics(),
-    'recent_activity': get_recent_activity(),
-    'flagged_posts': get_flagged_posts(),
-    }))
+    """Community health (forum/utils/community_health.py) for moderators and
+    administrators, then the site status (administrators) and recent activity.
+    ?days= picks the period, ?format=csv downloads the figures, and a POST with
+    `refresh` recomputes them instead of using the cached ones."""
+    from forum.utils import community_health as health
+    days = health.parse_days(request.GET.get('days'))
+    if request.method == 'POST' and 'refresh' in request.POST:
+        health.figures(days, refresh=True)
+        return HttpResponseRedirect('%s?days=%d' % (reverse('admin_index'), days))
 
-@super_user_required
+    data = health.figures(days)
+    groups = health.tiles(data, review.inbox_counts())
+    charts = health.chart_data(data)
+    if request.GET.get('format') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="community-health-%dd-%s.csv"' % (
+            days, data['computed_at'].strftime('%Y-%m-%d'))
+        health.write_csv(response, data, groups, charts)
+        return response
+
+    context = {
+        'health': data,
+        'health_groups': groups,
+        'health_charts': charts,
+        'health_headline': health.headline(groups, data),
+        'health_periods': health.PERIODS,
+        'health_cache_minutes': health.CACHE_SECONDS // 60,
+        'recent_activity': get_recent_activity(),
+    }
+    if request.user.is_superuser:
+        context.update(settings_pack=str(settings.SETTINGS_PACK), statistics=get_statistics())
+    return ('osqaadmin/dashboard.html', pagination.paginated(
+        request, ("recent_activity", ActivityPaginatorContext()), context))
+
 def interface_switch(request):
-    if request.GET and request.GET.get('to', None) and request.GET['to'] in ('default', 'djstyle'):
-        settings.DJSTYLE_ADMIN_INTERFACE.set_value(request.GET['to'] == 'djstyle')
-
+    """The old "switch admin layout" link (there is one layout now): bookmarks
+    land on the dashboard."""
     return HttpResponseRedirect(reverse('admin_index'))
 
 @admin_page
@@ -122,7 +210,7 @@ def statistics(request):
 
     last_month_n_questions = Question.objects.filter_state(deleted=False).filter(added_at__lt=last_month).count()
     qgraph_data = json.dumps([
-    (time.mktime(d.timetuple()) * 1000, i + last_month_n_questions)
+    (time.mktime(d.timetuple()) * 1000, i + 1 + last_month_n_questions)
     for i, d in enumerate(last_month_questions)
     ])
 
@@ -132,7 +220,7 @@ def statistics(request):
     last_month_n_users = User.objects.filter(date_joined__lt=last_month).count()
 
     ugraph_data = json.dumps([
-    (time.mktime(d.timetuple()) * 1000, i + last_month_n_users)
+    (time.mktime(d.timetuple()) * 1000, i + 1 + last_month_n_users)
     for i, d in enumerate(last_month_users)
     ])
 
@@ -182,7 +270,9 @@ def settings_set(request, set_name):
                 request.session['previewing_settings'] = current_preview
 
                 if not 'reset' in request.POST:
+                    changed = [name for name in form.changed_data if name in form.fields]
                     form.save()
+                    security_log.event('settings_changed', request, set=set_name, fields=','.join(changed))
                     messages.info(request, _("'%s' settings saved succesfully") % set_name)
 
                     if set_name in ('minrep', 'badges', 'repgain'):
@@ -207,7 +297,7 @@ def get_default(request, set_name, var_name):
 
     setting.to_default()
 
-    if request.is_ajax():
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return HttpResponse(setting.default)
     else:
         return HttpResponseRedirect(reverse('admin_set', kwargs={'set_name': set_name}))
@@ -232,6 +322,7 @@ def get_statistics():
     }
 
 @super_user_required
+@require_POST
 def go_bootstrap(request):
 #todo: this is the quick and dirty way of implementing a bootstrap mode
     try:
@@ -294,6 +385,7 @@ def go_bootstrap(request):
     return HttpResponseRedirect(reverse('admin_index'))
 
 @super_user_required
+@require_POST
 def go_defaults(request):
     for setting in Setting.sets['badges']:
         setting.to_default()
@@ -309,6 +401,7 @@ def go_defaults(request):
 
 
 @super_user_required
+@require_POST
 def recalculate_denormalized(request):
     for n in Node.objects.all():
         n = n.leaf
@@ -317,7 +410,8 @@ def recalculate_denormalized(request):
         n.save()
 
     for u in User.objects.all():
-        u.reputation = u.reputes.aggregate(reputation=models.Sum('value'))['reputation']
+        # Sum() of no rows is None; users without reputation history have 0.
+        u.reputation = u.reputes.aggregate(reputation=models.Sum('value'))['reputation'] or 0
         u.save()
 
     messages.info(request, _('All values recalculated'))
@@ -333,6 +427,7 @@ def maintenance(request):
                 settings.MAINTAINANCE_MODE.set_value({
                 'allow_ips': form.cleaned_data['ips'],
                 'message': form.cleaned_data['message']})
+                security_log.event('maintenance_on', request, allow_ips=','.join(form.cleaned_data['ips']))
 
                 if 'close' in request.POST:
                     message = _('Maintenance mode enabled')
@@ -344,6 +439,7 @@ def maintenance(request):
                 return HttpResponseRedirect(reverse('admin_maintenance'))
         elif 'open' in request.POST:
             settings.MAINTAINANCE_MODE.set_value(None)
+            security_log.event('maintenance_off', request)
             messages.info(request, _("Your site is now running normally"))
             return HttpResponseRedirect(reverse('admin_maintenance'))
     else:
@@ -354,11 +450,66 @@ def maintenance(request):
                                            })
 
 
-@moderation_page
-def flagged_posts(request):
-    return ('osqaadmin/flagged_posts.html', {
-    'flagged_posts': get_flagged_posts(),
-    })
+@require_POST
+@staff_user_required
+def resolve_moderation_report(request, id):
+    """Dismiss an automated report, or act on it: delete the reported post
+    (also as spam: suspend the author and delete their other posts), suspend
+    its author, or suspend / delete the reported account. Used by the AI
+    reports in the moderation inbox (forum/views/moderation.py)."""
+    from forum.views import moderation
+    report = get_object_or_404(ModerationReport, id=id)
+    resolution = request.POST.get('resolution')
+    done_url = moderation._next_url(request)
+    done = []
+
+    if report.node_id:
+        node = report.node.leaf
+        if resolution == 'delete':
+            done.append(moderation.delete_post(request, node))
+            messages.info(request, _("The post has been deleted."))
+            resolution = 'deleted'
+        elif resolution == 'spam':
+            suspend, purge = bool(request.POST.get('suspend_author')), bool(request.POST.get('delete_other_posts'))
+            done, count = moderation.delete_as_spam(request, node, node.author, suspend=suspend, purge=purge)
+            messages.info(request, _("The post has been deleted."))
+            resolution = 'deleted'
+        elif resolution == 'suspend':
+            done.append(moderation.suspend_author(request, node.author))
+            messages.info(request, _("The account %s has been suspended.") % node.author.username)
+            resolution = 'suspended'
+        else:
+            resolution = 'dismissed'
+        reports = ModerationReport.objects.filter(node=report.node, resolved_at=None)
+    else:
+        target = report.user
+        if target.is_staff or target.is_superuser:
+            resolution = 'dismissed'
+        if resolution == 'delete_account':
+            if Node.objects.filter(author=target).exists():
+                messages.error(request, _("This account has posts; suspend it instead."))
+                return HttpResponseRedirect(done_url)
+            messages.info(request, _("The account %s has been deleted.") % target.username)
+            security_log.event('account_deleted', request, account=target, via='moderation report')
+            target.delete()  # also removes its reports
+            review.invalidate_counts()
+            return HttpResponseRedirect(done_url)
+        if resolution == 'suspend':
+            done.append(moderation.suspend_author(request, target))
+            messages.info(request, _("The account %s has been suspended.") % target.username)
+            resolution = 'suspended'
+        else:
+            resolution = 'dismissed'
+        reports = ModerationReport.objects.filter(user=target, resolved_at=None)
+
+    if resolution == 'dismissed':
+        messages.info(request, _("The report has been dismissed."))
+    for open_report in reports:
+        open_report.resolve(request.user, resolution)
+
+    moderation._remember(request, done, resolution)
+    review.invalidate_counts()
+    return HttpResponseRedirect(done_url)
 
 @admin_page
 def static_pages(request):
@@ -408,13 +559,14 @@ def edit_page(request, id=None):
     'published': published
     })
 
-@admin_page
+@super_user_required
+@require_POST
 def delete_page(request, id=None):
     page = get_object_or_404(Page, id=id)
     page.delete()
     return HttpResponseRedirect(reverse('admin_static_pages'))
 
-@admin_tools_page(_('createuser'), _("Create new user"))
+@admin_tools_page('createuser', _lazy("Create new user"))
 def create_user(request):
     if request.POST:
         form = CreateUserForm(request.POST)
@@ -427,7 +579,8 @@ def create_user(request):
                 user_.email_isvalid = True
 
             user_.save()
-            UserJoinsAction(user=user_).save()
+            UserJoinsAction(user=user_, ip=request.META['REMOTE_ADDR']).save()
+            security_log.event('account_created_by_admin', request, account=user_)
 
             messages.info(request, _("New user created sucessfully. %s.") % html.hyperlink(
                     user_.get_profile_url(), _("See %s profile") % user_.username, target="_blank"))
@@ -443,19 +596,19 @@ def create_user(request):
 class NodeManagementPaginatorContext(pagination.PaginatorContext):
     def __init__(self, id='QUESTIONS_LIST', prefix='', default_pagesize=100):
         super (NodeManagementPaginatorContext, self).__init__(id, sort_methods=(
-            (_('added_at'), pagination.SimpleSort(_('added_at'), '-added_at', "")),
-            (_('added_at_asc'), pagination.SimpleSort(_('added_at_asc'), 'added_at', "")),
-            (_('author'), pagination.SimpleSort(_('author'), '-author__username', "")),
-            (_('author_asc'), pagination.SimpleSort(_('author_asc'), 'author__username', "")),
-            (_('score'), pagination.SimpleSort(_('score'), '-score', "")),
-            (_('score_asc'), pagination.SimpleSort(_('score_asc'), 'score', "")),
-            (_('act_at'), pagination.SimpleSort(_('act_at'), '-last_activity_at', "")),
-            (_('act_at_asc'), pagination.SimpleSort(_('act_at_asc'), 'last_activity_at', "")),
-            (_('act_by'), pagination.SimpleSort(_('act_by'), '-last_activity_by__username', "")),
-            (_('act_by_asc'), pagination.SimpleSort(_('act_by_asc'), 'last_activity_by__username', "")),
+            ('added_at', pagination.SimpleSort('added_at', '-added_at', "")),
+            ('added_at_asc', pagination.SimpleSort('added_at_asc', 'added_at', "")),
+            ('author', pagination.SimpleSort('author', '-author__username', "")),
+            ('author_asc', pagination.SimpleSort('author_asc', 'author__username', "")),
+            ('score', pagination.SimpleSort('score', '-score', "")),
+            ('score_asc', pagination.SimpleSort('score_asc', 'score', "")),
+            ('act_at', pagination.SimpleSort('act_at', '-last_activity_at', "")),
+            ('act_at_asc', pagination.SimpleSort('act_at_asc', 'last_activity_at', "")),
+            ('act_by', pagination.SimpleSort('act_by', '-last_activity_by__username', "")),
+            ('act_by_asc', pagination.SimpleSort('act_by_asc', 'last_activity_by__username', "")),
         ), pagesizes=(default_pagesize,), force_sort='added_at', default_pagesize=default_pagesize, prefix=prefix)
 
-@admin_tools_page(_("nodeman"), _("Bulk management"))
+@admin_tools_page("nodeman", _lazy("Bulk management"))
 def node_management(request):
     if request.POST:
         params = pagination.generate_uri(request.GET, ('page',))
@@ -531,7 +684,8 @@ def node_management(request):
     if type_filter:
         nodes = nodes.filter(node_type__in=type_filter)
 
-    state_types = NodeState.objects.filter(node__in=nodes).values_list('state_type', flat=True).distinct('state_type')
+    # Plain DISTINCT: distinct('state_type') is DISTINCT ON, PostgreSQL only.
+    state_types = NodeState.objects.filter(node__in=nodes).order_by().values_list('state_type', flat=True).distinct()
     state_filter = [s for s in state_filter if s in state_types]
 
     if state_filter:
@@ -581,15 +735,120 @@ def node_management(request):
     'hide_navigation': True
     }))
 
-@csrf_exempt
 @super_user_required
+@require_http_methods(['GET', 'HEAD', 'POST'])
 def test_email_settings(request):
+    """Sends a test email to the administrator, only on a POST (CSRF-protected).
+
+    The email settings page posts here with AJAX and shows the returned
+    fragment; a direct visit gets a page that explains the test and offers the
+    button instead of sending anything."""
     user = request.user
+    context = {'user': user, 'tested': False}
 
-    send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
+    if request.method == 'POST':
+        errors = send_template_email([user,], 'osqaadmin/mail_test.html', { 'user' : user })
+        context.update(tested=True, errors=errors, hints=_email_error_hints(errors))
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return render(request, 'osqaadmin/test_email_settings.html', context)
 
-    return render_to_response(
-        'osqaadmin/test_email_settings.html',
-        { 'user': user, },
-        RequestContext(request)
-    )
+    return admin_page_wrapper(lambda request: ('osqaadmin/test_email_page.html', context), request)
+
+
+def _email_error_hints(errors):
+    """Plain-language advice for the SMTP errors people usually hit."""
+    text = ' '.join(errors)
+    hints = []
+    if 'AUTH extension not supported' in text:
+        hints.append(_("The server only accepts a sign-in over an encrypted connection: tick \"Use TLS\" "
+                       "(with port 587)."))
+    if 'SMTPAuthenticationError' in text or 'Username and Password not accepted' in text:
+        hints.append(_("The user name or password was refused. Gmail needs an App Password "
+                       "(myaccount.google.com/apppasswords), not the normal account password."))
+    if 'WRONG_VERSION_NUMBER' in text or 'SMTPServerDisconnected' in text:
+        hints.append(_("Port 465 (SSL from the start) is not supported: use port 587 with \"Use TLS\" ticked."))
+    if any(s in text for s in ('timed out', 'getaddrinfo failed', 'Name or service not known', 'refused')) \
+            and 'Recipients' not in text:
+        hints.append(_("The email server could not be reached: check the host name and port, and that the "
+                       "firewall allows outgoing connections to it."))
+    return hints
+
+
+SUPPORT_PERIODS = (30, 90, 365, 0)
+
+
+@moderation_page
+def support_dashboard(request):
+    """Unanswered questions and response times, overall and per product tag."""
+    from forum.utils import support
+    try:
+        days = int(request.GET.get('days', 30))
+    except ValueError:
+        days = 30
+    if days not in SUPPORT_PERIODS:
+        days = 30
+    tag = request.GET.get('tag', '').strip() or None
+
+    now = datetime.now()
+    target = int(settings.SUPPORT_RESPONSE_TARGET_HOURS)
+    unanswered = list(support.unanswered_queue(days, tag))
+    for question in unanswered:
+        question.waiting_hours = (now - question.added_at).total_seconds() / 3600.0
+        question.overdue = question.waiting_hours > target
+    unaccepted = support.unaccepted_queue(days, tag)
+    for question in unaccepted:
+        question.waiting_hours = (now - question.first_answer_at).total_seconds() / 3600.0
+
+    rows = []
+    for name in support.support_tags():
+        row = support.summary(support.period_questions(days, name))
+        row['tag'] = name
+        rows.append(row)
+
+    return ('osqaadmin/support.html', {
+        'days': days,
+        'periods': SUPPORT_PERIODS,
+        'tag': tag,
+        'overall': support.summary(support.period_questions(days, tag)),
+        'tag_rows': rows,
+        'tag_names': [row['tag'] for row in rows],
+        'unanswered': unanswered,
+        'unaccepted': unaccepted,
+        'target_hours': target,
+        'reminder_days': int(settings.ACCEPT_REMINDER_DAYS),
+    })
+
+
+@staff_user_required
+def email_previews(request, kind=None):
+    """Every kind of email the site sends, rendered with the real templates and
+    sample data for the admin who is looking. ?format=html or ?format=text
+    returns that part of one email by itself (the HTML one is shown in a frame)."""
+    from forum.utils import email_samples
+
+    if kind is not None and kind not in email_samples.KINDS:
+        raise Http404()
+
+    fmt = request.GET.get('format')
+    if kind is not None and fmt in ('html', 'text'):
+        email = email_samples.render(kind, request.user)
+        if fmt == 'text':
+            return HttpResponse(email['text'], content_type='text/plain; charset=utf-8')
+        return HttpResponse(email['html'], content_type='text/html; charset=utf-8')
+
+    def page(request):
+        if kind is None:
+            kinds = []
+            for slug, (name, audience, template, sample) in email_samples.KINDS.items():
+                kinds.append({'slug': slug, 'name': name, 'audience': audience,
+                              'subject': email_samples.render(slug, request.user)['subject']})
+            return ('osqaadmin/email_previews.html', {'kinds': kinds})
+
+        name, audience, template, sample = email_samples.KINDS[kind]
+        email = email_samples.render(kind, request.user)
+        return ('osqaadmin/email_preview.html', {
+            'kind': kind, 'name': name, 'audience': audience, 'template': template, 'email': email,
+            'list_unsubscribe': email['headers'].get('List-Unsubscribe', ''),
+        })
+
+    return admin_page_wrapper(page, request)

@@ -5,50 +5,50 @@
 {% load i18n %}
 {% block title %}{% spaceless %}{% trans "Users" %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-       <script type="text/javascript">
-	   //todo move javascript out
-        $().ready(function(){
-            $("#type-user").attr('checked',true);
-            var orderby = "{{ tab_id }}";
-            $("#sort_" + orderby).attr('className',"on");
-            
-            Hilite.exact = false;
-            Hilite.elementid = "main-body";
-            Hilite.debug_referrer = location.href;
-        });
-        </script>
+    <script defer src="{% media "/media/js/osqa.lists.js" %}"></script>
 {% endblock %}
 {% block content %}
-<div class="tabBar">
-    <div class="headUsers">{% trans "Users" %}</div>
+<div class="list-page users-page">
+<div class="list-header">
+    <h1 class="headUsers">{% trans "Users" %}</h1>
+</div>
+<div class="tabBar list-toolbar">
+    {# Typing filters the people on this page; Enter searches everyone. #}
+    <form class="list-filter" action="{% url "users" %}" method="get" role="search">
+        <label for="user-filter" class="visually-hidden">{% trans "Search users" %}</label>
+        <input type="search" id="user-filter" name="q" value="{{ suser }}" autocomplete="off"
+               placeholder="{% trans "Search by name" %}" data-list-filter="#main-body .userList"
+               data-status="#user-filter-status"
+               data-none="{% trans "Nobody on this page matches. Press Enter to search everyone." %}" />
+        <button type="submit" class="list-filter-submit plain-button">{% trans "Search" %}</button>
+    </form>
     {{ users.paginator.sort_tabs }}
 </div>
-<div id="main-body" style="width:100%">
-    <p>        
-        {% if suser %}
-			{% blocktrans %}users matching query {{suser}}:{% endblocktrans %}
-        {% endif %}
-    
-        {% if not users.paginator.count %}
-            <span>{% trans "Nothing found." %}</span>
-        {% endif %}
-    </p>
-    <div class="userList">
+<p class="list-status" id="user-filter-status" role="status">{% if suser %}{% blocktrans count counter=users.paginator.count %}{{ counter }} person matches “{{ suser }}”{% plural %}{{ counter }} people match “{{ suser }}”{% endblocktrans %}{% if users.paginator.count %} <a href="{% url "users" %}">{% trans "Show everyone" %}</a>{% endif %}{% endif %}</p>
+<div id="main-body">
+    {% if users.paginator.count %}
+    <ul class="userList user-grid">
         {% for user in users.paginator.page %}
-        <div class="user">
-            <ul>
-                <li class="thumb"><a href="{{ user.get_profile_url }} ">{% gravatar user 32 %}</a></li>
-                <li><a {% if user.is_suspended %}class="suspended-user" {% endif %}href="{{ user.get_profile_url }}">{{ user.decorated_name }}</a></li>
-                <li>{% get_score_badge user %}</li>
-            </ul>
-        </div>
+        <li class="user user-card" data-filter-text="{{ user.username|lower }} {{ user.real_name|lower }}">
+            <a class="user-card-avatar" href="{{ user.get_profile_url }}" tabindex="-1" aria-hidden="true">{% gravatar user 48 %}</a>
+            <div class="user-card-body">
+                <a class="user-card-name{% if user.is_suspended %} suspended-user{% endif %}" href="{{ user.get_profile_url }}">{{ user.decorated_name }}</a>
+                <div class="user-card-score">{% get_score_badge user %}</div>
+            </div>
+        </li>
         {% endfor %}
+    </ul>
+    {% else %}
+    <div class="list-empty">
+        <h2>{% if suser %}{% blocktrans %}Nobody matches “{{ suser }}”{% endblocktrans %}{% else %}{% trans "Nothing found." %}{% endif %}</h2>
+        {% if suser %}<p>{% trans "Check the spelling, or search for part of the name." %}</p>
+        <p class="list-empty-actions"><a class="list-empty-link" href="{% url "users" %}">{% trans "Show everyone" %}</a></p>{% endif %}
     </div>
+    {% endif %}
 </div>
-{% endblock %}
-{% block tail %}
-<div class="pager">
-    {{ users.paginator.page_numbers }}
-</div>              
+{% if users.paginator.page_numbers %}
+<div class="list-footer">{{ users.paginator.page_numbers }}</div>
+{% endif %}
+</div>
 {% endblock %}
 <!-- end users.html -->

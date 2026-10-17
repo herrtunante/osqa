@@ -1,12 +1,13 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 
 {% block subtitle %}
-    {% ifequal mode "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endifequal %}
+    {% if mode == "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endif %}
 {% endblock %}
+{% block pagename %}{% if mode == "exporter" %}{% trans "XML data exporter" %}{% else %}{% trans "XML data importer" %}{% endif %}{% endblock %}
 {% block description %}
-    {% ifequal mode "exporter" %}{% trans "Export database to XML format" %}{% else %}{% trans "Restore data from a previous export" %}{% endifequal %}
+    {% if mode == "exporter" %}{% trans "Export database to XML format" %}{% else %}{% trans "Restore data from a previous export" %}{% endif %}
 {% endblock %}
 
 {% block adminjs %}
@@ -14,10 +15,12 @@
         .state_bar {
             width:100%;
             height: 20px;
-            border: 1px solid black;
+            border: 1px solid var(--border-color, #ccc);
+            border-radius: 4px;
+            overflow: hidden;
             margin-bottom: 15px;
             position: relative;
-            background: #FDF;
+            background: var(--darkened-bg, #f8f8f8);
         }
 
         .state_label {
@@ -38,7 +41,7 @@
             top: 0px;
             width: 0%;
             height: 100%;
-            background: #DFF;
+            background: var(--message-success-bg, #dfd);
             z-index: 0;
         }
 
@@ -47,9 +50,9 @@
         }
     </style>
 
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
     $(function() {
-        var exporting = {% ifequal mode "exporter" %}true{% else %}false{% endifequal %};
+        var exporting = {% if mode == "exporter" %}true{% else %}false{% endif %};
 
         var state = null;
 
@@ -61,9 +64,9 @@
             } else if (state == null || data[name] != state[name]) {
                 var width = $bar.width();
 
-                $bar.find('.state_parsed').html(data[name].parsed);
-                $bar.find('.state_count').html(data[name].count);
-                $bar.find('.state_status').html(data[name].status);
+                $bar.find('.state_parsed').text(data[name].parsed);
+                $bar.find('.state_count').text(data[name].count);
+                $bar.find('.state_status').text(data[name].status);
 
                 var rel_parse = data[name].parsed / data[name].count;
 
@@ -84,7 +87,7 @@
                     set_state('{{ s.id }}', data.state);
                 {% endfor %}
 
-                $('#time_started').html(data.time_started);
+                $('#time_started').text(data.time_started);
 
                 state = data;
 
@@ -94,7 +97,7 @@
                     if (data.errors == false) {
                         if (exporting) {
                             $('#wait_message').html('{% trans "Your backup is ready to be downloaded."%}');
-                            $('#download_link_a').attr('href', '{% url "exporter_download" %}?file=' + data.state.overall.fname)
+                            $('#download_link_a').attr('href', '{% url "exporter_download" %}?file=' + encodeURIComponent(data.state.overall.fname))
                             $('#download_link').slideDown();
                         } else {
                             $('#wait_message').html('{% trans "All data sucessfully imported."%}')
@@ -106,8 +109,8 @@
                         } else {
                             msg = '{% trans "An error has occurred during the import proccess"%}';
                         }
-                        $('#wait_message').html(msg + ': ' + data.errors + '<br />' +
-                        '{% trans "Please check the log file for a full stack trace." %}')
+                        $('#wait_message').text(msg + ': ' + data.errors).append('<br />').append(
+                            document.createTextNode('{% trans "Please check the log file for a full stack trace." %}'))
                     }
                 }
 
@@ -131,11 +134,11 @@
 
 {% block admincontent %}
     <p id="wait_message">
-        {% ifequal mode "exporter" %}
+        {% if mode == "exporter" %}
             {% trans "Please wait while we prepare your backup file to download." %}
         {% else %}
             {% trans "Please wait while we import your data." %}
-        {% endifequal %} -
+        {% endif %} -
         {% blocktrans %}
             Started <span id="time_started"></span>
         {% endblocktrans %}
@@ -155,7 +158,7 @@
             <td>{{ s.name }}:</td>
             <td width="100%">
                 <div class="state_bar" id="state_{{ s.id }}">
-                    <div class="state_label"><span class="state_status"></span> - </span><span class="state_parsed">0</span> {% trans " of " %} <span class="state_count">{% trans "unknown" %}</span> (<span class="state_percentage">0%</span>)</div>
+                    <div class="state_label"><span class="state_status"></span> - <span><span class="state_parsed">0</span> {% trans " of " %} <span class="state_count">{% trans "unknown" %}</span> (<span class="state_percentage">0%</span>)</div>
                     <div class="progress"></div>
                 </div>
             </td>

@@ -1,42 +1,23 @@
-from __future__ import with_statement
-
-import os, tarfile, datetime, logging, re, ConfigParser, shutil, zipfile
+import os
+import tarfile
+import datetime
+import logging
+import re
+import configparser
+import shutil
+import tempfile
+import zipfile
 
 from django.core.cache import cache
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.models import *
 from forum.settings import APP_URL
 from forum.templatetags.extra_tags import diff_date
-import xml.etree.ElementTree
 from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import Comment, _encode, ProcessingInstruction, QName, _escape_attrib, _escape_cdata, _namespace_map
 from forum import settings
 from django.conf import settings as djsettings
-import settings as selfsettings
-import string
-
-try:
-    from xml.etree.ElementTree import fixtag
-except ImportError:
-    def fixtag(tag, namespaces):
-        # given a decorated tag (of the form {uri}tag), return prefixed
-        # tag and namespace declaration, if any
-        if isinstance(tag, QName):
-            tag = tag.text
-        namespace_uri, tag = string.split(tag[1:], "}", 1)
-        prefix = namespaces.get(namespace_uri)
-        if prefix is None:
-            prefix = _namespace_map.get(namespace_uri)
-            if prefix is None:
-                prefix = "ns%d" % len(namespaces)
-            namespaces[namespace_uri] = prefix
-            if prefix == "xml":
-                xmlns = None
-            else:
-                xmlns = ("xmlns:%s" % prefix, namespace_uri)
-        else:
-            xmlns = None
-        return "%s:%s" % (prefix, tag), xmlns
+from . import settings as selfsettings
 
 CACHE_KEY = "%s_exporter_state" % APP_URL
 EXPORT_STEPS = []
@@ -50,94 +31,39 @@ META_INF_SECTION = 'Meta'
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
-def Etree_pretty__write(self, file, node, encoding, namespaces,
-                        level=0, identator="    "):
-    tag = node.tag
-    if tag is Comment:
-        file.write(level * identator + "<!-- %s -->" % _escape_cdata(node.text, encoding))
-    elif tag is ProcessingInstruction:
-        file.write("<?%s?>" % _escape_cdata(node.text, encoding))
-    else:
-        items = node.items()
-        xmlns_items = [] # new namespaces in this scope
-        try:
-            if isinstance(tag, QName) or tag[:1] == "{":
-                tag, xmlns = fixtag(tag, namespaces)
-                if xmlns: xmlns_items.append(xmlns)
-        except TypeError:
-            raise #_raise_serialization_error(tag)
-        file.write("\n" + level * identator + "<" + _encode(tag, encoding))
-        if items or xmlns_items:
-            items.sort() # lexical order
-            for k, v in items:
-                try:
-                    if isinstance(k, QName) or k[:1] == "{":
-                        k, xmlns = fixtag(k, namespaces)
-                        if xmlns: xmlns_items.append(xmlns)
-                except TypeError:
-                    raise #_raise_serialization_error(k)
-                try:
-                    if isinstance(v, QName):
-                        v, xmlns = fixtag(v, namespaces)
-                        if xmlns: xmlns_items.append(xmlns)
-                except TypeError:
-                    raise #_raise_serialization_error(v)
-                file.write(u" %s=\"%s\"" % (_encode(k, encoding),
-                                            _escape_attrib(v, encoding)))
-            for k, v in xmlns_items:
-                file.write(u" %s=\"%s\"" % (_encode(k, encoding),
-                                            _escape_attrib(v, encoding)))
-        if node.text or len(node):
-            file.write(">")
-            if node.text:
-                file.write(_escape_cdata(node.text, encoding))
-            for n in node:
-                self._write(file, n, encoding, namespaces, level + 1, identator)
-            if node.text and len(node.text) < 125:
-                file.write("</" + _encode(tag, encoding) + ">")
-            else:
-                file.write("\n" + level * identator + "</" + _encode(tag, encoding) + ">")
-        else:
-            file.write(" />")
-        for k, v in xmlns_items:
-            del namespaces[v]
-    if node.tail:
-        file.write(_escape_cdata(node.tail.replace("\n", (level * identator )+ "\n"), encoding))
+# Characters that are not allowed in an XML 1.0 document.
+INVALID_XML_CHARS = re.compile('[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff￾￿]')
 
 def make_date(date, with_time=True):
     try:
         return date.strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
-    except ValueError, e:
+    except ValueError:
         return date.replace(year=1900).strftime(with_time and DATETIME_FORMAT or DATE_FORMAT)
 
 
-def ET_Element_add_tag(el, tag_name, content = None, **attrs):
+def xml_text(value):
+    return INVALID_XML_CHARS.sub('', str(value))
+
+
+def add(el, tag_name, content = None, **attrs):
     tag = ET.SubElement(el, tag_name)
 
     if content:
-        try:
-            tag.text = unicode(content)
-        except Exception, e:
-            #logging.error('error converting unicode characters')
-            #import traceback
-            #logging.error(traceback.print_exc())
-
-            import string
-            tag.text = unicode("".join([c for c in content if c in string.printable]))
+        tag.text = xml_text(content)
 
     for k, v in attrs.items():
-        tag.set(k, unicode(v))
+        tag.set(k, xml_text(v))
 
     return tag
 
-GOOD_TAG_NAME = re.compile("^\w+$")
+GOOD_TAG_NAME = re.compile(r"^\w+$")
 
 def make_extra(el, v):
     if v is None:
         return
 
 
-    if isinstance(v, (int, long, str, unicode, float, bool, dict, list, tuple)):
+    if isinstance(v, (int, str, float, bool, dict, list, tuple)):
         if isinstance(v, tuple):
             t = 'list'
         else:
@@ -145,45 +71,46 @@ def make_extra(el, v):
     else:
         t = 'unknown'
 
-    value = el.add('value', type=t)
+    value = add(el, 'value', type=t)
 
     if isinstance(v, (list, tuple)):
         for i in v:
-            item = value.add('item')
+            item = add(value, 'item')
             make_extra(item, i)
 
     elif isinstance(v, dict):
         for k, i in v.items():
-            item = value.add('item', key=k)
+            item = add(value, 'item', key=k)
             make_extra(item, i)
     else:
-        value.text = unicode(v)
+        value.text = xml_text(v)
 
 def write_to_file(root, tmp, filename):
     tree = ET.ElementTree(root)
-    tree.write(os.path.join(tmp, filename), encoding='UTF-8')
+    ET.indent(tree)
+    tree.write(os.path.join(tmp, filename), encoding='UTF-8', xml_declaration=True)
 
 def create_targz(tmp, files, start_time, options, user, state, set_state, file_format):
     now = datetime.datetime.now()
-    domain = re.match('[\w-]+\.[\w-]+(\.[\w-]+)*', djsettings.APP_URL)
+    domain = re.match(r'^\w+://([\w-]+(\.[\w-]+)*)', djsettings.APP_URL)
     if domain:
-        domain = '_'.join(domain.get(0).split('.'))
+        domain = '_'.join(domain.group(1).split('.'))
     else:
         domain = 'localhost'
 
-    fname = "%s-%s" % (domain, now.strftime('%Y%m%d%H%M'))
+    fname = "%s-%s" % (domain, now.strftime('%Y%m%d%H%M%S'))
     if file_format == 'zip':
         full_fname = "%s.zip" % fname
     else:
         full_fname = "%s.tar.gz" % fname
 
     if file_format == 'zip':
-        t = zipfile.ZipFile(os.path.join(selfsettings.EXPORTER_BACKUP_STORAGE, full_fname), 'w')
+        t = zipfile.ZipFile(os.path.join(str(selfsettings.EXPORTER_BACKUP_STORAGE), full_fname), 'w', zipfile.ZIP_DEFLATED)
 
         def add_to_file(f, a):
             t.write(f, a)
     else:
-        t = tarfile.open(os.path.join(selfsettings.EXPORTER_BACKUP_STORAGE, full_fname), mode = 'w:gz')
+        t = tarfile.open(os.path.join(str(selfsettings.EXPORTER_BACKUP_STORAGE), full_fname), mode = 'w:gz')
 
         def add_to_file(f, a):
             t.add(f, a)
@@ -192,7 +119,7 @@ def create_targz(tmp, files, start_time, options, user, state, set_state, file_f
     set_state()
 
     for f in files:
-        add_to_file(os.path.join(tmp, f), "/%s" % f)
+        add_to_file(os.path.join(tmp, f), f)
 
     if options.get('uplodaded_files', False):
         state['overall']['status'] = _('Importing uploaded files')
@@ -207,12 +134,12 @@ def create_targz(tmp, files, start_time, options, user, state, set_state, file_f
     state['overall']['status'] = _('Writing inf file.')
     set_state()
 
-    inf = ConfigParser.SafeConfigParser()
+    inf = configparser.RawConfigParser()
 
     inf.add_section(DATE_AND_AUTHOR_INF_SECTION)
 
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'file-name', full_fname)
-    inf.set(DATE_AND_AUTHOR_INF_SECTION, 'author', unicode(user.id))
+    inf.set(DATE_AND_AUTHOR_INF_SECTION, 'author', str(user.id))
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'site', djsettings.APP_URL)
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'started', start_time.strftime(DATETIME_FORMAT))
     inf.set(DATE_AND_AUTHOR_INF_SECTION, 'finished', now.strftime(DATETIME_FORMAT))
@@ -227,43 +154,47 @@ def create_targz(tmp, files, start_time, options, user, state, set_state, file_f
     for id, s in state.items():
         inf.set(META_INF_SECTION, id, str(s['count']))
 
-    with open(os.path.join(tmp, '%s.backup.inf' % fname), 'wb') as inffile:
+    with open(os.path.join(tmp, 'backup.inf'), 'w') as inffile:
         inf.write(inffile)
 
-    add_to_file(os.path.join(tmp, '%s.backup.inf' % fname), '/backup.inf')
+    add_to_file(os.path.join(tmp, 'backup.inf'), 'backup.inf')
     state['overall']['status'] = _('Saving backup file')
     set_state()
     t.close()
+
+    # A copy of the inf file next to the backup lists it in the exporter page.
+    shutil.copy(os.path.join(tmp, 'backup.inf'),
+                os.path.join(str(selfsettings.EXPORTER_BACKUP_STORAGE), '%s.backup.inf' % fname))
     return full_fname
+
+
+def add_folder(tf, folder, arcname):
+    if isinstance(tf, zipfile.ZipFile):
+        # ZipFile.write() only stores the directory entry, not its contents.
+        for path, dirs, files in os.walk(folder):
+            for f in files:
+                full = os.path.join(path, f)
+                tf.write(full, os.path.join(arcname, os.path.relpath(full, folder)))
+    else:
+        tf.add(folder, arcname=arcname)
 
 
 def export_upfiles(tf):
     folder = str(settings.UPFILES_FOLDER)
 
     if os.path.exists(folder):
-        if isinstance(tf, zipfile.ZipFile):
-            tf.write(folder, arcname='/upfiles')
-        else:
-            tf.add(folder, arcname='/upfiles')
+        add_folder(tf, folder, 'upfiles')
 
 
 def export_skinsfolder(tf):
-    folder = djsettings.TEMPLATE_DIRS[0]
+    folder = djsettings.TEMPLATES[0]['DIRS'][0]
 
     if os.path.exists(folder):
-        if isinstance(tf, zipfile.ZipFile):
-            tf.write(folder, arcname='/skins')
-        else:
-            tf.add(folder, arcname='/skins')
+        add_folder(tf, folder, 'skins')
 
 
 def export(options, user):
-    original__write = xml.etree.ElementTree.ElementTree.write
-    xml.etree.ElementTree.ElementTree._write = Etree_pretty__write
-    xml.etree.ElementTree._ElementInterface.add = ET_Element_add_tag
-
     start_time = datetime.datetime.now()
-    tmp = TMP_FOLDER
     anon_data = options.get('anon_data', False)
 
     steps = [s for s in EXPORT_STEPS if not (anon_data and s['fn'].is_user_data())]
@@ -289,17 +220,19 @@ def export(options, user):
         state['overall']['parsed'] += 1
         set_state()
 
-    def run(fn, name):
+    def run(step, tmp):
+        name = step['id']
+
         def ping():
             ping_state(name)
 
-        state['overall']['status'] = _('Exporting %s') % s['name']
+        state['overall']['status'] = _('Exporting %s') % step['name']
         state[name]['status'] = _('Exporting')
 
-        root, fname = fn(ping, start_time, anon_data)
+        root, fname = step['fn'](ping, start_time, anon_data)
 
         state[name]['status'] = _('Writing temp file')
-        state['overall']['status'] = _('Writing %s temp file') % s['name']
+        state['overall']['status'] = _('Writing %s temp file') % step['name']
 
         set_state()
 
@@ -310,11 +243,15 @@ def export(options, user):
 
         return fname
 
+    if not os.path.exists(TMP_FOLDER):
+        os.makedirs(TMP_FOLDER)
+    tmp = tempfile.mkdtemp(dir=TMP_FOLDER)
+
     try:
         dump_files = []
 
         for s in steps:
-            dump_files.append(run(s['fn'], s['id']))
+            dump_files.append(run(s, tmp))
 
         state['overall']['status'] = _('Compressing files')
         set_state()
@@ -326,16 +263,16 @@ def export(options, user):
         state['overall']['fname'] = fname
 
         set_state()
-    except Exception, e:
+        return fname
+    except Exception as e:
         full_state['running'] = False
-        full_state['errors'] = "%s: %s" % (e.__class__.__name__, unicode(e))
+        full_state['errors'] = "%s: %s" % (e.__class__.__name__, str(e))
         set_state()
-        
+
         import traceback
         logging.error("Error executing xml backup: \n %s" % (traceback.format_exc()))
     finally:
-        xml.etree.ElementTree.ElementTree._write = original__write
-        del xml.etree.ElementTree._ElementInterface.add
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def exporter_step(queryset, root_tag_name, el_tag_name, name, date_lock=None, user_data=False):
@@ -349,8 +286,8 @@ def exporter_step(queryset, root_tag_name, el_tag_name, name, date_lock=None, us
         def decorated(ping, lock, anon_data):
             root = ET.Element(root_tag_name)
 
-            for item in qs(lock).order_by('id').select_related():
-                el = root.add(el_tag_name)
+            for item in qs(lock).order_by('id'):
+                el = add(root, el_tag_name)
                 fn(item, el, anon_data)
                 ping()
 
@@ -371,164 +308,171 @@ def exporter_step(queryset, root_tag_name, el_tag_name, name, date_lock=None, us
 
     return decorator
 
-@exporter_step(Tag.objects.all(), 'tags', 'tag', _('Tags'))
+@exporter_step(Tag.objects.all(), 'tags', 'tag', _lazy('Tags'))
 def export_tags(t, el, anon_data):
-    el.add('name', t.name)
+    add(el, 'name', t.name)
     if not anon_data:
-        el.add('author', t.created_by.id)
-    el.add('used', t.used_count)
+        add(el, 'author', t.created_by_id)
+    add(el, 'used', t.used_count)
+    if t.description:
+        add(el, 'description', t.description)
+    synonyms = list(t.synonyms.values_list('source_name', flat=True))
+    if synonyms:
+        syn_el = add(el, 'synonyms')
+        for name in synonyms:
+            add(syn_el, 'synonym', name)
 
 
-@exporter_step(User.objects.all(), 'users', 'user', _('Users'), 'date_joined', True)
+@exporter_step(User.objects.all(), 'users', 'user', _lazy('Users'), 'date_joined', True)
 def export_users(u, el, anon_data):
-    el.add('id', u.id)
-    el.add('username', u.username)
-    el.add('password', u.password)
-    el.add('email', u.email, validated=u.email_isvalid and 'true' or 'false')
-    el.add('reputation', u.reputation)
-    el.add('badges', bronze=u.bronze, silver=u.silver, gold=u.gold)
-    el.add('joindate', make_date(u.date_joined))
-    el.add('active', u.is_active and 'true' or 'false')
+    add(el, 'id', u.id)
+    add(el, 'username', u.username)
+    add(el, 'password', u.password)
+    add(el, 'email', u.email, validated=u.email_isvalid and 'true' or 'false')
+    add(el, 'reputation', u.reputation)
+    add(el, 'badges', bronze=u.bronze, silver=u.silver, gold=u.gold)
+    add(el, 'joindate', make_date(u.date_joined))
+    add(el, 'active', u.is_active and 'true' or 'false')
 
-    el.add('realname', u.real_name)
-    el.add('bio', u.about)
-    el.add('location', u.location)
-    el.add('website', u.website)
-    el.add('birthdate', u.date_of_birth and make_date(u.date_of_birth, with_time=False) or "")
+    add(el, 'realname', u.real_name)
+    add(el, 'bio', u.about)
+    add(el, 'location', u.location)
+    add(el, 'website', u.website)
+    add(el, 'birthdate', u.date_of_birth and make_date(u.date_of_birth, with_time=False) or "")
 
-    roles = el.add('roles')
+    roles = add(el, 'roles')
 
     if u.is_superuser:
-        roles.add('role', 'superuser')
+        add(roles, 'role', 'superuser')
 
     if u.is_staff:
-        roles.add('role', 'moderator')
+        add(roles, 'role', 'moderator')
 
-    auth = el.add('authKeys')
+    auth = add(el, 'authKeys')
     for a in u.auth_keys.all():
-        key = auth.add('key')
-        key.add('provider', a.provider)
-        key.add('key', a.key)
+        key = add(auth, 'key')
+        add(key, 'provider', a.provider)
+        add(key, 'key', a.key)
 
     try:
         ss = u.subscription_settings
 
-        notify = el.add('notifications', enabled=ss.enable_notifications and 'true' or 'false')
+        notify = add(el, 'notifications', enabled=ss.enable_notifications and 'true' or 'false')
 
-        notify.add('notify', **dict([(t, ss.__dict__.get(t, 'n') == 'i' and 'true' or 'false') for t in ['member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions']]))
+        add(notify, 'notify', **dict([(t, ss.__dict__.get(t, 'n') == 'i' and 'true' or 'false') for t in ['member_joins', 'new_question', 'new_question_watched_tags', 'subscribed_questions']]))
 
-        notify.add('autoSubscribe', **dict([(t, ss.__dict__.get(t, False) and 'true' or 'false') for t in [
+        add(notify, 'autoSubscribe', **dict([(t, ss.__dict__.get(t, False) and 'true' or 'false') for t in [
                 'all_questions', 'all_questions_watched_tags', 'questions_asked', 'questions_answered', 'questions_commented', 'questions_viewed']]))
 
-        notify.add('notifyOnSubscribed', **dict([(t, ss.__dict__.get("notify_%s" % t, False) and 'true' or 'false') for t in [
+        add(notify, 'notifyOnSubscribed', **dict([(t, ss.__dict__.get("notify_%s" % t, False) and 'true' or 'false') for t in [
                 'answers', 'reply_to_comments', 'comments_own_post', 'comments', 'accepted']]))
 
-        notify.add('digest', ss.send_digest and 'on' or 'off')
+        add(notify, 'digest', ss.send_digest and 'on' or 'off')
     except SubscriptionSettings.DoesNotExist:
         pass
 
-    watched = el.add('watchedTags')
-    rejected = el.add('rejectedTags')
+    watched = add(el, 'watchedTags')
+    rejected = add(el, 'rejectedTags')
 
     for m in u.tag_selections.all():
         try:
             if m.reason == 'good':
-                watched.add('tag', m.tag.name)
+                add(watched, 'tag', m.tag.name)
             else:
-                rejected.add('tag', m.tag.name)
+                add(rejected, 'tag', m.tag.name)
         except Tag.DoesNotExist:
             pass
 
-    
 
-@exporter_step(Node.objects.all(), 'nodes', 'node', _('Nodes'), 'added_at')
+
+@exporter_step(Node.objects.all(), 'nodes', 'node', _lazy('Nodes'), 'added_at')
 def export_nodes(n, el, anon_data):
-    el.add('id', n.id)
-    el.add('type', n.node_type)
+    add(el, 'id', n.id)
+    add(el, 'type', n.node_type)
 
     if not anon_data:
-        el.add('author', n.author.id)
-    el.add('date', make_date(n.added_at))
-    el.add('parent', n.parent and n.parent.id or "")
-    el.add('absparent', n.abs_parent and n.abs_parent.id or "")
+        add(el, 'author', n.author_id)
+    add(el, 'date', make_date(n.added_at))
+    add(el, 'parent', n.parent_id or "")
+    add(el, 'absparent', n.abs_parent_id or "")
 
-    act = el.add('lastactivity')
-    act.add('by', n.last_activity_by and n.last_activity_by.id or "")
-    act.add('at', n.last_activity_at and make_date(n.last_activity_at) or "")
+    act = add(el, 'lastactivity')
+    add(act, 'by', n.last_activity_by_id or "")
+    add(act, 'at', n.last_activity_at and make_date(n.last_activity_at) or "")
 
-    el.add('title', n.title)
-    el.add('body', n.body)
+    add(el, 'title', n.title)
+    add(el, 'body', n.body)
 
-    el.add('score', n.score)
+    add(el, 'score', n.score)
 
-    tags = el.add('tags')
+    tags = add(el, 'tags')
 
     for t in n.tagname_list():
-        tags.add('tag', t)
+        add(tags, 'tag', t)
 
     try:
         active = n.active_revision and n.active_revision.revision or n.revisions.order_by('revision')[0].revision
     except IndexError:
         active = 0
 
-    revs = el.add('revisions', active=active)
+    revs = add(el, 'revisions', active=active)
 
     for r in n.revisions.order_by('revision'):
-        rev = revs.add('revision')
-        rev.add('number', r.revision)
-        rev.add('summary', r.summary)
+        rev = add(revs, 'revision')
+        add(rev, 'number', r.revision)
+        add(rev, 'summary', r.summary)
         if not anon_data:
-            rev.add('author', r.author.id)
-        rev.add('date', make_date(r.revised_at))
+            add(rev, 'author', r.author_id)
+        add(rev, 'date', make_date(r.revised_at))
 
-        rev.add('title', r.title)
-        rev.add('body', r.body)
-        rev.add('tags', ", ".join(r.tagname_list()))
+        add(rev, 'title', r.title)
+        add(rev, 'body', r.body)
+        add(rev, 'tags', ", ".join(r.tagname_list()))
 
-    el.add('marked', n.marked and 'true' or 'false')
-    el.add('wiki', n.nis.wiki and 'true' or 'false')
-    el.add('extraRef', n.extra_ref and n.extra_ref.id or "")
-    make_extra(el.add('extraData'), n.extra)
-    el.add('extraCount', n.extra_count and n.extra_count or "")
+    add(el, 'marked', n.marked and 'true' or 'false')
+    add(el, 'wiki', n.nis.wiki and 'true' or 'false')
+    add(el, 'extraRef', n.extra_ref_id or "")
+    make_extra(add(el, 'extraData'), n.extra)
+    add(el, 'extraCount', n.extra_count and n.extra_count or "")
 
 
-@exporter_step(Action.objects.all(), 'actions', 'action', _('Actions'), 'action_date')
+@exporter_step(Action.objects.all(), 'actions', 'action', _lazy('Actions'), 'action_date')
 def export_actions(a, el, anon_data):
-    el.add('id', a.id)
-    el.add('type', a.action_type)
-    el.add('date', make_date(a.action_date))
+    add(el, 'id', a.id)
+    add(el, 'type', a.action_type)
+    add(el, 'date', make_date(a.action_date))
 
     if not anon_data:
-        el.add('user', a.user.id)
-        el.add('realUser', a.real_user and a.real_user.id or "")
-        el.add('ip', a.ip)
-    el.add('node', a.node and a.node.id or "")
+        add(el, 'user', a.user_id)
+        add(el, 'realUser', a.real_user_id or "")
+        add(el, 'ip', a.ip)
+    add(el, 'node', a.node_id or "")
 
-    make_extra(el.add('extraData'), a.extra)
+    make_extra(add(el, 'extraData'), a.extra)
 
-    canceled = el.add('canceled', state=a.canceled and 'true' or 'false')
+    canceled = add(el, 'canceled', state=a.canceled and 'true' or 'false')
 
     if a.canceled:
         if not anon_data:
-            canceled.add('user', a.canceled_by.id)
-            canceled.add('ip', a.canceled_ip)
+            add(canceled, 'user', a.canceled_by_id or "")
+            add(canceled, 'ip', a.canceled_ip)
 
-        canceled.add('date', make_date(a.canceled_at))        
+        add(canceled, 'date', a.canceled_at and make_date(a.canceled_at) or "")
 
     if not anon_data:
-        reputes = el.add('reputes')
+        reputes = add(el, 'reputes')
 
         for r in a.reputes.all():
-            repute = reputes.add('repute', byCanceled=r.by_canceled and 'true' or 'false')
-            repute.add('user', r.user.id)
-            repute.add('value', r.value)
+            repute = add(reputes, 'repute', byCanceled=r.by_canceled and 'true' or 'false')
+            add(repute, 'user', r.user_id)
+            add(repute, 'value', r.value)
 
 
-#@exporter_step(NodeState.objects.all(), 'states', 'state', _('Node states'), 'action__action_date')
-#def export_states(s, el, anon_data):
-#    el.add('type', s.state_type)
-#    el.add('node', s.node.id)
-#    el.add('trigger', s.action.id)
+@exporter_step(NodeState.objects.all(), 'states', 'state', _lazy('Node states'), 'action__action_date')
+def export_states(s, el, anon_data):
+    add(el, 'type', s.state_type)
+    add(el, 'node', s.node_id)
+    add(el, 'trigger', s.action_id)
 
 
 #@exporter_step(Badge.objects.all(), 'badges', 'badge', _('Badges'), user_data=True)
@@ -538,15 +482,16 @@ def export_actions(a, el, anon_data):
 #    el.add('count', b.awarded_count)
 
 
-@exporter_step(Award.objects.all(), 'awards', 'award', _('Awards'), 'awarded_at', True)
+@exporter_step(Award.objects.all(), 'awards', 'award', _lazy('Awards'), 'awarded_at', True)
 def export_awards(a, el, anon_data):
-    el.add('badge', a.badge.cls)
-    el.add('user', a.user.id)
-    el.add('node', a.node and a.node.id or "")
-    el.add('trigger', a.trigger and a.trigger.id or "")
-    el.add('action', a.action.id)
+    add(el, 'badge', a.badge.cls)
+    add(el, 'user', a.user_id)
+    add(el, 'node', a.node_id or "")
+    add(el, 'trigger', a.trigger_id or "")
+    add(el, 'action', a.action_id)
+    add(el, 'date', make_date(a.awarded_at))
 
-@exporter_step(KeyValue.objects.all(), 'settings', 'setting', _('Settings'))
+@exporter_step(KeyValue.objects.all(), 'settings', 'setting', _lazy('Settings'))
 def export_settings(s, el, anon_data):
-    el.add('key', s.key)
-    make_extra(el.add('value'), s.value)
+    add(el, 'key', s.key)
+    make_extra(add(el, 'value'), s.value)

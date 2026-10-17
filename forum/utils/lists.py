@@ -14,7 +14,7 @@ def flatten(x):
     """
     result = []
     for el in x:
-        if hasattr(el, '__iter__') and not isinstance(el, basestring):
+        if hasattr(el, '__iter__') and not isinstance(el, str):
             result.extend(flatten(el))
         else:
             result.append(el)
@@ -30,7 +30,7 @@ def batch_size(items, size):
     >>> batch_size(l, 5)
     [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]
     """
-    return [items[i:i+size] for i in xrange(0, len(items), size)]
+    return [items[i:i+size] for i in range(0, len(items), size)]
 
 def batches(items, number):
     """
@@ -82,5 +82,5 @@ def batches(items, number):
             return [[item] for item in items]
         else:
             # mod now tells you how many lists of 2 you can fit in
-            return ([items[i*2:(i*2)+2] for i in xrange(0, mod)] +
+            return ([items[i*2:(i*2)+2] for i in range(0, mod)] +
                     [[item] for item in items[mod*2:]])

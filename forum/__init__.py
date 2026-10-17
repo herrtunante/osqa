@@ -1,12 +1,13 @@
 import threading
 
 
-class RequestHolder(object):
+class RequestHolder:
     _requests = threading.local()
 
     @property
     def request(self):
-        return self._requests.request
+        # None outside a request, e.g. in the background thread running action hooks.
+        return getattr(self._requests, 'request', None)
 
     @request.setter
     def request(self, value):

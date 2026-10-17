@@ -4,25 +4,24 @@ import logging
 
 from datetime import datetime
 
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse
-from django.template import RequestContext
-from django.utils.translation import ugettext as _
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.shortcuts import render as django_render
+from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from forum.modules import ui, decorate
 from forum.settings import ONLINE_USERS
 
 def login_required(func, request, *args, **kwargs):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse('auth_signin'))
     else:
         return func(request, *args, **kwargs)
 
 def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
-    def decorator(func):        
+    def decorator(func):
         def decorated(context, request, *args, **kwargs):
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 ONLINE_USERS[request.user] = datetime.now()
 
             if isinstance(context, HttpResponse):
@@ -31,8 +30,12 @@ def render(template=None, tab=None, tab_title='', weight=500, tabbed=True):
             if tab is not None:
                 context['tab'] = tab
 
-            return render_to_response(context.pop('template', template), context,
-                                      context_instance=RequestContext(request))
+            etag = context.pop('_etag', None)
+            response = django_render(request, context.pop('template', template), context)
+            if etag:
+                from forum.utils import conditional
+                conditional.finish(response, etag)
+            return response
 
         if tabbed and tab and tab_title:
             ui.register(ui.PAGE_TOP_TABS,
@@ -49,9 +52,23 @@ class RefreshPageCommand(HttpResponse):
     def __init__(self):
         super(RefreshPageCommand, self).__init__(
                 content=json.dumps({'commands': {'refresh_page': []}, 'success': True}),
-                mimetype="application/json")
+                content_type="application/json")
+
+def prompt(func):
+    """Mark a command view that may be requested with GET.
+
+    Such a view must only render its prompt (a form or read-only data) on GET
+    and act on POST. Every other command view rejects non-POST requests.
+    """
+    func.allows_get = True
+    return func
 
 def command(func, request, *args, **kwargs):
+    # Commands change state, so a plain link or <img> on another page must not
+    # trigger them; POST also gets CSRF protection.
+    if request.method != 'POST' and not getattr(func, 'allows_get', False):
+        return HttpResponseNotAllowed(['POST'])
+
     try:
         response = func(request, *args, **kwargs)
 
@@ -59,14 +76,16 @@ def command(func, request, *args, **kwargs):
             return response
 
         response['success'] = True
-    except Exception, e:
+    except Exception as e:
         import traceback
         #traceback.print_exc()
 
+        if isinstance(e, Http404):
+            raise  # a missing post is a 404, not an "unknown error"
         if isinstance(e, CommandException):
             response = {
             'success': False,
-            'error_message': e.message
+            'error_message': str(e)
             }
         else:
             logging.error("%s: %s" % (func.__name__, str(e)))
@@ -76,8 +95,8 @@ def command(func, request, *args, **kwargs):
             'error_message': _("We're sorry, but an unknown error ocurred.<br />Please try again in a while.")
             }
 
-    if request.is_ajax():
-        return HttpResponse(json.dumps(response), mimetype="application/json")
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return HttpResponse(json.dumps(response), content_type="application/json")
     else:
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 

@@ -8,20 +8,18 @@
 	</style>
 {% endblock %}
 {% block forejs %}
-       <script type="text/javascript">
+       <script nonce="{{ csp_nonce }}" type="text/javascript">
         $().ready(function(){
-            $("#linkPrevious").bind("click", back=function(){history.go(-1);})            
+            $("#linkPrevious").on("click", back=function(){history.go(-1);})            
         });
          
         </script>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "404 Not Found" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "404 Not Found" %}</h1></div>
 <div id="main-body" class="">
     <div style="padding:5px 0px 10px 0;line-height:25px;">
-        <h3>{% trans "Sorry, could not find the page you requested." %}</h3>
+        <h2 class="error-lead">{% trans "Sorry, could not find the page you requested." %}</h2>
         <div style="margin-top:5px">
         {% trans "This might have happened for the following reasons:" %}<br/>
             <ul>
@@ -31,11 +29,6 @@
 				<a href="{% if settings.CONTACT_URL %}{{ settings.CONTACT_URL }}{% else %}{% url "feedback" %}{% endif %}">{% trans "report this problem" %}</a></li>
             </ul>
         </div>
-        <script type="text/javascript">
-            var GOOG_FIXURL_LANG = '{{settings.LANGUAGE_CODE}}';
-            var GOOG_FIXURL_SITE = '{{site_url}}';
-        </script>
-        <script type="text/javascript" src="http://linkhelp.clients.google.com/tbproxy/lh/wm/fixurl.js"></script>
         <ul>
             <li><a href="#" id="linkPrevious">{% trans "back to previous page" %} &raquo;</a></li>
             <li><a href="{% url "questions" %}">{% trans "see all questions" %} &raquo;</a></li>

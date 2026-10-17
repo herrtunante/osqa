@@ -1,0 +1,9 @@
+{% load extra_tags %}{# The live question page (live_tags.live_updates, media/js/osqa.live.js): new answers go in #live-answers. #}
+<div id="live-answers" class="live-answers"></div>
+{% if enabled %}
+<div id="live-updates" class="live-updates" data-url="{{ url }}" data-since="{{ since }}" data-interval="{{ interval }}" data-latest-first="{{ latest_first|yesno:"1,0" }}" data-texts="{{ texts }}">
+    <div id="live-banner" class="live-banner" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="live-status" class="visually-hidden" role="status" aria-live="polite"></div>
+</div>
+<script defer src="{% media "/media/js/osqa.live.js" %}"></script>
+{% endif %}

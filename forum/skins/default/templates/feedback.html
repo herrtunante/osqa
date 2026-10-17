@@ -1,72 +1,45 @@
 {% extends "base_content.html" %}
-<!-- template about.html -->
+<!-- template feedback.html -->
 {% load i18n %}
 {% load extra_tags %}
-{% load humanize %}
 {% block title %}{% spaceless %}{% trans "Feedback" %}{% endspaceless %}{% endblock %}
-{% block forejs %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
 {% endblock %}
-{% block content %}
-<div class="headNormal">
-{% trans "Give us your feedback!" %}
-</div>
-<div class="content">
-    <form method="post" action="{% url "feedback" %}" accept-charset="utf-8">
-        {% csrf_token %}
-        {% if user.is_authenticated %}
-            <p class="message">
-            {% blocktrans with user.username as user_name %}
-            <span class='big strong'>Dear {{user_name}}</span>, we look forward to hearing your feedback. 
-            Please type and send us your message below.
-            {% endblocktrans %}
-            <p>
-        {% else %}
-            <p class="message">
-            {% blocktrans %}
-            <span class='big strong'>Dear visitor</span>, we look forward to hearing your feedback.
-            Please type and send us your message below.
-            {% endblocktrans %}
-            </p>
-            <div class="form-row"><label for="id_name">{{form.name.label}}</label><br/>{{form.name}}</div>
-            <div class="form-row">
-                <label for="id_email">{{form.email.label}}
-                    {% if form.errors.email %}
-                        <strong>(please enter a valid email)</strong>
-                    {% endif %}
-                </label><br/>{{form.email}}
-            </div>
-        {% endif %}
-        <div class="form-row">
-            <label for="id_message">{{form.message.label}}
-            {% if form.errors.message %}
-            <strong>{% trans "(this field is required)" %}</strong>
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card feedback-card">
+            <h1>{% trans "Give us your feedback!" %}</h1>
+            <p class="auth-lead">{% trans "Tell us what works, what doesn't, or what you would like to see. We read every message." %}</p>
+            {% if form.errors %}
+                <div class="auth-alert" role="alert">
+                    {% for field in form %}{% for error in field.errors %}<p><a href="#{{ field.auto_id }}">{{ field.label }} {{ error }}</a></p>{% endfor %}{% endfor %}
+                </div>
             {% endif %}
-            </label>
-            <br/>
-            {{form.message}}
-        </div>
+            <form class="auth-form feedback-form" method="post" action="{% url "feedback" %}" accept-charset="utf-8" novalidate>
+                {% csrf_token %}
+                {% if not user.is_authenticated %}
+                    {% include "auth/field.html" with field=form.name %}
+                    {% include "auth/field.html" with field=form.email %}
+                {% endif %}
+                {% include "auth/field.html" with field=form.message %}
 
-        {% if form.recaptcha %}
-        <div class="form-row">
-            <label for="recaptcha_response_field">Are you a human?
-            {% if form.errors.recaptcha %}
-            <strong>{% trans "(wrong captcha)" %}</strong>
-            {% endif %}
-            </label>
-            <br/>
-            <div style="float: left;">
-            {{ form.recaptcha }}
-            </div>
-            <div class="clear"></div>
-        </div>
-        {% endif %}
+                {% if form.recaptcha %}
+                <div class="auth-field{% if form.errors.recaptcha %} has-error{% endif %}">
+                    {% if form.errors.recaptcha %}<p class="auth-error">{% trans "(wrong captcha)" %}</p>{% endif %}
+                    {{ form.recaptcha }}
+                </div>
+                {% endif %}
 
-        {{form.next}}
-        <div class="submit-row">
-            <input type="submit" class="submit" value="{% trans "Send Feedback" %}"/>
-            <input type="submit" class="submit" name="cancel" value="{% trans "Cancel" %}"/>
+                {{ form.next }}
+                <div class="feedback-actions">
+                    <button type="submit" class="auth-submit">{% trans "Send feedback" %}</button>
+                    <button type="submit" name="cancel" value="1" class="plain-button feedback-cancel" formnovalidate>{% trans "Cancel" %}</button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
-<!-- end template about.html -->
+<!-- end template feedback.html -->

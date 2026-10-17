@@ -1,30 +1,33 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = settings.EMAIL_SUBJECT_PREFIX
-    app_name = settings.APP_SHORT_NAME
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
 
     exclude_finetune = True
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} Your email validation link {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% subject %}{% blocktrans %}{{ prefix }} Confirm your email address for {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "Confirm your email address with one click." %}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">{% trans "Please use the following link to help us verify your email address:" %}</p>
-
-        <p style="{{ p_style }}"><a  style="{{ a_style }}" href="{% fullurl "auth_validate_email" user=recipient.id code=validation_code %}">{% trans "Validate my email address" %}</a></p>
-
-        <p style="{{ p_style }}">{% trans "If the above link is not clickable, copy and paste this url into your web browser's address bar:" %}</p>
-
-        <p style="{{ p_style }}">{% fullurl "auth_validate_email" user=recipient.id code=validation_code %}</p>
+        {% blocktrans asvar footer_reason %}You receive this email because a confirmation link was requested for your account at {{ app_name }}.{% endblocktrans %}
+        {% fullurl "auth_validate_email" user=recipient.id code=validation_code as validate_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans count hours=link_hours|default:48 %}Please confirm that this is your email address. The link works once, for {{ hours }} hour; earlier links no longer work.{% plural %}Please confirm that this is your email address. The link works once, for {{ hours }} hours; earlier links no longer work.{% endblocktrans %}</p>
+        {% trans "Confirm your email" as cta %}{% include "notifications/_button.html" with url=validate_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Didn't ask for this? You can ignore this email." %}</p>
+        {% include "notifications/_link_fallback.html" with url=validate_url %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% trans "Copy and paste this url into your web browser's address bar to help us verify your email address:" %}
+{% blocktrans asvar footer_reason %}You receive this email because a confirmation link was requested for your account at {{ app_name }}.{% endblocktrans %}
+{% blocktrans count hours=link_hours|default:48 %}Please confirm that this is your email address. The link works once, for {{ hours }} hour; earlier links no longer work.{% plural %}Please confirm that this is your email address. The link works once, for {{ hours }} hours; earlier links no longer work.{% endblocktrans %}
 
+{% trans "Confirm your email" %}:
 {% fullurl "auth_validate_email" user=recipient.id code=validation_code %}
+
+{% trans "Didn't ask for this? You can ignore this email." %}
 {% endtextcontent %}
 
 {% endemail %}
-

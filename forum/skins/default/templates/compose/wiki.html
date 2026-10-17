@@ -1,0 +1,8 @@
+{# The community wiki checkbox, labelled plainly, its explanation under it. #}
+{% if settings.WIKI_ON and form.wiki %}
+<div class="compose-wiki">
+    {{ form.wiki }}
+    <label for="{{ form.wiki.id_for_label }}">{{ form.wiki.label|capfirst }}</label>
+    <p class="compose-help" id="{{ form.wiki.auto_id }}-help">{{ form.wiki.help_text|capfirst }}</p>
+</div>
+{% endif %}

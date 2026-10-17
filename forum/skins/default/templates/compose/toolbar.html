@@ -1,0 +1,71 @@
+{% load i18n %}{# The post editor's toolbar, code language menu and link/image dialogs (osqa.editor.js, which moves the dialogs out of the form). Goes right above textarea#editor. #}
+<div class="editor-toolbar" role="toolbar" aria-label="{% trans "Formatting" %}" aria-controls="editor">
+    <button type="button" class="editor-button plain-button" data-command="bold" data-key="B" aria-pressed="false" aria-label="{% trans "Bold" %}" data-placeholder="{% trans "bold text" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h6a3.5 3.5 0 010 7H7zM7 12h7a3.5 3.5 0 010 7H7z"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="italic" data-key="I" aria-pressed="false" aria-label="{% trans "Italic" %}" data-placeholder="{% trans "italic text" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 5h8M6 19h8M14 5l-4 14"/></svg></button>
+    <span class="editor-separator" aria-hidden="true"></span>
+    <button type="button" class="editor-button plain-button" data-command="link" data-key="K" aria-label="{% trans "Link" %}" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="quote" aria-pressed="false" aria-label="{% trans "Quote" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h5v5H5zM10 12c0 3-1.5 5-4 6M14 7h5v5h-5zM19 12c0 3-1.5 5-4 6"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="code" data-key="E" aria-pressed="false" aria-label="{% trans "Inline code" %}" data-placeholder="{% trans "code" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="codeblock" aria-label="{% trans "Code block" %}" aria-haspopup="menu" aria-expanded="false" aria-controls="editor-languages" data-placeholder="{% trans "code" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9.5L7.5 12l2.5 2.5M14 9.5l2.5 2.5-2.5 2.5"/></svg></button>
+    <span class="editor-separator" aria-hidden="true"></span>
+    <button type="button" class="editor-button plain-button" data-command="ulist" aria-pressed="false" aria-label="{% trans "Bulleted list" %}" data-placeholder="{% trans "List item" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="olist" aria-pressed="false" aria-label="{% trans "Numbered list" %}" data-placeholder="{% trans "List item" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 6h10M10 12h10M10 18h10M4 4.5h1.5V9M4 9h3M4 14.5c.5-1 2.8-1 2.8.5 0 1-2.8 2-2.8 3.5h3"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="heading" aria-pressed="false" aria-label="{% trans "Heading" %}" data-placeholder="{% trans "Heading" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 4v16M18 4v16M6 12h12"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="table" aria-label="{% trans "Table" %}" data-placeholder="{% trans "Column" %}" data-cell="{% trans "Cell" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M3 15h18M9.5 5v14M14.5 5v14"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="image" aria-label="{% trans "Image" %}" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/></svg></button>
+    <span class="editor-separator" aria-hidden="true"></span>
+    <button type="button" class="editor-button plain-button" data-command="undo" data-key="Z" aria-label="{% trans "Undo" %}" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></svg></button>
+    <button type="button" class="editor-button plain-button" data-command="redo" data-key="Y" aria-label="{% trans "Redo" %}" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></svg></button>
+    <a class="editor-button editor-help" data-command="help" href="{% url "markdown_help" %}#md-editor" target="_blank" rel="noopener" aria-label="{% trans "Formatting help (opens in a new tab)" %}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01"/></svg></a>
+</div>
+<div class="editor-menu" id="editor-languages" role="menu" aria-label="{% trans "Code block language" %}" hidden>
+    <button type="button" class="plain-button" role="menuitem" data-language="">{% trans "Plain text" %}</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="python">Python</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="r">R</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="sql">SQL</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="javascript">JavaScript</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="typescript">TypeScript</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="bash">Bash</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="json">JSON</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="xml">HTML/XML</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="css">CSS</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="java">Java</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="c">C</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="cpp">C++</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="csharp">C#</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="php">PHP</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="ruby">Ruby</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="go">Go</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="yaml">YAML</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="markdown">Markdown</button>
+    <button type="button" class="plain-button" role="menuitem" data-language="diff">Diff</button>
+</div>
+<p id="editor-keys-hint" class="visually-hidden">{% blocktrans %}Markdown text. Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+K link, Ctrl+E code, Ctrl+Shift+V paste as plain text. Tab indents list items and code; press Escape, then Tab, to leave the text box.{% endblocktrans %}</p>
+<dialog class="editor-dialog" id="editor-link-dialog" aria-labelledby="editor-link-title" data-empty-error="{% trans "Enter a web address." %}">
+    <h2 class="editor-dialog-title" id="editor-link-title">{% trans "Insert a link" %}</h2>
+    <label for="editor-link-url">{% trans "Web address" %}</label>
+    <input type="url" id="editor-link-url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://">
+    <label for="editor-link-text">{% trans "Text to show" %}</label>
+    <input type="text" id="editor-link-text" autocomplete="off">
+    <p class="editor-dialog-error" role="alert" hidden></p>
+    <div class="editor-dialog-actions">
+        <button type="button" class="editor-dialog-cancel plain-button" data-dialog-cancel>{% trans "Cancel" %}</button>
+        <button type="button" class="editor-dialog-ok" data-dialog-ok>{% trans "Insert" %}</button>
+    </div>
+</dialog>
+<dialog class="editor-dialog" id="editor-image-dialog" aria-labelledby="editor-image-title" data-empty-error="{% trans "Choose an image or enter its address." %}">
+    <h2 class="editor-dialog-title" id="editor-image-title">{% trans "Insert an image" %}</h2>
+    <label for="file-upload">{% trans "Upload from your device" %}</label>
+    <input type="file" id="file-upload" accept="image/*">
+    <p class="editor-upload-status" role="status" aria-live="polite"></p>
+    <label for="image-url">{% trans "or the image's web address" %}</label>
+    <input type="url" id="image-url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://">
+    <label for="image-alt">{% trans "Description (alt text)" %}</label>
+    <input type="text" id="image-alt" autocomplete="off" aria-describedby="image-alt-help">
+    <p class="editor-dialog-help" id="image-alt-help">{% trans "Say what the image shows, for people who can't see it." %}</p>
+    <p class="editor-dialog-error" role="alert" hidden></p>
+    <div class="editor-dialog-actions">
+        <button type="button" class="editor-dialog-cancel plain-button" data-dialog-cancel>{% trans "Cancel" %}</button>
+        <button type="button" class="editor-dialog-ok" data-dialog-ok>{% trans "Insert" %}</button>
+    </div>
+</dialog>

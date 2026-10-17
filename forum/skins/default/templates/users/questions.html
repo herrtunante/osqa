@@ -1,14 +1,27 @@
 {% extends "user.html" %}
 
-{% load extra_tags question_list_tags i18n %}
+{% load i18n extra_tags question_list_tags %}
 {% block usercontent %}
-<div class="user-stats-table">
-{% if favorites %}
-    {% for favorite in favorites %}
-        {% question_list_item favorite.node favorite_count=yes signature_type=badges %}
-    {% endfor %}
-{% else %}
-    {% trans "No favorite questions to display." %}
-{% endif %}
-</div>
+<section class="profile-section" aria-labelledby="profile-favorites-title">
+    <div class="profile-section-head">
+        <h2 id="profile-favorites-title">{% trans "Favorite questions" %}</h2>
+    </div>
+    {% if favorites %}
+    <div class="user-stats-table">
+        {% for favorite in favorites %}
+            {% question_list_item favorite.node favorite_count=yes signature_type=badges %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="profile-empty">
+        {% if request.user == view_user %}
+        <p>{% trans "You haven't marked any questions as favorite yet." %}</p>
+        <p class="profile-empty-hint">{% trans "Press the star next to a question to keep it here." %}</p>
+        <a href="{% url "questions" %}">{% trans "Browse questions" %}</a>
+        {% else %}
+        <p>{% trans "No favorite questions yet." %}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
 {% endblock %}

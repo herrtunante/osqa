@@ -1,0 +1,42 @@
+{% extends "base_content.html" %}
+{# The confirmation link of the welcome email: confirmed, already confirmed, or the link is wrong/used/expired. Never signs anyone in. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% if result == "invalid" %}{% trans "This link doesn't work any more" %}{% else %}{% trans "Email address confirmed" %}{% endif %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card" role="status">
+            {% if result == "invalid" %}
+                <div class="auth-icon auth-icon-warning" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v6M12 16.5v.5"/></svg>
+                </div>
+                <h1>{% trans "This link doesn't work any more" %}</h1>
+                <p class="auth-lead">{% blocktrans count hours=link_hours %}Confirmation links work once, for {{ hours }} hour, and only the newest one works. Ask for a new link below.{% plural %}Confirmation links work once, for {{ hours }} hours, and only the newest one works. Ask for a new link below.{% endblocktrans %}</p>
+                <div class="auth-actions"><a class="button auth-submit" href="{% url "send_validation_email" %}">{% trans "Send a new confirmation link" %}</a></div>
+            {% else %}
+                <div class="auth-icon auth-icon-success" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+                </div>
+                <h1>{% trans "Email address confirmed" %}</h1>
+                {% if result == "already" %}
+                    <p class="auth-lead">{% trans "This email address was already confirmed. There's nothing more to do." %}</p>
+                {% else %}
+                    <p class="auth-lead">{% blocktrans with site=settings.APP_SHORT_NAME name=confirmed_user.username %}Thank you, {{ name }}: your email is now validated. Welcome to {{ site }}! You can ask questions, answer and comment.{% endblocktrans %}</p>
+                {% endif %}
+                <div class="auth-actions">
+                    {% if signed_in_as_them %}
+                        <a class="button auth-submit" href="{% url "ask" %}">{% trans "Ask your first question" %}</a>
+                        <a class="button auth-secondary" href="{% url "index" %}">{% trans "Browse the questions" %}</a>
+                    {% else %}
+                        <a class="button auth-submit" href="{% url "auth_signin" %}">{% trans "Sign in" %}</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

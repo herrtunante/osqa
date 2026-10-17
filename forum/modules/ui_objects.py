@@ -1,12 +1,12 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django import template
 from forum.utils import html
 from forum.models.user import AnonymousUser
-from ui import Registry
+from .ui import Registry
 from copy import copy
 
-class Visibility(object):
+class Visibility:
     def __init__(self, level='public', negated=False):
         if level not in ['public', 'authenticated', 'staff', 'superuser', 'owner']:
             try:
@@ -22,9 +22,9 @@ class Visibility(object):
 
     def show_to(self, user):
         if self.by_reputation:
-            res = user.is_authenticated() and (user.reputation >= int(self.level) or user.is_staff or user.is_superuser)
+            res = user.is_authenticated and (user.reputation >= int(self.level) or user.is_staff or user.is_superuser)
         else:
-            res = self.level == 'public' or (user.is_authenticated() and (
+            res = self.level == 'public' or (user.is_authenticated and (
                 self.level == 'authenticated' or (
                 self.level == 'superuser' and user.is_superuser) or (
                 self.level == 'staff' and (user.is_staff or user.is_superuser)) or (
@@ -37,7 +37,7 @@ class Visibility(object):
 
     def __invert__(self):
         return Visibility(self.level, not self.negated)
-        
+
 
 Visibility.PUBLIC = Visibility('public')
 Visibility.ANONYMOUS = Visibility('authenticated', negated=True)
@@ -48,7 +48,7 @@ Visibility.OWNER = Visibility('owner')
 Visibility.REPUTED = lambda r: Visibility(r)
 
 
-class Url(object):
+class Url:
     def __init__(self, url_pattern):
         self.url_pattern = url_pattern
 
@@ -56,8 +56,8 @@ class Url(object):
         return reverse(self.url_pattern)
 
 
-class ObjectBase(object):
-    class Argument(object):
+class ObjectBase:
+    class Argument:
         def __init__(self, argument):
             self.argument = argument
 
@@ -96,7 +96,7 @@ class LoopBase(ObjectBase):
 
 class Link(ObjectBase):
     def __init__(self, text, url, attrs=None, pre_code='', post_code='', visibility=None, weight=500, name=''):
-        super(Link, self).__init__(visibility, weight, name)
+        super().__init__(visibility, weight, name)
         self.text = self.Argument(text)
         self.url = self.Argument(url)
         self.attrs = self.Argument(attrs or {})
@@ -110,18 +110,19 @@ class Link(ObjectBase):
 
 class Include(ObjectBase):
     def __init__(self, tpl, visibility=None, weight=500, name=''):
-        super(Include, self).__init__(visibility, weight, name)
+        super().__init__(visibility, weight, name)
         self.template = template.loader.get_template(tpl)
 
     def render(self, context):
-        if not isinstance(context, template.Context):
-            context = template.Context(context)
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        if isinstance(context, template.Context):
+            context = context.flatten()
         return self.template.render(context)
-        
+
 
 class LoopContext(LoopBase):
     def __init__(self, loop_context, visibility=None, weight=500, name=''):
-        super(LoopContext, self).__init__(visibility, weight, name)
+        super().__init__(visibility, weight, name)
         self.loop_context = self.Argument(loop_context)
 
     def update_context(self, context):
@@ -130,7 +131,7 @@ class LoopContext(LoopBase):
 
 class PageTab(LoopBase):
     def __init__(self, tab_name, tab_title, url_getter, weight, name=''):
-        super(PageTab, self).__init__(weight=weight, name=name)
+        super().__init__(weight=weight, name=name)
         self.tab_name = tab_name
         self.tab_title = tab_title
         self.url_getter = url_getter
@@ -145,7 +146,7 @@ class PageTab(LoopBase):
 
 class ProfileTab(LoopBase):
     def __init__(self, name, title, description, url_getter, private=False, render_to=None, weight=500):
-        super(ProfileTab, self).__init__(weight=weight, name=name)
+        super().__init__(weight=weight, name=name)
         self.name = name
         self.title = title
         self.description = description
@@ -158,7 +159,7 @@ class ProfileTab(LoopBase):
             not self.private or (
             context['view_user'] == context['request'].user or context['request'].user.is_superuser))
 
-    def update_context(self, context):        
+    def update_context(self, context):
         context.update(dict(
             tab_name=self.name,
             tab_title=self.title,
@@ -169,7 +170,7 @@ class ProfileTab(LoopBase):
 
 class AjaxMenuItem(ObjectBase):
     def __init__(self, label, url, a_attrs=None, span_label='', span_attrs=None, visibility=None, weight=500, name=''):
-        super(AjaxMenuItem, self).__init__(visibility, weight, name)
+        super().__init__(visibility, weight, name)
         self.label = self.Argument(label)
         self.url = self.Argument(url)
         self.a_attrs = self.Argument(a_attrs or {})
@@ -184,14 +185,14 @@ class AjaxMenuItem(ObjectBase):
 
 class AjaxMenuGroup(ObjectBase, Registry):
     def __init__(self, label, items, visibility=None, weight=500, name=''):
-        super(AjaxMenuGroup, self).__init__(visibility, weight, name)
+        super().__init__(visibility, weight, name)
         self.label = label
 
         for item in items:
             self.add(item)
 
     def can_render(self, context):
-        if super(AjaxMenuGroup, self).can_render(context):
+        if super().can_render(context):
             for item in self:
                 if item.can_render(context): return True
 
@@ -204,8 +205,8 @@ class AjaxMenuGroup(ObjectBase, Registry):
 
 class UserMenuItem(AjaxMenuItem):
     def __init__(self, render_to=None, *args, **kwargs):
-        super(UserMenuItem, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.render_to = render_to
 
     def can_render(self, context):
-        return (not self.render_to or (self.render_to(context['user']))) and super(UserMenuItem, self)._visible_to(context['viewer'])
+        return (not self.render_to or (self.render_to(context['user']))) and super()._visible_to(context['viewer'])

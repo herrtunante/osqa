@@ -1,0 +1,40 @@
+{% extends "base_content.html" %}
+<!-- tag_merge.html: confirming a tag merge (forum/views/tags.py tag_merge) -->
+{% load i18n %}
+{% block title %}{% spaceless %}{% blocktrans with source=source.name target=target.name %}Merge {{ source }} into {{ target }}{% endblocktrans %}{% endspaceless %}{% endblock %}
+{% block content %}
+<div class="tag-manage">
+<div class="tag-manage-header">
+    <p class="tag-manage-back"><a href="{% url "tag_edit" tag=source.name %}">&larr; {% blocktrans with name=source.name %}Back to managing {{ name }}{% endblocktrans %}</a></p>
+    <h1>{% blocktrans with source=source.name target=target.name %}Merge <span class="tag">{{ source }}</span> into <span class="tag">{{ target }}</span>?{% endblocktrans %}</h1>
+</div>
+
+<section class="tag-manage-section tag-merge-summary" aria-labelledby="tag-merge-summary-heading">
+    <h2 id="tag-merge-summary-heading">{% trans "What will change" %}</h2>
+    <ul class="tag-merge-changes">
+        <li class="tag-merge-questions"><strong>{% blocktrans count counter=summary.questions with target=target.name %}{{ counter }} question will move to {{ target }}.{% plural %}{{ counter }} questions will move to {{ target }}.{% endblocktrans %}</strong>
+            {% if summary.both %}{% blocktrans count counter=summary.both with target=target.name %}{{ counter }} of them already has {{ target }}: it just loses the old tag.{% plural %}{{ counter }} of them already have {{ target }}: they just lose the old tag.{% endblocktrans %}{% endif %}
+            {% if summary.hidden %}{% blocktrans count counter=summary.hidden %}{{ counter }} of them is deleted or waiting for review.{% plural %}{{ counter }} of them are deleted or waiting for review.{% endblocktrans %}{% endif %}
+        </li>
+        {% if summary.followers or summary.ignoring %}
+        <li>{% blocktrans count counter=summary.followers with target=target.name %}{{ counter }} follower moves to {{ target }}{% plural %}{{ counter }} followers move to {{ target }}{% endblocktrans %}{% if summary.ignoring %}, {% blocktrans count counter=summary.ignoring %}{{ counter }} member ignoring it too{% plural %}{{ counter }} members ignoring it too{% endblocktrans %}{% endif %}.
+            {% if summary.duplicate_marks %}{% blocktrans count counter=summary.duplicate_marks with target=target.name %}{{ counter }} member had already chosen {{ target }} and keeps that choice.{% plural %}{{ counter }} members had already chosen {{ target }} and keep that choice.{% endblocktrans %}{% endif %}
+        </li>
+        {% endif %}
+        {% if summary.synonyms %}
+        <li>{% trans "Its synonyms will point to the new tag:" %} {% for name in summary.synonyms %}<span class="tag">{{ name }}</span>{% endfor %}</li>
+        {% endif %}
+        <li>{% blocktrans with source=source.name target=target.name %}{{ source }} becomes a synonym of {{ target }}: its page redirects there, and typing {{ source }} gives {{ target }}.{% endblocktrans %}</li>
+        <li>{% trans "Earlier revisions of the questions keep their tags; each question gets a new revision." %}</li>
+    </ul>
+    <p class="tag-merge-warning" role="note"><strong>{% trans "A merge can't be undone." %}</strong> {% trans "To split the tags again, the questions would have to be retagged one by one." %}</p>
+    <form method="post" action="{% url "tag_merge" tag=source.name %}" class="tag-merge-confirm">
+        {% csrf_token %}
+        <input type="hidden" name="into" value="{{ target.name }}" />
+        <input type="submit" class="tag-merge-submit" value="{% blocktrans with source=source.name target=target.name %}Merge {{ source }} into {{ target }}{% endblocktrans %}" />
+        <a class="tag-merge-cancel" href="{% url "tag_edit" tag=source.name %}">{% trans "Cancel" %}</a>
+    </form>
+</section>
+</div>
+{% endblock %}
+<!-- end tag_merge.html -->

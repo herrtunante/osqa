@@ -1,0 +1,28 @@
+{% extends "base_content.html" %}
+{# A password reset or email-change cancel link that is wrong, used or expired. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "This link doesn't work any more" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card" role="status">
+            <div class="auth-icon auth-icon-warning" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v6M12 16.5v.5"/></svg>
+            </div>
+            <h1>{% trans "This link doesn't work any more" %}</h1>
+            {% if kind == "reset" %}
+                <p class="auth-lead">{% trans "Password reset links work once, for an hour, and stop working when the password changes or you sign in. Ask for a new one." %}</p>
+                <div class="auth-actions"><a class="button auth-submit" href="{% url "auth_request_tempsignin" %}">{% trans "Reset your password" %}</a></div>
+            {% else %}
+                <p class="auth-lead">{% trans "The email change has already been confirmed or cancelled, or the link has expired. If you didn't ask for the change, reset your password to be safe." %}</p>
+                <div class="auth-actions"><a class="button auth-submit" href="{% url "auth_request_tempsignin" %}">{% trans "Reset your password" %}</a></div>
+            {% endif %}
+            <p class="auth-switch"><a href="{% url "auth_signin" %}">{% trans "Back to sign in" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,63 +1,1989 @@
-#admin_form {
-    border-spacing: 10px;
+/* The administration layout (osqaadmin/base.html): Django admin's style
+   sheets (base, forms, changelists, responsive, and dark_mode.css when the
+   site's DARK_MODE setting is on) with OSQA's colours and additions here.
+   Colours are Django's variables, set to the site's palette below, or the
+   OSQA ones; dark when the <html> element has data-theme="dark", as on
+   public pages: the visitor's theme choice, with "System" resolved from
+   prefers-color-scheme by {% theme_head %} (DARK_MODE on; see osqa.css,
+   "Dark mode"). Django's own CSS follows the same attribute.
+
+   Sections: palette, layout (header, breadcrumbs, menu, content), messages,
+   buttons and forms, then one per page (dashboard, community health, statistics, static pages,
+   node manager, moderation inbox, support), then phones. */
+
+/* :root[data-theme]: above Django's html[data-theme="light"/"dark"] palettes;
+   the dark values below come later with the same weight. */
+:root, :root[data-theme] {
+    --primary: #2c5aa0;
+    --secondary: #2c5aa0;
+    --accent: #ffd166;
+    --header-bg: #1b3358;
+    --header-color: #d9e3f2;
+    --header-branding-color: #fff;
+    --header-link-color: #fff;
+    --breadcrumbs-bg: #eef3fa;
+    --breadcrumbs-fg: #4a5568;
+    --breadcrumbs-link-fg: #2c5aa0;
+    --link-fg: #2c5aa0;
+    --link-hover-color: #1f4278;
+    --link-selected-fg: #1f4278;
+    --selected-row: #eaf1fb;
+    --button-bg: #2c5aa0;
+    --button-hover-bg: #1f4278;
+    --default-button-bg: #1f4278;
+    --default-button-hover-bg: #2c5aa0;
+    --osqa-notice-bg: #fff8e1;
+    --osqa-notice-border: #e3c95b;
+    --osqa-notice-fg: #4a3700;
+    --osqa-deleted-bg: #fdeeee;
+    --osqa-accepted-bg: #e6f6ea;
+    --osqa-verdict-bg: #fde8e8;
+    --osqa-verdict-fg: #9b1c1c;
+    --osqa-error-fg: #b00020;
+    --osqa-control-bg: var(--body-bg, #fff);
+    --osqa-menu-current-bg: #e3ecf8;
+    --osqa-menu-current-fg: #163a6e;
+    --osqa-count-bg: #ffd166;
+    --osqa-count-fg: #3b2a00;
+    --osqa-radius: 8px;
+    --osqa-tap: 32px;
+    /* Community health: chart series, the previous period, better/worse trends. */
+    --osqa-chart-1: #2c5aa0;
+    --osqa-chart-2: #c25e00;
+    --osqa-chart-3: #1e7d4f;
+    --osqa-chart-prev: #9aa6b8;
+    --osqa-good-fg: #1e6b45;
+    --osqa-bad-fg: #b00020;
 }
 
-#admin_form input[type="text"], #admin_form input[type="submit"], #admin_form textarea, .string_list_widget_button {
-    line-height: 22px;
-    font-size: 140%;
-    font-family: sans-serif;
-    border: 1px solid #999;
-    color: black;
+:root[data-theme="dark"] {
+    --primary: #284a78;
+    --secondary: #3a6bb0;
+    --header-bg: #172235;
+    --header-color: #c3cfdf;
+    --breadcrumbs-bg: #1a1f28;
+    --breadcrumbs-fg: #c3cad5;
+    --breadcrumbs-link-fg: #8ab4f8;
+    --link-fg: #8ab4f8;
+    --link-hover-color: #b3cdfb;
+    --link-selected-fg: #b3cdfb;
+    --selected-row: #1d2a3d;
+    --button-bg: #3a6bb0;
+    --button-hover-bg: #2c5aa0;
+    --default-button-bg: #2c5aa0;
+    --default-button-hover-bg: #3a6bb0;
+    --osqa-notice-bg: #2b2412;
+    --osqa-notice-border: #7a6220;
+    --osqa-notice-fg: #f0cf6c;
+    --osqa-deleted-bg: #3a1d1f;
+    --osqa-accepted-bg: #11251a;
+    --osqa-verdict-bg: #3a1d1f;
+    --osqa-verdict-fg: #ff8b84;
+    --osqa-error-fg: #ff8b84;
+    --osqa-control-bg: #1b1b1b;
+    --osqa-menu-current-bg: #1f3352;
+    --osqa-menu-current-fg: #dbe7fb;
+    --osqa-chart-1: #8ab4f8;
+    --osqa-chart-2: #f0a55a;
+    --osqa-chart-3: #5cc98f;
+    --osqa-chart-prev: #5d6878;
+    --osqa-good-fg: #6fd39b;
+    --osqa-bad-fg: #ff8b84;
 }
 
-#admin_form input[type="text"], #admin_form input[type="submit"], .string_list_widget_button {
-    height: 28px;
+/* ---- Focus and motion ----------------------------------------------------- */
+
+/* The same focus ring as on the public pages, 3:1 or more on every
+   background (WCAG 2.4.7, 1.4.11; the browser's own is orange on Android
+   and near-black in dark mode); white on the dark header. */
+:focus-visible {
+    outline: 2px solid var(--link-fg);
+    outline-offset: 2px;
 }
 
-#admin_form input[type="text"], #admin_form textarea {
-    width: 550px;    
+#header :focus-visible {
+    outline-color: #fff;
 }
 
-#admin_form th input[type="text"] {
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---- Layout: header ------------------------------------------------------ */
+
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 8px;
+    z-index: 2000;
+    padding: 8px 14px;
+    border-radius: 0 0 6px 6px;
+    background: var(--body-bg);
+    color: var(--link-fg);
+    font-weight: 600;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+#header {
+    flex-direction: row;
+    gap: 8px 24px;
+    flex-wrap: wrap;
+    padding: 12px 40px;
+}
+
+#branding {
+    min-width: 0;
+}
+
+#site-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin: 0;
+    color: var(--header-branding-color);
+    font-size: 1.25rem;
+    line-height: 1.3;
+    text-decoration: none;
+}
+
+#header a#site-name:link, #header a#site-name:visited {
+    color: var(--header-branding-color);
+}
+
+#header a#site-name:hover, #header a#site-name:focus {
+    text-decoration: none;
+}
+
+#site-name .admin-site {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+#site-name .admin-area {
+    color: var(--header-color);
+    font-size: 0.9375rem;
+    font-weight: 400;
+}
+
+#user-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#user-tools a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--osqa-tap);
+    padding: 0 10px;
+    border: 0;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+#user-tools a:hover, #user-tools a:focus-visible {
+    background: rgba(255, 255, 255, .12);
+    border: 0;
+    text-decoration: none;
+}
+
+#user-tools .admin-user {
+    font-weight: 600;
+}
+
+#user-tools .admin-signout {
+    border: 1px solid rgba(255, 255, 255, .35);
+}
+
+#user-tools .admin-signout:hover, #user-tools .admin-signout:focus-visible {
+    border: 1px solid rgba(255, 255, 255, .6);
+}
+
+.admin-count {
+    display: inline-block;
+    min-width: 1.5em;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--osqa-count-bg);
+    color: var(--osqa-count-fg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* ---- Layout: breadcrumbs, menu and content ------------------------------- */
+
+div.breadcrumbs, nav.breadcrumbs {
+    padding: 10px 40px;
+    border-bottom: 1px solid var(--hairline-color);
+    background: var(--breadcrumbs-bg);
+    color: var(--breadcrumbs-fg);
+    text-align: left;
+}
+
+nav.breadcrumbs a:link, nav.breadcrumbs a:visited {
+    color: var(--breadcrumbs-link-fg);
+}
+
+#content.admin-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+    padding: 24px 40px 40px;
+}
+
+#content.admin-layout.admin-wide {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-layout > #content-main {
+    float: none;
+    width: auto;
+    min-width: 0;
+}
+
+.admin-layout > #content-main:focus {
+    outline: none;
+}
+
+.admin-layout > #content-related {
+    float: none;
+    position: static;
+    width: auto;
+    margin: 0;
+    background: transparent;
+}
+
+/* On wide screens the menu stays in view and scrolls by itself. */
+@media (min-width: 768px) {
+    .admin-layout > #content-related {
+        position: sticky;
+        top: 16px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        border-radius: var(--osqa-radius);
+    }
+}
+
+/* Boxes in the page are cards with rounded corners. */
+.dashboard-grid > .module, #content-main > .module:not(#changelist), .dashboard-activity,
+.stats-grid > .module, .support-module {
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+    overflow: hidden;
+}
+
+.support-module {
+    overflow-x: auto;
+}
+
+.admin-menu {
+    padding: 8px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+    background: var(--darkened-bg);
+}
+
+.admin-menu ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-menu li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#content-related .admin-menu .module {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#content-related .admin-menu .module h2 {
+    margin: 12px 0 4px;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--body-quiet-color);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.admin-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--osqa-tap);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: var(--body-fg);
+    line-height: 1.3;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.admin-menu .admin-menu-label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.admin-menu li a:hover, .admin-menu li a:focus-visible {
+    background: var(--body-bg);
+    color: var(--link-fg);
+}
+
+.admin-menu li a[aria-current="page"] {
+    background: var(--osqa-menu-current-bg);
+    color: var(--osqa-menu-current-fg);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--button-bg);
+}
+
+.admin-menu-home li a {
+    font-weight: 600;
+}
+
+/* Page heading and description. */
+.admin-title {
+    margin: 0 0 4px;
+    color: var(--body-loud-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.admin-title:empty {
+    display: none;
+}
+
+#footer {
+    padding: 16px 40px;
+    border-top: 1px solid var(--hairline-color);
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input.longstring {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.breadcrumb-current:not(:empty)::before {
+    content: "> ";
+}
+
+.admin-page-description {
+    margin: 0 0 20px;
+    max-width: 75ch;
+    color: var(--body-quiet-color);
+    font-size: 0.9375rem;
+}
+
+.admin-page-description:empty {
+    display: none;
+}
+
+/* ---- Messages ------------------------------------------------------------ */
+
+.admin_message {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--osqa-notice-border);
+    border-left-width: 4px;
+    border-radius: 4px;
+    background-color: var(--osqa-notice-bg);
+    color: var(--osqa-notice-fg);
+}
+
+.admin_message a {
+    color: inherit;
+    font-weight: 600;
+}
+
+/* Links within text are underlined, so they don't rely on colour alone (WCAG 1.4.1). */
+.breadcrumbs a, .admin_message a, #footer a, .mod-note a {
+    text-decoration: underline;
+}
+
+.email-test-error {
+    color: var(--osqa-error-fg);
+}
+
+.email-test-log {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.admin-empty {
+    color: var(--body-quiet-color);
+    font-style: italic;
+}
+
+.admin-section-title {
+    margin: 20px 0 8px;
+    font-size: 1rem;
+}
+
+.admin-list {
+    margin: 0 0 16px;
+    padding-left: 20px;
+}
+
+.admin-list li {
+    margin-bottom: 4px;
+}
+
+/* ---- Buttons and form controls ------------------------------------------- */
+
+/* Bare <button>s look like the admin's submit buttons. */
+button.button, #content-main button[type="submit"]:not(.deletelink) {
+    display: inline-block;
+    min-height: 2.25rem;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background: var(--button-bg);
+    color: var(--button-fg);
+    font: inherit;
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+button.button:hover, button.button:focus,
+#content-main button[type="submit"]:not(.deletelink):hover,
+#content-main button[type="submit"]:not(.deletelink):focus {
+    background: var(--button-hover-bg);
+}
+
+/* Disabled stays readable: muted colours, not a faded blue. */
+.button[disabled], button.button[disabled], input[type=submit][disabled] {
+    opacity: 1;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+    border: 1px solid var(--border-color);
+    cursor: not-allowed;
+}
+
+input[type="file"] {
+    max-width: 100%;
+    color: var(--body-fg);
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    font: inherit;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: var(--selected-bg);
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 8px 0;
+}
+
+.admin-actions form {
+    display: inline;
+    margin: 0;
+}
+
+/* Space between the form's buttons and what follows (the admin menu on phones). */
+#content-main .submit-row {
+    margin: 16px 0 24px;
+}
+
+/* ---- Form tables (settings and tools) ------------------------------------ */
+
+.admin-form-table {
+    width: 100%;
+}
+
+.admin-form-table th {
     text-align: left;
     vertical-align: top;
-    width: 125px;
-    padding: 2px 3px;
-    font-size: 12px;
-    height: auto;
-    line-height: 100%;
+    font-weight: 600;
+    color: var(--body-fg);
 }
 
-#admin_form th {
-
+.admin-form-table .helptext {
+    display: block;
+    margin-top: 4px;
+    color: var(--body-quiet-color);
 }
 
-#admin_form td {
-    color: gray;
+#admin_form tr th {
+    white-space: nowrap;
 }
 
-#admin_page_description {
-    color: gray;
-    padding-bottom: 20px;
+#admin_form tr td:first-of-type {
+    width: 100%;
 }
 
-.string_list_widget input[type=text] {
-    width: 520px;
+/* "context | default" tools under each setting's label. */
+#admin_form tr th .fieldtool {
+    display: inline-block;
+    padding: 4px 2px;
+    font-size: 0.8125rem;
+    font-weight: 400;
+}
+
+#admin_form tr th .sep {
+    margin: 0 6px;
+    color: var(--body-quiet-color);
+    font-weight: 400;
+}
+
+/* Stacked form used where there is no Django form (Stack Exchange importer). */
+.admin-stacked-form .form-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.admin-stacked-form label {
+    font-weight: 600;
+}
+
+.admin-stacked-form .admin-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+}
+
+/* ---- String list setting (one text box per item, remove/add buttons) ---- */
+
+.string-list-input, .string-list-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(600px + 8px + var(--osqa-tap));
+    margin: 0 0 6px;
+}
+
+.string-list-add {
+    justify-content: flex-end;
+}
+
+.string-list-input input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 .string_list_widget_button {
-    width: 28px;
-    font-size: 20px;
-    font-weight: bold;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--osqa-tap);
+    height: var(--osqa-tap);
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--osqa-control-bg);
+    color: var(--body-fg);
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.string_list_widget_button:hover, .string_list_widget_button:focus-visible {
+    border-color: var(--button-bg);
+    background: var(--darkened-bg);
 }
 
 .string_list_widget_button.add {
-    position: relative;
-    left: 554px;
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg);
 }
 
-table caption {
-    font-size: 120%;
-	padding: 3px 0;
-    text-align: left;
+.string_list_widget_button.add:hover, .string_list_widget_button.add:focus-visible {
+    background: var(--button-hover-bg);
+}
+
+/* ---- Test email settings ------------------------------------------------- */
+
+.test_email_status_box {
+    margin-top: 8px;
+}
+
+.ajax_indicator {
+    background: transparent url('../images/indicator.gif') top left no-repeat;
+    padding: 7px 25px;
+    min-height: 24px;
+}
+
+.email-test-result {
+    padding: 12px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 4px;
+    background: var(--darkened-bg);
+}
+
+/* ---- Dashboard ----------------------------------------------------------- */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.dashboard-grid .module {
+    margin: 0;
+}
+
+.dashboard-box table {
+    width: 100%;
+}
+
+.dashboard-box p {
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.dashboard-activity #result_list {
+    width: 100%;
+}
+
+.dashboard-activity #result_list td {
+    padding: 8px 12px;
+}
+
+/* Recent activity: names and posts linked inside a sentence are underlined
+   (link-in-text-block: the admin's link colour is too close to the text). */
+.action_body a, .node-list .node-states a { text-decoration: underline; }
+
+/* ---- Community health (osqaadmin/health.html, on the dashboard) ---------- */
+
+.health {
+    margin: 0 0 28px;
+}
+
+.health-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: 0 0 8px;
+}
+
+#content-main .health-title {
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: var(--body-loud-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.health-periods ul, .health-tiles, .health-legend, .health-bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.health-periods ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.health-periods li, .health-tiles > li, .health-legend li, .health-bars li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.health-periods a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--osqa-tap);
+    padding: 4px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--body-fg);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.health-periods a[aria-current="page"] {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg);
+    font-weight: 600;
+}
+
+.health-headline {
+    max-width: 75ch;
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.health-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin: 0 0 8px;
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+}
+
+.health-meta form {
+    margin: 0;
+}
+
+.health-meta a {
+    text-decoration: underline;
+}
+
+#content-main .health-group-title {
+    margin: 20px 0 8px;
+    color: var(--body-quiet-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.health-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+    gap: 12px;
+}
+
+.health-tiles > li.health-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+    background: var(--body-bg);
+}
+
+.health-tile-label {
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.health-tile-label a {
+    text-decoration: underline;
+}
+
+.health-tile-value {
+    color: var(--body-fg);
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.health-trend {
+    color: var(--body-fg);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.health-trend.health-good {
+    color: var(--osqa-good-fg);
+}
+
+.health-trend.health-bad {
+    color: var(--osqa-bad-fg);
+}
+
+.health-tile-prev, .health-tile-note {
+    color: var(--body-quiet-color);
+    font-size: 0.75rem;
+}
+
+.health-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 20px;
+    margin: 24px 0 0;
+}
+
+.health-charts > .health-chart {
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+}
+
+.health-charts > .health-chart-wide {
+    grid-column: 1 / -1;
+}
+
+#content-main .health-chart h3 {
+    margin: 0 0 4px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.health-summary {
+    margin: 0 0 10px;
+    padding: 0;
+    color: var(--body-quiet-color);
+    font-size: 0.8125rem;
+}
+
+.health-plot {
+    height: 240px;
+}
+
+.health-legend, .health-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 8px 0 0;
+    padding: 0;
+    font-size: 0.8125rem;
+}
+
+.health-legend li, .health-key {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.health-swatch {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--osqa-chart-1);
+}
+
+.health-swatch-2 { background: var(--osqa-chart-2); }
+.health-swatch-3 { background: var(--osqa-chart-3); }
+.health-swatch-prev { background: var(--osqa-chart-prev); }
+
+.health-bars li.health-bar-row {
+    display: grid;
+    grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 2.75rem;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 0.8125rem;
+}
+
+.health-bar-label {
+    overflow-wrap: anywhere;
+}
+
+.health-bar-track {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    height: 14px;
+}
+
+.health-bar {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--osqa-chart-1);
+}
+
+.health-bars-paired .health-bar {
+    height: 6px;
+}
+
+.health-bar.health-bar-prev, .health-bar-none .health-bar {
+    background: var(--osqa-chart-prev);
+}
+
+.health-bar-count {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.health-heatmap {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(24, minmax(0, 1fr));
+    gap: 2px;
+    align-items: center;
+    font-size: 0.6875rem;
+}
+
+.health-heat-hour, .health-heat-day {
+    color: var(--body-quiet-color);
+    white-space: nowrap;
+}
+
+.health-heat {
+    height: 18px;
+    border-radius: 2px;
+    background: var(--darkened-bg);
+}
+
+.health-heat-1 { background: color-mix(in srgb, var(--osqa-chart-1) 25%, var(--body-bg)); }
+.health-heat-2 { background: color-mix(in srgb, var(--osqa-chart-1) 50%, var(--body-bg)); }
+.health-heat-3 { background: color-mix(in srgb, var(--osqa-chart-1) 75%, var(--body-bg)); }
+.health-heat-4 { background: var(--osqa-chart-1); }
+
+.health-table {
+    margin: 10px 0 0;
+}
+
+.health-table > summary, .health-definitions > summary {
+    display: list-item;
+    min-height: var(--osqa-tap);
+    line-height: var(--osqa-tap);
+    color: var(--link-fg);
+    cursor: pointer;
+}
+
+.health-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.health-scroll table {
+    width: 100%;
+}
+
+.health-scroll .num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.health-scroll th[scope="row"] {
+    white-space: nowrap;
+}
+
+.health-scroll th[scope="row"] a {
+    text-decoration: underline;
+}
+
+.health-hours-table th, .health-hours-table td {
+    padding: 4px 5px;
+    font-size: 0.75rem;
+}
+
+.health-definitions {
+    margin: 20px 0 0;
+    padding: 4px 14px;
+    border: 1px solid var(--hairline-color);
+    border-radius: var(--osqa-radius);
+}
+
+.health-definitions dl {
+    margin: 4px 0 10px;
+}
+
+.health-definitions dt {
+    margin: 8px 0 2px;
+    font-weight: 600;
+}
+
+.health-definitions dd {
+    max-width: 80ch;
+    margin: 0;
+    color: var(--body-fg);
+}
+
+@media (max-width: 640px) {
+    .health-tiles {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+        gap: 8px;
+    }
+
+    .health-tiles > li.health-tile {
+        padding: 10px 12px;
+    }
+
+    .health-tile-value {
+        font-size: 1.35rem;
+    }
+
+    .health-plot {
+        height: 200px;
+    }
+
+    .health-bars li.health-bar-row {
+        grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) 2.5rem;
+    }
+
+    .health-heatmap {
+        grid-template-columns: 2rem repeat(24, minmax(0, 1fr));
+        gap: 1px;
+    }
+
+    .health-heat {
+        height: 12px;
+    }
+}
+
+/* ---- Statistics ---------------------------------------------------------- */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 20px;
+}
+
+.stats-graph {
+    margin: 0;
+}
+
+.stats-chart {
+    height: 240px;
+    margin: 10px;
+}
+
+/* ---- Static pages -------------------------------------------------------- */
+
+.static-pages-action {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* ---- Node manager -------------------------------------------------------- */
+
+/* Wide result tables scroll sideways inside their box. */
+.results {
+    overflow-x: auto;
+}
+
+#text-filter-input {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#changelist-filter small {
+    display: block;
+    padding: 0 15px 8px;
+    color: var(--body-quiet-color);
+    line-height: 1.4;
+}
+
+#changelist-filter input[type="text"] {
+    box-sizing: border-box;
+    width: calc(100% - 30px);
+    margin: 0 15px 12px;
+}
+
+#changelist-filter form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 15px 15px;
+}
+
+#changelist-filter form input[type="text"] {
+    flex: 1 1 120px;
+    width: auto;
+    margin: 0;
+}
+
+#changelist-filter #state-filter-type {
+    max-width: 100%;
+}
+
+#filter-panel-header {
+    cursor: pointer;
+}
+
+#filter-panel-header small {
+    display: inline;
+    padding: 0;
+    margin-left: 4px;
+    color: inherit;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: .9;
+}
+
+/* Search box: icon, field and button on one line, the options below. */
+#changelist-search > div {
+    width: 100%;
+    max-width: 100%;
+}
+
+#changelist-search > div > div {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+#changelist-search > div > div > br {
+    display: none;
+}
+
+#changelist-search > div > div > ul {
+    flex: 1 0 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#changelist-search #text-filter-input {
+    flex: 1 1 200px;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+}
+
+#changelist-search input[type="submit"] {
+    min-height: 2.25rem;
+    margin: 0;
+}
+
+.node-list td.node-short {
+    white-space: nowrap;
+}
+
+/* Header cells keep their own padding, so the names never run together. */
+#changelist .node-list thead th {
+    padding: 8px 10px;
+    white-space: normal;
+    vertical-align: bottom;
+}
+
+#changelist .node-list thead th.col-resizer {
+    padding: 0;
+}
+
+#changelist .node-list thead th a {
+    padding: 0;
+}
+
+/* Author / tag suggestions in the node manager (jQuery UI autocomplete) */
+.ui-widget.ui-autocomplete.osqa-autocomplete {
+    z-index: 1100;
+    max-height: 300px;
+    padding: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--hairline-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+    font-family: inherit;
+}
+
+.ui-menu.osqa-autocomplete .ui-menu-item-wrapper {
+    padding: 5px 8px;
+    border: 0;
+    color: var(--body-fg, #333);
+}
+
+.ui-menu.osqa-autocomplete .ui-menu-item-wrapper.ui-state-active {
+    margin: 0;
+    border: 0;
+    background: var(--selected-row, #ffc);
+    color: var(--body-fg, #333);
+}
+
+/* ---- Moderation inbox (osqaadmin/moderation_inbox.html) ------------------ */
+
+.mod-inbox {
+    max-width: 960px;
+}
+
+.mod-filters ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+.mod-filters li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mod-filters a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--osqa-tap);
+    padding: 4px 12px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 999px;
+    color: var(--body-fg, #333);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.mod-filters a.on {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+.mod-count {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--darkened-bg, #f3f3f3);
+    color: var(--body-fg, #333);
+    font-size: 0.85em;
+    font-weight: 600;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.mod-keys, .mod-more, .mod-empty, .mod-note {
+    color: var(--body-quiet-color, #666);
+}
+
+.mod-undo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--osqa-notice-border);
+    border-radius: 6px;
+    background: var(--osqa-notice-bg);
+    color: var(--osqa-notice-fg);
+}
+
+.mod-section {
+    margin: 20px 0 8px;
+}
+
+.mod-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg, #333);
+    font-size: 1.1em;
+    text-transform: none;
+}
+
+.mod-card {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+}
+
+.mod-card:focus {
+    outline: 3px solid var(--button-bg);
+    outline-offset: 2px;
+}
+
+.mod-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+}
+
+.mod-type {
+    color: var(--body-quiet-color, #666);
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.mod-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--darkened-bg, #f3f3f3);
+    color: var(--body-fg, #333);
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.mod-tag-held, .mod-tag-flag {
+    background: var(--osqa-notice-bg);
+    color: var(--osqa-notice-fg);
+}
+
+.mod-title {
+    flex-basis: 100%;
+    margin: 4px 0 0;
+    padding: 0;
+    color: var(--body-fg, #333);
+    font-size: 1em;
+    overflow-wrap: anywhere;
+}
+
+.mod-title a {
+    text-decoration: underline;
+}
+
+/* Names are short ("sam"): at least 24x24 px to tap (WCAG 2.5.8). */
+.mod-title a, .mod-author a {
+    display: inline-block;
+    min-width: 24px;
+    min-height: 24px;
+    line-height: 24px;
+}
+
+/* The post itself, kept short: it scrolls inside its box. */
+.mod-content {
+    max-height: 14em;
+    margin: 8px 0;
+    padding: 8px 10px;
+    overflow: auto;
+    border-left: 3px solid var(--hairline-color, #ccc);
+    background: var(--darkened-bg, #f8f8f8);
+    overflow-wrap: anywhere;
+}
+
+.mod-content > :first-child {
+    margin-top: 0;
+}
+
+.mod-content > :last-child {
+    margin-bottom: 0;
+}
+
+.mod-content img, .mod-content pre, .mod-content table {
+    max-width: 100%;
+}
+
+.mod-author {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin: 6px 0;
+    color: var(--body-quiet-color, #666);
+}
+
+.mod-author a {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.mod-why {
+    margin: 6px 0;
+}
+
+.mod-reasons {
+    margin: 4px 0 0;
+    padding-left: 20px;
+}
+
+.mod-reasons li {
+    list-style: disc;
+    overflow-wrap: anywhere;
+}
+
+.mod-actions, .mod-dialog-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+#moderation-inbox .mod-actions button, #moderation-inbox .mod-dialog button {
+    min-height: var(--osqa-tap);
+    padding: 6px 14px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    font: inherit;
+    cursor: pointer;
+}
+
+#moderation-inbox .mod-actions button[type="submit"].mod-approve {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+#moderation-inbox .mod-actions button[type="submit"].mod-danger,
+#moderation-inbox .mod-dialog button[type="submit"].mod-danger {
+    border-color: var(--osqa-verdict-fg);
+    background: var(--osqa-verdict-bg);
+    color: var(--osqa-verdict-fg);
+    font-weight: 600;
+}
+
+#moderation-inbox .mod-actions button:hover, #moderation-inbox .mod-actions button:focus-visible,
+#moderation-inbox .mod-dialog button:hover, #moderation-inbox .mod-dialog button:focus-visible {
+    outline: 2px solid var(--button-bg);
+    outline-offset: 1px;
+}
+
+.mod-dialog {
+    width: min(440px, calc(100vw - 32px));
+    padding: 16px 18px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 8px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    box-sizing: border-box;
+}
+
+.mod-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.mod-dialog h3 {
+    margin: 0 0 8px;
+    padding: 0;
+    color: var(--body-fg, #333);
+    font-size: 1.1em;
+}
+
+.mod-dialog label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--osqa-tap);
+    color: var(--body-fg, #333);
+}
+
+/* ---- Moderation inbox: automated reports ------------------------------------ */
+
+.moderation-verdict {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--osqa-verdict-bg);
+    color: var(--osqa-verdict-fg);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.moderation-meta {
+    color: var(--body-quiet-color, #666);
+}
+
+.moderation-reason {
+    margin: 6px 0;
+}
+
+.moderation-reason {
+    padding-left: 10px;
+    border-left: 3px solid var(--hairline-color, #ccc);
+}
+
+.moderation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* ---- Moderation inbox: suggested edits (suggested_edits/_actions.html) ----- */
+
+.sugg-diff .text {
+    white-space: pre-wrap;
+    font-family: var(--font-family-monospace, monospace);
+}
+
+.sugg-diff h2.revision-title {
+    margin: 0 0 6px;
+    padding: 0;
+    background: none;
+    color: var(--body-fg, #333);
+    font-size: 1.05em;
+}
+
+.sugg-diff ins {
+    background: var(--osqa-accepted-bg);
+    text-decoration: underline;
+}
+
+.sugg-diff del {
+    background: var(--osqa-deleted-bg);
+    color: var(--osqa-verdict-fg);
+}
+
+.sugg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+.sugg-actions form {
+    margin: 0;
+}
+
+#moderation-inbox .sugg-actions button, #moderation-inbox .sugg-improve, #moderation-inbox .sugg-reject-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--osqa-tap);
+    padding: 6px 14px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+#moderation-inbox .sugg-actions button.sugg-approve {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-fg, #fff);
+}
+
+#moderation-inbox .sugg-actions button.sugg-reject-button {
+    border-color: var(--osqa-verdict-fg);
+    background: var(--osqa-verdict-bg);
+    color: var(--osqa-verdict-fg);
+    font-weight: 600;
+}
+
+.sugg-reject {
+    flex: 1 1 100%;
+}
+
+#moderation-inbox .sugg-reject-toggle {
+    width: max-content;
+    list-style: none;
+}
+
+.sugg-reject-form {
+    margin-top: 8px;
+}
+
+.sugg-reject-form fieldset {
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+}
+
+.sugg-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    color: var(--body-fg, #333);
+}
+
+.sugg-comment-label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.sugg-reject-form textarea {
+    width: 100%;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
+/* ---- Support dashboard --------------------------------------------------- */
+
+.support-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 16px; }
+.support-filters label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.support-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.support-kpi { padding: 12px 14px; border: 1px solid var(--hairline-color, #e8e8e8); border-radius: 6px; background: var(--body-bg, #fff); }
+.support-kpi-value { display: block; font-size: 1.6em; font-weight: 700; color: var(--body-fg, #333); }
+.support-kpi-label { display: block; margin-top: 2px; color: var(--body-quiet-color, #666); }
+.support-kpi-alert { border-color: var(--osqa-notice-border); background: var(--osqa-notice-bg); }
+.support-kpi-alert .support-kpi-value, .support-kpi-alert .support-kpi-label { color: var(--osqa-notice-fg); }
+/* Each table scrolls inside its box instead of squeezing its columns. */
+.support-module { width: 100%; margin-bottom: 20px; overflow-x: auto; }
+.support-module table { width: 100%; }
+.support-module table.support-wide { min-width: 560px; }
+.support-user { white-space: nowrap; }
+.support-module caption { text-align: left; }
+.support-module th[scope="row"], .support-module th[scope="col"] { white-space: nowrap; }
+.support-caption-note { font-weight: normal; text-transform: none; opacity: 0.85; margin-left: 6px; }
+.support-module .num { text-align: right; white-space: nowrap; }
+.support-warn { font-weight: 700; }
+.support-overdue td { background: var(--osqa-notice-bg); color: var(--osqa-notice-fg); }
+.support-tags span { display: inline-block; margin: 3px 4px 0 0; padding: 0 6px; border-radius: 3px; background: var(--darkened-bg, #f8f8f8); color: var(--body-quiet-color, #666); font-size: 0.85em; white-space: nowrap; }
+
+/* ---- Admin menu (a disclosure: open on wide screens, folded on phones) --- */
+
+.admin-menu > summary {
+    display: none;
+}
+
+/* Tables never break words letter by letter; long words still wrap. */
+#content td, #content th {
+    overflow-wrap: break-word;
+}
+
+/* ---- Tablets and phones -------------------------------------------------- */
+
+@media (max-width: 767px) {
+    :root {
+        --osqa-tap: 44px;
+    }
+
+    /* One column, the folded menu above the page. */
+    #header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 16px;
+    }
+
+    #user-tools {
+        gap: 2px;
+        margin: 0 -8px;
+        font-size: 0.8125rem;
+    }
+
+    #user-tools a {
+        min-height: 40px;
+        padding: 0 8px;
+    }
+
+    #user-tools .admin-signout {
+        min-height: 34px;
+    }
+
+    nav.breadcrumbs {
+        padding: 8px 16px;
+    }
+
+    #content.admin-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        padding: 16px;
+    }
+
+    #footer {
+        padding: 12px 16px;
+    }
+
+    .admin-menu {
+        padding: 0;
+    }
+
+    .admin-menu > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 48px;
+        padding: 0 16px;
+        border-radius: var(--osqa-radius);
+        background: var(--button-bg);
+        color: var(--button-fg, #fff);
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .admin-menu > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .admin-menu > summary::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform .15s;
+    }
+
+    .admin-menu[open] {
+        padding-bottom: 8px;
+    }
+
+    .admin-menu[open] > summary {
+        border-radius: var(--osqa-radius) var(--osqa-radius) 0 0;
+    }
+
+    .admin-menu[open] > summary::after {
+        transform: rotate(-135deg);
+    }
+
+    .admin-menu > ul, .admin-menu > .module {
+        padding: 0 8px;
+    }
+
+    .admin-menu-home {
+        margin-top: 8px;
+    }
+
+    .admin-title {
+        font-size: 1.3rem;
+    }
+
+    /* Every form table: label above its field. */
+    .admin-form-table, .admin-form-table tbody, .admin-form-table tr,
+    .admin-form-table th, .admin-form-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .admin-form-table tr {
+        padding: 6px 0;
+        border-bottom: 1px solid var(--hairline-color);
+    }
+
+    .admin-form-table th, .admin-form-table td {
+        border-bottom: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .admin-form-table th {
+        padding-bottom: 2px;
+    }
+
+    #admin_form tr th {
+        white-space: normal;
+    }
+
+    #admin_form tr th .fieldtool {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: 0.875rem;
+    }
+
+    #admin_form tr th .fieldtool.context {
+        padding-left: 0;
+    }
+
+    .admin-form-table input[type="text"], .admin-form-table input[type="email"],
+    .admin-form-table input[type="password"], .admin-form-table input[type="number"],
+    .admin-form-table input[type="url"], .admin-form-table select, .admin-form-table textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .admin-form-table input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+    }
+
+    .string-list-input, .string-list-add {
+        max-width: 100%;
+    }
+
+    .submit-row input, .submit-row button {
+        min-height: 44px;
+    }
+
+    #changelist-search input[type="text"] {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Node manager: one card per post. */
+    #result_list.node-list, .node-list tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .node-list thead {
+        display: none;
+    }
+
+    .node-list tr {
+        display: grid;
+        grid-template-columns: 2.25rem minmax(0, 1fr);
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--hairline-color);
+        border-radius: 6px;
+    }
+
+    .node-list td {
+        grid-column: 1 / -1;
+        display: block;
+        padding: 3px 0;
+        border: 0;
+        white-space: normal;
+    }
+
+    .node-list td.node-select {
+        grid-column: 1;
+        align-self: center;
+    }
+
+    .node-list td.node-type {
+        grid-column: 2;
+        align-self: center;
+        color: var(--body-quiet-color);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .node-list td.node-summary {
+        margin: 4px 0;
+        padding: 6px 8px;
+        border-radius: 4px;
+    }
+
+    .node-list td.node-summary:not(.deleted):not(.accepted) {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .node-list td[data-label] {
+        position: relative;
+        padding-left: 8.5rem;
+    }
+
+    .node-list td[data-label]::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 8rem;
+        color: var(--body-quiet-color);
+        font-weight: 600;
+    }
+
+    .node-list td.node-type {
+        padding-left: 0;
+    }
+
+    .node-list td.node-type::before {
+        content: none;
+    }
+
+    .node-list td.node-states:empty, .node-list td.node-tags:empty {
+        display: none;
+    }
+
+    .node-list td.admin-empty {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #content table input, #content table select, #content table textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Colours the charts (osqa.charts.js) and shared widgets read from the
+   public skin's variables, which the admin pages don't otherwise define. */
+body.osqa-admin {
+    --muted: var(--body-quiet-color, #666);
+    --border: var(--hairline-color, #ddd);
+    --text: var(--body-fg, #333);
+    --chart-1: var(--osqa-chart-1);
+    --chart-2: var(--osqa-chart-2);
+    --chart-3: var(--osqa-chart-3);
+}
+
+/* Phones: comfortable form controls (16px text also stops iOS zooming in on
+   focus), visible borders in dark mode, room under help text. */
+@media (max-width: 767px) {
+    #content input[type="text"], #content input[type="email"], #content input[type="password"],
+    #content input[type="number"], #content input[type="url"], #content select, #content textarea {
+        min-height: 40px;
+        font-size: 16px;
+        border: 1px solid var(--border-color, #ccc);
+    }
+    #content .help, #content .helptext { display: block; margin-top: 6px; }
+    #content input[type="radio"], #content input[type="checkbox"] { width: 20px; height: 20px; }
+    #content label:has(input[type="radio"]) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 0; }
+    /* Node manager filters: tappable chips instead of tiny links. */
+    #filter-panel ul { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; }
+    #filter-panel li a { display: inline-block; min-height: 36px; padding: 8px 12px; border: 1px solid var(--border-color, #ccc); border-radius: 18px; font-size: 14px; }
+    #filter-panel li.selected a { border-color: var(--primary, #417690); font-weight: 600; }
+    /* The wide support table scrolls inside its box instead of being cut off;
+       the captions' notes go on their own line. */
+    .support-module table.support-wide { min-width: 520px; }
+    .support-caption-note { display: block; margin: 2px 0 0; }
+}
+:root[data-theme="dark"] #content input, :root[data-theme="dark"] #content select,
+:root[data-theme="dark"] #content textarea { border-color: #5a5a5a; }
+
+/* Django 6.0's admin CSS stretches a new wrapper inside #changelist on phones
+   instead of #changelist itself; keep the node manager's toolbar inside the
+   screen with either version. */
+@media (max-width: 767px) {
+    #changelist { align-items: stretch; }
+    #changelist #toolbar, #changelist #toolbar form { max-width: 100%; box-sizing: border-box; }
+    #changelist #toolbar input[type="text"] { max-width: 100%; box-sizing: border-box; }
 }

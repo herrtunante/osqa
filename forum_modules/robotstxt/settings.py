@@ -1,6 +1,5 @@
 from forum.settings.base import Setting, SettingSet
 from django.forms.widgets import Textarea
-from django.core.urlresolvers import reverse
 from forum.settings import APP_URL
 
 ROBOTS_SET = SettingSet('robots', 'Robots txt', "Set up the robots.txt file.", 3000)

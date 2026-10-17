@@ -1,8 +1,8 @@
-from forms import CommaStringListWidget, StringListWidget
+from .forms import CommaStringListWidget, StringListWidget
 from django.forms import CheckboxSelectMultiple
 from django.forms.widgets import RadioSelect
-from base import Setting, SettingSet
-from django.utils.translation import ugettext as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext as _
 
 USERS_SET = SettingSet('users', _('Users settings'), _("General settings for the OSQA users."), 20)
 
@@ -65,9 +65,38 @@ label = _("Force unique email"),
 help_text = _("Should each user have an unique email."),
 required=False))
 
+EMAIL_CONFIRMATION_MODE = Setting('EMAIL_CONFIRMATION_MODE', 'signin', USERS_SET, dict(
+label = _("Email confirmation for new members"),
+help_text = _("Everyone who signs up with an email address gets a link to confirm it (valid for 48 hours). By "
+              "default they can sign in only after confirming, and the sign-up page answers the same whether or "
+              "not the address already has an account (its owner gets an email instead). Members who joined "
+              "before this setting existed, accounts made by administrators or imported, and addresses already "
+              "confirmed by a sign-in service are not affected."),
+widget=RadioSelect,
+choices=(("signin", _("They must confirm before they can sign in")),
+         ("post", _("They can sign in at once, but must confirm before asking, answering or commenting")),
+         ("off", _("Not required (only the actions ticked below need a confirmed address)"))),
+required=False))
+
+UNCONFIRMED_ACCOUNT_DAYS = Setting('UNCONFIRMED_ACCOUNT_DAYS', 7, USERS_SET, dict(
+label = _("Delete unconfirmed new accounts after (days)"),
+help_text = _("The cleanup_inactive_users command (run daily from cron) deletes accounts that signed up but never "
+              "confirmed their email address within this many days and have no posts or other activity. Only while "
+              "email confirmation is required. 0 turns it off.")))
+
+ACCOUNT_DELETION_POSTS = Setting('ACCOUNT_DELETION_POSTS', 'keep', USERS_SET, dict(
+label = _("Posts of deleted accounts"),
+help_text = _("What happens to the questions, answers and comments of members who delete their account. Their "
+              "profile and personal data are always removed."),
+widget=RadioSelect,
+choices=(("keep", _("Keep them, shown as by \"deleted-user\" (other people's answers and discussions depend on them)")),
+         ("delete", _("Delete them (moderators can still see deleted posts)"))),
+required=False))
+
 REQUIRE_EMAIL_VALIDATION_TO = Setting('REQUIRE_EMAIL_VALIDATION_TO', [], USERS_SET, dict(
 label = _("Require email validation to..."),
-help_text = _("Which actions in this site, users without a valid email will be prevented from doing."),
+help_text = _("Which actions members without a confirmed email address can't do, whenever they joined. New "
+              "members also follow the \"Email confirmation for new members\" setting above."),
 widget=CheckboxSelectMultiple,
 choices=(("ask", _("ask questions")), ("answer", _("provide answers")), ("comment", _("make comments")), ("flag", _("report posts"))),
 required=False,
@@ -116,3 +145,23 @@ widget=RadioSelect,
 choices=GRAVATAR_DEFAULT_CHOICES,
 required=False))
 
+
+SIGNUP_MIN_SECONDS = Setting('SIGNUP_MIN_SECONDS', 3, USERS_SET, dict(
+label = _("Minimum time to fill in the sign-up form"),
+help_text = _("Seconds. Sign-up forms sent faster than this, or with the hidden trap field filled in, are refused: "
+              "bots do that, people don't. 0 turns the time check off.")))
+
+SIGNUP_LIMIT_PER_IP = Setting('SIGNUP_LIMIT_PER_IP', 5, USERS_SET, dict(
+label = _("Sign-ups per IP address per hour"),
+help_text = _("New accounts allowed from one IP address within an hour. 0 means no limit.")))
+
+PROFILE_LINKS_MIN_REP = Setting('PROFILE_LINKS_MIN_REP', 25, USERS_SET, dict(
+label = _("Reputation for profile links"),
+help_text = _("Below this reputation a user's website and the links in their \"about me\" are shown as plain text, "
+              "and their profile page asks search engines not to index it, so spam accounts gain nothing from it.")))
+
+INACTIVE_ACCOUNT_DAYS = Setting('INACTIVE_ACCOUNT_DAYS', 15, USERS_SET, dict(
+label = _("Delete dormant accounts after (days)"),
+help_text = _("The cleanup_inactive_users command (run daily from cron) deletes accounts older than this that never "
+              "confirmed their email, never posted, voted or did anything else, and haven't logged in during that "
+              "time. Staff accounts are never deleted. 0 turns it off.")))

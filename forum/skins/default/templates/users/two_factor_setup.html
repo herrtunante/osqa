@@ -1,0 +1,41 @@
+{% extends "users/settings_base.html" %}
+{% load i18n %}
+{% block title %}{% spaceless %}{% trans "Set up two-step verification" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block settingscontent %}
+<section class="settings-card security-card" aria-labelledby="totp-setup-title">
+    <h2 id="totp-setup-title">{% trans "Set up an authenticator app" %}</h2>
+    <ol class="security-steps">
+        <li>
+            <h3>{% trans "Scan the QR code" %}</h3>
+            <p class="settings-lead">{% blocktrans %}Open your authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, Aegis…), choose to add an account and scan this code.{% endblocktrans %}</p>
+            <div class="security-qr">
+                <div class="security-qr-image">{{ qr_svg|safe }}</div>
+                <div class="security-secret">
+                    <p>{% trans "Can't scan it? Enter this key in the app instead (time-based):" %}</p>
+                    <code id="totp-secret" class="security-secret-key">{{ secret }}</code>
+                    <p class="auth-help"><a href="{{ otpauth_uri }}">{% trans "Open in an authenticator app on this device" %}</a></p>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>{% trans "Enter the code from the app" %}</h3>
+            {% if error %}
+            <div class="auth-alert settings-alert" role="alert" id="totp-setup-error">{{ error }}</div>
+            {% endif %}
+            <form method="post" action="{% url "two_factor_setup" %}" accept-charset="utf-8" novalidate>
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label for="totp-code">{% trans "6-digit code" %}</label>
+                    <input type="text" id="totp-code" name="code" required inputmode="numeric" autocomplete="one-time-code"
+                           autocapitalize="none" spellcheck="false" maxlength="10" class="security-code-input"{% if error %} aria-invalid="true" aria-describedby="totp-setup-error"{% endif %} />
+                </div>
+                <div class="settings-actions">
+                    <button type="submit" class="button security-primary">{% trans "Turn on two-step verification" %}</button>
+                    <a class="settings-cancel" href="{% url "user_security" view_user.id %}">{% trans "Cancel" %}</a>
+                </div>
+            </form>
+        </li>
+    </ol>
+</section>
+{% endblock %}

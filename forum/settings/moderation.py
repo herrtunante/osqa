@@ -1,9 +1,8 @@
-from base import Setting, SettingSet
-from forms import StringListWidget
+from .base import Setting, SettingSet
+from .forms import StringListWidget
 
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _
-from django.forms.widgets import Textarea, RadioSelect
+from django.utils.translation import gettext_lazy as _
+from django.forms.widgets import RadioSelect
 
 MODERATION_SET = SettingSet('moderation', _('Moderation settings'), _("Define the moderation workflow of your site"), 100)
 
@@ -55,3 +54,45 @@ help_text = _("Choose the position of the \"report (0)\" control of nodes."),
 widget=RadioSelect,
 choices=REPORT_OFFENSIVE_CONTROL_POSITION_CHOICES,
 required=False))
+
+
+# First posts review queue (forum/utils/review.py, Admin > Moderation inbox).
+FIRST_POSTS_MODERATION_CHOICES = (
+    ('off', _("Off: new members' posts are published without review")),
+    ('after', _("Review after publishing: posts appear at once and are listed in the moderation inbox")),
+    ('before', _("Review before publishing: posts stay hidden (except to their author and moderators) "
+                 "until a moderator approves them")),
+)
+
+FIRST_POSTS_MODERATION = Setting('FIRST_POSTS_MODERATION', 'off', MODERATION_SET, dict(
+label = _("Review new members' first posts"),
+help_text = _("Questions, answers and comments by new members go to the moderation inbox (shown to moderators in "
+              "the header). Moderators and administrators are never reviewed. With \"before\", other people only see "
+              "a post once it is approved, and followers are notified then; the author sees it marked \"Waiting for "
+              "review\" and gets an email and a notification when it is approved or removed."),
+widget=RadioSelect,
+choices=FIRST_POSTS_MODERATION_CHOICES,
+required=False))
+
+FIRST_POSTS_REVIEW_COUNT = Setting('FIRST_POSTS_REVIEW_COUNT', 1, MODERATION_SET, dict(
+label = _("Posts to review per member"),
+help_text = _("A member's posts are reviewed until a moderator has approved this many of them (deleted posts don't "
+              "count). 1 reviews only the first post. 0 reviews no one by count (see the reputation below).")))
+
+FIRST_POSTS_REVIEW_MIN_REP = Setting('FIRST_POSTS_REVIEW_MIN_REP', 0, MODERATION_SET, dict(
+label = _("Also review posts by members below this reputation"),
+help_text = _("Every post by a member with less reputation than this is reviewed, however many posts they have. "
+              "0 turns this off.")))
+
+
+# Suggested edits (forum/utils/suggested_edits.py): members below the
+# reputation to edit others' posts may suggest edits, reviewed by those above it.
+SUGGESTED_EDITS_ENABLED = Setting('SUGGESTED_EDITS_ENABLED', True, MODERATION_SET, dict(
+label = _("Suggested edits"),
+help_text = _("Members who can't edit others' posts yet (see the minimum reputation to edit others posts) may suggest "
+              "an edit instead. Members who can edit others' posts and moderators review the suggestions."),
+required=False))
+
+SUGGESTED_EDITS_PER_DAY = Setting('SUGGESTED_EDITS_PER_DAY', 5, MODERATION_SET, dict(
+label = _("Suggested edits per member per day"),
+help_text = _("How many edits a member may suggest in 24 hours. 0 for no limit.")))

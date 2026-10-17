@@ -1,5 +1,6 @@
-from base import *
-from django.utils.translation import ugettext as _
+from .base import *
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 def silent_permalink(func):
     """
@@ -11,17 +12,17 @@ def silent_permalink(func):
         (viewname, viewargs)
         (viewname, viewargs, viewkwargs)
     """
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
     def inner(*args, **kwargs):
         bits = func(*args, **kwargs)
         try:
             return reverse(bits[0], None, *bits[1:3])
         except:
-            return "javascript:alert('Configure this page URL in the urls.py file');"
+            return "#"  # the URL pattern is missing (no javascript: URLs: the CSP blocks them)
     return inner
 
 class Page(Node):
-    friendly_name = _("page")
+    friendly_name = _lazy("page")
 
     @property
     def published(self):
@@ -34,7 +35,7 @@ class Page(Node):
     def save(self, *args, **kwargs):
         old_options = self._original_state.get('extra', None)
 
-        super(Page, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         registry = settings.STATIC_PAGE_REGISTRY
 
@@ -56,10 +57,10 @@ class Page(Node):
     @silent_permalink
     def get_absolute_url(self):
         return ('static_page', (), {'path': self.extra['path']})
-        
-    def activate_revision(self, user, revision, extensions=['urlize']):
+
+    def activate_revision(self, user, revision):
         self.title = revision.title
-        self.tagnames = revision.tagnames        
+        self.tagnames = revision.tagnames
         self.body = revision.body
 
         self.active_revision = revision
@@ -70,4 +71,4 @@ class Page(Node):
     class Meta(Node.Meta):
         proxy = True
 
-    
+

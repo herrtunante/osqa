@@ -1,26 +1,198 @@
-{% extends "base_content.html" %}
+{% extends "base.html" %}
+<!-- search.html: the search page, its filters (the sidebar; a dialog on phones, osqa.searchpage.js) and its results -->
+{% load i18n humanize extra_tags node_tags %}
 
-{% load i18n %}
+{% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
+
+{% block meta %}
+    <meta name="robots" content="noindex, follow" />
+    {% if feed_url %}<link rel="alternate" type="application/rss+xml" title="RSS" href="{{ feed_url }}" />{% endif %}
+{% endblock %}
+
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.searchpage.js" %}"></script>
+{% endblock %}
 
 {% block content %}
-<div id="main-bar" class="headNormal">
-	{% blocktrans with settings.APP_SHORT_NAME as app_name %}
-	    Search in {{  app_name }}
-	{%  endblocktrans %}
+<div class="tabBar search-tabbar">
+    <h1 class="headQuestions">{% if searching %}{% trans "Search results" %}{% else %}{% trans "Search" %}{% endif %}</h1>
+    {% if results %}{{ questions.paginator.sort_tabs }}{% endif %}
 </div>
-<div id="main-body" style="text-align: center; height: 400px;">
-<form action="{% url "search" %}" method="get">
-    {% csrf_token %}
-    <div>
-        <input type="text" class="searchInput" value="{{ keywords }}" name="q" id="keywords" style="width: 600px" />
-        <input type="submit" name="Submit" value="{% trans "search" %}" class="searchBtn" />
-    </div>
-    <div class="options">
-        <input id="type-question" type="radio" value="question" name="t"
-            checked="checked" /><label for="type-question">{% trans "questions" %}</label>
-        <input id="type-tag" type="radio" value="tag" name="t" /><label for="type-tag">{% trans "tags" %}</label>
-        <input id="type-user" type="radio" value="user" name="t" /><label for="type-user">{% trans "users" %}</label>
-    </div>
+
+<form id="search-form" class="search-page-form" action="{% url "search" %}" method="get" role="search">
+    <label for="search-page-q" class="visually-hidden">{% trans "Search questions" %}</label>
+    <input type="search" id="search-page-q" name="q" value="{{ keywords }}" placeholder="{% trans "Words, &quot;a phrase&quot;, [tag]..." %}" />
+    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}" />{% endif %}
+    <button type="submit" class="submit">{% trans "Search" %}</button>
 </form>
+
+<div class="search-toolbar">
+    <button type="button" class="plain-button search-filters-toggle" aria-controls="search-filters-dialog" aria-haspopup="dialog" hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 5h18v2H3zm3 6h12v2H6zm4 6h4v2h-4z"/></svg>
+        {% trans "Filters" %}{% if filters.active_count %} <span class="search-filters-count" aria-hidden="true">{{ filters.active_count }}</span><span class="visually-hidden">{% blocktrans count counter=filters.active_count %}({{ counter }} active){% plural %}({{ counter }} active){% endblocktrans %}</span>{% endif %}
+    </button>
+    {# Shown before the first paint where osqa.searchpage.js will make it work (no layout shift when it runs). #}
+    <script nonce="{{ csp_nonce }}">if (window.HTMLDialogElement) { document.currentScript.previousElementSibling.hidden = false; }</script>
+    {% if chips %}
+    <ul class="search-chips" aria-label="{% trans "Active filters" %}">
+        {% for chip in chips %}
+        <li><a class="search-chip" href="{{ chip.url }}"><span class="visually-hidden">{% trans "Remove filter:" %} </span>{{ chip.label }}<span class="search-chip-remove" aria-hidden="true">&#215;</span></a></li>
+        {% endfor %}
+        <li><a class="search-chips-clear" href="{{ clear_all_url }}">{% trans "Clear all" %}</a></li>
+    </ul>
+    {% endif %}
 </div>
+
+{% if searching %}
+<p class="search-count" role="status">{{ result_count_text }}</p>
+{% if did_you_mean %}
+<p class="search-did-you-mean">{% trans "Did you mean:" %} <a href="{{ did_you_mean.url }}">{{ did_you_mean.html }}</a></p>
+{% endif %}
+{% endif %}
+
+{% if results %}
+<ol id="search-results" class="search-results" aria-label="{% trans "Search results" %}">
+{% for result in results %}{% with question=result.question %}
+    <li class="short-summary question-row search-result is-{{ result.status }}">
+        <div class="counts">
+            <div class="votes">
+                <span class="item-count">{{ question.score|intcomma }}</span>
+                <span class="item-label">{% if question.score == 1 %}{% trans "vote" %}{% else %}{% trans "votes" %}{% endif %}</span>
+            </div>
+            <div class="status {% if result.accepted %}answered-accepted {% endif %}{% if result.answers %}answered{% else %}unanswered{% endif %}"{% if result.accepted %} title="{% trans "this question has an accepted answer" %}"{% endif %}>
+                <span class="item-count">{{ result.answers|intcomma }}</span>
+                <span class="item-label">{% if result.answers == 1 %}{% trans "answer" %}{% else %}{% trans "answers" %}{% endif %}</span>
+                {% if result.accepted %}<span class="visually-hidden">({% trans "this question has an accepted answer" %})</span>{% endif %}
+            </div>
+        </div>
+        <div class="question-summary-wrapper">
+            <h2><a href="{{ question.get_absolute_url }}">{{ result.title }}</a></h2>
+            {% if result.snippet %}<p class="search-snippet">{{ result.snippet }}</p>{% endif %}
+            <div class="search-result-meta">
+                {% if result.status != "unanswered" %}<span class="search-status search-status-{{ result.status }}">{{ result.status_label }}</span>{% endif %}
+                <span class="tags">{% for tag in question.tagname_list %}
+                    <a href="{% url "tag_questions" tag|urlencode %}" rel="tag">{{ tag }}</a>{% endfor %}
+                </span>
+                <span class="userinfo">{% trans "asked" %} {% post_time question.added_at %}{% if question.author %}
+                    {% trans "by" context "asked by" %} <a href="{{ question.author.get_profile_url }}">{{ question.author.decorated_name }}</a>{% endif %}
+                </span>
+            </div>
+        </div>
+    </li>
+{% endwith %}{% endfor %}
+</ol>
+{% elif searching %}
+<div class="search-empty">
+    <h2>{% trans "No questions match your search." %}</h2>
+    <ul>
+        {% if clear_all_url and plain_text %}
+        <li><a href="{{ clear_all_url }}">{% blocktrans with words=plain_text %}Search for &ldquo;{{ words }}&rdquo; without the filters{% endblocktrans %}</a></li>
+        {% elif chips %}
+        <li>{% trans "Remove some of the filters (tags, people, is:) to see more questions." %}</li>
+        {% endif %}
+        <li>{% trans "Try other or fewer words, or check their spelling." %}</li>
+        <li>{% trans "The search tips below show how to look for a phrase, leave words out or search in a tag." %}</li>
+        <li><a href="{{ ask_url }}">{% trans "Ask a question" %}</a> {% trans "and let the community answer it." %}</li>
+    </ul>
+</div>
+{% endif %}
+
+<details class="search-tips"{% if not searching or not results %} open{% endif %}>
+    <summary>{% trans "Search tips" %}</summary>
+    <dl>
+        <dt><code>csv export</code></dt><dd>{% trans "Questions with any of these words; those with more of them, or with them in the title, come first." %}</dd>
+        <dt><code>"survey data"</code></dt><dd>{% trans "This exact phrase." %}</dd>
+        <dt><code>-excel</code></dt><dd>{% trans "Leave out questions with this word." %}</dd>
+        <dt><code>[collect]</code> {% trans "or" %} <code>tag:collect</code></dt><dd>{% trans "Only questions with this tag." %}</dd>
+        <dt><code>is:answered</code>, <code>is:unanswered</code>, <code>is:accepted</code></dt><dd>{% trans "Only questions with answers, without answers, or with an accepted answer." %}</dd>
+        <dt><code>user:alice</code></dt><dd>{% trans "Only questions asked by this person." %}</dd>
+        <dt>{% trans "Filters" %}</dt><dd>{% trans "Narrow the results by tags, status, date, author, code or score. They combine with the words and operators above, and the page address keeps them: share it or bookmark it." %}</dd>
+    </dl>
+</details>
 {% endblock %}
+
+{% block tail %}
+    {% if results %}
+    <div class="pager">{{ questions.paginator.page_numbers }}</div>
+    <div class="pagesize">{{ questions.paginator.page_sizes }}</div>
+    {% endif %}
+{% endblock %}
+
+{% block sidebar %}
+<section id="search-filters-home" class="search-filters-home" aria-labelledby="search-filters-title">
+<div id="search-filters" class="boxC search-filters">
+    <h2 id="search-filters-title" class="search-filters-title">{% trans "Filters" %}</h2>
+
+    <div class="search-filter">
+        <label for="search-filter-tags">{% trans "Tags" %}</label>
+        <input type="text" id="search-filter-tags" name="tags" form="search-form" value="{{ filters.tags|join:" " }}"
+               data-autocomplete-url="{% url "matching_tags" %}" aria-describedby="search-filter-tags-hint" autocomplete="off" spellcheck="false" />
+        <p id="search-filter-tags-hint" class="search-filter-hint">{% trans "Separate tags with spaces; every tag must match." %}</p>
+        {% if facets.tags %}
+        <p class="search-facet-heading" id="search-facet-tags-heading">{% trans "Common tags in these results" %}</p>
+        <ul class="search-facet-tags" aria-labelledby="search-facet-tags-heading">
+            {% for tag in facets.tags %}
+            <li><a href="{{ tag.url }}" rel="nofollow"><span class="visually-hidden">{% trans "Add the tag" %} </span>{{ tag.name }} <span class="search-facet-count">{{ tag.count }}</span></a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    <fieldset class="search-filter">
+        <legend>{% trans "Status" %}</legend>
+        {% for option in status_options %}
+        <label class="search-filter-option"><input type="radio" name="status" value="{{ option.value }}" form="search-form" autocomplete="off"{% if option.checked %} checked{% endif %} />
+            <span>{{ option.label }}</span>{% if option.count %} <span class="search-facet-count">{{ option.count }}</span>{% endif %}</label>
+        {% endfor %}
+        <label class="search-filter-option search-filter-closed"><input type="checkbox" name="closed" value="hide" form="search-form" autocomplete="off"{% if filters.hide_closed %} checked{% endif %} />
+            <span>{% trans "Hide closed questions" %}</span>{% if facets %} <span class="search-facet-count" title="{% trans "closed questions in the results" %}">{{ facets.closed }}</span>{% endif %}</label>
+    </fieldset>
+
+    <div class="search-filter">
+        <label for="search-filter-date">{% trans "Asked" %}</label>
+        <select id="search-filter-date" name="date" form="search-form" autocomplete="off">
+            <option value=""{% if not filters.date %} selected{% endif %}>{% trans "Any time" %}</option>
+            {% for value, label in date_labels.items %}
+            <option value="{{ value }}"{% if filters.date == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <div id="search-filter-range" class="search-filter-range">
+            <label for="search-filter-from">{% trans "From" %}</label>
+            <input type="date" id="search-filter-from" name="from" form="search-form" autocomplete="off" value="{{ filters.date_from|date:"Y-m-d" }}" />
+            <label for="search-filter-to">{% trans "To" %}</label>
+            <input type="date" id="search-filter-to" name="to" form="search-form" autocomplete="off" value="{{ filters.date_to|date:"Y-m-d" }}" />
+        </div>
+    </div>
+
+    <div class="search-filter">
+        <label for="search-filter-author">{% trans "Author" %}</label>
+        <input type="text" id="search-filter-author" name="author" form="search-form" value="{{ filters.author }}"
+               data-autocomplete-url="{% url "matching_users" %}" placeholder="{% trans "User name" %}" autocomplete="off" spellcheck="false" />
+    </div>
+
+    <div class="search-filter search-filter-row">
+        <label class="search-filter-option"><input type="checkbox" name="code" value="1" form="search-form" autocomplete="off"{% if filters.has_code %} checked{% endif %} />
+            <span>{% trans "Has code blocks" %}</span></label>
+    </div>
+
+    <div class="search-filter">
+        <label for="search-filter-score">{% trans "Minimum score" %}</label>
+        <input type="number" id="search-filter-score" name="min_score" form="search-form" autocomplete="off" inputmode="numeric" step="1" value="{% if filters.min_score is not None %}{{ filters.min_score }}{% endif %}" />
+    </div>
+
+    <div class="search-filter-actions">
+        <button type="submit" form="search-form" class="submit">{% trans "Apply filters" %}</button>
+        {% if chips %}<a class="search-chips-clear" href="{{ clear_all_url }}">{% trans "Clear all" %}</a>{% endif %}
+    </div>
+</div>
+</section>
+
+<dialog id="search-filters-dialog" class="search-filters-dialog" aria-labelledby="search-filters-dialog-title">
+    <div class="search-filters-dialog-head">
+        <h2 id="search-filters-dialog-title">{% trans "Filters" %}</h2>
+        <button type="button" class="plain-button search-filters-close" data-search-filters-close aria-label="{% trans "Close" %}" title="{% trans "Close" %}">&#215;</button>
+    </div>
+    <div class="search-filters-dialog-body"></div>
+</dialog>
+{% endblock %}
+<!-- end search.html -->

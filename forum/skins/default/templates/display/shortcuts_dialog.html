@@ -1,0 +1,42 @@
+{% load i18n %}{% comment %}
+The keyboard shortcuts list, opened with "?" (osqa.shortcuts.js reads the
+URLs below). Included by base_content.html unless the member turned the
+shortcuts off in their preferences.
+{% endcomment %}<dialog id="shortcuts-dialog" class="shortcuts-dialog" aria-labelledby="shortcuts-title"
+    data-url-home="{% url "index" %}" data-url-questions="{% url "questions" %}" data-url-tags="{% url "tags" %}"
+    data-url-users="{% url "users" %}" data-url-ask="{% url "ask" %}"{% if user.is_authenticated %}
+    data-url-notifications="{% url "notifications" %}" data-signed-in{% endif %}>
+    <div class="shortcuts-header">
+        <h2 id="shortcuts-title">{% trans "Keyboard shortcuts" %}</h2>
+        <button type="button" class="plain-button shortcuts-close" data-shortcuts-close aria-label="{% trans "Close" %}" title="{% trans "Close" %}">&#215;</button>
+    </div>
+    <div class="shortcuts-groups">
+        <section>
+            <h3>{% trans "Anywhere" %}</h3>
+            <dl class="shortcuts-list">
+                <div><dt><kbd>?</kbd></dt><dd>{% trans "Show this list" %}</dd></div>
+                <div><dt><kbd>/</kbd></dt><dd>{% trans "Search" %}</dd></div>
+                <div><dt><kbd>g</kbd> <kbd>h</kbd></dt><dd>{% trans "Go to the home page" %}</dd></div>
+                <div><dt><kbd>g</kbd> <kbd>q</kbd></dt><dd>{% trans "Go to the questions" %}</dd></div>
+                <div><dt><kbd>g</kbd> <kbd>t</kbd></dt><dd>{% trans "Go to the tags" %}</dd></div>
+                <div><dt><kbd>g</kbd> <kbd>u</kbd></dt><dd>{% trans "Go to the users" %}</dd></div>{% if user.is_authenticated %}
+                <div><dt><kbd>g</kbd> <kbd>n</kbd></dt><dd>{% trans "Go to your notifications" %}</dd></div>{% endif %}
+                <div><dt><kbd>a</kbd></dt><dd>{% trans "Ask a question" %}</dd></div>
+            </dl>
+        </section>
+        <section>
+            <h3>{% trans "Lists of questions" %}</h3>
+            <dl class="shortcuts-list">
+                <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>{% trans "Next or previous question" %}</dd></div>
+                <div><dt><kbd>Enter</kbd></dt><dd>{% trans "Open the question" %}</dd></div>
+            </dl>
+            <h3>{% trans "Question pages" %}</h3>
+            <dl class="shortcuts-list">
+                <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>{% trans "Next or previous post" %}</dd></div>{% if user.is_authenticated %}
+                <div><dt><kbd>u</kbd> <kbd>d</kbd></dt><dd>{% trans "Vote the post up or down" %}</dd></div>{% endif %}
+            </dl>
+        </section>
+    </div>
+    <p class="shortcuts-note">{% trans "Shortcuts never apply while you type in a text field." %}
+        {% if user.is_authenticated %}{% url "user_preferences" id=user.id slug=user.username|slugify as preferences_url %}{% blocktrans %}You can turn them off in <a href="{{ preferences_url }}">your preferences</a>.{% endblocktrans %}{% else %}{% trans "Members can turn them off in their preferences." %}{% endif %}</p>
+</dialog>

@@ -1,0 +1,32 @@
+# Creates/updates the tables. Run it before each new version serves traffic:
+#   kubectl -n osqa delete job osqa-migrate --ignore-not-found
+#   kubectl apply -k docs/k8s/        # (or: kubectl -n osqa apply -f migrate-job.yaml)
+#   kubectl -n osqa wait --for=condition=complete job/osqa-migrate --timeout=15m
+# (a Helm pre-upgrade hook or Argo CD PreSync hook does the same).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: osqa-migrate
+  labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: migrate}
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: migrate}
+    spec:
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 999, runAsGroup: 999}
+      containers:
+        - name: migrate
+          image: osqa
+          args: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef: {name: osqa-config}
+            - secretRef: {name: osqa-secrets}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

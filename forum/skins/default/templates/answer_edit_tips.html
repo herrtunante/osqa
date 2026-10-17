@@ -1,26 +1,22 @@
 <!-- template answer_edit_tips.html -->
 {% load i18n general_sidebar_tags %}
-<div class="boxC">
-    <p class="subtitle darkred">{% trans "answer tips" %}</p>
-    <div>
+<div class="boxC compose-tips">
+    <h2 class="compose-tips-title">{% trans "Writing tips" %}</h2>
+    <details class="compose-tip" open>
+        <summary>{% trans "answer tips" as answer_tips %}{{ answer_tips|capfirst }}</summary>
         <ul class="list-item">
-            <li> <b>{% trans "please make your answer relevant to this community" %}</b>
-            </li>
-            <li>
-                {% trans  "try to give an answer, rather than engage into a discussion" %}
-            </li>
-            <li>
-                {% trans "please try to provide details" %}
-            </li>
-            <li>
-				{% trans "be clear and concise" %}
-            </li>
+            <li><b>{% trans "please make your answer relevant to this community" %}</b></li>
+            <li>{% trans  "try to give an answer, rather than engage into a discussion" %}</li>
+            <li>{% trans "please try to provide details" %}</li>
+            <li>{% trans "be clear and concise" %}</li>
         </ul>
-        <p class='info-box-follow-up-links'>
-            <a href="{% url "faq" %}" target="_blank" title="{% trans "see frequently asked questions" %}">faq &raquo;</a>
-        </p>
-    </div>
+    </details>
+    <details class="compose-tip compose-tip-markdown">
+        <summary>{% trans "Markdown Basics" %}</summary>
+        {% markdown_help %}
+    </details>
+    <p class="info-box-follow-up-links">
+        <a href="{% url "faq" %}" target="_blank" title="{% trans "see frequently asked questions" %}">{% trans "faq" %} &raquo;</a>
+    </p>
 </div>
-
-{% markdown_help %}
 <!-- end template answer_edit_tips.html -->

@@ -1,0 +1,19 @@
+{% load i18n %}{# Picking another revision reloads the form with it (osqa.compose.js presses "select revision"). #}
+{# base_revision: the revision this form started from; saving after someone else changed the post shows edit_conflict instead (forum/utils/live.py). #}
+{% if edit_conflict %}
+<div class="compose-alert compose-conflict" role="alert" id="form-errors" tabindex="-1">
+    <p class="compose-alert-title">{% trans "This post was changed while you were editing it" %}</p>
+    <p>{% blocktrans with who=edit_conflict.author.username number=edit_conflict.revision %}{{ who }} saved revision {{ number }} after you opened this page. Nothing was saved: your text is kept below.{% endblocktrans %}</p>
+    <p><a href="{% url "revisions" id=edit_conflict.node_id %}" target="_blank" rel="noopener">{% trans "Compare the revisions (opens in a new tab)" %}</a></p>
+    <p>{% trans "Saving again replaces their version with yours." %}</p>
+</div>
+{% endif %}
+<input type="hidden" name="base_revision" value="{{ base_revision }}" />
+<div class="compose-field compose-revision">
+    <label class="compose-label" for="id_revision">{% trans "Revision" %}</label>
+    <p class="compose-help">{% trans "Start from an earlier version of the post; saving it unchanged rolls the post back." %}</p>
+    <div class="compose-revision-row">
+        {{ revision_form.revision }}
+        <input type="submit" class="submit compose-secondary" id="select_revision" name="select_revision" value="{% trans "select revision" %}" />
+    </div>
+</div>

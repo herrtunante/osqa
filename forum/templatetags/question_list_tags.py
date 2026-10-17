@@ -1,5 +1,5 @@
 from django import template
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from forum.models import Tag, MarkedTag
 from forum.templatetags import argument_parser
@@ -15,12 +15,13 @@ class QuestionItemNode(template.Node):
         self.options = options
 
     def render(self, context):
-        return self.template.render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        return self.template.render({
             'question': self.question.resolve(context),
             'question_summary': self.options.get('question_summary', 'no' ) == 'yes',
             'favorite_count': self.options.get('favorite_count', 'no') == 'yes',
             'signature_type': self.options.get('signature_type', 'lite'),
-        }))
+        })
 
 class SubscriptionItemNode(template.Node):
     template = template.loader.get_template('question_list/subscription_item.html')
@@ -31,11 +32,12 @@ class SubscriptionItemNode(template.Node):
         self.options = options
 
     def render(self, context):
-        return self.template.render(template.Context({
+        # Django 4.2: Template.render() expects a dict, not a Context object
+        return self.template.render({
             'question': self.question.resolve(context),
             'subscription': self.subscription.resolve(context),
             'signature_type': self.options.get('signature_type', 'lite'),
-        }))
+        })
 
 @register.tag
 def question_list_item(parser, token):
@@ -68,12 +70,14 @@ def tag_selector(context):
     request = context['request']
     show_interesting_tags = settings.SHOW_INTERESTING_TAGS_BOX
 
-    if request.user.is_authenticated():
-        pt = MarkedTag.objects.filter(user=request.user)
+    if request.user.is_authenticated:
+        # One query for both lists (the template reads each of them twice).
+        marked = list(MarkedTag.objects.filter(user=request.user, reason__in=('good', 'bad'))
+                      .values_list('reason', 'tag__name'))
         return {
             'request' : request,
-            "interesting_tag_names": pt.filter(reason='good').values_list('tag__name', flat=True),
-            'ignored_tag_names': pt.filter(reason='bad').values_list('tag__name', flat=True),
+            "interesting_tag_names": [name for reason, name in marked if reason == 'good'],
+            'ignored_tag_names': [name for reason, name in marked if reason == 'bad'],
             'user_authenticated': True,
             'show_interesting_tags' : show_interesting_tags,
         }

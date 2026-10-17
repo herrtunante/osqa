@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 MIN_REP_SET = SettingSet('minrep', _('Minimum reputation config'), _("Configure the minimum reputation required to perform certain actions on your site."), 300)
 

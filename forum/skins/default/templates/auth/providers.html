@@ -1,0 +1,22 @@
+{% load i18n extra_tags %}{# Sign-in services as full-width buttons ("Continue with Google"). #}
+<div class="auth-providers">
+    {% for provider in button_providers %}
+        {% if provider.type == "CUSTOM" %}
+            {% include provider.code_template %}
+        {% elif provider.type == "DIRECT" %}
+            <a class="provider_direct auth-provider" href="{% url "auth_provider_signin" provider=provider.id %}"><img src="{% media provider.icon %}" alt="" width="20" height="20" /><span>{% blocktrans with name=provider.human_name %}Continue with {{ name }}{% endblocktrans %}</span></a>
+        {% elif provider.type == "SIMPLE_FORM" %}
+            <details class="auth-provider-form">
+                <summary class="auth-provider"><img src="{% media provider.icon %}" alt="" width="20" height="20" /><span>{% blocktrans with name=provider.human_name %}Continue with {{ name }}{% endblocktrans %}</span></summary>
+                <form method="POST" action="{% url "auth_provider_signin" provider=provider.id %}" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    <div class="auth-field">
+                        <label for="id_{{ provider.id }}_input">{% blocktrans with what=provider.simple_form_context.your_what %}Your {{ what }}{% endblocktrans %}</label>
+                        <input id="id_{{ provider.id }}_input" type="text" name="input_field" required autocapitalize="none" spellcheck="false" />
+                    </div>
+                    <button type="submit" class="auth-submit">{% trans "Continue" %}</button>
+                </form>
+            </details>
+        {% endif %}
+    {% endfor %}
+</div>

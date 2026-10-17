@@ -21,7 +21,7 @@
             {{ question.summary }}...                
         </div>
         
-        {% ifequal tab_id 'active'%}
+        {% if tab_id == 'active' %}
         {% if question.wiki and settings.WIKI_ON %}
         <span class="from wiki">{% trans "community wiki" %}</span>
         <span class="date" title="{{ question.added_at }}">{% diff_date question.added_at %}</span>
@@ -45,7 +45,7 @@
             <span class="date" title="{{ question.added_at }}">{% diff_date question.added_at %}</span>
         </div>
         {% endif %}
-        {% endifequal %}
+        {% endif %}
         
         <div class="tags">
         {% for tag in question.tagname_list %}

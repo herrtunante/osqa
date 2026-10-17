@@ -1,5 +1,5 @@
 
-class AuthenticationConsumer(object):
+class AuthenticationConsumer:
 
     def prepare_authentication_request(self, request, redirect_to):
         raise NotImplementedError()
@@ -11,7 +11,7 @@ class AuthenticationConsumer(object):
         raise NotImplementedError()
 
 
-class ConsumerTemplateContext(object):
+class ConsumerTemplateContext:
     """
         Class that provides information about a certain authentication provider context in the signin page.
 
@@ -40,5 +40,4 @@ class ConsumerTemplateContext(object):
 class InvalidAuthentication(Exception):
     def __init__(self, message):
         self.message = message
-        
-    
+

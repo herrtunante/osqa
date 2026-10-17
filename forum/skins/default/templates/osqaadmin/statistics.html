@@ -1,33 +1,28 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 {% load extra_tags %}
 
 {% block adminjs %}
-<script type='text/javascript' src='{% media  "/media/js/excanvas.min.js" %}'></script>
-<script type='text/javascript' src='{% media  "/media/js/jquery.flot.min.js" %}'></script>
-<script type="text/javascript">
-        $().ready(function(){
+<script type="text/javascript" src="{% media "/media/vendor/flot-4.2.6/jquery.flot.min.js" %}"></script>
+<script type="text/javascript" src="{% media "/media/js/osqa.charts.js" %}"></script>
+<script nonce="{{ csp_nonce }}" type="text/javascript">
+        $(function(){
         {% for graph in graphs %}
-            var {{ graph.id }} = {{ graph.data }};
-            var {{ graph.id }}_placeholder = $('#{{ graph.id }}');
-
-            $.plot({{ graph.id }}_placeholder, [{{ graph.id }}], {
-                xaxis: { mode: "time" },
-                points: { show: false },
-                lines: { show: true }
-            });
+            osqaTimeChart('#{{ graph.id }}', {{ graph.data }});
         {% endfor %}
         });
 </script>
 {% endblock %}
 
-{% block subtitle %}{% trans "Dashboard" %}{% endblock %}
-{% block pagename %}{% trans "Dashboard" %}{% endblock %}
+{% block subtitle %}{% trans "Statistics" %}{% endblock %}
+{% block pagename %}{% trans "Statistics" %}{% endblock %}
 {% block description %}{% trans "Some simple graphics to help you get a notion of whats going on in your site." %}{% endblock %}
 
 {% block admincontent %}
+<div class="stats-grid">
 {% for graph in graphs %}
     {% include "osqaadmin/graph.html" %}
 {% endfor %}
+</div>
 {% endblock %}

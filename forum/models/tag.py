@@ -1,24 +1,24 @@
 import datetime
-from base import *
+from .base import *
 
 from django.conf import settings as django_settings
-from django.core.cache.backends.base import BaseCache
-from django.utils.translation import ugettext as _
-from django.utils.encoding import smart_unicode, force_unicode
+from django.utils.translation import gettext_lazy as _lazy
+from django.utils.encoding import force_str
 
-from forum import modules
 
 class ActiveTagManager(CachedManager):
     use_for_related_fields = True
 
     def get_queryset(self):
-        return super(ActiveTagManager, self).get_queryset().exclude(used_count__lt=1)
+        return super().get_queryset().exclude(used_count__lt=1)
 
 class Tag(BaseModel):
     name            = models.CharField(max_length=255, unique=True)
-    created_by      = models.ForeignKey(User, related_name='created_tags')
+    created_by      = models.ForeignKey(User, related_name='created_tags', on_delete=models.CASCADE)
     created_at      = models.DateTimeField(default=datetime.datetime.now, blank=True, null=True)
     marked_by       = models.ManyToManyField(User, related_name="marked_tags", through="MarkedTag")
+    # Short Markdown text explaining what the tag is for (shown on the tag's page).
+    description = models.TextField(blank=True, default='')
     # Denormalised data
     used_count = models.PositiveIntegerField(default=0)
 
@@ -27,9 +27,10 @@ class Tag(BaseModel):
     class Meta:
         ordering = ('-used_count', 'name')
         app_label = 'forum'
+        indexes = [models.Index(fields=['used_count', 'name'], name='tag_used_count_idx')]
 
-    def __unicode__(self):
-        return force_unicode(self.name)
+    def __str__(self):
+        return force_str(self.name)
 
     def add_to_usage_count(self, value):
         if self.used_count + value < 0:
@@ -59,17 +60,64 @@ class Tag(BaseModel):
     @classmethod
     def value_to_list_on_cache_query(cls):
         return 'name'
-
-    @models.permalink
     def get_absolute_url(self):
-        return ('tag_questions', (), {'tag': self.name})
+        return reverse('tag_questions', kwargs={'tag': self.name})
+
+    @property
+    def description_html(self):
+        if not self.description:
+            return ''
+        from forum.models.node import Node
+        return Node._as_markdown(self.description, 'limitedsyntax')
+
+    def _description_text(self):
+        from django.utils.html import strip_tags
+        return ' '.join(strip_tags(str(self.description_html)).split())
+
+    @property
+    def description_excerpt(self):
+        from django.utils.text import Truncator
+        return Truncator(self._description_text()).chars(140)
+
+    @property
+    def description_is_long(self):
+        """Longer than its excerpt: the tag page shows the excerpt and the rest on request."""
+        return len(self._description_text()) > 140
+
+
+class TagSynonym(models.Model):
+    """A tag name that is replaced by another tag ("gis-analysis" -> "gis")."""
+    source_name = models.CharField(max_length=255, unique=True)
+    target = models.ForeignKey(Tag, related_name='synonyms', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, related_name='created_tag_synonyms', null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        app_label = 'forum'
+        ordering = ('source_name',)
+
+    def __str__(self):
+        return '%s -> %s' % (self.source_name, self.target.name)
+
+    @classmethod
+    def resolve(cls, names):
+        """Replace synonyms in a list of tag names by their targets, keeping order and dropping repeats."""
+        mapping = dict(cls.objects.filter(source_name__in=names).values_list('source_name', 'target__name'))
+        out = []
+        for name in names:
+            name = mapping.get(name, name)
+            if name not in out:
+                out.append(name)
+        return out
 
 class MarkedTag(models.Model):
-    TAG_MARK_REASONS = (('good', _('interesting')), ('bad', _('ignored')))
-    tag = models.ForeignKey(Tag, related_name='user_selections')
-    user = models.ForeignKey(User, related_name='tag_selections')
+    TAG_MARK_REASONS = (('good', _lazy('interesting')), ('bad', _lazy('ignored')))
+    tag = models.ForeignKey(Tag, related_name='user_selections', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='tag_selections', on_delete=models.CASCADE)
     reason = models.CharField(max_length=16, choices=TAG_MARK_REASONS)
 
     class Meta:
         app_label = 'forum'
+        # The tag selector and the ignored-tags filter.
+        indexes = [models.Index(fields=['user', 'reason'], name='markedtag_user_reason_idx')]
 

@@ -1,0 +1,41 @@
+# Shared cache for all OSQA pods (or use a managed memcached: set OSQA_MEMCACHED).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osqa-memcached
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: osqa-memcached}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: osqa-memcached}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 11211
+      containers:
+        - name: memcached
+          image: memcached:1.6-alpine
+          args: ["memcached", "-m", "256"]
+          ports:
+            - {name: memcached, containerPort: 11211}
+          readinessProbe:
+            tcpSocket: {port: memcached}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 320Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: osqa-memcached
+spec:
+  selector: {app.kubernetes.io/name: osqa-memcached}
+  ports:
+    - {name: memcached, port: 11211, targetPort: memcached}

@@ -1,4 +1,4 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 
@@ -7,22 +7,29 @@
 {% block description %}{% trans "Allows you to create a set of static pages" %}{% endblock %}
 
 {% block admincontent %}
-    <h1>{% trans "Select page to edit" %}</h1>
     <ul class="object-tools">
         <li><a class="addlink" href="{% url "admin_new_page" %}">{% trans "New page" %}</a></li>
     </ul>
     <div class="module">
-        <table style="width: 100%">
+        <table class="static-pages-table" style="width: 100%">
             <caption>{% trans "Pages" %}</caption>
             <tbody>
                 {% for page in pages %}
                     <tr>
                         <th scope="row"><a href="{% url "admin_edit_page" id=page.id %}">{{ page.headline }}</a></th>
-                        <td style="width: 125px;"><a class="changelink" href="{% url "admin_edit_page" id=page.id %}">{% trans "Edit" %}</a></td>
-                        <td style="width: 125px;">
-                            <a onclick="return confirm('{% trans "Are you sure you want to delete this page?" %}');" class="deletelink" href="{% url "admin_delete_page" id=page.id %}">
-                                {% trans "Delete" %}
-                            </a>
+                        <td class="static-pages-action"><a class="changelink" href="{% url "admin_edit_page" id=page.id %}">{% trans "Edit" %}</a></td>
+                        <td class="static-pages-action">
+                            <form method="post" action="{% url "admin_delete_page" id=page.id %}" data-confirm="{% trans "Are you sure you want to delete this page?" %}">
+                                {% csrf_token %}
+                                <button type="submit" class="deletelink">{% trans "Delete" %}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="admin-empty" colspan="3">
+                            {% trans "There are no custom pages yet." %}
+                            <a href="{% url "admin_new_page" %}">{% trans "Create the first page" %}</a>
                         </td>
                     </tr>
                 {% endfor %}

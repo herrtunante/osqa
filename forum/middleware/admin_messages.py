@@ -1,5 +1,5 @@
-from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
+from django.utils.translation import gettext as _
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 
@@ -7,6 +7,19 @@ from forum.settings import EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, \
         APP_URL
 
 class AdminMessagesMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = None
+        if hasattr(self, "process_request"):
+            response = self.process_request(request)
+        if response is None:
+            response = self.get_response(request)
+        if hasattr(self, "process_response"):
+            response = self.process_response(request, response)
+        return response
+
     def process_request(self, request):
         # Check if the email settings are configured
         self.check_email_settings(request)
@@ -35,8 +48,8 @@ class AdminMessagesMiddleware(object):
     def check_app_url(self, request):
         # We consider the APP_URL setting not configured if it contains only the protocol
         # name or if it's shorter than 7 characters.
-        if request.user.is_authenticated and request.user.is_staff and request.user.is_superuser and \
-            APP_URL == 'http://' or APP_URL == 'https://' or len(APP_URL) < 7:
+        if request.user.is_authenticated and request.user.is_superuser and \
+            (APP_URL in ('http://', 'https://') or len(APP_URL) < 7):
 
             msg = _("""
                        Please, configure your APP_URL setting from the local settings file.

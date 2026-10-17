@@ -1,14 +1,14 @@
-from django.utils.translation import ungettext, ugettext as _
-from django.core.urlresolvers import reverse
+from django.utils.translation import ngettext, gettext as _
+from django.urls import reverse
 from django.db.models import F
 from django.contrib import messages
+from django.utils.html import escape
 from forum.models.action import ActionProxy
 from forum.models import Award, Badge, ValidationHash, User
 from forum import settings, REQUEST_HOLDER
 from forum.settings import APP_SHORT_NAME
 from forum.utils.mail import send_template_email
 
-from django.contrib import messages
 
 class UserJoinsAction(ActionProxy):
     verb = _("joined")
@@ -17,8 +17,11 @@ class UserJoinsAction(ActionProxy):
         self.repute(self.user, int(settings.INITIAL_REP))
 
     def process_action(self):
-        hash = ValidationHash.objects.create_new(self.user, 'email', [self.user.email])
-        send_template_email([self.user], "auth/welcome_email.html", {'validation_code': hash})
+        # The welcome email asks to confirm the address (double opt-in);
+        # addresses a sign-in service has already confirmed get none.
+        if self.user.email and not self.user.email_isvalid:
+            from forum.utils.accounts import send_confirmation
+            send_confirmation(self.user, welcome=True)
 
     def describe(self, viewer=None):
         return _("%(user)s %(have_has)s joined the %(app_name)s Q&A community") % {
@@ -74,17 +77,13 @@ class BonusRepAction(ActionProxy):
     def repute_users(self):
         self.repute(self._affected, self._value)
 
-        if self._value > 0:
-            self._affected.message_set.create(
-                    message=_("Congratulations, you have been awarded an extra %s reputation points.") % self._value +
-                    '<br />%s' % self.extra.get('message', _('Thank you')))
-        else:
+        if self._value < 0:
             messages.info(REQUEST_HOLDER.request, _("You have penalized %s in %s reputation points.") % (self._affected, self._value) +
-                    '<br />%s' % self.extra.get('message', ''))
+                    '<br />%s' % escape(self.extra.get('message', '')))
 
     def describe(self, viewer=None):
         value = self.extra.get('value', _('unknown'))
-        message = self.extra.get('message', '')
+        message = escape(self.extra.get('message', ''))
 
         try:
             if int(value) > 0:
@@ -97,7 +96,7 @@ class BonusRepAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer), 'message': message
                 }
-        except Exception, e:
+        except Exception:
             return ''
 
 class AwardPointsAction(ActionProxy):
@@ -111,13 +110,8 @@ class AwardPointsAction(ActionProxy):
     def repute_users(self):
         self.repute(self._affected, self._value)
         self.repute(self.user, -self._value)
-
-        self._affected.message_set.create(
-                message=_("Congratulations, you have been awarded an extra %(points)s reputation %(points_label)s on <a href=\"%(answer_url)s\">this</a> answer.") % {
-                        'points': self._value,
-                        'points_label': ungettext('point', 'points', self._value),
-                        'answer_url': self.node.get_absolute_url()
-                    })
+        # (Django's per-user message_set is gone; the award shows in the
+        # awarded user's reputation history.)
 
     def describe(self, viewer=None):
         value = self.extra.get('value', _('unknown'))
@@ -133,7 +127,7 @@ class AwardPointsAction(ActionProxy):
                 'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
                 'value': value, 'users':self.affected_links(viewer),
                 }
-        except Exception, e:
+        except Exception:
             return ''
 
 class AwardAction(ActionProxy):
@@ -164,7 +158,15 @@ class AwardAction(ActionProxy):
 
         self.user.save()
 
-        self.user.message_set.create(message=_(
+        # Badges are often awarded to someone other than the user making the
+        # request (e.g. the asker when somebody votes), or from a background
+        # thread with no request at all: only tell the recipient directly.
+        request = REQUEST_HOLDER.request
+        if request is None or request.user != self.user:
+            return
+
+        messages.add_message(request, messages.INFO, _(
+
                 """Congratulations, you have received a badge '%(badge_name)s'. <a href="%(badge_url)s">Find out who has it, too</a>."""
         ) % dict(
             badge_name=award.badge.name,
@@ -217,10 +219,11 @@ class ReportAction(ActionProxy):
 
     def describe(self, viewer=None):
 
-        return _("%(user)s reported %(reported) : %(msg)s") % {
-            'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
-            'reporter': self.extra.get('reported').username,
-            'msg': self.extra.get('publicmsg', _('N/A'))
+        reported = self.extra.get('reported')
+        return _("%(user)s reported %(reported)s : %(msg)s") % {
+            'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
+            'reported': self.hyperlink(reported.get_profile_url(), self.friendly_username(viewer, reported)),
+            'msg': escape(self.extra.get('publicmsg', _('N/A')))
         }
 
 class SuspendAction(ActionProxy):
@@ -242,7 +245,6 @@ class SuspendAction(ActionProxy):
             u.is_active = True
             u._pop_suspension_cache()
             u.save()
-            u.message_set.create(message=_("Your suspension has been removed."))
 
     def describe(self, viewer=None):
         if self.extra.get('bantype', 'indefinitely') == 'forxdays' and self.extra.get('forxdays', None):
@@ -252,5 +254,6 @@ class SuspendAction(ActionProxy):
 
         return _("%(user)s suspended %(users)s %(suspension)s: %(msg)s") % {
         'user': self.hyperlink(self.user.get_absolute_url(), self.friendly_username(viewer, self.user)),
-        'users': self.affected_links(viewer), 'suspension': suspension, 'msg': self.extra.get('publicmsg', _('Bad behaviour'))
+        'users': self.affected_links(viewer), 'suspension': suspension,
+        'msg': escape(self.extra.get('publicmsg', _('Bad behaviour')))
         }

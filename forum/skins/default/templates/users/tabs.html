@@ -1,12 +1,10 @@
 {% load extra_filters ui_registry i18n %}
-{% with view_user.username|slugify as user_slug %}
-<div class="tabBar">
+<nav class="tabBar profile-tabs" aria-label="{% trans "Profile sections" %}">
     <div class="tabsA">
         {% loopregistry profile_tabs %}{% spaceless %}
-            <a title="{{ tab_description }}" id="{{ tab_name }}" {% ifequal active_tab tab_name %}class="on"{% endifequal %} href="{{ tab_url }}">
-                {{ tab_title }}
+            <a title="{{ tab_description }}" id="{{ tab_name }}" {% if active_tab == tab_name %}class="on" aria-current="page"{% endif %} href="{{ tab_url }}">
+                <span class="profile-tab-title">{{ tab_title|capfirst }}</span>{% for name, count in profile_tab_counts.items %}{% if name == tab_name %}<span class="visually-hidden">, </span><span class="profile-tab-count">{{ count }}</span>{% endif %}{% endfor %}
             </a>
         {% endspaceless %}{% endloopregistry %}
     </div>
-</div>
-{% endwith %}
+</nav>

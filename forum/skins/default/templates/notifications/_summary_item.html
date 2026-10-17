@@ -1,0 +1,3 @@
+{% load i18n email_tags %}{% comment %}One line of the summary email (notifications/summary.html), HTML part: include with item=...{% endcomment %}{% if item.kind == "member" %}<a class="em-link" style="{{ a_style }}" href="{{ app_url }}{{ item.url }}">{{ item.actor.username }}</a>
+<br><span class="em-small" style="{{ small_style }}">{% trans "joined the site" %}</span>{% else %}<a class="em-link" style="{{ a_style }}" href="{{ app_url }}{{ item.url }}">{{ item.question.title }}</a>
+<br><span class="em-small" style="{{ small_style }}">{% include "notifications/_summary_line.html" %}</span>{% endif %}

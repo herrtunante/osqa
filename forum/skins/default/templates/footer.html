@@ -1,19 +1,28 @@
 {% load extra_tags ui_registry i18n %}
 
-
-<div>
-    <div class="footerLinks" >
+<div class="footer-inner">
+    <nav class="footerLinks">
         {% loadregistry footer_links %}<span class="link-separator"> |</span>{% endloadregistry %}
-    </div>
-  <p>
-     <a href="http://osqa.net" target="_blank" title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">
-        powered by OSQA
-     </a>
-  </p>
+    </nav>
+    {% get_available_languages as LANGUAGES %}{% if LANGUAGES|length > 1 %}
+    <form class="language-switch" action="{% url "set_language" %}" method="post">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        <label for="language-select">{% trans "Language" %}</label>
+        <select id="language-select" name="language" data-autosubmit>
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% for code, name in LANGUAGES %}<option value="{{ code }}" lang="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit">{% trans "Change" %}</button></noscript>
+    </form>
+    {% endif %}
+    {% include "display/theme_switch.html" %}
+    {# The separator dot is drawn before each item and clipped at the start of a line, so none dangles when they wrap. #}
+    <p class="footer-meta"><span class="footer-meta-items">
+        <span class="footer-meta-item" title="OSQA {{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})">{% blocktrans %}Powered by the <a href="https://github.com/openforis/osqa">Open Foris edition of OSQA</a>{% endblocktrans %}</span>
+        <span class="footer-meta-item">{% trans "Content licensed under" %}
+        <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></span>
+    </span></p>
+    <p class="footer-osqa">
+        {% blocktrans %}This Q&amp;A software is free and open source (GPL). Any organisation can run it for its own community: get the code and instructions at <a href="https://github.com/openforis/osqa">github.com/openforis/osqa</a>.{% endblocktrans %}
+    </p>
 </div>
- <div id="licenseLogo">
-  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">
-            <img src="{% media  "/media/images/by-sa-88x31.png" %}" title="Creative Commons: Attribution - Share Alike" alt="cc-by-sa" width="88" height="31" />
-  </a>
- </div>
-

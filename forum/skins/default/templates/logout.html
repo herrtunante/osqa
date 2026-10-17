@@ -1,23 +1,32 @@
 {% extends "base_content.html" %}
-<!-- template logout.html -->
-{% load extra_tags %}
-{% load humanize %}
-{% load i18n %}
-{% block title %}{% spaceless %}{% trans "Logout" %}{% endspaceless %}{% endblock %}
-{% block forejs %}
-    <script type="text/javascript">
-    $().ready(function(){
-        $('#btLogout').bind('click', function(){ window.location.href='{% url "user_signout" %}?next={{ next }}'; });
-    });
-    </script>
+<!-- template logout.html: confirm signing out (a POST with the CSRF token, forum/views/auth.py signout) -->
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Sign out" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
 {% endblock %}
-{% block content %}
-<div  class="headNormal">
-    {% trans "Logout" %} 
-</div>
-<div id="main-body" style="width:100%">
-    <p>{% trans "As a registered user you can login with your OpenID, log out of the site or permanently remove your account." %}</p>
-    <input id="btLogout" type="button" class="submit" value="{% trans "Logout now" %}"><!-- style="width:150px">-->
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <h1>{% blocktrans with site=settings.APP_SHORT_NAME %}Sign out of {{ site }}?{% endblocktrans %}</h1>
+            <p class="auth-lead">{% blocktrans with name=request.user.username %}You're signed in as {{ name }}.{% endblocktrans %}</p>
+            <form class="auth-form" method="post" action="{% url "user_signout" %}">
+                {% csrf_token %}
+                {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+                <div class="auth-check">
+                    <input type="checkbox" id="signout-everywhere" name="everywhere" value="1" aria-describedby="signout-everywhere-help" />
+                    <div>
+                        <label for="signout-everywhere">{% trans "Also sign out on all my other devices" %}</label>
+                        <p class="auth-help" id="signout-everywhere-help">{% trans "Use this if you signed in on a computer that isn't yours, or lost a phone." %}</p>
+                    </div>
+                </div>
+                <button type="submit" id="btLogout" class="auth-submit">{% trans "Sign out" %}</button>
+            </form>
+            <p class="auth-switch"><a href="{% url "index" %}">{% trans "Stay signed in" %}</a></p>
+        </div>
+    </div>
 </div>
 {% endblock %}
 <!-- end logout.html -->

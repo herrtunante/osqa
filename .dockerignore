@@ -1,0 +1,40 @@
+# Virtual environments
+venv/
+osqa_env/
+test_venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Test-only third-party code (axe-core for the accessibility tests)
+e2e/vendor/
+
+# Git / CI / IDE
+.git/
+.github/
+.vscode/
+.idea/
+.claude/
+
+# Local configuration and data: mounted at runtime, never baked into the image
+settings_local.py
+settings_local_extra.py
+.env
+importData/
+*.sql
+!forum_modules/**/*.sql
+*.db
+*.sqlite3
+forum/upfiles/*
+!forum/upfiles/logo.png
+
+# Runtime directories
+cache/
+log/
+tmp/
+backups/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

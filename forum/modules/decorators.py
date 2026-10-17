@@ -1,6 +1,7 @@
 import inspect
+import sys
 
-class DecoratableObject(object):
+class DecoratableObject:
     MODE_OVERRIDE = 0
     MODE_PARAMS = 1
     MODE_RESULT = 2
@@ -49,7 +50,7 @@ class DecoratableObject(object):
             for dec in self._params_decoration:
                 try:
                     args, kwargs = dec(*args, **kwargs)
-                except ReturnImediatelyException, e:
+                except ReturnImediatelyException as e:
                     return e.ret
 
         res = self._callable(*args, **kwargs)
@@ -68,9 +69,27 @@ class ReturnImediatelyException(Exception):
         super(Exception, self).__init__()
         self.ret = ret
 
+def _owner_class(fn):
+    """The class a function is defined in (Python 3 has no unbound methods)."""
+    if inspect.ismethod(fn):
+        return fn.__self__ if inspect.isclass(fn.__self__) else type(fn.__self__)
+    parts = getattr(fn, '__qualname__', '').split('.')
+    if len(parts) < 2 or '<locals>' in parts:
+        return None
+    owner = sys.modules.get(fn.__module__)
+    for part in parts[:-1]:
+        owner = getattr(owner, part, None)
+    return owner if inspect.isclass(owner) else None
+
 def _check_decoratable(origin, install=True):
     if not hasattr(origin, '_decoratable_obj'):
-        if inspect.ismethod(origin) and not hasattr(origin, '_decoratable_obj'):
+        owner = _owner_class(origin)
+        if owner is not None:
+            # Wrap a method: install the wrapper on its class. In Python 3,
+            # Class.method is a plain function, so this has to be detected
+            # from __qualname__ (the old code relied on im_class).
+            if inspect.ismethod(origin):
+                origin = origin.__func__
             decoratable = DecoratableObject(origin)
 
             def decoratable_method(self, *args, **kwargs):
@@ -84,10 +103,10 @@ def _check_decoratable(origin, install=True):
             decoratable_method._decorate = decoratable_decorate
 
             if install:
-                setattr(origin.im_class, origin.__name__, decoratable_method)
+                setattr(owner, origin.__name__, decoratable_method)
 
             return decoratable_method
-                
+
         elif inspect.isfunction(origin):
             decoratable = DecoratableObject(origin)
 
@@ -112,7 +131,7 @@ def decorate(origin, needs_origin=True):
 
     def decorator(fn):
         origin._decoratable_obj._decorate(fn, DecoratableObject.MODE_OVERRIDE, needs_origin=needs_origin)
-        
+
     return decorator
 
 

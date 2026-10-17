@@ -1,27 +1,32 @@
 # -*- coding: utf-8 -*-
 
+import re
 import datetime
 import json
 import logging
 
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ungettext, ugettext as _
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render_to_response
+from django.urls import reverse
+from django.utils.encoding import smart_str
+from django.utils.translation import ngettext, gettext as _
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseNotFound, Http404
+from django.shortcuts import get_object_or_404, render
 
 from django.contrib import messages
+from forum.utils.antispam import posting_limit_reached, posting_limit_message
 
 from forum.models import *
 from forum.utils.decorators import ajax_login_required
+from forum.utils.similar import candidate_questions
+from forum.utils import html, review
+from forum.models.base import prefetch_denormalized
 from forum.actions import *
 from forum.modules import decorate
 from forum import settings
 
-from decorators import command, CommandException, RefreshPageCommand
+from .decorators import command, prompt, CommandException, RefreshPageCommand
 
 class NotEnoughRepPointsException(CommandException):
     def __init__(self, action, user_reputation=None, reputation_required=None, node=None):
@@ -84,34 +89,38 @@ def vote_post(request, id, vote_type):
     post = get_object_or_404(Node, id=id).leaf
     user = request.user
 
-    if not user.is_authenticated():
+    if not review.can_view(post, user):
+        raise Http404()
+
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('vote'))
 
     if user == post.author:
         raise CannotDoOnOwnException(_('vote'))
 
-    if not (vote_type == 'up' and user.can_vote_up() or user.can_vote_down()):
+    # Each direction has its own minimum: an up vote needs REP_TO_VOTE_UP even
+    # when REP_TO_VOTE_DOWN is lower (and the other way round).
+    can_vote = user.can_vote_up() if vote_type == 'up' else user.can_vote_down()
+    if not can_vote:
         reputation_required = int(settings.REP_TO_VOTE_UP) if vote_type == 'up' else int(settings.REP_TO_VOTE_DOWN)
-        action_type = vote_type == 'up' and _('upvote') or _('downvote')
+        action_type = _('upvote') if vote_type == 'up' else _('downvote')
         raise NotEnoughRepPointsException(action_type, user_reputation=user.reputation, reputation_required=reputation_required, node=post)
-
-    user_vote_count_today = user.get_vote_count_today()
-    user_can_vote_count_today = user.can_vote_count_today()
-
-    if user_vote_count_today >= user.can_vote_count_today():
-        raise NotEnoughLeftException(_('votes'), str(settings.MAX_VOTES_PER_DAY))
 
     new_vote_cls = (vote_type == 'up') and VoteUpAction or VoteDownAction
     score_inc = 0
 
     old_vote = VoteAction.get_action_for(node=post, user=user)
 
+    # The daily limit is on casting votes; taking one back is always allowed.
+    if not old_vote and user.get_vote_count_today() >= user.can_vote_count_today():
+        raise NotEnoughLeftException(_('votes'), str(user.can_vote_count_today()))
+
     if old_vote:
         if old_vote.action_date < datetime.datetime.now() - datetime.timedelta(days=int(settings.DENY_UNVOTE_DAYS)):
             raise CommandException(
                     _("Sorry but you cannot cancel a vote after %(ndays)d %(tdays)s from the original vote") %
                     {'ndays': int(settings.DENY_UNVOTE_DAYS),
-                     'tdays': ungettext('day', 'days', int(settings.DENY_UNVOTE_DAYS))}
+                     'tdays': ngettext('day', 'days', int(settings.DENY_UNVOTE_DAYS))}
                     )
 
         old_vote.cancel(ip=request.META['REMOTE_ADDR'])
@@ -128,23 +137,29 @@ def vote_post(request, id, vote_type):
     }
     }
 
-    votes_left = (user_can_vote_count_today - user_vote_count_today) + (vote_type == 'none' and -1 or 1)
+    # Counted after the vote (or its cancellation), so the number is what the
+    # user can still cast today.
+    votes_left = max(0, user.can_vote_count_today() - user.get_vote_count_today())
 
     if int(settings.START_WARN_VOTES_LEFT) >= votes_left:
         response['message'] = _("You have %(nvotes)s %(tvotes)s left today.") % \
-                    {'nvotes': votes_left, 'tvotes': ungettext('vote', 'votes', votes_left)}
+                    {'nvotes': votes_left, 'tvotes': ngettext('vote', 'votes', votes_left)}
 
     return response
 
 @decorate.withfn(command)
+@prompt
 def flag_post(request, id):
-    if not request.POST:
-        return render_to_response('node/report.html', {'types': settings.FLAG_TYPES})
+    if request.method != 'POST':
+        return render(request, 'node/report.html', {'types': settings.FLAG_TYPES})
 
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not review.can_view(post, user):
+        raise Http404()
+
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('flag posts'))
 
     if user == post.author:
@@ -177,7 +192,7 @@ def like_comment(request, id):
     comment = get_object_or_404(Comment, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('like comments'))
 
     if user == comment.user:
@@ -207,7 +222,7 @@ def delete_comment(request, id):
     comment = get_object_or_404(Comment, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('delete comments'))
 
     if not user.can_delete_comment(comment):
@@ -226,7 +241,7 @@ def delete_comment(request, id):
 def mark_favorite(request, id):
     node = get_object_or_404(Node, id=id)
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         raise AnonymousNotAllowedException(_('mark a question as favorite'))
 
     try:
@@ -249,7 +264,10 @@ def comment(request, id):
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not review.can_view(post, user):
+        raise Http404()
+
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('comment'))
 
     if not request.method == 'POST':
@@ -270,19 +288,30 @@ def comment(request, id):
         comment = get_object_or_404(Comment, id=request.POST['id'])
 
         if not user.can_edit_comment(comment):
+            if comment.author == user:
+                raise CommandException(_("Sorry, a comment can only be edited during the first 60 minutes after it "
+                                         "was posted."))
             raise NotEnoughRepPointsException( _('edit comments'))
 
         comment = ReviseAction(user=user, node=comment, ip=request.META['REMOTE_ADDR']).save(
                 data=dict(text=comment_text)).node
     else:
         if not user.can_comment(post):
+            from forum.utils.accounts import validation_required
+            if validation_required(user, 'comment'):
+                raise CommandException(_("Confirm your email address to comment: open the link we emailed you, or "
+                                         "%s.") % html.hyperlink(reverse('send_validation_email'),
+                                                                 _("send a new link")))
             raise NotEnoughRepPointsException( _('comment'))
+        if posting_limit_reached(user, 'comment'):
+            raise CommandException(posting_limit_message('comment'))
 
         comment = CommentAction(user=user, ip=request.META['REMOTE_ADDR']).save(
                 data=dict(text=comment_text, parent=post)).node
 
     if comment.active_revision.revision == 1:
         return {
+        **({'message': review.held_notice()} if review.is_held(comment) else {}),
         'commands': {
         'insert_comment': [
                 id, comment.id, comment.comment, user.decorated_name, user.get_profile_url(),
@@ -302,24 +331,31 @@ def comment(request, id):
         }
 
 @decorate.withfn(command)
+@prompt
 def node_markdown(request, id):
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('accept answers'))
 
     node = get_object_or_404(Node, id=id)
-    return HttpResponse(node.active_revision.body, mimetype="text/plain")
+
+    if (node.nis.deleted and not user.can_view_deleted_post(node)) or not review.can_view(node, user):
+        raise Http404()
+
+    return HttpResponse(node.active_revision.body, content_type="text/plain")
 
 
 @decorate.withfn(command)
 def accept_answer(request, id):
     if settings.DISABLE_ACCEPTING_FEATURE:
-        raise Http404()
+        # Returned, not raised: the command decorator turns exceptions into an
+        # "unknown error" reply with status 200.
+        return HttpResponseNotFound()
 
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('accept answers'))
 
     answer = get_object_or_404(Answer, id=id)
@@ -335,21 +371,21 @@ def accept_answer(request, id):
         commands['unmark_accepted'] = [answer.id]
     else:
         if settings.MAXIMUM_ACCEPTED_ANSWERS and (question.accepted_count >= settings.MAXIMUM_ACCEPTED_ANSWERS):
-            raise CommandException(ungettext("This question already has an accepted answer.",
+            raise CommandException(ngettext("This question already has an accepted answer.",
                 "Sorry but this question has reached the limit of accepted answers.", int(settings.MAXIMUM_ACCEPTED_ANSWERS)))
 
         if settings.MAXIMUM_ACCEPTED_PER_USER and question.accepted_count:
             accepted_from_author = question.accepted_answers.filter(author=answer.author).count()
 
             if accepted_from_author >= settings.MAXIMUM_ACCEPTED_PER_USER:
-                raise CommandException(ungettext("The author of this answer already has an accepted answer in this question.",
+                raise CommandException(ngettext("The author of this answer already has an accepted answer in this question.",
                 "Sorry but the author of this answer has reached the limit of accepted answers per question.", int(settings.MAXIMUM_ACCEPTED_PER_USER)))             
 
 
         AcceptAnswerAction(node=answer, user=user, ip=request.META['REMOTE_ADDR']).save()
 
         # If the request is not an AJAX redirect to the answer URL rather than to the home page
-        if not request.is_ajax():
+        if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
             msg = _("""
               Congratulations! You've accepted an answer.
             """)
@@ -358,7 +394,7 @@ def accept_answer(request, id):
             messages.info(request, msg)
 
             # Redirect URL should include additional get parameters that might have been attached
-            redirect_url = answer.parent.get_absolute_url() + "?accepted_answer=true&%s" % smart_unicode(urlencode(request.GET))
+            redirect_url = answer.parent.get_absolute_url() + "?accepted_answer=true&%s" % smart_str(urlencode(request.GET))
 
             return HttpResponseRedirect(redirect_url)
 
@@ -371,7 +407,7 @@ def delete_post(request, id):
     post = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('delete posts'))
 
     if not (user.can_delete_post(post)):
@@ -389,15 +425,45 @@ def delete_post(request, id):
 
     return ret
 
+def find_original_question(question, value):
+    """The question a duplicate points to, from its number or a link to it ('' for none)."""
+    value = value.strip()
+    if not value:
+        return None
+
+    match = re.search(r'(?:^|/)(\d+)(?:[/?#]|$)', value)
+    if not match:
+        raise CommandException(_("Enter the number of the original question or a link to it."))
+
+    try:
+        original = Question.objects.public().get(id=int(match.group(1)))
+    except Question.DoesNotExist:
+        raise CommandException(_("The original question was not found."))
+
+    # Point at the end of a chain of duplicates rather than at another duplicate.
+    if original.duplicate_of:
+        original = original.duplicate_of
+
+    if original.id == question.id:
+        raise CommandException(_("A question cannot be a duplicate of itself."))
+    return original
+
+
 @decorate.withfn(command)
+@prompt
 def close(request, id, close):
-    if close and not request.POST:
-        return render_to_response('node/report.html', {'types': settings.CLOSE_TYPES})
+    if request.method != 'POST':
+        if not close:
+            return HttpResponseNotAllowed(['POST'])
+        return render(request, 'node/close.html', {
+            'types': settings.CLOSE_TYPES,
+            'can_move_answers': request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff),
+        })
 
     question = get_object_or_404(Question, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('close questions'))
 
     if question.nis.closed:
@@ -414,7 +480,11 @@ def close(request, id, close):
         if not len(reason):
             raise CommandException(_("Reason is empty"))
 
-        CloseAction(node=question, user=user, extra=reason, ip=request.META['REMOTE_ADDR']).save()
+        duplicate_of = find_original_question(question, request.POST.get('duplicate_of', ''))
+        move_answers = bool(duplicate_of and request.POST.get('move_answers') and (user.is_superuser or user.is_staff))
+
+        CloseAction(node=question, user=user, extra=reason, ip=request.META['REMOTE_ADDR']).save(
+            data=dict(duplicate_of=duplicate_of, move_answers=move_answers))
 
     return RefreshPageCommand()
 
@@ -423,7 +493,7 @@ def wikify(request, id):
     node = get_object_or_404(Node, id=id)
     user = request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('mark posts as community wiki'))
 
     if node.nis.wiki:
@@ -443,26 +513,27 @@ def wikify(request, id):
     return RefreshPageCommand()
 
 @decorate.withfn(command)
+@prompt
 def convert_to_comment(request, id):
     user = request.user
     answer = get_object_or_404(Answer, id=id)
     question = answer.question
 
     # Check whether the user has the required permissions
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_("convert answers to comments"))
 
     if not user.can_convert_to_comment(answer):
         raise NotEnoughRepPointsException(_("convert answers to comments"))
 
-    if not request.POST:
-        description = lambda a: _("Answer by %(uname)s: %(snippet)s...") % {'uname': smart_unicode(a.author.username),
+    if request.method != 'POST':
+        description = lambda a: _("Answer by %(uname)s: %(snippet)s...") % {'uname': smart_str(a.author.username),
                                                                             'snippet': a.summary[:10]}
         nodes = [(question.id, _("Question"))]
         [nodes.append((a.id, description(a))) for a in
          question.answers.filter_state(deleted=False).exclude(id=answer.id)]
 
-        return render_to_response('node/convert_to_comment.html', {'answer': answer, 'nodes': nodes})
+        return render(request, 'node/convert_to_comment.html', {'answer': answer, 'nodes': nodes})
 
     try:
         new_parent = Node.objects.get(id=request.POST.get('under', None))
@@ -487,7 +558,7 @@ def convert_comment_to_answer(request, id):
     else:
         question = parent.question
     
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_("convert comments to answers"))
 
     if not user.can_convert_comment_to_answer(comment):
@@ -505,9 +576,12 @@ def subscribe(request, id, user=None):
         except User.DoesNotExist:
             raise Http404()
 
-        if not (request.user.is_a_super_user_or_staff() or user.is_authenticated()):
+        # Only staff may change another user's subscription.
+        if not (request.user.is_authenticated and (request.user == user or request.user.is_a_super_user_or_staff())):
             raise CommandException(_("You do not have the correct credentials to preform this action."))
     else:
+        if not request.user.is_authenticated:
+            raise AnonymousNotAllowedException(_('subscribe to questions'))
         user = request.user
 
     question = get_object_or_404(Question, id=id)
@@ -531,6 +605,9 @@ def subscribe(request, id, user=None):
 #internally grouped views - used by the tagging system
 @ajax_login_required
 def mark_tag(request, tag=None, **kwargs):#tagging system
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
     action = kwargs['action']
     ts = MarkedTag.objects.filter(user=request.user, tag__name=tag)
     if action == 'remove':
@@ -547,45 +624,76 @@ def mark_tag(request, tag=None, **kwargs):#tagging system
                 pass
         else:
             ts.update(reason=reason)
-    return HttpResponse(json.dumps(''), mimetype="application/json")
+    return HttpResponse(json.dumps(''), content_type="application/json")
 
 def matching_tags(request):
     if len(request.GET['q']) == 0:
         raise CommandException(_("Invalid request"))
 
-    possible_tags = Tag.active.filter(name__icontains = request.GET['q'])
-    tag_output = ''
-    for tag in possible_tags:
-        tag_output += "%s|%s|%s\n" % (tag.id, tag.name, tag.used_count)
+    query = request.GET['q'].strip().lower()
+    possible_tags = list(Tag.active.filter(name__icontains=query))
+    listed = set(tag.id for tag in possible_tags)
+    # Synonyms ("csv") give their tag, with the synonym as a fourth column:
+    # the menu shows "csv → export" and picking it puts in "export".
+    synonyms = TagSynonym.objects.filter(source_name__icontains=query, target__used_count__gte=1).exclude(
+        target_id__in=listed).select_related('target').order_by('source_name')
+    rows, exact = [], []
+    for synonym in synonyms:
+        if synonym.target_id in listed:
+            continue
+        listed.add(synonym.target_id)
+        tag = synonym.target
+        (exact if synonym.source_name == query else rows).append(
+            "%s|%s|%s|%s\n" % (tag.id, tag.name, tag.used_count, synonym.source_name))
+    tag_output = ''.join(exact + ["%s|%s|%s\n" % (tag.id, tag.name, tag.used_count) for tag in possible_tags] + rows)
 
-    return HttpResponse(tag_output, mimetype="text/plain")
+    return HttpResponse(tag_output, content_type="text/plain")
 
 def matching_users(request):
-    if len(request.GET['q']) == 0:
+    query = request.GET.get('q', '').strip()
+    if len(query) == 0:
         raise CommandException(_("Invalid request"))
 
-    possible_users = User.objects.filter(username__icontains = request.GET['q'])
+    try:
+        limit = min(max(int(request.GET.get('limit', 20)), 1), 50)
+    except ValueError:
+        limit = 20
+
+    # Usernames starting with the query first (for @mention autocomplete), then the rest.
+    users = User.objects.filter(is_active=True, username__icontains=query)
+    prefix = list(users.filter(username__istartswith=query).order_by('-reputation')[:limit])
+    possible_users = prefix + list(users.exclude(id__in=[u.id for u in prefix]).order_by('-reputation')[:limit - len(prefix)])
     output = ''
 
     for user in possible_users:
-        output += ("%s|%s|%s\n" % (user.id, user.decorated_name, user.reputation))
+        output += ("%s|%s|%s|%s\n" % (user.id, user.decorated_name, user.reputation, user.username))
 
-    return HttpResponse(output, mimetype="text/plain")
+    return HttpResponse(output, content_type="text/plain")
 
 def related_questions(request):
     if request.POST and request.POST.get('title', None):
         can_rank, questions = Question.objects.search(request.POST['title'])
 
-        if can_rank and isinstance(can_rank, basestring):
+        if can_rank and isinstance(can_rank, str):
             questions = questions.order_by(can_rank)
 
+        questions = list(questions.public()[0:10])
+        if not questions:
+            # The default search matches the whole title as one phrase; without
+            # a full-text module that rarely finds anything, so match keywords.
+            questions = candidate_questions(request.POST['title'])
+
+        # Answer counts for the "Similar questions" panel's markers, in one query each.
+        prefetch_denormalized(questions, 'answer_count', 'accepted_count')
         return HttpResponse(json.dumps(
-                [dict(title=q.title, url=q.get_absolute_url(), score=q.score, summary=q.summary)
-                 for q in questions.filter_state(deleted=False)[0:10]]), mimetype="application/json")
+                [dict(title=q.title, url=q.get_absolute_url(), score=q.score, summary=q.summary,
+                      answers=q.answer_count, accepted=bool(q.accepted_count))
+                 for q in questions]), content_type="application/json")
     else:
         raise Http404()
 
 @decorate.withfn(command)
+@prompt
 def answer_permanent_link(request, id):
     # Getting the current answer object
     answer = get_object_or_404(Answer, id=id)
@@ -593,9 +701,9 @@ def answer_permanent_link(request, id):
     # Getting the current object URL -- the Application URL + the object relative URL
     url = '%s%s' % (settings.APP_BASE_URL, answer.get_absolute_url())
 
-    if not request.POST:
+    if request.method != 'POST':
         # Display the template
-        return render_to_response('node/permanent_link.html', { 'url' : url, })
+        return render(request, 'node/permanent_link.html', { 'url' : url, })
 
     return {
         'commands' : {
@@ -605,6 +713,7 @@ def answer_permanent_link(request, id):
     }
 
 @decorate.withfn(command)
+@prompt
 def award_points(request, user_id, answer_id):
     user = request.user
     awarded_user = get_object_or_404(User, id=user_id)
@@ -615,20 +724,23 @@ def award_points(request, user_id, answer_id):
         raise CannotDoOnOwnException(_("award"))
 
     # Anonymous users cannot award  points, they just don't have such
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         raise AnonymousNotAllowedException(_('award'))
 
-    if not request.POST:
-        return render_to_response("node/award_points.html", {
+    if request.method != 'POST':
+        return render(request, "node/award_points.html", {
             'user' : user,
             'awarded_user' : awarded_user,
             'reputation_to_comment' : str(settings.REP_TO_COMMENT)
         })
     else:
-        points = int(request.POST['points'])
+        try:
+            points = int(request.POST.get('points', ''))
+        except ValueError:
+            points = 0
 
         # We should check if the user has enough reputation points, otherwise we raise an exception.
-        if points < 0:
+        if points <= 0:
             raise CommandException(_("The number of points to award needs to be a positive value."))
 
         if user.reputation < points:

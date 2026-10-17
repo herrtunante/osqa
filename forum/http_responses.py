@@ -1,12 +1,11 @@
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.template import RequestContext
 
 from forum import settings
 
 class HttpResponseServiceUnavailable(HttpResponse):
     def __init__(self, message):
-        super(HttpResponseServiceUnavailable, self).__init__(
+        super().__init__(
             content=render_to_string('503.html', {
                 'message': message,
                 'app_logo': settings.APP_LOGO,
@@ -15,27 +14,33 @@ class HttpResponseServiceUnavailable(HttpResponse):
 
 class HttpResponseUnauthorized(HttpResponse):
     def __init__(self, request):
-        if request.user.is_authenticated():
-            super(HttpResponseUnauthorized, self).__init__(
-                content=render_to_string('403.html', context_instance=RequestContext(request)),
+        if request.user.is_authenticated:
+            # Signed-in people reaching pages they may not see (anonymous
+            # visitors are just asked to sign in).
+            from forum.utils import security_log
+            security_log.event('permission_denied', request, path=request.path)
+            super().__init__(
+                content=render_to_string('403.html', request=request),
                 status=403
             )
         else:
-            super(HttpResponseUnauthorized, self).__init__(
-                content=render_to_string('401.html', context_instance=RequestContext(request)),
+            super().__init__(
+                content=render_to_string('401.html', request=request),
                 status=401
             )
 
 class HttpResponseNotFound(HttpResponse):
     def __init__(self, request):
-        super(HttpResponseNotFound, self).__init__(
-            content=render_to_string('404.html', context_instance=RequestContext(request)),
+        super().__init__(
+            content=render_to_string('404.html', request=request),
             status=404
         )
 
 class HttpResponseIntServerError(HttpResponse):
     def __init__(self, request):
-        super(HttpResponseIntServerError, self).__init__(
-            content=render_to_string('500.html', context_instance=RequestContext(request)),
-            status=500
-        )
+        try:
+            content = render_to_string('500.html', request=request)
+        except Exception:
+            # Whatever broke the request may break the context processors too.
+            content = render_to_string('500.html')
+        super().__init__(content=content, status=500)

@@ -1,6 +1,5 @@
-import os.path
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 FORUM_SET = SettingSet('form', _('Form settings'), _("General settings for the OSQA forms."), 10)
 

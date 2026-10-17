@@ -267,12 +267,14 @@ ALTER TABLE `vote` ADD CONSTRAINT `user_id_refs_user_ptr_id_18723e34` FOREIGN KE
 
 """
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from django.db import connection, transaction
-from django.conf import settings
 
-class Command(NoArgsCommand):
-    def handle_noargs(self, **options):
+
+class Command(BaseCommand):
+    help = "One-off migration of a pre-0.9 OSQA database: moves the forum fields of auth_user into forum_user."
+
+    def handle(self, *args, **options):
         if database_type.__contains__('postgresql'):
             migration_query = PG_MIGRATION_QUERY
             fkeys_query = PG_FKEYS_QUERY
@@ -282,7 +284,7 @@ class Command(NoArgsCommand):
         else:
             raise Exception("Database backend not suported by this migration command")
 
-        cursor = connection.cursor()
-        cursor.execute(migration_query)
-        cursor.execute(fkeys_query)
-        transaction.commit_unless_managed()
+        with transaction.atomic():
+            cursor = connection.cursor()
+            cursor.execute(migration_query)
+            cursor.execute(fkeys_query)

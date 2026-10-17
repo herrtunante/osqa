@@ -1,0 +1,19 @@
+{% extends "users/settings_base.html" %}
+{% load i18n %}
+{% block title %}{% spaceless %}{% trans "Your recovery codes" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block settingscontent %}
+<section class="settings-card security-card" aria-labelledby="recovery-title">
+    {% if just_enabled %}
+    <p class="security-success" role="status">{% trans "Two-step verification is on." %}</p>
+    {% endif %}
+    <h2 id="recovery-title">{% trans "Save your recovery codes" %}</h2>
+    <p class="settings-lead">{% blocktrans %}If you lose your phone, each of these codes signs you in once instead of a code from the app. Keep them somewhere safe, like a password manager, or print them. They are shown only now.{% endblocktrans %}</p>
+    <ol class="security-codes" id="recovery-codes">
+        {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
+    </ol>
+    <div class="settings-actions">
+        <a class="button security-primary" href="{% url "user_security" view_user.id %}">{% trans "I have saved them" %}</a>
+    </div>
+</section>
+{% endblock %}

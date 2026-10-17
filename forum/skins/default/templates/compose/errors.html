@@ -1,0 +1,13 @@
+{% load i18n %}{# Error summary at the top of a post form: one link per message, to its field. osqa.compose.js moves the focus here. #}
+{% if form.errors or revision_form.errors %}
+<div class="compose-alert" role="alert" id="form-errors" tabindex="-1">
+    <p class="compose-alert-title">{{ title }}</p>
+    <ul>
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        {% for error in revision_form.revision.errors %}<li><a href="#id_revision">{% trans "Revision" %}: {{ error }}</a></li>{% endfor %}
+        {% for field in form %}{% if field.errors and not field.is_hidden %}{% for error in field.errors %}
+        <li><a href="#{{ field.id_for_label }}">{% if field.name == "text" and text_label %}{{ text_label }}{% else %}{{ field.label|capfirst }}{% endif %}: {{ error }}</a></li>
+        {% endfor %}{% endif %}{% endfor %}
+    </ul>
+</div>
+{% endif %}

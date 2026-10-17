@@ -1,10 +1,11 @@
 import os
-from string import strip
 from django import forms
 from forum.settings.base import Setting
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.core.files.storage import FileSystemStorage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 class DummySetting:
     pass
@@ -30,7 +31,7 @@ class SettingsSetForm(forms.Form):
                 field = forms.MultipleChoiceField(**setting.field_context)
             elif widget is forms.RadioSelect or isinstance(widget, forms.RadioSelect):
                 field = forms.ChoiceField(**setting.field_context)
-            elif isinstance(setting, (Setting.emulators.get(str, DummySetting), Setting.emulators.get(unicode, DummySetting))):
+            elif isinstance(setting, Setting.emulators.get(str, DummySetting)):
                 if not setting.field_context.get('widget', None):
                     setting.field_context['widget'] = forms.TextInput(attrs={'class': 'longstring'})
                 field = forms.CharField(**setting.field_context)
@@ -48,22 +49,48 @@ class SettingsSetForm(forms.Form):
         self.set = set
 
     def as_table(self):
-        return self._html_output(
-                u'<tr><th>%(label)s' + ('<br /><a class="fieldtool context" href="#">%s</a><span class="sep">|</span><a class="fieldtool default" href="#">%s</a></th>' % (
-                    _('context'), _('default'))) + u'<td>%(errors)s%(field)s%(help_text)s</td>',
-                u'<tr><td colspan="2">%s</td></tr>', '</td></tr>', u'<br />%s', False)
+        # Same markup the old BaseForm._html_output() call produced (removed in
+        # Django 5.0): one row per setting with "context" and "default" tools.
+        tools = ('<br /><a class="fieldtool context" href="#">%s</a><span class="sep">|</span>'
+                 '<a class="fieldtool default" href="#">%s</a>') % (_('context'), _('default'))
+        rows = []
+        hidden = []
+
+        top_errors = self.non_field_errors()
+        if top_errors:
+            rows.append('<tr><td colspan="2">%s</td></tr>' % top_errors)
+
+        for name in self.fields:
+            bf = self[name]
+            if bf.is_hidden:
+                hidden.append(str(bf))
+                continue
+
+            help_text = bf.help_text and '<br />%s' % bf.help_text or ''
+            rows.append('<tr><th>%s%s</th><td>%s%s%s</td></tr>' % (
+                bf.label and bf.label_tag() or '', tools, bf.errors, bf, help_text))
+
+        if hidden:
+            if rows:
+                rows[-1] = rows[-1][:-len('</td></tr>')] + ''.join(hidden) + '</td></tr>'
+            else:
+                rows.append('<tr><td colspan="2">%s</td></tr>' % ''.join(hidden))
+
+        return mark_safe('\n'.join(rows))
 
     def save(self):
         for setting in self.set:
             setting.set_value(self.cleaned_data[setting.name])
 
 class ImageFormWidget(forms.Widget):
-    def render(self, name, value, attrs=None):
-        return """
-            <img src="%(value)s" /><br />
-            %(change)s: <input type="file" name="%(name)s" />
-            <input type="hidden" name="%(name)s_old" value="%(value)s" />
-            """ % {'name': name, 'value': value, 'change': _('Change this:')}
+    def render(self, name, value, attrs=None, renderer=None):
+        # The file input gets the field's id, so the setting's <label> names it.
+        return format_html("""
+            <img src="{value}" alt="{alt}" /><br />
+            {change} <input type="file" id="{id}" name="{name}" />
+            <input type="hidden" name="{name}_old" value="{value}" />
+            """, name=name, value=value or '', id=(attrs or {}).get('id') or 'id_%s' % name,
+                           alt=_('Current image'), change=_('Change this:'))
 
     def value_from_datadict(self, data, files, name):
         if name in files:
@@ -72,13 +99,18 @@ class ImageFormWidget(forms.Widget):
             # check file type
             file_name_suffix = os.path.splitext(f.name)[1].lower()
 
-            if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico'):
+            if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
                 raise Exception('File type not allowed')
 
             from forum.settings import UPFILES_FOLDER, UPFILES_ALIAS
 
+            from django.core.files.base import ContentFile
+            from forum.utils.images import process_image
+
+            # Re-encoded without metadata (EXIF, GPS...); icons are kept as they are.
+            data, file_name = process_image(f, "_".join(f.name.split()), keep_ico=True)
             storage = FileSystemStorage(str(UPFILES_FOLDER), str(UPFILES_ALIAS))
-            new_file_name = storage.save(f.name, f)
+            new_file_name = storage.save(file_name, ContentFile(data))
             return str(UPFILES_ALIAS) + new_file_name
         else:
             if "%s_old" % name in data:
@@ -87,22 +119,22 @@ class ImageFormWidget(forms.Widget):
                 return data[name]
 
 class StringListWidget(forms.Widget):
-    def render(self, name, value, attrs=None):
-        ret = ""
-        for s in value:
-            ret += """
+    def render(self, name, value, attrs=None, renderer=None):
+        remove, add = _('Remove'), _('Add another')
+        rows = format_html_join('', """
             <div class="string-list-input">
-                <input type="text" name="%(name)s" value="%(value)s" />
-                <button class="string_list_widget_button">-</button>
+                <input type="text" name="{0}" value="{1}" />
+                <button type="button" class="string_list_widget_button remove" aria-label="{2}" title="{2}">&minus;</button>
             </div>
-            """  % {'name': name, 'value': s}
+            """, ((name, s, remove) for s in value or ()))
 
-        return """
+        return format_html("""
             <div class="string_list_widgets">
-                %(ret)s
-                <div><button name="%(name)s" class="string_list_widget_button add">+</button></div>
+                {rows}
+                <div class="string-list-add"><button type="button" name="{name}" class="string_list_widget_button add"
+                    aria-label="{add}" title="{add}" data-remove-label="{remove}">+</button></div>
             </div>
-            """ % dict(name=name, ret=ret)
+            """, name=name, rows=rows, add=add, remove=remove)
 
     def value_from_datadict(self, data, files, name):
         if 'submit' in data:
@@ -111,30 +143,29 @@ class StringListWidget(forms.Widget):
             return data[name]
 
 class CommaStringListWidget(forms.Textarea):
-    def render(self, name, value, attrs=None):
-        return super(CommaStringListWidget, self).render(name, ', '.join(value), attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        return super(CommaStringListWidget, self).render(name, ', '.join(value), attrs, renderer)
 
 
     def value_from_datadict(self, data, files, name):
         if 'submit' in data:
-            return map(strip, data[name].split(','))
+            return [s.strip() for s in data[name].split(',')]
         else:
             return ', '.join(data[name])    
 
 class TestEmailSettingsWidget(forms.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not value:
             value = ''
 
-        return """
+        return format_html("""
             <div id="test_email_settings">
-                <a href="%s" onclick="return false;" class="button test_button" href="/">Test</a>
+                <a href="{url}" class="button test_button" role="button">{label}</a>
 
-                <div style="margin-top: 7px">
-                <div style="display: none" class="ajax_indicator">
-                    Testing your current e-mail settings. Please, wait.
-                </div>
-                <div class="test_status"></div>
+                <div class="test_email_status_box">
+                <div style="display: none" class="ajax_indicator">{wait}</div>
+                <div class="test_status" aria-live="polite"></div>
                 </div>
             </div>
-            """ % reverse("test_email_settings")
+            """, url=reverse("test_email_settings"), label=_('Test'),
+            wait=_('Testing your current e-mail settings. Please, wait.'))

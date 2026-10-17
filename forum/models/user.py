@@ -1,27 +1,26 @@
-from base import *
-from utils import PickledObjectField
+from .base import *
+from .utils import PickledObjectField
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User as DjangoUser, AnonymousUser as DjangoAnonymousUser
-from django.db.models import Q, Manager
-from django.core.urlresolvers import get_script_prefix
+from django.urls import get_script_prefix
 
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str, force_bytes
 
 from forum.settings import TRUNCATE_LONG_USERNAMES, TRUNCATE_USERNAMES_LONGER_THAN
 
+import hashlib
+import hmac
+import secrets
 import string
-from random import Random
 
-from django.utils.translation import ugettext as _
 import logging
 
 class AnonymousUser(DjangoAnonymousUser):
     reputation = 0
-    
+
     def get_visible_answers(self, question):
-        return question.answers.filter_state(deleted=False)
+        return question.answers.visible_to(self)
 
     def can_view_deleted_post(self, post):
         return False
@@ -31,7 +30,7 @@ class AnonymousUser(DjangoAnonymousUser):
 
     def can_vote_down(self):
         return False
-    
+
     def can_vote_count_today(self):
         return 0
 
@@ -55,10 +54,10 @@ class AnonymousUser(DjangoAnonymousUser):
 
     def can_convert_to_comment(self, answer):
         return False
-    
+
     def can_convert_to_question(self, answer):
         return False
-    
+
     def can_convert_comment_to_answer(self, comment):
         return False
 
@@ -104,7 +103,8 @@ def true_if_is_super_or_staff(fn):
 def false_if_validation_required_to(item):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            if item in settings.REQUIRE_EMAIL_VALIDATION_TO and not self.email_isvalid:
+            from forum.utils.accounts import validation_required
+            if validation_required(self, item):
                 return False
             else:
                 return fn(self, *args, **kwargs)
@@ -115,7 +115,7 @@ class UserManager(CachedManager):
     def get(self, *args, **kwargs):
         if not len(args) and len(kwargs) == 1 and 'username' in kwargs:
             matching_users = self.filter(username=kwargs['username'])
-            
+
             if len(matching_users) == 1:
                 return matching_users[0]
             elif len(matching_users) > 1:
@@ -123,11 +123,18 @@ class UserManager(CachedManager):
                     if user.username == kwargs['username']:
                         return user
                 return matching_users[0]
-        return super(UserManager, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
 class User(BaseModel, DjangoUser):
     is_approved = models.BooleanField(default=False)
     email_isvalid = models.BooleanField(default=False)
+    # Set by the sign-up views: the account must confirm its email address
+    # (setting EMAIL_CONFIRMATION_MODE, forum/utils/accounts.py). Cleared on the
+    # first confirmation; accounts that existed before keep False.
+    email_confirmation_required = models.BooleanField(default=False)
+    # Raised to sign the account out everywhere ("sign out of other sessions",
+    # password reset); sessions remember the value they were signed in with.
+    session_epoch = models.PositiveIntegerField(default=0)
 
     reputation = models.IntegerField(default=0)
     gold = models.PositiveIntegerField(default=0)
@@ -148,8 +155,8 @@ class User(BaseModel, DjangoUser):
 
     objects = UserManager()
 
-    def __unicode__(self):
-        return smart_unicode(self.username)
+    def __str__(self):
+        return smart_str(self.username)
 
     @property
     def prop(self):
@@ -168,23 +175,30 @@ class User(BaseModel, DjangoUser):
 
 
     def _decorated_name(self):
-        username = smart_unicode(self.username)
+        username = smart_str(self.username)
 
         if len(username) > TRUNCATE_USERNAMES_LONGER_THAN and TRUNCATE_LONG_USERNAMES:
             username = '%s...' % username[:TRUNCATE_USERNAMES_LONGER_THAN-3]
 
         if settings.SHOW_STATUS_DIAMONDS:
             if self.is_superuser:
-                return u"%s \u2666\u2666" % username
+                return "%s \u2666\u2666" % username
 
             if self.is_staff:
-                return u"%s \u2666" % username
+                return "%s \u2666" % username
 
         return username
 
     @property
     def decorated_name(self):
         return self._decorated_name()
+
+    def touch_last_seen(self):
+        """Record that the user is using the site (at most once an hour)."""
+        from django.core.cache import cache
+        if cache.add('user-seen:%d' % self.id, True, 3600):
+            self.last_seen = datetime.datetime.now()
+            User.objects.filter(id=self.id).update(last_seen=self.last_seen)
 
     @property
     def last_activity(self):
@@ -195,99 +209,97 @@ class User(BaseModel, DjangoUser):
 
     @property
     def gravatar(self):
-        return md5(self.email.lower()).hexdigest()
-    
+        # Python 3: md5() requires bytes, not strings
+        return md5(self.email.lower().encode('utf-8')).hexdigest()
+
     def save(self, *args, **kwargs):
         # If the community doesn't allow negative reputation, set it to 0
-        if not settings.ALLOW_NEGATIVE_REPUTATION and self.reputation < 0:
+        # (changes from actions are F() expressions, already kept from going
+        # below 0 by ActionRepute)
+        if not settings.ALLOW_NEGATIVE_REPUTATION and isinstance(self.reputation, int) and self.reputation < 0:
             self.reputation = 0
 
         new = not bool(self.id)
 
-        super(User, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if new:
             sub_settings = SubscriptionSettings(user=self)
             sub_settings.save()
-
-    @models.permalink
     def get_profile_url(self):
         keyword_arguments = {
-            'slug': slugify(smart_unicode(self.username))
+            'slug': slugify(smart_str(self.username))
         }
         if settings.INCLUDE_ID_IN_USER_URLS:
             keyword_arguments.update({
                 'id': self.id,
             })
-        return ('user_profile', (), keyword_arguments)
+        return reverse('user_profile', kwargs=keyword_arguments)
 
     def get_absolute_url(self):
         root_relative_url = self.get_profile_url()
         relative_url = root_relative_url[len(get_script_prefix()):]
         return '%s/%s' % (django_settings.APP_URL, relative_url)
-
-    @models.permalink
     def get_asked_url(self):
-        return ('user_questions', (), {'mode': _('asked-by'), 'user': self.id, 'slug': slugify(smart_unicode(self.username))})
-
-    @models.permalink
+        return reverse('user_questions', kwargs={'mode': 'asked-by', 'user': self.id, 'slug': slugify(smart_str(self.username))})
     def get_user_subscriptions_url(self):
         keyword_arguments = {
-            'slug': slugify(smart_unicode(self.username))
+            'slug': slugify(smart_str(self.username))
         }
         if settings.INCLUDE_ID_IN_USER_URLS:
             keyword_arguments.update({
                 'id': self.id,
             })
-        return ('user_subscriptions', (), keyword_arguments)
-
-    @models.permalink
+        return reverse('user_subscriptions', kwargs=keyword_arguments)
     def get_answered_url(self):
-        return ('user_questions', (), {'mode': _('answered-by'), 'user': self.id, 'slug': slugify(self.username)})
+        return reverse('user_questions', kwargs={'mode': 'answered-by', 'user': self.id, 'slug': slugify(self.username)})
 
     def get_subscribed_url(self):
         try:
             # Try to retrieve the Subscribed User URL.
             url = reverse('user_questions',
-                           kwargs={'mode': _('subscribed-by'), 'user': self.id, 'slug': slugify(smart_unicode(self.username))})
+                           kwargs={'mode': 'subscribed-by', 'user': self.id, 'slug': slugify(smart_str(self.username))})
             return url
-        except Exception, e:
+        except Exception as e:
             # If some Exception has been raised, don't forget to log it.
             logging.error("Error retrieving a subscribed user URL: %s" % e)
 
-    def get_profile_link(self):
-        profile_link = u'<a href="%s">%s</a>' % (self.get_profile_url(), self.username)
-        return mark_safe(profile_link)
-
     def get_visible_answers(self, question):
-        return question.answers.filter_state(deleted=False)
+        return question.answers.visible_to(self)
+
+    # The per-day limits (votes, flags, reputation from up votes) count the
+    # last 24 hours. (They used to start at midnight yesterday, so a "day"
+    # lasted up to 48 hours.)
+    @staticmethod
+    def _one_day_ago():
+        return datetime.datetime.now() - datetime.timedelta(days=1)
 
     def get_vote_count_today(self):
-        today = datetime.date.today()
         return self.actions.filter(canceled=False, action_type__in=("voteup", "votedown"),
-                                   action_date__gte=(today - datetime.timedelta(days=1))).count()
+                                   action_date__gte=self._one_day_ago()).count()
 
     def get_reputation_by_upvoted_today(self):
-        today = datetime.datetime.now()
-        sum = self.reputes.filter(reputed_at__range=(today - datetime.timedelta(days=1), today)).aggregate(
-                models.Sum('value'))
-        #todo: redo this, maybe transform in the daily cap
-        #if sum.get('value__sum', None) is not None: return sum['value__sum']
-        return 0
+        """Net reputation this user got in the last 24 hours from up votes on
+        their posts: the gains of the up votes cast in that time, less the
+        part given back by those of them that were cancelled."""
+        from forum.models.action import ActionRepute
+        total = ActionRepute.objects.filter(user=self, action__action_type='voteup',
+                                            action__action_date__gte=self._one_day_ago()
+                                            ).aggregate(total=models.Sum('value'))['total']
+        return int(total or 0)
 
     def get_flagged_items_count_today(self):
-        today = datetime.date.today()
         return self.actions.filter(canceled=False, action_type="flag",
-                                   action_date__gte=(today - datetime.timedelta(days=1))).count()
-    
+                                   action_date__gte=self._one_day_ago()).count()
+
     def can_vote_count_today(self):
         votes_today = settings.MAX_VOTES_PER_DAY
-        
+
         if settings.USER_REPUTATION_TO_MAX_VOTES:
             votes_today = votes_today + int(self.reputation)
-        
+
         return votes_today
-    
+
     def can_use_canned_comments(self):
         # The canned comments feature is available only for admins and moderators,
         # and only if the "Use canned comments" setting is activated in the administration.
@@ -353,7 +365,7 @@ class User(BaseModel, DjangoUser):
     def can_convert_to_comment(self, answer):
         return (not answer.marked) and (self.is_superuser or self.is_staff or answer.author == self or self.reputation >= int
                 (settings.REP_TO_CONVERT_TO_COMMENT))
-    
+
     def can_convert_to_question(self, node):
         return (not node.marked) and (self.is_superuser or self.is_staff or node.author == self or self.reputation >= int
                 (settings.REP_TO_CONVERT_TO_QUESTION))
@@ -420,10 +432,12 @@ class User(BaseModel, DjangoUser):
         return False
 
     def email_valid_and_can_ask(self):
-        return 'ask' not in settings.REQUIRE_EMAIL_VALIDATION_TO or self.email_isvalid
+        from forum.utils.accounts import validation_required
+        return not validation_required(self, 'ask')
 
     def email_valid_and_can_answer(self):
-        return 'answer' not in settings.REQUIRE_EMAIL_VALIDATION_TO or self.email_isvalid
+        from forum.utils.accounts import validation_required
+        return not validation_required(self, 'answer')
 
     def check_password(self, old_passwd):
         self.__dict__.update(self.__class__.objects.filter(id=self.id).values('password')[0])
@@ -431,7 +445,7 @@ class User(BaseModel, DjangoUser):
 
     @property
     def suspension(self):
-        if self.__dict__.get('_suspension_dencache_', False) != None:
+        if self.__dict__.get('_suspension_dencache_', False) is not None:
             try:
                 self.__dict__['_suspension_dencache_'] = self.reputes.get(action__action_type="suspend", action__canceled=False).action
             except ObjectDoesNotExist:
@@ -461,9 +475,13 @@ class User(BaseModel, DjangoUser):
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to User are loaded through the base manager; use the
+        # cached manager so they hit the object cache.
+        base_manager_name = 'objects'
+        indexes = [models.Index(fields=['reputation'], name='user_reputation_idx')]
 
 class UserProperty(BaseModel):
-    user = models.ForeignKey(User, related_name='properties')
+    user = models.ForeignKey(User, related_name='properties', on_delete=models.CASCADE)
     key = models.CharField(max_length=16)
     value = PickledObjectField()
 
@@ -484,24 +502,33 @@ class UserProperty(BaseModel):
 
         return None
 
-class UserPropertyDict(object):
+class UserPropertyDict:
     def __init__(self, user):
         self.__dict__['_user'] = user
 
     def __get_property(self, name):
-        if self.__dict__.get('__%s__' % name, None):
-            return self.__dict__['__%s__' % name]
+        # Remember missing properties too, so each access doesn't query again.
+        key = '__%s__' % name
+        if key in self.__dict__:
+            return self.__dict__[key]
         try:
             user = self.__dict__['_user']
             prop = UserProperty.objects.get(user=user, key=name)
-            self.__dict__['__%s__' % name] = prop
+        except UserProperty.DoesNotExist:
+            prop = None
+
+        self.__dict__[key] = prop
+        if prop is not None:
             self.__dict__[name] = prop.value
-            return prop
-        except:
-            return None
+        return prop
 
 
     def __getattr__(self, name):
+        # copy/pickle probe special names (__setstate__, __deepcopy__, ...),
+        # also on instances rebuilt without __init__: those are not properties.
+        if name.startswith('__') or '_user' not in self.__dict__:
+            raise AttributeError(name)
+
         if self.__dict__.get(name, None):
             return self.__dict__[name]
 
@@ -529,12 +556,12 @@ class UserPropertyDict(object):
         else:
             if current:
                 current.delete()
-                del self.__dict__[name]
-                del self.__dict__['__%s__' % name]
+                self.__dict__.pop(name, None)
+                self.__dict__['__%s__' % name] = None
 
 
 class SubscriptionSettings(models.Model):
-    user = models.OneToOneField(User, related_name='subscription_settings', editable=False)
+    user = models.OneToOneField(User, related_name='subscription_settings', editable=False, on_delete=models.CASCADE)
 
     enable_notifications = models.BooleanField(default=True)
 
@@ -558,20 +585,45 @@ class SubscriptionSettings(models.Model):
 
     send_digest = models.BooleanField(default=True)
 
+    # How often activity emails (answers, comments, mentions, accepted answers,
+    # new questions, new members) are sent: as it happens, gathered into a
+    # daily or weekly summary (forum/utils/email_frequency.py), or never.
+    FREQUENCY_IMMEDIATE, FREQUENCY_DAILY, FREQUENCY_WEEKLY, FREQUENCY_NEVER = 'i', 'd', 'w', 'n'
+    email_frequency = models.CharField(max_length=1, default=FREQUENCY_IMMEDIATE)
+    # Mentions are emailed right away even with a summary (or "never").
+    mentions_immediate = models.BooleanField(default=True)
+    # When the last daily or weekly summary was sent (at most one a day).
+    last_summary_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     class Meta:
         app_label = 'forum'
 
 from forum.utils.time import one_day_from_now
 
+def _token_digest(token):
+    return 'sha256$' + hashlib.sha256(str(token).encode('utf-8')).hexdigest()
+
+
 class ValidationHashManager(models.Manager):
-    def _generate_md5_hash(self, user, type, hash_data, seed):
-        return md5("%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)).hexdigest()
+    """One-time links (email confirmation, password reset, email change).
 
-    def create_new(self, user, type, hash_data=[], expiration=None):
-        seed = ''.join(Random().sample(string.letters+string.digits, 12))
-        hash = self._generate_md5_hash(user, type, hash_data, seed)
+    The token in the link is an HMAC-SHA256 keyed with SECRET_KEY over a random
+    seed, the user, the link type and `hash_data` (e.g. the address being
+    confirmed, or the password hash, so a reset link dies when the password
+    changes). Only a SHA-256 digest of the token is stored, so the table
+    alone gives no working links. Each link works once, until `expiration`."""
 
-        obj = ValidationHash(hash_code=hash, seed=seed, user=user, type=type)
+    def _generate_hash(self, user, type, hash_data, seed):
+        # Keyed with SECRET_KEY: knowing the seed, user and data is not
+        # enough to make a valid link.
+        message = "%s%s%s%s" % (seed, "".join(map(str, hash_data)), user.id, type)
+        return hmac.new(force_bytes(django_settings.SECRET_KEY), message.encode('utf-8'), hashlib.sha256).hexdigest()
+
+    def create_new(self, user, type, hash_data=(), expiration=None):
+        seed = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        token = self._generate_hash(user, type, hash_data, seed)
+
+        obj = ValidationHash(hash_code=_token_digest(token), seed=seed, user=user, type=type)
 
         if expiration is not None:
             obj.expiration = expiration
@@ -581,29 +633,34 @@ class ValidationHashManager(models.Manager):
         except:
             return None
 
+        obj.token = token  # for the email; never stored
         return obj
 
-    def validate(self, hash, user, type, hash_data=[]):
-        try:
-            obj = self.get(hash_code=hash)
-        except:
+    def _find(self, hash):
+        hash = str(hash)
+        obj = self.filter(hash_code=_token_digest(hash)).first()
+        if obj is None:  # a link made before tokens were stored as digests
+            obj = self.filter(hash_code=hash).first()
+        return obj
+
+    def validate(self, hash, user, type, hash_data=(), consume=True):
+        """Whether `hash` is a valid, unexpired link of `type` for `user`.
+        It is used up unless `consume` is False (a page that only shows a form)."""
+        obj = self._find(hash)
+        if obj is None or obj.type != type or obj.user_id != user.id:
             return False
 
-        if obj.type != type:
-            return False
-
-        if obj.user != user:
-            return False
-
-        valid = (obj.hash_code == self._generate_md5_hash(obj.user, type, hash_data, obj.seed))
+        valid = hmac.compare_digest(str(hash), self._generate_hash(user, type, hash_data, obj.seed))
 
         if valid:
             if obj.expiration < datetime.datetime.now():
                 obj.delete()
                 return False
-            else:
-                obj.delete()
-                return True
+            if consume:
+                # Only the request that deletes the row uses the link: two at
+                # once (e.g. a double-submitted reset form) can't both pass.
+                return self.filter(pk=obj.pk).delete()[0] > 0
+            return True
 
         return False
 
@@ -612,7 +669,7 @@ class ValidationHash(models.Model):
     seed = models.CharField(max_length=12)
     expiration = models.DateTimeField(default=one_day_from_now)
     type = models.CharField(max_length=12)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     objects = ValidationHashManager()
 
@@ -621,12 +678,12 @@ class ValidationHash(models.Model):
         app_label = 'forum'
 
     def __str__(self):
-        return self.hash_code
+        return getattr(self, 'token', None) or self.hash_code
 
 class AuthKeyUserAssociation(models.Model):
     key = models.CharField(max_length=255, null=False, unique=True)
     provider = models.CharField(max_length=64)
-    user = models.ForeignKey(User, related_name="auth_keys")
+    user = models.ForeignKey(User, related_name="auth_keys", on_delete=models.CASCADE)
     added_at = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:

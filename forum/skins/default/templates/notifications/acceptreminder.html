@@ -1,0 +1,37 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
+{% enddeclare %}
+
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Did an answer solve "{{ question_title }}"?{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "If an answer solved your problem, accept it so others know what worked." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% declare %}
+            question_link = html.hyperlink(question_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans %}Your question {{ question_link }} has answers. Did one of them solve your problem?{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If so, accept it with the check mark next to it. That shows others what worked and thanks the person who helped." %}</p>
+        {% trans "Review the answers" as cta %}{% include "notifications/_button.html" with url=question_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Still stuck? Add a comment saying what is missing." %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% blocktrans %}Your question {{ question_link }} has answers. Did one of them solve your problem?{% endblocktrans %}
+
+{% trans "If so, accept it with the check mark next to it. That shows others what worked and thanks the person who helped." %}
+
+{% trans "Review the answers" %}:
+{{ question_url }}
+
+{% trans "Still stuck? Add a comment saying what is missing." %}
+{% endtextcontent %}
+
+{% endemail %}

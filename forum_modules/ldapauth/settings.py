@@ -1,5 +1,5 @@
 from forum.settings.base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 LDAP_SET = SettingSet('ldap', _('LDAP settings'), _("LDAP configuration for OSQA"), 4)
 

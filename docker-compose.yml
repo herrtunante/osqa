@@ -1,0 +1,135 @@
+# Full OSQA stack: web (gunicorn), MySQL 8.4, memcached, scheduled commands
+# (supercronic) and a one-off migration step. Configuration comes from .env
+# (copy .env.example); see docs/deployment.md, "Option B: Docker Compose".
+#
+#   cp .env.example .env && editor .env
+#   docker compose up -d --build
+#   docker compose ps          # db and web turn "healthy", migrate "exited (0)"
+#
+# The web service is published on 127.0.0.1 only: put a TLS reverse proxy in
+# front of it. Sites that mounted their own settings_local.py with the earlier
+# single-service file: see "Moving from the single-service compose file" in
+# docs/deployment.md.
+
+# Shared by web, migrate and cron: one image, built by the web service.
+x-osqa: &osqa
+  image: ${OSQA_IMAGE:-osqa:local}
+  restart: unless-stopped
+  environment: &osqa-env
+    OSQA_SETTINGS_LOCAL: ${OSQA_SETTINGS_LOCAL:-settings_local_docker}
+    OSQA_SECRET_KEY: ${OSQA_SECRET_KEY:?set OSQA_SECRET_KEY in .env}
+    OSQA_APP_URL: ${OSQA_APP_URL:-http://localhost:8000}
+    OSQA_ALLOWED_HOSTS: ${OSQA_ALLOWED_HOSTS:-}
+    OSQA_DB_ENGINE: mysql
+    OSQA_DB_HOST: db
+    OSQA_DB_PORT: "3306"
+    OSQA_DB_NAME: ${MYSQL_DATABASE:-osqa}
+    OSQA_DB_USER: ${MYSQL_USER:-osqa}
+    OSQA_DB_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+    OSQA_MEMCACHED: memcached:11211
+    OSQA_TIME_ZONE: ${OSQA_TIME_ZONE:-UTC}
+    OSQA_LANGUAGE_CODE: ${OSQA_LANGUAGE_CODE:-en}
+    OSQA_DISABLED_MODULES: ${OSQA_DISABLED_MODULES:-recaptcha,project_badges}
+    # One reverse proxy in front: read the visitor's IP and HTTPS from its headers.
+    OSQA_TRUSTED_PROXIES: ${OSQA_TRUSTED_PROXIES:-1}
+    OSQA_BACKUP_KEEP: ${OSQA_BACKUP_KEEP:-14}
+    LOG_FORMAT: ${LOG_FORMAT:-json}
+    LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    METRICS_TOKEN: ${METRICS_TOKEN:-}
+    # Sentry: server errors (SENTRY_DSN) and browser errors (SENTRY_FRONTEND_DSN,
+    # defaults to SENTRY_DSN; 'off' turns it off).
+    SENTRY_DSN: ${SENTRY_DSN:-}
+    SENTRY_FRONTEND_DSN: ${SENTRY_FRONTEND_DSN:-}
+    SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+    # Browser push notifications: off unless both keys are set (manage.py generate_vapid_keys --env).
+    VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+    VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+    VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+  volumes:
+    - uploads:/app/forum/upfiles
+    - backups:/app/backups
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    # utf8mb4 for every language and emoji. TLS is switched off on this
+    # private network: the image's MariaDB client library would refuse the
+    # server's self-signed certificate.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+      - --tls-version=
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-osqa}
+      MYSQL_USER: ${MYSQL_USER:-osqa}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # TCP, so it fails while the entrypoint's temporary server (no network) runs.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  memcached:
+    image: memcached:1.6-alpine
+    restart: unless-stopped
+    command: ["memcached", "-m", "${MEMCACHED_MB:-256}"]
+
+  # Creates and updates the tables, then exits; web and cron wait for it.
+  migrate:
+    <<: *osqa
+    restart: "no"
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+
+  web:
+    <<: *osqa
+    build:
+      context: .
+      args:
+        SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+    ports:
+      - "127.0.0.1:${OSQA_HTTP_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      memcached:
+        condition: service_started
+    healthcheck:
+      # /readyz: the database and the cache answer.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Scheduled commands (cron/crontab, run by supercronic; times in UTC). To
+  # change the schedule without rebuilding, mount your own file:
+  #   volumes: ["./cron/crontab:/app/cron/crontab:ro", ...]
+  cron:
+    <<: *osqa
+    command: ["supercronic", "-passthrough-logs", "/app/cron/crontab"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      memcached:
+        condition: service_started
+    healthcheck:
+      disable: true
+
+volumes:
+  db-data:
+  # Uploaded images and the logo (UPFILES_FOLDER); back it up with backup_site.
+  uploads:
+  # backup_site archives (daily from cron/crontab). Copy them off the host too.
+  backups:

@@ -1,0 +1,75 @@
+from django.forms.widgets import Textarea
+from django.utils.translation import gettext_lazy as _
+
+from .base import Setting, SettingSet
+
+SECURITY_SET = SettingSet('security', _('Security'), _("Sign-in protection, posting limits and the "
+                          "Content-Security-Policy header."), 25)
+
+LOGIN_FAILURES_LIMIT = Setting('LOGIN_FAILURES_LIMIT', 5, SECURITY_SET, dict(
+label = _("Failed sign-ins before a pause"),
+help_text = _("After this many wrong passwords for one account, signing in to it is paused (the person can still "
+              "reset the password by email). An IP address may fail four times as often across all accounts. "
+              "0 turns this off.")))
+
+LOGIN_LOCKOUT_MINUTES = Setting('LOGIN_LOCKOUT_MINUTES', 15, SECURITY_SET, dict(
+label = _("Sign-in pause (minutes)"),
+help_text = _("How long signing in is paused after too many wrong passwords.")))
+
+PASSWORD_RESETS_PER_HOUR = Setting('PASSWORD_RESETS_PER_HOUR', 3, SECURITY_SET, dict(
+label = _("Account emails per hour"),
+help_text = _("How many password reset, email confirmation and email change messages one account or email "
+              "address, or one IP address (four times as many), may request per hour. 0 means no limit.")))
+
+PASSWORD_MIN_LENGTH = Setting('PASSWORD_MIN_LENGTH', 8, SECURITY_SET, dict(
+label = _("Minimum password length"),
+help_text = _("At least 8 (NIST SP 800-63B); 15 is recommended for forums without two-step verification. "
+              "Passwords may be up to 128 characters, and any characters (spaces, emoji) are allowed; there are "
+              "no rules about digits or symbols, and passwords never expire.")))
+
+PASSWORD_BREACH_CHECK = Setting('PASSWORD_BREACH_CHECK', False, SECURITY_SET, dict(
+label = _("Refuse passwords found in data breaches"),
+help_text = _("New passwords are checked against the Have I Been Pwned list of leaked passwords. Only the first "
+              "5 characters of the password's SHA-1 hash are sent (k-anonymity), never the password. If the "
+              "service doesn't answer within 3 seconds, the password is accepted."),
+required=False))
+
+NEW_DEVICE_SIGNIN_EMAIL = Setting('NEW_DEVICE_SIGNIN_EMAIL', False, SECURITY_SET, dict(
+label = _("Email members about sign-ins from a new browser"),
+help_text = _("When a member signs in from a browser that has not signed in to their account before, they get an "
+              "email with the time, browser and IP address, and links to secure the account."),
+required=False))
+
+QUESTIONS_PER_HOUR = Setting('QUESTIONS_PER_HOUR', 10, SECURITY_SET, dict(
+label = _("Questions per user per hour"),
+help_text = _("Moderators and administrators have no limit. 0 means no limit.")))
+
+ANSWERS_PER_HOUR = Setting('ANSWERS_PER_HOUR', 20, SECURITY_SET, dict(
+label = _("Answers per user per hour"),
+help_text = _("Moderators and administrators have no limit. 0 means no limit.")))
+
+COMMENTS_PER_HOUR = Setting('COMMENTS_PER_HOUR', 40, SECURITY_SET, dict(
+label = _("Comments per user per hour"),
+help_text = _("Moderators and administrators have no limit. 0 means no limit.")))
+
+CSP_EXTRA_SOURCES = Setting('CSP_EXTRA_SOURCES', '', SECURITY_SET, dict(
+label = _("Extra script sources"),
+help_text = _("The Content-Security-Policy header only lets the browser load scripts, styles and frames from this "
+              "site and the Google services OSQA uses. If you add analytics or widgets in the custom <head> or "
+              "footer, list their origins here, separated by spaces (e.g. https://plausible.io). Blocked items are "
+              "written to the security log."),
+widget=Textarea(attrs={'rows': '3'}),
+required=False))
+
+TWO_FACTOR_REQUIRED_FOR_STAFF = Setting('TWO_FACTOR_REQUIRED_FOR_STAFF', False, SECURITY_SET, dict(
+label = _("Require two-step verification for staff"),
+help_text = _("Moderators and administrators who have not turned on two-step verification (an authenticator app) "
+              "and did not sign in with a passkey are sent to set it up when they open an admin page."),
+required=False))
+
+REAUTH_MINUTES = Setting('REAUTH_MINUTES', 15, SECURITY_SET, dict(
+label = _("Confirm it's you after (minutes)"),
+help_text = _("Changing the email address, adding a passkey, setting up two-step verification, creating an API "
+              "token or removing the last way to sign in asks members to confirm it's them (password, code, "
+              "passkey or an emailed link) when they signed in or confirmed longer ago than this."),
+min_value = 1))

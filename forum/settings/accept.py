@@ -1,6 +1,5 @@
-from base import Setting, SettingSet
-from django.forms.widgets import RadioSelect
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 ACCEPT_SET = SettingSet('accept', _('Accepting answers'), _("Settings to tweak the behaviour of accepting answers."), 500)
 

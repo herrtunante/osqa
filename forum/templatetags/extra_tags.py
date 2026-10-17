@@ -7,25 +7,30 @@ import re
 import logging
 import random
 from django import template
-from django.utils.encoding import smart_unicode, force_unicode, smart_str
+from django.utils.html import escape
+from django.utils.encoding import smart_str, force_str
 from django.utils.safestring import mark_safe
 from django.utils import dateformat
 from forum.models import Question, Answer, QuestionRevision, AnswerRevision, NodeRevision
-from django.utils.translation import ugettext as _
-from django.utils.translation import ungettext
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from forum import settings
 from django.template.defaulttags import url as default_url
 from forum import skins
 from forum.utils import html
-from extra_filters import decorated_int
-from django.core.urlresolvers import reverse
+from forum.utils import static_files
+from .extra_filters import decorated_int
+from django.urls import reverse
 
 register = template.Library()
 
+# Sized (no layout shift), lazy, and twice the pixels on high-density screens.
 GRAVATAR_TEMPLATE = ('<img class="gravatar" width="%(size)s" height="%(size)s" '
 'src="https://secure.gravatar.com/avatar/%(gravatar_hash)s'
 '?s=%(size)s&amp;d=%(default)s&amp;r=%(rating)s" '
-'alt="%(username)s\'s gravatar image" />')
+'srcset="https://secure.gravatar.com/avatar/%(gravatar_hash)s'
+'?s=%(size2x)s&amp;d=%(default)s&amp;r=%(rating)s 2x" '
+'alt="%(username)s" loading="lazy" decoding="async" />')
 
 @register.simple_tag
 def gravatar(user, size):
@@ -35,13 +40,53 @@ def gravatar(user, size):
     except (TypeError, AttributeError, KeyError):
         gravatar = user.gravatar
         username = user.username
+    try:
+        size2x = int(size) * 2
+    except (TypeError, ValueError):
+        size2x = size
     return mark_safe(GRAVATAR_TEMPLATE % {
     'size': size,
+    'size2x': size2x,
     'gravatar_hash': gravatar,
     'default': settings.GRAVATAR_DEFAULT_IMAGE,
     'rating': settings.GRAVATAR_ALLOWED_RATING,
-    'username': template.defaultfilters.urlencode(username),
+    'username': escape(username),
     })
+
+
+_logo_sizes = {}
+
+
+@register.simple_tag
+def logo_size():
+    """width="..." height="..." of the APP_LOGO file (uploaded or bundled), so
+    the header keeps its space while the logo loads; nothing for an outside
+    URL or an unreadable file. Read once per file version."""
+    logo = str(settings.APP_LOGO or '').split('?')[0]
+    alias = str(settings.UPFILES_ALIAS)
+    if not logo.startswith(alias):
+        return ''
+    relative = logo[len(alias):]
+    bundled = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'upfiles')
+    for root in (str(settings.UPFILES_FOLDER), bundled):
+        root = os.path.realpath(root)
+        path = os.path.realpath(os.path.join(root, relative))
+        if path.startswith(root + os.sep) and os.path.isfile(path):
+            break
+    else:
+        return ''
+    key = (path, os.path.getmtime(path))
+    if key not in _logo_sizes:
+        try:
+            from PIL import Image
+            with Image.open(path) as image:
+                size = mark_safe('width="%d" height="%d"' % image.size)
+        except Exception:
+            size = ''
+        if len(_logo_sizes) > 8:
+            _logo_sizes.clear()
+        _logo_sizes[key] = size
+    return _logo_sizes[key]
 
 
 @register.simple_tag
@@ -70,7 +115,7 @@ def _get_score_badge(user):
         '<span class="bronze">&#9679;</span>'
         '<span class="badgecount">%(bronze)s</span>'
         '</span>')
-    BADGE_TEMPLATE = smart_unicode(BADGE_TEMPLATE, encoding='utf-8', strings_only=False, errors='strict')
+    BADGE_TEMPLATE = smart_str(BADGE_TEMPLATE, encoding='utf-8', strings_only=False, errors='strict')
     return mark_safe(BADGE_TEMPLATE % {
     'reputation' : user.reputation,
     'repstr': repstr,
@@ -95,11 +140,13 @@ def get_accept_rate(user):
     else:
         freeze = False
 
-    # We get the number of all user's answers.
-    total_answers_count = Answer.objects.filter(author=user).count()
-
-    # We get the number of the user's accepted answers.
-    accepted_answers_count = Answer.objects.filter(author=user, state_string__contains="(accepted)").count()
+    # The number of all the user's answers and of the accepted ones, in one
+    # query kept in the query cache.
+    from django.db.models import Count, Q
+    counts = Answer.objects.filter(author=user).cached_aggregate(
+        total=Count('id'), accepted=Count('id', filter=Q(state_string__contains="(accepted)")))
+    total_answers_count = counts['total'] or 0
+    accepted_answers_count = counts['accepted'] or 0
 
     # In order to represent the accept rate in percentages we divide the number of the accepted answers to the
     # total answers count and make a hundred multiplication.
@@ -111,18 +158,18 @@ def get_accept_rate(user):
     # If the user has more than one accepted answers the rate title will be in plural.
     if accepted_answers_count > 1:
         accept_rate_number_title = _('%(user)s has %(count)d accepted answers') % {
-            'user' :  smart_unicode(user.username),
+            'user' :  smart_str(user.username),
             'count' : int(accepted_answers_count)
         }
     # If the user has one accepted answer we'll be using singular.
     elif accepted_answers_count == 1:
-        accept_rate_number_title = _('%s has one accepted answer') % smart_unicode(user.username)
+        accept_rate_number_title = _('%s has one accepted answer') % smart_str(user.username)
     # This are the only options. Otherwise there are no accepted answers at all.
     else:
         if freeze:
             accept_rate_number_title = ""
         else:
-            accept_rate_number_title = _('%s has no accepted answers') % smart_unicode(user.username)
+            accept_rate_number_title = _('%s has no accepted answers') % smart_str(user.username)
 
     html_output = """
     <span title="%(accept_rate_title)s" class="accept_rate">%(accept_rate_label)s:</span>
@@ -143,7 +190,7 @@ def get_age(birthday):
     month = birthday.month
     day = birthday.day
     diff = current_time - datetime.datetime(year, month, day, 0, 0, 0)
-    return diff.days / 365
+    return diff.days // 365
 
 @register.simple_tag
 def diff_date(date, limen=2):
@@ -166,29 +213,36 @@ def diff_date(date, limen=2):
     elif days == 1:
         return _('yesterday')
     elif minutes >= 60:
-        return ungettext('%(hr)d ' + _("hour ago"), '%(hr)d ' + _("hours ago"), hours) % {'hr':hours}
+        return ngettext('%(hr)d ' + _("hour ago"), '%(hr)d ' + _("hours ago"), hours) % {'hr':hours}
     elif diff.seconds >= 60:
-        return ungettext('%(min)d ' + _("min ago"), '%(min)d ' + _("mins ago"), minutes) % {'min':minutes}
+        return ngettext('%(min)d ' + _("min ago"), '%(min)d ' + _("mins ago"), minutes) % {'min':minutes}
     else:
-        return ungettext('%(sec)d ' + _("sec ago"), '%(sec)d ' + _("secs ago"), diff.seconds) % {'sec':diff.seconds}
+        return ngettext('%(sec)d ' + _("sec ago"), '%(sec)d ' + _("secs ago"), diff.seconds) % {'sec':diff.seconds}
+
+_media_urls = {}
+
 
 @register.simple_tag
 def media(url):
-    url = skins.find_media_source(url)
-    if url:
-        # Create the URL prefix.
-        url_prefix = settings.FORCE_SCRIPT_NAME + '/m/'
-
-        # Make sure any duplicate forward slashes are replaced with a single
-        # forward slash.
-        url_prefix = re.sub("/+", "/", url_prefix)
-
-        url = url_prefix + url
-        return url
+    """URL of a skin media file, with its version token (?v=<content hash>) so
+    it can be cached for a year (see forum.utils.static_files). Worked out
+    once per file and process (on every call with DEBUG on)."""
+    from django.conf import settings as django_settings
+    known = _media_urls.get(url)
+    if known is not None and not django_settings.DEBUG:
+        return known
+    source = skins.find_media_source(url)
+    if source:
+        # Create the URL prefix, with duplicate forward slashes replaced by one.
+        url_prefix = re.sub("/+", "/", settings.FORCE_SCRIPT_NAME + '/m/')
+        result = static_files.versioned(url_prefix + source, os.path.join(skins.SKINS_FOLDER, source))
+        _media_urls[url] = result
+        return result
 
 @register.simple_tag
 def get_tag_font_size(tag):
-    occurrences_of_current_tag = tag.used_count
+    # Django 4.2/Python 3: Ensure numeric value for math operations
+    occurrences_of_current_tag = int(tag.used_count) if tag.used_count else 1
 
     # Occurrences count settings
     min_occurs = int(settings.TAGS_CLOUD_MIN_OCCURS)
@@ -228,10 +282,10 @@ class BlockMediaUrlNode(template.Node):
         for item in self.items:
             url += item.render(context)
 
-        url = skins.find_media_source(url)
-        url = prefix + url
-        out = url
-        return out.replace(' ', '')
+        url = skins.find_media_source(url.replace(' ', ''))
+        if not url:
+            return ''
+        return static_files.versioned(prefix + url, os.path.join(skins.SKINS_FOLDER, url))
 
 @register.tag(name='blockmedia')
 def blockmedia(parser, token):
@@ -280,7 +334,7 @@ class BlockVarNode(template.Node):
 def do_var(parser, token):
     tokens = token.split_contents()[1:]
 
-    if not len(tokens) or not re.match('^\w+$', tokens[0]):
+    if not len(tokens) or not re.match(r'^\w+$', tokens[0]):
         raise template.TemplateSyntaxError("Expected variable name")
 
     if len(tokens) == 1:
@@ -293,7 +347,7 @@ def do_var(parser, token):
     raise template.TemplateSyntaxError("Invalid number of arguments")
 
 class DeclareNode(template.Node):
-    dec_re = re.compile('^\s*(\w+)\s*(:?=)\s*(.*)$')
+    dec_re = re.compile(r'^\s*(\w+)\s*(:?=)\s*(.*)$')
 
     def __init__(self, block):
         self.block = block
@@ -313,14 +367,13 @@ class DeclareNode(template.Node):
                 d['reverse'] = reverse
                 d['settings'] = settings
                 d['smart_str'] = smart_str
-                d['smart_unicode'] = smart_unicode
-                d['force_unicode'] = force_unicode
+                d['force_str'] = force_str
                 for c in clist:
                     d.update(c)
                 try:
                     command = m.group(3).strip()
                     context[m.group(1).strip()] = eval(command, d)
-                except Exception, e:
+                except Exception as e:
                     logging.error("Error in declare tag, when evaluating: %s" % m.group(3).strip())
         return ''
 
@@ -349,7 +402,7 @@ def random_number(parser, token):
         tag_name, int_from, int_to = token.split_contents()
     except ValueError:
         # If we had no success -- raise an exception
-        raise template.TemplateSyntaxError, "%r tag requires exactly two arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires exactly two arguments" % token.contents.split()[0])
 
     # Call the random Node
     return RandomNumberNode(int_from, int_to)

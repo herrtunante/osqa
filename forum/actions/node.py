@@ -1,8 +1,10 @@
-from django.utils.html import strip_tags
-from django.utils.translation import ugettext as _
+from django.utils.html import strip_tags, escape
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.models.action import ActionProxy
 from forum.models import Comment, Question, Answer, NodeRevision
 from forum import settings, REQUEST_HOLDER
+from forum.utils import review
 
 from django.contrib import messages
 
@@ -19,18 +21,24 @@ class NodeEditAction(ActionProxy):
         return revision_data
 
 class AskAction(NodeEditAction):
-    verb = _("asked")
+    verb = _lazy("asked")
 
     def process_data(self, **data):
         processed_data = self.create_revision_data(True, **data)
+        # Node.summary is a read-only property; the initial revision gets no summary.
+        processed_data.pop('summary', None)
         if 'added_at' in data:
             processed_data['added_at'] = data['added_at']
 
-        question = Question(author=self.user, **processed_data)
+        self._review_state = review.state_for_new_post(self.user)
+        # Held posts are hidden from their first save (search index, tag counts).
+        question = Question(author=self.user, state_string=review.state_mark(self._review_state), **processed_data)
         question.save()
         self.node = question
 
-        messages.info(REQUEST_HOLDER.request, self.describe(self.user))
+    def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
+        messages.info(REQUEST_HOLDER.request, review.held_notice() if review.is_held(self.node) else self.describe(self.user))
 
     def describe(self, viewer=None):
         return _("%(user)s asked %(question)s") % {
@@ -39,17 +47,22 @@ class AskAction(NodeEditAction):
         }
 
 class AnswerAction(NodeEditAction):
-    verb = _("answered")
+    verb = _lazy("answered")
 
     def process_data(self, **data):
-        answer = Answer(author=self.user, parent=data['question'], **self.create_revision_data(True, **data))
+        revision_data = self.create_revision_data(True, **data)
+        revision_data.pop('summary', None)
+        self._review_state = review.state_for_new_post(self.user, data['question'])
+        answer = Answer(author=self.user, parent=data['question'], state_string=review.state_mark(self._review_state),
+                        **revision_data)
         answer.save()
         self.node = answer
 
     def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
         self.node.question.reset_answer_count_cache()
 
-        messages.info(REQUEST_HOLDER.request, self.describe(self.user))
+        messages.info(REQUEST_HOLDER.request, review.held_notice() if review.is_held(self.node) else self.describe(self.user))
 
 
     def describe(self, viewer=None):
@@ -61,12 +74,16 @@ class AnswerAction(NodeEditAction):
         }
 
 class CommentAction(ActionProxy):
-    verb = _("commented")
+    verb = _lazy("commented")
 
     def process_data(self, text='', parent=None):
-        comment = Comment(author=self.user, parent=parent, body=text)
+        self._review_state = review.state_for_new_post(self.user, parent)
+        comment = Comment(author=self.user, parent=parent, body=text, state_string=review.state_mark(self._review_state))
         comment.save()
         self.node = comment
+
+    def process_action(self):
+        review.queue_post(self, getattr(self, '_review_state', None))
 
     def describe(self, viewer=None):
         return _("%(user)s commented on %(post_desc)s") % {
@@ -75,7 +92,7 @@ class CommentAction(ActionProxy):
         }
 
 class ReviseAction(NodeEditAction):
-    verb = _("edited")
+    verb = _lazy("edited")
 
     def process_data(self, **data):
         revision_data = self.create_revision_data(**data)
@@ -96,7 +113,7 @@ class ReviseAction(NodeEditAction):
         return self.node.get_revisions_url()
 
 class RetagAction(ActionProxy):
-    verb = _("retagged")
+    verb = _lazy("retagged")
 
     def process_data(self, tagnames=''):
         active = self.node.active_revision
@@ -118,7 +135,7 @@ class RetagAction(ActionProxy):
         return self.node.get_revisions_url()
 
 class RollbackAction(ActionProxy):
-    verb = _("reverted")
+    verb = _lazy("reverted")
 
     def process_data(self, activate=None):
         previous = self.node.active_revision
@@ -135,36 +152,74 @@ class RollbackAction(ActionProxy):
         return _("%(user)s reverted %(post_desc)s from revision %(initial)d (%(initial_sum)s) to revision %(final)d (%(final_sum)s)") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'post_desc': self.describe_node(viewer, self.node),
-            'initial': revisions[0].revision, 'initial_sum': revisions[0].summary,
-            'final': revisions[1].revision, 'final_sum': revisions[1].summary,
+            'initial': revisions[0].revision, 'initial_sum': escape(revisions[0].summary),
+            'final': revisions[1].revision, 'final_sum': escape(revisions[1].summary),
         }
 
     def get_absolute_url(self):
         return self.node.get_revisions_url()
 
 class CloseAction(ActionProxy):
-    verb = _("closed")
+    verb = _lazy("closed")
+
+    def process_data(self, duplicate_of=None, move_answers=False):
+        self._duplicate_of = duplicate_of
+        self._move_answers = move_answers
 
     def process_action(self):
+        duplicate_of = getattr(self, '_duplicate_of', None)
+
         self.node.marked = True
         self.node.nstate.closed = self
         self.node.last_edited = self
+        if duplicate_of:
+            extra = dict(self.node.extra) if isinstance(self.node.extra, dict) else {}
+            extra['duplicate_of'] = duplicate_of.id
+            self.node.extra = extra
         self.node.update_last_activity(self.user, save=True)
+
+        if duplicate_of and getattr(self, '_move_answers', False):
+            self.move_answers_to(duplicate_of)
+
+    def move_answers_to(self, target):
+        """Merge a duplicate: its answers (with their comments) move to the original question."""
+        from forum.models import Answer
+        question = self.node
+        for answer in list(question.answers.all()):
+            if answer.nis.accepted:
+                # The acceptance belonged to the duplicate's asker.
+                answer.nstate.accepted.cancel(self.user, ip=self.ip)
+                answer = Answer.objects.get(id=answer.id)
+            answer.parent = target
+            answer.abs_parent = target
+            answer.save()
+            for comment in answer.comments.all():
+                comment.abs_parent = target
+                comment.save()
+
+        for q in (question, target):
+            q.reset_answer_count_cache()
+            q.reset_accepted_count_cache()
+        target.update_last_activity(self.user, save=True)
 
     def cancel_action(self):
         self.node.marked = False
         self.node.nstate.closed = None
+        if isinstance(self.node.extra, dict) and 'duplicate_of' in self.node.extra:
+            extra = dict(self.node.extra)
+            del extra['duplicate_of']
+            self.node.extra = extra
         self.node.update_last_activity(self.user, save=True)
 
     def describe(self, viewer=None):
         return _("%(user)s closed %(post_desc)s: %(reason)s") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'post_desc': self.describe_node(viewer, self.node),
-            'reason': self.extra
+            'reason': escape(self.extra)
         }
 
 class AnswerToCommentAction(ActionProxy):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, new_parent=None):
         self.node.parent = new_parent
@@ -188,7 +243,7 @@ class AnswerToCommentAction(ActionProxy):
         }
 
 class CommentToAnswerAction(ActionProxy):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, question):
         self.node.parent = question
@@ -204,8 +259,17 @@ class CommentToAnswerAction(ActionProxy):
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
             'question': self.describe_node(viewer, self.node.abs_parent),
         }
+def original_question(action):
+    """The question a converted post belonged to (its parent links are
+    cleared by the conversion); the new question itself if it's gone."""
+    from forum.models import Question
+    extra = action.extra if isinstance(action.extra, dict) else {}
+    # Older conversions stored the question object itself.
+    question_id = extra.get('original_question_id') or getattr(extra.get('original_question'), 'id', None)
+    return Question.objects.filter(id=question_id).first() or action.node
+
 class CommentToQuestionAction(NodeEditAction):
-    verb = _("converted")
+    verb = _lazy("converted")
 
     def process_data(self, **data):
         revision_data = self.create_revision_data(**data)
@@ -213,6 +277,7 @@ class CommentToQuestionAction(NodeEditAction):
 
         self.extra = {
             'covert_revision': revision.revision,
+            'original_question_id': self.node.abs_parent_id,
         }
 
         self.node.node_type = "question"
@@ -226,11 +291,11 @@ class CommentToQuestionAction(NodeEditAction):
     def describe(self, viewer=None):
         return _("%(user)s converted comment on %(question)s to a new question") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'question': self.describe_node(viewer, self.node.abs_parent),
+            'question': self.describe_node(viewer, original_question(self)),
         }
 
 class AnswerToQuestionAction(NodeEditAction):
-    verb = _("converted to question")
+    verb = _lazy("converted to question")
 
     def process_data(self,  **data):
         revision_data = self.create_revision_data(**data)
@@ -240,7 +305,7 @@ class AnswerToQuestionAction(NodeEditAction):
 
         self.extra = {
             'covert_revision': revision.revision,
-            'original_question': original_question
+            'original_question_id': original_question.id,
         }
 
         self.node.node_type = "question"
@@ -257,11 +322,11 @@ class AnswerToQuestionAction(NodeEditAction):
     def describe(self, viewer=None):
         return _("%(user)s converted an answer to %(question)s into a separate question") % {
             'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
-            'question': self.describe_node(viewer, self.node.abs_parent),
+            'question': self.describe_node(viewer, original_question(self)),
         }
 
 class WikifyAction(ActionProxy):
-    verb = _("wikified")
+    verb = _lazy("wikified")
 
     def process_action(self):
         self.node.nstate.wiki = self
@@ -278,3 +343,48 @@ class WikifyAction(ActionProxy):
             'node': self.describe_node(viewer, self.node),
         }
 
+
+
+class QueueForReviewAction(ActionProxy):
+    """A new post went to the review queue (FIRST_POSTS_MODERATION): `extra`
+    is the state, 'pending_review' (held) or 'unreviewed' (published). The
+    action of that node state; see forum/utils/review.py."""
+    verb = _lazy("waiting for review")
+
+    def describe(self, viewer=None):
+        return _("%(post_desc)s is waiting for review") % {
+            'post_desc': self.describe_node(viewer, self.node),
+        }
+
+
+class ApprovePostAction(ActionProxy):
+    """A moderator approved a post from the review queue. A held post is
+    published (and the posts held under it approved with it); followers get
+    the notifications that were held back (hooks in forum/subscriptions.py and
+    forum/notifications.py). Cancelling it puts the post back in the queue."""
+    verb = _lazy("approved")
+
+    def save(self, data=None, *args, **kwargs):
+        if not self.id:
+            self.extra = {'state': review.HELD if review.is_held(self.node) else review.UNREVIEWED}
+        return super().save(data, *args, **kwargs)
+
+    def process_action(self):
+        for child in review.release(self.node):
+            approval = ApprovePostAction(user=self.user, node=child, ip=self.ip)
+            approval.cascade = True
+            approval.save()
+
+    def cancel_action(self):
+        state = self.extra.get('state') if isinstance(self.extra, dict) else None
+        review.hold_again(self.node, state or review.UNREVIEWED)
+
+    @property
+    def was_held(self):
+        return isinstance(self.extra, dict) and self.extra.get('state') == review.HELD
+
+    def describe(self, viewer=None):
+        return _("%(user)s approved %(post_desc)s") % {
+            'user': self.hyperlink(self.user.get_profile_url(), self.friendly_username(viewer, self.user)),
+            'post_desc': self.describe_node(viewer, self.node),
+        }

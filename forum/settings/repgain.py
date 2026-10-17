@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 REP_GAIN_SET = SettingSet('repgain', _('Reputation gains and losses config'), _("Configure the reputation points a user may gain or lose upon certain actions."), 200)
 
@@ -8,8 +8,8 @@ label = _("Initial reputation"),
 help_text = _("The initial reputation an user gets when he first signs in.")))
 
 MAX_REP_BY_UPVOTE_DAY = Setting('MAX_REP_BY_UPVOTE_DAY', 200, REP_GAIN_SET, dict(
-label = "Max rep by up votes / day",
-help_text = _("Maximum reputation a user can gain in one day for being upvoted.")))
+label = _("Max rep by up votes / day"),
+help_text = _("Maximum reputation a user can gain in 24 hours from up votes on their posts. Up votes past it still count in the score. 0 for no limit.")))
 
 REP_GAIN_BY_EMAIL_VALIDATION = Setting('REP_GAIN_BY_EMAIL_VALIDATION', 10, REP_GAIN_SET, dict(
 label = _("Rep gain by e-mail validation"),
@@ -42,8 +42,16 @@ help_text = _("Reputation a user loses by having one of his posts flagged.")))
 
 REP_LOST_BY_FLAGGED_3_TIMES = Setting('REP_LOST_BY_FLAGGED_3_TIMES', 30, REP_GAIN_SET, dict(
 label = _("Rep lost by post flagged and hidden"),
-help_text = _("Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to hide the post.")))
+help_text = _("Reputation a user loses once when one of his posts reaches the \"Flag count to hide post\" number of flags.")))
 
 REP_LOST_BY_FLAGGED_5_TIMES = Setting('REP_LOST_BY_FLAGGED_5_TIMES', 100, REP_GAIN_SET, dict(
 label = _("Rep lost by post flagged and deleted"),
 help_text = _("Reputation a user loses by having the last revision of one of his posts flagged the enough number of times to delete the post.")))
+
+REP_GAIN_BY_SUGGESTED_EDIT = Setting('REP_GAIN_BY_SUGGESTED_EDIT', 2, REP_GAIN_SET, dict(
+label = _("Rep gain by approved suggested edit"),
+help_text = _("Reputation a user gains when an edit they suggested is approved.")))
+
+MAX_REP_BY_SUGGESTED_EDITS = Setting('MAX_REP_BY_SUGGESTED_EDITS', 1000, REP_GAIN_SET, dict(
+label = _("Max rep by suggested edits"),
+help_text = _("Most reputation a user can gain in all from approved suggested edits. 0 for no limit.")))

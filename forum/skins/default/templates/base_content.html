@@ -1,36 +1,47 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <!-- base_content.html -->
-{% load i18n extra_tags extra_filters ui_registry %}
-<html xmlns="http://www.w3.org/1999/xhtml">
+{% load i18n extra_tags extra_filters ui_registry seo_tags sentry_tags pwa_tags display_tags account_tags %}
+<html lang="{{ LANGUAGE_CODE }}"{% display_attrs %}>
     <head>{% block after_head_js %}{% endblock %}
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {% pwa_head %}
+        {% theme_head %}
+        <meta name="csrf-token" content="{{ csrf_token }}" />
+        {% sentry_browser %}
+        {# Style sheets before any script: found and fetched first (render-blocking, so as early as possible). #}
+        <link href="{% media "/media/style/osqa.css" %}" rel="stylesheet" type="text/css" />
+        {% if settings.USE_CUSTOM_CSS|or_preview:request %}
+        <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
+        {% endif %}
+        {% block forestyle %}{% endblock %}
         <title>{% block fulltitle %}{% block title %}{% endblock %} - {{ settings.APP_SHORT_NAME }}{% endblock %}</title>
         <meta name="description" content="{% block metadescription %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
         <meta name="keywords" content="{% block metakeywords %}{{ settings.APP_KEYWORDS }}{% endblock %}" />
         {% block meta %}{% endblock %}
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        {% block social_meta %}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="{{ settings.APP_TITLE }}" />
+        <meta property="og:description" content="{{ settings.APP_DESCRIPTION }}" />
+        {% endblock %}
+        <meta property="og:site_name" content="{{ settings.APP_SHORT_NAME }}" />
+        <meta property="og:url" content="{% absolute_url request.path %}" />
+        <meta property="og:image" content="{% site_logo_url %}" />
+        <meta name="twitter:card" content="summary" />
         {% if settings.GOOGLE_SITEMAP_CODE %}
         <meta name="google-site-verification" content="{{ settings.GOOGLE_SITEMAP_CODE }}" />
         {% endif %}
-        <link rel="shortcut icon" href="{{ settings.APP_FAVICON }}" />
-        <link href="{% media  "/media/style/style.css" %}" rel="stylesheet" type="text/css" />
-        {% if settings.USE_CUSTOM_CSS|or_preview:request %}
-        <link href="{% url "custom_css" %}" rel="stylesheet" type="text/css" />
-        {% endif %}
-        <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" />
-        <!--[if IE 6]>
-        <style type="text/css">
-        img, div, a { behavior: url({% media "/media/iepngfix/iepngfix.htc" %}) }
-        </style>
-        <![endif]-->
-        {% block forestyle %}{% endblock %}
+        <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
+        <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.behaviors.js" %}"></script>
+        {# jQuery UI (tag/user suggestions, the award points slider) is loaded by osqa.autocomplete.js only on pages that use it. #}
+        <script defer src="{% media "/media/js/osqa.autocomplete.js" %}" data-jquery-ui="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}" data-jquery-ui-css="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}"></script>
+        <link rel="shortcut icon" href="{{ settings.APP_URL }}/{{ settings.APP_FAVICON }}" />
 
-        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-        <script type="text/javascript">
+
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
         /*<![CDATA[*/
-            google.load("jquery", "1");
-            google.load("jqueryui", "1", {autoload:true});
-
-            var i18nLang = '{{ settings.LANGUAGE_CODE }}';
+            var i18nLang = '{{ LANGUAGE_CODE }}';
             var appUrl = '{{ settings.APP_URL }}'
             var scriptUrl = '{{ settings.FORCE_SCRIPT_NAME }}/'
             var osqaSkin = '{{ settings.OSQA_SKIN }}';
@@ -45,19 +56,33 @@
                 close: "{% trans "Close" %}",
                 ok: "{% trans "Ok" %}",
                 matching_tags_url: "{% url "matching_tags" %}",
+                matching_users_url: "{% url "matching_users" %}",
+                mention_suggestions: "{% trans "People to mention" %}",
+                suggestion_one: "{% trans "1 suggestion" %}",
+                suggestion_many: "{% trans "{count} suggestions" %}",
                 word: "{% trans "word" %}",
                 words: "{% trans "words" %}",
                 character: "{% trans "character" %}",
-                characters: "{% trans "characters" %}"
+                characters: "{% trans "characters" %}",
+                draft_restored: "{% trans "Your unsent draft was restored." %}",
+                discard: "{% trans "Discard" %}",
+                upload_url: "{% url "upload" %}",
+                uploading: "{% trans "Uploading" %}",
+                upload_failed: "{% trans "The image could not be uploaded." %}"
             }
         /*]]>*/
         </script>
         <script type="text/javascript" src="{% media  "/media/js/osqa.main.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.highlight.js" %}" data-highlight-src="{% media "/media/vendor/highlight-11.11.1/highlight.min.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.drafts.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.mentions.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.searchbox.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.avatars.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.scrolltabs.js" %}"></script>
+        {% if settings.DARK_MODE %}<script defer src="{% media "/media/js/osqa.theme.js" %}"></script>{% endif %}
+        {% shortcuts_enabled as shortcuts_on %}{% if shortcuts_on %}<script defer src="{% media "/media/js/osqa.shortcuts.js" %}"></script>{% endif %}
         {% if user_messages %}
-        <style type="text/css">
-            body { margin-top:2.4em; }
-        </style>
-        <script type="text/javascript">
+        <script nonce="{{ csp_nonce }}" type="text/javascript">
             $(document).ready(function() {
                 var element = $('#validate_email_alert');
                 element.click(function(){notify.close(true);})
@@ -66,20 +91,23 @@
         </script>
         {% endif %}
         {% if settings.USE_CUSTOM_HEAD|or_preview:request %}
-            {{ settings.CUSTOM_HEAD|or_preview:request|safe }}
+            {{ settings.CUSTOM_HEAD|or_preview:request|csp_nonce_scripts:csp_nonce|safe }}
         {% endif %}
         {% block forejs %}{% endblock %}
         <link rel="search" type="application/opensearchdescription+xml" href="{% url "opensearch" %}" title="{{ settings.APP_SHORT_NAME }} Search" />
         {% loadregistry head_content %}{% endloadregistry %}
     </head>
     <body>
+        <a class="skip-link" href="#wrapper">{% trans "Skip to content" %}</a>
         <div class="wrapper">
+        <div id="offline-banner" class="offline-banner" role="status" hidden>{% trans "You are offline – showing a saved copy of this page." %}</div>
         {% if settings.USE_CUSTOM_HEADER|or_preview:request %}
             <div id="custom_header">
-                {{ settings.CUSTOM_HEADER|or_preview:request|static_content:settings.CUSTOM_HEADER_RENDER_MODE }}
+                {{ settings.CUSTOM_HEADER|or_preview:request|static_content:settings.CUSTOM_HEADER_RENDER_MODE|csp_nonce_scripts:csp_nonce }}
             </div>
         {% endif %}
         {% include "header.html" %}
+        {% confirm_banner %}
         {% block page_center %}
         <div id="wrapper">
             <div id="room">
@@ -97,23 +125,23 @@
         </div>
         {% endblock %}
         {% if settings.USE_CUSTOM_FOOTER|or_preview:request %}
-            {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "above" %}
+            {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "above" %}
                 <div id="custom_footer">
-                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
+                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE|csp_nonce_scripts:csp_nonce }}
                 </div>
-            {% endifequal %}
+            {% endif %}
             <div id="ground">
-                {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "replace" %}
-                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
+                {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "replace" %}
+                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE|csp_nonce_scripts:csp_nonce }}
                 {% else %}
                     {% include "footer.html" %}
-                {% endifequal %}
+                {% endif %}
             </div>
-            {% ifequal settings.CUSTOM_FOOTER_MODE|or_preview:request "below" %}
+            {% if settings.CUSTOM_FOOTER_MODE|or_preview:request == "below" %}
                 <div id="custom_footer">
-                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE }}
+                    {{ settings.CUSTOM_FOOTER|or_preview:request|static_content:settings.CUSTOM_FOOTER_RENDER_MODE|csp_nonce_scripts:csp_nonce }}
                 </div>
-            {% endifequal %}
+            {% endif %}
         {% else %}
             <div id="ground">
                 {% include "footer.html" %}
@@ -122,7 +150,7 @@
         {% block endjs %}
         {% endblock %}
         {% if settings.GOOGLE_ANALYTICS_KEY %}
-            <script type="text/javascript">
+            <script nonce="{{ csp_nonce }}" type="text/javascript">
                 var _gaq = _gaq || [];
                 _gaq.push(['_setAccount', '{{ settings.GOOGLE_ANALYTICS_KEY }}']);
                 _gaq.push(['_trackPageview']);
@@ -137,7 +165,7 @@
         </div>
 
         <!-- Put all elements with fixed position here, IE6 fixed position fix: http://ryanfait.com/position-fixed-ie6/ -->
-        <div class="notify" style="display:none">
+        <div class="notify" role="status" style="display:none">
             {% autoescape off %}
                 {% if user_messages %}
                     {% for message in user_messages %}
@@ -145,8 +173,9 @@
                     {% endfor %}
                 {% endif %}
             {% endautoescape %}
-            <a id="close-notify" onclick="notify.close(true)">&#215;</a>
+            <button type="button" id="close-notify" class="plain-button" aria-label="{% trans "Close" %}" title="{% trans "Close" %}">&#215;</button>
         </div>
+        {% if shortcuts_on %}{% include "display/shortcuts_dialog.html" %}{% endif %}
     </body>
 </html>
 <!-- end template base_content.html -->

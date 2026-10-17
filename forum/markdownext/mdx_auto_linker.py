@@ -1,5 +1,6 @@
 import markdown
-import re, socket
+import re
+import socket
 
 TLDS = ('gw', 'gu', 'gt', 'gs', 'gr', 'gq', 'gp', 'gy', 'gg', 'gf', 'ge', 'gd', 'ga', 'edu', 'va', 'gn', 'gl', 'gi',
         'gh', 'iq', 'lb', 'lc', 'la', 'tv', 'tw', 'tt', 'arpa', 'lk', 'li', 'lv', 'to', 'lt', 'lr', 'ls', 'th', 'tf',
@@ -34,7 +35,7 @@ AUTO_LINK_RE = re.compile(r"""
 
 """, re.X | re.I)
 
-EMAIL_LINK_REPLACE_RE = re.compile("(?<= href=\")[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})(?=\")")
+EMAIL_LINK_REPLACE_RE = re.compile(r"(?<= href=\")[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})(?=\")")
 
 def is_ip(addr):
     try:
@@ -101,10 +102,10 @@ class AutoLinker(markdown.postprocessors.Postprocessor):
 
 class AutoLinkerExtension(markdown.Extension):
 
-    def extendMarkdown(self, md, md_globals):
-        md.postprocessors['autolinker'] = AutoLinker()
+    def extendMarkdown(self, md):
+        md.postprocessors.register(AutoLinker(md), 'autolinker', 5)
 
-def makeExtension(configs=None):
-    return AutoLinkerExtension(configs=configs)
+def makeExtension(**kwargs):
+    return AutoLinkerExtension(**kwargs)
 
 
