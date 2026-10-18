@@ -109,7 +109,7 @@ class ProfileTabsTest(AgentFetchMixin, E2ETestCase):
         self.check_page(page)
         self.assertIn('New preferences saved', page.locator('body').inner_text())
         self.assertEqual(User.objects.get(id=self.carol.id).prop.preferences,
-                         {'sticky_sorts': True, 'keyboard_shortcuts': True})
+                         {'sticky_sorts': True, 'keyboard_shortcuts': True, 'answer_requests': True})
         # still ticked when she comes back
         self.visit(page, reverse('user_preferences', kwargs={'id': self.carol.id, 'slug': 'carol'}))
         self.assertTrue(page.is_checked('#id_sticky_sorts'))
