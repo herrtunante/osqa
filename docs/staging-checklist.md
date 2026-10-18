@@ -40,6 +40,7 @@ Tick each box; write down anything odd with the page address and the time
   python manage.py rebuild_search_index
   python manage.py backfill_image_variants --dry-run   # what it will do
   python manage.py backfill_image_variants --rerender
+  python manage.py refresh_tag_expertise          # expert routing
   ```
 - [ ] Admin > Recalculate scores and reputation (only when coming from the
       original OSQA).
@@ -87,6 +88,12 @@ switch to the real SMTP server with an allow-list or for the last check.
       "unsubscribe" works in one click.
 - [ ] **Daily summary:** set a member to daily, post something, run
       `python manage.py send_email_alerts`; one summary arrives.
+- [ ] **Expert routing:** after `refresh_tag_expertise`, ask a question in a
+      busy tag from a test account: the members with the best answers in
+      that tag (test accounts only, see above) get "You might know the
+      answer"; "Questions for you" lists it; "Not for me" removes it. Check
+      Admin > Questions for experts suits your community (how many members
+      are asked, daily cap).
 - [ ] Deliverability on the real server: SPF, DKIM and DMARC pass
       (Gmail "Show original"); messages don't land in spam.
 
@@ -125,6 +132,10 @@ switch to the real SMTP server with an allow-list or for the last check.
 - [ ] Suggested edit from a low-reputation account; approve it as a
       moderator.
 - [ ] Tag rename and merge on a test tag.
+- [ ] Versions: on the tag page of a product (e.g. collect) add its
+      versions and mark the current one; ask with "Applies to version"; an
+      answer for an older version shows the "may be outdated" notice and
+      "Still works in …" confirms it; search with the version filter.
 
 ## 6. Several processes, cache and jobs
 
