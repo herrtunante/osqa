@@ -7,6 +7,7 @@
         {% include "compose/editor_scripts.html" %}
         <script defer src="{% media "/media/js/osqa.ask.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
+        {% if version_groups and not suggesting and not improving %}<script defer src="{% media "/media/js/osqa.versions.js" %}"></script>{% endif %}
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
 
@@ -50,6 +51,8 @@
             {% include "compose/editor.html" with label=body_label %}
 
             {% include "compose/tags.html" %}
+
+            {% if not suggesting and not improving %}{% include "compose/versions.html" %}{% endif %}
 
             {% include "compose/summary.html" %}
 

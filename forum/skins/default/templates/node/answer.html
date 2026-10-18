@@ -1,4 +1,4 @@
-{% load node_tags i18n %}{# One answer on the question page (question.html; the live question page renders it alone, forum/views/live.py). #}
+{% load node_tags version_tags i18n %}{# One answer on the question page (question.html; the live question page renders it alone, forum/views/live.py). #}
 <a name="{{ answer.id }}"></a>
 <article id="answer-container-{{ answer.id }}" class="answer post answer-card {% post_classes answer %}{% if answer.id == focused_answer_id %} focusedAnswer{% endif %}" data-rev="{{ answer.active_revision_id }}" aria-label="{% blocktrans with name=answer.author.username %}Answer by {{ name }}{% endblocktrans %}">
     <div class="vote-buttons post-votes">
@@ -11,6 +11,7 @@
         <div class="answer-body post-body">
             {{ answer.html|safe }}
         </div>
+        {% post_versions answer request.user %}
         {% wiki_symbol request.user answer %}
         <div class="post-footer">
             <div class="answer-controls post-controls">

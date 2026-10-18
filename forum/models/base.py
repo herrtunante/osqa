@@ -29,13 +29,14 @@ if not hasattr(cache, 'get_many'):
 
 class CachedQuerySet(models.query.QuerySet):
 
-    def prefetch_cached(self, fks=(), counts=()):
+    def prefetch_cached(self, fks=(), counts=(), after=()):
         """When the rows are loaded, fill their foreign keys `fks` from the
         object cache and their DenormalizedField `counts` in one grouped query
-        each (see prefetch_cached_fk / prefetch_denormalized). Kept by slicing,
-        so a paginated list loads them for the shown page only."""
+        each (see prefetch_cached_fk / prefetch_denormalized), then call each
+        function of `after` with the loaded rows (e.g. post_versions.prefetch).
+        Kept by slicing, so a paginated list loads them for the shown page only."""
         clone = self._chain()
-        clone._osqa_prefetch = (tuple(fks), tuple(counts))
+        clone._osqa_prefetch = (tuple(fks), tuple(counts), tuple(after))
         return clone
 
     def _clone(self):
@@ -48,9 +49,11 @@ class CachedQuerySet(models.query.QuerySet):
         super()._fetch_all()
         spec = getattr(self, '_osqa_prefetch', None)
         if fetching and spec and self._result_cache and isinstance(self._result_cache[0], models.Model):
-            fks, counts = spec
+            fks, counts, after = spec
             prefetch_cached_fk(self._result_cache, *fks)
             prefetch_denormalized(self._result_cache, *counts)
+            for function in after:
+                function(self._result_cache)
 
     def obj_from_datadict(self, datadict):
         obj = self.model()

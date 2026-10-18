@@ -4,3 +4,4 @@ from .user import *
 from .page import *
 from .tag import *
 from .suggested_edit import *
+from .version import *

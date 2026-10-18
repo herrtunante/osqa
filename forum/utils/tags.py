@@ -19,19 +19,27 @@ What a change keeps right:
 - Synonyms: a merged tag's name becomes a synonym of the target (old links
   /tags/<old>/ redirect, typing the old name gives the target), its own
   synonyms point to the target, and the merged tag is deleted.
+- Versions (TagVersion, forum/utils/post_versions.py): a rename keeps them
+  (same tag row); a merge moves the merged tag's versions to the target
+  after its own (a version of the same name becomes the target's, the
+  target's current version stays current) and its posts' versions with them.
+
+The tag's version list (add, remove, reorder, current) is kept here too and
+recorded as TagVersionAction (history only: the controls reverse a change).
 """
 import re
 
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 from forum import settings
 
 TAG_NAME_RE = re.compile(r'^[\w+#.-]+$', re.UNICODE)
 
 # Action types written by forum/actions/tag.py (Action.get_type()).
-TAG_ACTION_TYPES = ('renametag', 'mergetag', 'addtagsynonym', 'removetagsynonym', 'edittag')
+TAG_ACTION_TYPES = ('renametag', 'mergetag', 'addtagsynonym', 'removetagsynonym', 'edittag', 'tagversion')
 
 # Node.tagnames / NodeRevision.tagnames
 MAX_TAGNAMES_LENGTH = 125
@@ -132,6 +140,7 @@ def _rename(tag, old, new, user, summary):
     tag.save()
     _replace(questions, old, new, user, summary)
     recount(tag)
+    _versions_changed()
     return questions
 
 
@@ -226,6 +235,7 @@ def merge_summary(source, target):
         'ignoring': marks.filter(reason='bad').count(),
         'duplicate_marks': marks.filter(user_id__in=target_users).count(),
         'synonyms': list(source.synonyms.values_list('source_name', flat=True)),
+        'versions': source.versions.count(),
     }
 
 
@@ -255,9 +265,12 @@ def merge_tags(source, target, user, ip):
             synonym.target = target
             synonym.save()
 
+        _merge_versions(source, target)
+
         source_name = source.name
         source.delete()  # nothing refers to it any more
         recount(target)
+        _versions_changed()
         action = MergeTagAction(user=user, ip=ip, extra=dict(
             tag_id=target.id, source=source_name, target=target.name, **summary))
         action.save()
@@ -289,6 +302,7 @@ def add_synonym(tag, name, user, ip):
     name = check_synonym(tag, name)
     with transaction.atomic():
         TagSynonym(source_name=name, target=tag, created_by=user).save()
+        _versions_changed()
         action = AddTagSynonymAction(user=user, ip=ip, extra=dict(tag_id=tag.id, tag=tag.name, synonym=name))
         action.save()
     return action
@@ -299,6 +313,7 @@ def remove_synonym(synonym, user, ip):
     tag = synonym.target
     with transaction.atomic():
         synonym.delete()
+        _versions_changed()
         action = RemoveTagSynonymAction(user=user, ip=ip, extra=dict(
             tag_id=tag.id, tag=tag.name, synonym=synonym.source_name))
         action.save()
@@ -324,6 +339,127 @@ def edit_description(tag, text, user, ip):
         action = EditTagAction(user=user, ip=ip, extra=dict(tag_id=tag.id, tag=tag.name, old=old, new=text))
         action.save()
     return action
+
+
+# -- versions ----------------------------------------------------------------
+
+def _versions_changed():
+    from forum.utils import post_versions
+    post_versions.invalidate()
+
+
+def _merge_versions(source, target):
+    """Moves the versions of `source` (and the posts' choices of them) to `target`."""
+    from forum.models import NodeVersion, TagVersion
+    own = dict((v.name, v) for v in TagVersion.objects.filter(tag=target))
+    position = max([v.position for v in own.values()] or [-1]) + 1
+    has_current = any(v.is_current for v in own.values())
+    # A post tagged with both keeps its version of the target.
+    NodeVersion.objects.filter(tag=source, node_id__in=NodeVersion.objects.filter(tag=target).values('node_id')).delete()
+    for version in TagVersion.objects.filter(tag=source).order_by('position', 'id'):
+        same = own.get(version.name)
+        if same is not None:
+            NodeVersion.objects.filter(version=version).update(version=same, tag=target)
+            NodeVersion.objects.filter(confirmed_version=version).update(confirmed_version=same)
+            version.delete()
+            continue
+        version.tag, version.position = target, position
+        position += 1
+        if version.is_current:
+            version.is_current = not has_current
+            has_current = True
+        version.save()
+    NodeVersion.objects.filter(tag=source).update(tag=target)
+
+
+def validate_version_name(name):
+    """The version label without surrounding spaces, or TagError."""
+    from forum.utils.post_versions import MAX_NAME_LENGTH, NAME_RE
+    name = (name or '').strip()
+    if not name or len(name) > MAX_NAME_LENGTH or not NAME_RE.match(name):
+        raise TagError(_("Enter a version of at most %d letters, digits, dots or dashes, e.g. 4.1.") % MAX_NAME_LENGTH)
+    return name
+
+
+def _record_version(tag, user, ip, change, version, **more):
+    from forum.actions import TagVersionAction
+    action = TagVersionAction(user=user, ip=ip, extra=dict(tag_id=tag.id, tag=tag.name, change=change,
+                                                           version=version, **more))
+    action.save()
+    _versions_changed()
+    return action
+
+
+def _renumber(tag):
+    """The tag's versions in order, numbered 0, 1, 2..."""
+    from forum.models import TagVersion
+    versions = list(TagVersion.objects.filter(tag=tag).order_by('position', 'id'))
+    for index, version in enumerate(versions):
+        if version.position != index:
+            version.position = index
+            version.save(update_fields=['position'])
+    return versions
+
+
+def add_version(tag, name, user, ip, current=False, released=None):
+    """Adds a version after the tag's others (optionally the current one)."""
+    from forum.models import TagVersion
+    name = validate_version_name(name)
+    if TagVersion.objects.filter(tag=tag, name__iexact=name).exists():
+        raise TagError(_("%(tag)s already has a version %(version)s.") % {'tag': tag.name, 'version': name})
+    with transaction.atomic():
+        position = (TagVersion.objects.filter(tag=tag).aggregate(m=Max('position'))['m'] or 0) + 1
+        if current:
+            TagVersion.objects.filter(tag=tag, is_current=True).update(is_current=False)
+        version = TagVersion.objects.create(tag=tag, name=name, position=position, is_current=bool(current),
+                                            released=released)
+        _renumber(tag)
+        _record_version(tag, user, ip, 'added', name, current=bool(current))
+    return version
+
+
+def set_current_version(version, user, ip, current=True):
+    """Makes `version` the tag's current version (or, with current=False, no version is current)."""
+    from forum.models import TagVersion
+    tag = version.tag
+    with transaction.atomic():
+        TagVersion.objects.filter(tag=tag, is_current=True).update(is_current=False)
+        if current:
+            TagVersion.objects.filter(id=version.id).update(is_current=True)
+        _record_version(tag, user, ip, 'current' if current else 'not_current', version.name)
+
+
+def move_version(version, offset, user, ip):
+    """Moves `version` one place earlier (offset -1) or later (+1)."""
+    tag = version.tag
+    with transaction.atomic():
+        versions = _renumber(tag)
+        index = next(i for i, v in enumerate(versions) if v.id == version.id)
+        other = index + (1 if offset > 0 else -1)
+        if not 0 <= other < len(versions):
+            return None
+        a, b = versions[index], versions[other]
+        a.position, b.position = b.position, a.position
+        a.save(update_fields=['position'])
+        b.save(update_fields=['position'])
+        return _record_version(tag, user, ip, 'moved', version.name, after=b.name if offset > 0 else None,
+                               before=b.name if offset < 0 else None)
+
+
+def remove_version(version, user, ip):
+    """Removes a version no post applies to (a typo, an announced version that never came)."""
+    from forum.models import NodeVersion
+    used = NodeVersion.objects.filter(version=version).count()
+    if used:
+        raise TagError(ngettext("%(count)d post applies to %(version)s, so it can't be removed.",
+                                "%(count)d posts apply to %(version)s, so it can't be removed.", used) % {
+            'count': used, 'version': version.name})
+    tag = version.tag
+    with transaction.atomic():
+        name = version.name
+        version.delete()
+        _renumber(tag)
+        _record_version(tag, user, ip, 'removed', name)
 
 
 # -- history -----------------------------------------------------------------

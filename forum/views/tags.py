@@ -1,6 +1,7 @@
 """Tag management for moderators: the per-tag management page (description,
-synonyms, rename, merge, history with undo), the merge confirmation page and
-the list of all synonyms. The work and its rules are in forum/utils/tags.py."""
+versions, synonyms, rename, merge, history with undo), the merge confirmation
+page and the list of all synonyms. The work and its rules are in
+forum/utils/tags.py."""
 from django.contrib import messages
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -9,7 +10,8 @@ from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
-from forum.models import Action, Tag, TagSynonym
+from forum import settings
+from forum.models import Action, Tag, TagSynonym, TagVersion
 from forum.utils import tags as tagtools
 from forum.utils.tags import NeedsMerge, TagError
 from forum.views.admin import TOOL_LINKS
@@ -34,8 +36,16 @@ def merge_url(source, target):
 def _manage_page(request, tag, error=None, **values):
     from forum.models import Question
     questions = Question.objects.filter(tags__id=tag.id).distinct().count()
+    from forum.models import NodeVersion
+    from django.db.models import Count
+    versions = list(TagVersion.objects.filter(tag=tag).order_by('position', 'id'))
+    used = dict(NodeVersion.objects.filter(tag=tag).values_list('version_id').annotate(n=Count('id')))
+    for version in versions:
+        version.used = used.get(version.id, 0)
     return render(request, 'tag_edit.html', {
         'tag': tag,
+        'versions': versions,
+        'versions_enabled': bool(settings.POST_VERSIONS),
         'synonyms': tag.synonyms.all(),
         'questions_count': questions,
         'history': tagtools.history(tag),
@@ -62,6 +72,9 @@ def tag_edit(request, tag):
             tagtools.edit_description(tag, request.POST.get('description', ''), user, ip)
             messages.info(request, _("The tag description was saved."))
             return HttpResponseRedirect(tag.get_absolute_url())
+
+        if action in VERSION_ACTIONS:
+            return _version_change(request, tag, action, edit_url)
 
         if action == 'add_synonym':
             try:
@@ -98,9 +111,44 @@ def tag_edit(request, tag):
     except TagError as e:
         tag = Tag.objects.get(id=tag.id)
         return _manage_page(request, tag, error=str(e), **{action or 'other': request.POST.get(
-            {'add_synonym': 'synonym', 'rename': 'name'}.get(action, ''), '')})
+            {'add_synonym': 'synonym', 'rename': 'name', 'add_version': 'version'}.get(action, ''), '')})
 
     return HttpResponseRedirect(edit_url)
+
+
+VERSION_ACTIONS = ('add_version', 'remove_version', 'current_version', 'no_current_version', 'version_up',
+                   'version_down')
+
+
+def _version_change(request, tag, action, edit_url):
+    """The tag's version list (forum/utils/tags.py); TagError goes back to the page."""
+    from django.utils.html import escape
+    from forum.search.filters import parse_date
+    user, ip = request.user, _ip(request)
+    if action == 'add_version':
+        version = tagtools.add_version(tag, request.POST.get('version', ''), user, ip,
+                                       current=bool(request.POST.get('current')),
+                                       released=parse_date(request.POST.get('released', '')))
+        messages.info(request, _("Version %(version)s added to %(tag)s.") % {
+            'version': escape(version.name), 'tag': escape(tag.name)})
+        return HttpResponseRedirect(edit_url + '#tag-versions-heading')
+    version_id = request.POST.get('id', '')
+    version = TagVersion.objects.filter(id=int(version_id), tag=tag).first() if version_id.isdigit() else None
+    if version is None:
+        raise TagError(_("This version no longer exists."))
+    if action == 'remove_version':
+        tagtools.remove_version(version, user, ip)
+        messages.info(request, _("Version %s removed.") % escape(version.name))
+    elif action in ('current_version', 'no_current_version'):
+        tagtools.set_current_version(version, user, ip, current=action == 'current_version')
+        if action == 'current_version':
+            messages.info(request, _("%(version)s is now the current version of %(tag)s.") % {
+                'version': escape(version.name), 'tag': escape(tag.name)})
+        else:
+            messages.info(request, _("No version of %s is marked as current.") % escape(tag.name))
+    else:
+        tagtools.move_version(version, -1 if action == 'version_up' else 1, user, ip)
+    return HttpResponseRedirect(edit_url + '#tag-versions-heading')
 
 
 def tag_merge(request, tag):

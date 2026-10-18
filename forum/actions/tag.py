@@ -111,3 +111,23 @@ class EditTagAction(TagActionMixin, ActionProxy):
         if tag is not None:
             tag.description = self.extra['old']
             tag.save()
+
+
+class TagVersionAction(TagActionMixin, ActionProxy):
+    """A change to the tag's version list (forum/utils/tags.py): `extra`
+    has `change` (added, removed, current, not_current, moved) and the
+    version's name. History only: the version controls reverse a change."""
+    verb = _lazy("changed the versions of a tag")
+
+    def describe(self, viewer=None):
+        extra = self.extra or {}
+        texts = {
+            'added': _("%(user)s added the version %(version)s to the tag %(tag)s"),
+            'removed': _("%(user)s removed the version %(version)s of the tag %(tag)s"),
+            'current': _("%(user)s made %(version)s the current version of the tag %(tag)s"),
+            'not_current': _("%(user)s marked no version of the tag %(tag)s as current"),
+            'moved': _("%(user)s moved the version %(version)s of the tag %(tag)s"),
+        }
+        return texts.get(extra.get('change'), texts['moved']) % {
+            'user': self.user_link(viewer), 'version': '<span class="version-chip">%s</span>' % escape(
+                extra.get('version', '')), 'tag': self.tag_link(extra.get('tag', ''))}

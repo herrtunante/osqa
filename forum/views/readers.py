@@ -28,6 +28,7 @@ from forum.feed import RssQuestionFeed, RssAnswerFeed
 from forum.utils.pagination import generate_uri
 from forum.utils import conditional
 from forum.utils import review
+from forum.utils import post_versions
 from forum.utils.tags import can_manage_tags
 
 from . import decorators
@@ -264,7 +265,8 @@ def question_list(request, initial,
         # Per row: who was active last (from the object cache) and the answer
         # counts, loaded for the shown page in one go instead of per question.
         'questions' : questions.distinct().prefetch_cached(fks=('last_activity_by',),
-                                                           counts=('answer_count', 'accepted_count')),
+                                                           counts=('answer_count', 'accepted_count'),
+                                                           after=(post_versions.prefetch,)),
         'questions_count' : questions.count(),
         'keywords' : keywords,
         'list_description': list_description,
@@ -428,6 +430,8 @@ def question(request, id, slug='', answer=None):
     "subscription": subscription,
     "embed_youtube_videos" : settings.EMBED_YOUTUBE_VIDEOS,
     "focused_answer_id" : focused_answer_id,
+    # The answer form's "Applies to version" selects (forum/utils/post_versions.py).
+    "version_groups": post_versions.form_groups(question.tagname_list(), data=request.POST or None),
     "_etag": etag,
     })
 

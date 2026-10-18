@@ -32,6 +32,7 @@
         </script>
         <script defer src="{% media "/media/js/osqa.ask.js" %}"></script>
         <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
+        {% if version_groups %}<script defer src="{% media "/media/js/osqa.versions.js" %}"></script>{% endif %}
         <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
 
@@ -80,6 +81,8 @@
             {% include "compose/editor.html" with label=body_label help=body_help %}
 
             {% include "compose/tags.html" %}
+
+            {% include "compose/versions.html" %}
 
             {% include "compose/wiki.html" %}
 

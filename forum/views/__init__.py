@@ -16,6 +16,7 @@ from . import search
 from . import moderation
 from . import tags
 from . import suggested_edits
+from . import post_versions
 from . import live
 from . import security
 from . import for_you

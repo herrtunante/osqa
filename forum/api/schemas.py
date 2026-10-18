@@ -60,6 +60,15 @@ COMPONENTS = {
         'held_for_review': {'type': 'boolean', 'description': 'Waiting for a moderator (shown to its author and '
                             'moderators only; nobody else sees the post).'},
     }),
+    'PostVersion': obj({
+        'tag': STR,
+        'version': {'type': 'string', 'description': 'The version of the tagged product the post applies to.'},
+        'current_version': nullable({'type': 'string', 'description': "The tag's current version."}),
+        'outdated': {'type': 'boolean', 'description': 'A newer version than the one it was written (or confirmed) '
+                     'for is current.'},
+        'confirmed_for': nullable(obj({'version': STR, 'by': nullable(ref('UserBrief')), 'at': nullable(DATETIME)},
+                                      description='Confirmed to still work in a newer version, without editing.')),
+    }, description='The version of a tagged product a post applies to.'),
     'Comment': obj({
         'id': INT, 'post_id': INT, 'url': URL, 'score': INT, 'author': nullable(ref('UserBrief')),
         'created': DATETIME, 'html': STR, 'markdown': STR, 'held_for_review': BOOL,
@@ -70,18 +79,21 @@ COMPONENTS = {
         'html': {'type': 'string', 'description': 'The rendered, sanitised HTML shown on the site.'},
         'markdown': {'type': 'string', 'description': 'The Markdown source.'},
         'held_for_review': BOOL,
+        'versions': {'type': 'array', 'items': ref('PostVersion'),
+                     'description': 'The versions it applies to (empty when none is given).'},
         'comments': {'type': 'array', 'items': ref('Comment')},
         'my_vote': nullable({'enum': ['up', 'down']}),
     }, required=['id', 'question_id', 'url', 'api_url', 'score', 'accepted', 'author', 'created', 'html', 'markdown',
-                 'held_for_review']),
+                 'held_for_review', 'versions']),
     'Question': {
         'allOf': [ref('QuestionSummary'), obj({
             'html': STR, 'markdown': STR, 'deleted': BOOL,
+            'versions': {'type': 'array', 'items': ref('PostVersion')},
             'comments': {'type': 'array', 'items': ref('Comment')},
             'answers': {'type': 'array', 'items': ref('Answer')},
             'my_vote': nullable({'enum': ['up', 'down']}),
             'following': BOOL,
-        }, required=['html', 'markdown', 'deleted', 'comments', 'answers'])],
+        }, required=['html', 'markdown', 'deleted', 'versions', 'comments', 'answers'])],
         'description': 'A question with its answers (accepted first, then by score) and comments. my_vote and '
                        'following are given when a token is sent.',
     },

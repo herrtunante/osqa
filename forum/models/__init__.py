@@ -18,6 +18,7 @@ from .suggested_edit import SuggestedEdit
 from .two_factor import TOTPDevice, RecoveryCode, Passkey
 from .api import ApiToken
 from .expertise import TagExpertise, AnswerRequest
+from .version import TagVersion, NodeVersion
 
 from .base import *
 
@@ -29,7 +30,8 @@ __all__ = [
         'ValidationHash', 'AuthKeyUserAssociation', 'SubscriptionSettings', 'KeyValue', 'User',
         'Action', 'ActionRepute', 'Vote', 'Flag', 'Page', 'ModerationReport', 'KnowledgeChunk', 'AISuggestion',
         'Notification', 'QuestionReminder', 'PendingEmail', 'SearchDocument', 'PushSubscription', 'SuggestedEdit',
-        'TOTPDevice', 'RecoveryCode', 'Passkey', 'ApiToken', 'TagExpertise', 'AnswerRequest'
+        'TOTPDevice', 'RecoveryCode', 'Passkey', 'ApiToken', 'TagExpertise', 'AnswerRequest',
+        'TagVersion', 'NodeVersion'
         ]
 
 

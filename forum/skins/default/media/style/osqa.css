@@ -3921,6 +3921,91 @@ time.relative-time {
     margin-top: 4px;
 }
 
+/* Versions a post applies to (forum/utils/post_versions.py): chips next to
+   the question's tags, under an answer and on list rows; the "may be
+   outdated" notice and the "Still works in ..." confirmation. */
+.version-chip {
+    display: inline-block;
+    padding: 0 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.7;
+    white-space: nowrap;
+}
+
+.post-tags .version-chips, .question-row .tags .version-chips {
+    margin-left: 4px;
+}
+
+.post-versions {
+    margin: 10px 0 0;
+    font-size: 14px;
+}
+
+.post-versions p {
+    margin: 0;
+}
+
+.post-version-chips {
+    margin: 0 0 8px;
+}
+
+.question-page .version-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0 0 8px;
+}
+
+.version-notice p {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.version-confirm-form, .version-undo-form {
+    margin: 0;
+}
+
+button.version-confirm-button, button.version-confirm-button:hover,
+button.version-undo-button, button.version-undo-button:hover {
+    min-height: 32px;
+    padding: 4px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.version-confirm-button:hover, button.version-undo-button:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
+
+.version-confirmed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Links inside the sentence: told apart by more than their colour. */
+.version-confirmed a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 /* First posts review: "Waiting for review" on a held post (its author and
    moderators see it), in lists, on the question page and on comments. */
 .review-badge {
@@ -6220,6 +6305,8 @@ ul.search-facet-tags {
     max-height: calc(100dvh - 16px);
     padding: 0;
     overflow: auto;
+    /* A focused field scrolls out from under the sticky title (WCAG 2.4.11). */
+    scroll-padding-top: 72px;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
@@ -9856,6 +9943,69 @@ ul.subscription-items {
     line-height: 1.45;
 }
 
+/* "Applies to version" (compose/versions.html, osqa.versions.js). */
+.compose-versions {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+}
+
+#fmanswer .compose-versions {
+    margin: 16px 0;
+}
+
+#fmanswer .version-choices, #fmanswer .version-choice {
+    margin: 0;
+}
+
+.compose-versions[hidden], .version-choice[hidden] {
+    display: none;
+}
+
+.compose-versions legend {
+    padding: 0;
+}
+
+.compose-optional {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.version-choices {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px 16px;
+}
+
+.version-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.version-choice label {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.version-choice select {
+    min-width: 160px;
+    max-width: 100%;
+    min-height: 40px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+}
+
 .compose-page input#id_title, .compose-page input#id_summary {
     display: block;
     width: 100%;
@@ -11894,6 +12044,84 @@ button.tag-history-undo, button.tag-history-undo:hover {
     font-size: 13px;
 }
 
+/* The tag's versions (forum/views/tags.py). */
+.tag-version-list {
+    margin: 10px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tag-version-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tag-version-text {
+    display: flex;
+    flex: 1 1 220px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+}
+
+.tag-version-current {
+    color: var(--brand-dark);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.tag-version-meta {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.tag-version-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+}
+
+.tag-version-controls button, .tag-version-controls button:hover {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+}
+
+.tag-version-controls button.tag-version-remove {
+    color: var(--danger-text);
+}
+
+.tag-version-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 6px 0 8px;
+}
+
+.tag-version-fields > div {
+    display: flex;
+    flex: 1 1 180px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* Room around the small checkbox (WCAG 2.5.8 target spacing). */
+.tag-manage-section .tag-version-add label.tag-manage-check {
+    margin: 14px 0;
+}
+
 .tag-merge-changes {
     margin: 0 0 12px 20px;
     color: var(--text);
@@ -12939,6 +13167,11 @@ html:has(#live-banner:not(:empty)) {
 /* ...and the end of the page can scroll up from under the banner. */
 html:has(#live-banner:not(:empty)) body {
     padding-bottom: 88px;
+}
+
+/* On wider screens the messages float over the bottom right corner. */
+html:has(.notify:not([style*="none"])) {
+    scroll-padding-bottom: 140px;
 }
 
 @media (max-width: 640px) {

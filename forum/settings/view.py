@@ -67,3 +67,10 @@ LIMIT_RELATED_TAGS = Setting('LIMIT_RELATED_TAGS', 0, VIEW_SET, dict(
 label = _("Limit related tags block"),
 help_text = _("Limit related tags block size in questions list pages. Set to 0 to display all all tags.")))
 
+
+# Version-aware posts (forum/utils/post_versions.py): tag versions kept by
+# moderators, the "Applies to version" choice on posts, outdated notices.
+POST_VERSIONS = Setting('POST_VERSIONS', True, VIEW_SET, dict(
+label = _("Versions on posts"),
+help_text = _("Show which version of a tagged product a question or answer applies to, and mark answers written for an older version than the current one. Moderators list a tag's versions on its management page; without versions nothing is shown."),
+required=False))

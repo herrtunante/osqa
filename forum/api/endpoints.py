@@ -22,7 +22,7 @@ from forum.models import Answer, Badge, Node, Question, QuestionSubscription, Ta
 from forum.models.base import prefetch_cached_fk, prefetch_denormalized
 from forum.modules import call_all_handlers
 from forum.search.filters import STATUSES, SearchFilters
-from forum.utils import accounts, review
+from forum.utils import accounts, post_versions, review
 from forum.utils.antispam import posting_limit_message, posting_limit_reached
 from forum.utils.similar import search_questions
 
@@ -159,7 +159,8 @@ def list_answers(request, id):
     answers = D.visible_answers(question, request.user)
     comments = D.visible_comments([a.id for a in answers], request.user)
     votes = D.my_votes(request.user, [a.id for a in answers])
-    return ListResult([D.answer_data(a, request.user, comments, votes) for a in answers])
+    versions = post_versions.for_nodes([a.id for a in answers])
+    return ListResult([D.answer_data(a, request.user, comments, votes, versions) for a in answers])
 
 
 @endpoint('GET', '/answers/{id}', operation_id='getAnswer', group='Answers', response='Answer', etag=True,
@@ -187,6 +188,8 @@ def get_answer(request, id):
               Param('author', 'query', {'type': 'string'}, 'Asked by this member (username).'),
               Param('code', 'query', {'enum': ['1']}, 'The question or an answer has a code block.'),
               Param('min_score', 'query', {'type': 'integer'}, 'A score of at least this.'),
+              Param('version', 'query', {'type': 'string', 'maxLength': 20},
+                    'The question or one of its answers applies to this version (of the given tags, if any).'),
               Param('limit', 'query', {'type': 'integer', 'minimum': 1, 'maximum': 50, 'default': 20},
                     'How many results.'),
           ])
