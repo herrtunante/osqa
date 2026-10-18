@@ -221,6 +221,29 @@ msgstr "editou a descrição de uma etiqueta"
 msgid "%(user)s edited the description of the tag %(tag)s"
 msgstr "%(user)s editou a descrição da etiqueta %(tag)s"
 
+msgid "changed the versions of a tag"
+msgstr "alterou as versões de uma etiqueta"
+
+#, python-format
+msgid "%(user)s added the version %(version)s to the tag %(tag)s"
+msgstr "%(user)s adicionou a versão %(version)s à etiqueta %(tag)s"
+
+#, python-format
+msgid "%(user)s removed the version %(version)s of the tag %(tag)s"
+msgstr "%(user)s removeu a versão %(version)s da etiqueta %(tag)s"
+
+#, python-format
+msgid "%(user)s made %(version)s the current version of the tag %(tag)s"
+msgstr "%(user)s definiu %(version)s como a versão atual da etiqueta %(tag)s"
+
+#, python-format
+msgid "%(user)s marked no version of the tag %(tag)s as current"
+msgstr "%(user)s deixou a etiqueta %(tag)s sem versão atual"
+
+#, python-format
+msgid "%(user)s moved the version %(version)s of the tag %(tag)s"
+msgstr "%(user)s moveu a versão %(version)s da etiqueta %(tag)s"
+
 msgid "joined"
 msgstr "entrou"
 
@@ -327,6 +350,13 @@ msgstr "%(user)s suspendeu %(users)s %(suspension)s: %(msg)s"
 
 msgid "Bad behaviour"
 msgstr "Mau comportamento"
+
+msgid "confirmed an answer for a new version"
+msgstr "confirmou uma resposta para uma nova versão"
+
+#, python-format
+msgid "%(user)s confirmed that %(post_desc)s still works in %(version)s"
+msgstr "%(user)s confirmou que %(post_desc)s ainda funciona na %(version)s"
 
 msgid "since must be a date (YYYY-MM-DD) or an ISO 8601 date and time."
 msgstr "since deve ser uma data (AAAA-MM-DD) ou uma data e hora ISO 8601."
@@ -833,6 +863,15 @@ msgstr "%(user)s %(node_name)s %(node_desc)s"
 msgid "comment"
 msgstr "comentário"
 
+msgid "Waiting"
+msgstr "Aguardando"
+
+msgid "Answered"
+msgstr "Respondidas"
+
+msgid "Not for me"
+msgstr "Não é para mim"
+
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -871,6 +910,9 @@ msgstr "Edição sugerida aprovada"
 
 msgid "Suggested edit rejected"
 msgstr "Edição sugerida rejeitada"
+
+msgid "Question for you"
+msgstr "Pergunta para você"
 
 msgid "New question"
 msgstr "Nova pergunta"
@@ -929,6 +971,9 @@ msgstr "fila de suporte"
 
 msgid "administration"
 msgstr "administração"
+
+msgid "for you"
+msgstr "para você"
 
 msgid "contact"
 msgstr "contato"
@@ -1691,6 +1736,36 @@ msgstr "Reputação máxima por edições sugeridas"
 msgid "Most reputation a user can gain in all from approved suggested edits. 0 for no limit."
 msgstr "Reputação máxima que um usuário pode ganhar no total com edições sugeridas aprovadas. 0 para sem limite."
 
+msgid "Questions for experts"
+msgstr "Perguntas para especialistas"
+
+msgid "Expert routing: a new question is suggested to the members who answered questions in its tags best (\"Questions for you\")."
+msgstr "Encaminhamento a especialistas: cada pergunta nova é sugerida aos membros que melhor responderam perguntas com as suas etiquetas (“Perguntas para você”)."
+
+msgid "Suggest new questions to experts"
+msgstr "Sugerir perguntas novas a especialistas"
+
+msgid "When a question is published, the members with the most expertise in its tags get a notification (and an email, as often as they chose). Members can turn this off in their preferences. The \"Questions for you\" page works either way."
+msgstr "Quando uma pergunta é publicada, os membros com mais experiência nas suas etiquetas recebem uma notificação (e um e-mail, com a frequência que escolheram). Os membros podem desativar isso nas preferências. A página “Perguntas para você” funciona de qualquer forma."
+
+msgid "Experts asked per question"
+msgstr "Especialistas consultados por pergunta"
+
+msgid "At most this many members are asked to answer each new question."
+msgstr "No máximo este número de membros é convidado a responder cada pergunta nova."
+
+msgid "Minimum expertise"
+msgstr "Experiência mínima"
+
+msgid "Expertise in a tag: 1 point per answer, 3 more if it was accepted, half a point per vote (up to 10 votes); answers older than a year count a quarter. Members below this in all of a question's tags aren't asked. Refreshed daily by manage.py refresh_tag_expertise."
+msgstr "Experiência em uma etiqueta: 1 ponto por resposta, mais 3 se foi aceita, meio ponto por voto (até 10 votos); respostas com mais de um ano contam um quarto. Membros abaixo deste valor em todas as etiquetas da pergunta não são consultados. Atualizado diariamente por manage.py refresh_tag_expertise."
+
+msgid "Requests per member per day"
+msgstr "Pedidos por membro por dia"
+
+msgid "Nobody is asked to answer more than this many questions in 24 hours."
+msgstr "Ninguém é convidado a responder mais do que este número de perguntas em 24 horas."
+
 msgid "Security"
 msgstr "Segurança"
 
@@ -2302,6 +2377,12 @@ msgstr "Limitar bloco de etiquetas relacionadas"
 
 msgid "Limit related tags block size in questions list pages. Set to 0 to display all all tags."
 msgstr "Limita o tamanho do bloco de etiquetas relacionadas nas páginas de lista de perguntas. Use 0 para exibir todas as etiquetas."
+
+msgid "Versions on posts"
+msgstr "Versões nas publicações"
+
+msgid "Show which version of a tagged product a question or answer applies to, and mark answers written for an older version than the current one. Moderators list a tag's versions on its management page; without versions nothing is shown."
+msgstr "Mostrar a qual versão de um produto etiquetado uma pergunta ou resposta se aplica e marcar as respostas escritas para uma versão anterior à atual. Os moderadores definem as versões de uma etiqueta na página de gerenciamento dela; sem versões, nada é mostrado."
 
 msgid "Voting rules"
 msgstr "Regras de votação"
@@ -3790,6 +3871,22 @@ msgstr "Descrição (texto alternativo)"
 msgid "Say what the image shows, for people who can't see it."
 msgstr "Diga o que a imagem mostra, para quem não consegue vê-la."
 
+msgid "Applies to version"
+msgstr "Aplica-se à versão"
+
+msgid "(optional)"
+msgstr "(opcional)"
+
+msgid "Which version of the software is this about? Answers written for an older version are marked as possibly outdated once a newer one is current."
+msgstr "A qual versão do software isto se refere? Respostas escritas para uma versão anterior são marcadas como possivelmente desatualizadas quando uma mais nova passa a ser a atual."
+
+msgid "Not specified"
+msgstr "Não especificada"
+
+#, python-format
+msgid "%(name)s (current)"
+msgstr "%(name)s (atual)"
+
 msgid "Keyboard shortcuts"
 msgstr "Atalhos de teclado"
 
@@ -4110,6 +4207,12 @@ msgid "<strong>%(actor)s</strong> rejected the edit you suggested to <em>%(title
 msgstr "<strong>%(actor)s</strong> rejeitou a edição que você sugeriu em <em>%(title)s</em>: %(reason)s"
 
 #, python-format
+msgid "You might know the answer: <em>%(title)s</em> (you've answered %(counter)s question tagged %(tag)s)"
+msgid_plural "You might know the answer: <em>%(title)s</em> (you've answered %(counter)s questions tagged %(tag)s)"
+msgstr[0] "Talvez você saiba a resposta: <em>%(title)s</em> (você respondeu %(counter)s pergunta com a etiqueta %(tag)s)"
+msgstr[1] "Talvez você saiba a resposta: <em>%(title)s</em> (você respondeu %(counter)s perguntas com a etiqueta %(tag)s)"
+
+#, python-format
 msgid "Your question <em>%(title)s</em> has answers. If one solved it, accept it so others know."
 msgstr "Sua pergunta <em>%(title)s</em> tem respostas. Se uma delas resolveu o problema, aceite-a para que outros saibam."
 
@@ -4367,9 +4470,6 @@ msgstr "marcar esta resposta como a resposta aceita"
 msgid "Accept"
 msgstr "Aceitar"
 
-msgid "Accepted"
-msgstr "Aceitas"
-
 msgctxt "answer state"
 msgid "Accepted"
 msgstr "Aceita"
@@ -4534,6 +4634,30 @@ msgid "more"
 msgstr "mais"
 
 #, python-format
+msgid "Written for %(written)s — the current version is %(current)s. It may be outdated."
+msgstr "Escrita para %(written)s — a versão atual é %(current)s. Pode estar desatualizada."
+
+#, python-format
+msgid "Still works in %(current)s"
+msgstr "Ainda funciona na %(current)s"
+
+#, python-format
+msgid "Confirmed for %(version)s by <a href=\"%(url)s\">%(name)s</a> on <time datetime=\"%(iso)s\">%(date)s</time>"
+msgstr "Confirmada para %(version)s por <a href=\"%(url)s\">%(name)s</a> em <time datetime=\"%(iso)s\">%(date)s</time>"
+
+#, python-format
+msgid "Confirmed for %(version)s by <a href=\"%(url)s\">%(name)s</a>"
+msgstr "Confirmada para %(version)s por <a href=\"%(url)s\">%(name)s</a>"
+
+#, python-format
+msgid "Confirmed for %(version)s on <time datetime=\"%(iso)s\">%(date)s</time>"
+msgstr "Confirmada para %(version)s em <time datetime=\"%(iso)s\">%(date)s</time>"
+
+#, python-format
+msgid "Confirmed for %(version)s"
+msgstr "Confirmada para %(version)s"
+
+#, python-format
 msgid "see questions tagged '%(tagname)s'"
 msgstr "ver perguntas com a etiqueta '%(tagname)s'"
 
@@ -4641,6 +4765,10 @@ msgid "Asked by %(actor)s"
 msgstr "Perguntada por %(actor)s"
 
 #, python-format
+msgid "Asked by %(actor)s, tagged %(tags)s: you've answered questions like it."
+msgstr "Perguntada por %(actor)s, com as etiquetas %(tags)s: você já respondeu perguntas parecidas."
+
+#, python-format
 msgid "%(actor)s approved the edit you suggested."
 msgstr "%(actor)s aprovou a edição que você sugeriu."
 
@@ -4667,6 +4795,34 @@ msgstr "Ver as respostas"
 
 msgid "Still stuck? Add a comment saying what is missing."
 msgstr "Ainda sem solução? Adicione um comentário dizendo o que falta."
+
+#, python-format
+msgid "%(prefix)s You might know the answer: %(question_title)s"
+msgstr "%(prefix)s Talvez você saiba a resposta: %(question_title)s"
+
+#, python-format
+msgid "%(question_author)s asked:"
+msgstr "%(question_author)s perguntou:"
+
+#, python-format
+msgid "%(question_author)s asked a question you might know the answer to: you've answered %(counter)s question tagged %(tag_name)s."
+msgid_plural "%(question_author)s asked a question you might know the answer to: you've answered %(counter)s questions tagged %(tag_name)s."
+msgstr[0] "%(question_author)s fez uma pergunta cuja resposta talvez você saiba: você respondeu %(counter)s pergunta com a etiqueta %(tag_name)s."
+msgstr[1] "%(question_author)s fez uma pergunta cuja resposta talvez você saiba: você respondeu %(counter)s perguntas com a etiqueta %(tag_name)s."
+
+#, python-format
+msgid "%(question_author)s asked a question you might know the answer to."
+msgstr "%(question_author)s fez uma pergunta cuja resposta talvez você saiba."
+
+msgid "Answer the question"
+msgstr "Responder à pergunta"
+
+#, python-format
+msgid "Not for you? Say so on <a href=\"%(for_you_url)s\" class=\"em-link\" style=\"%(a_style)s\">your questions page</a>, which also lists other open questions in your tags."
+msgstr "Não é para você? Diga isso na <a href=\"%(for_you_url)s\" class=\"em-link\" style=\"%(a_style)s\">sua página de perguntas</a>, que também lista outras perguntas abertas nas suas etiquetas."
+
+msgid "Not for you? Say so on your questions page, which also lists other open questions in your tags:"
+msgstr "Não é para você? Diga isso na sua página de perguntas, que também lista outras perguntas abertas nas suas etiquetas:"
 
 #, python-format
 msgid "%(prefix)s Answer accepted: %(question_title)s"
@@ -4849,10 +5005,6 @@ msgstr "Ver o perfil"
 #, python-format
 msgid "%(prefix)s New question: %(question_title)s"
 msgstr "%(prefix)s Nova pergunta: %(question_title)s"
-
-#, python-format
-msgid "%(question_author)s asked:"
-msgstr "%(question_author)s perguntou:"
 
 #, python-format
 msgid "%(question_author)s asked a new question tagged %(tag_list)s:"
@@ -5219,6 +5371,9 @@ msgstr "Quem mais respondeu"
 msgid "Member"
 msgstr "Membro"
 
+msgid "Accepted"
+msgstr "Aceitas"
+
 msgid "Questions by hour of the week"
 msgstr "Perguntas por hora da semana"
 
@@ -5240,9 +5395,6 @@ msgstr "Publicações"
 
 msgid "Questions, answers and comments count when everybody can see them: deleted posts, posts held for review, posts under a deleted or held question, and posts by suspended or deactivated accounts are left out."
 msgstr "Perguntas, respostas e comentários contam quando todos podem vê-los: ficam de fora as publicações excluídas, as retidas para revisão, as que estão em uma pergunta excluída ou retida e as de contas suspensas ou desativadas."
-
-msgid "Answered"
-msgstr "Respondidas"
 
 msgid "A question is answered by the first answer from someone other than the asker. “Within 24 hours” and “within 7 days” only look at questions at least that old. The median time to first answer is over the questions answered so far."
 msgstr "Uma pergunta é respondida pela primeira resposta de alguém que não seja quem perguntou. “Em até 24 horas” e “em até 7 dias” só consideram perguntas com pelo menos essa idade. A mediana do tempo até a primeira resposta é calculada sobre as perguntas respondidas até agora."
@@ -5687,9 +5839,6 @@ msgstr "Pergunta"
 msgid "Asked by"
 msgstr "Feita por"
 
-msgid "Waiting"
-msgstr "Aguardando"
-
 msgid "Nothing is waiting. Every question in this period has an answer."
 msgstr "Nada aguardando. Todas as perguntas deste período têm resposta."
 
@@ -5971,9 +6120,6 @@ msgstr "Entre ou crie uma conta para publicar sua resposta"
 msgid "Answer Your Own Question"
 msgstr "Responder à sua própria pergunta"
 
-msgid "Answer the question"
-msgstr "Responder à pergunta"
-
 msgid "Question tags"
 msgstr "Etiquetas da pergunta"
 
@@ -6173,6 +6319,50 @@ msgstr "Ver todas as perguntas"
 msgid "Browse tags"
 msgstr "Ver etiquetas"
 
+#, python-format
+msgid "You turned suggestions off, so nobody asks you to answer new questions. This page still lists open questions in your tags. <a href=\"%(preferences_url)s\">Turn suggestions on</a>"
+msgstr "Você desativou as sugestões, então ninguém pede que você responda perguntas novas. Esta página continua listando perguntas abertas nas suas etiquetas. <a href=\"%(preferences_url)s\">Ativar as sugestões</a>"
+
+#, python-format
+msgid "Suggested for you: you've answered %(counter)s question tagged %(tag)s"
+msgid_plural "Suggested for you: you've answered %(counter)s questions tagged %(tag)s"
+msgstr[0] "Sugerida para você: você respondeu %(counter)s pergunta com a etiqueta %(tag)s"
+msgstr[1] "Sugerida para você: você respondeu %(counter)s perguntas com a etiqueta %(tag)s"
+
+msgid "Suggested for you"
+msgstr "Sugerida para você"
+
+msgid "No open questions in your tags right now"
+msgstr "Nenhuma pergunta aberta nas suas etiquetas no momento"
+
+msgid "No questions for you yet"
+msgstr "Ainda não há perguntas para você"
+
+msgid "Questions show up here in the tags where your answers did well. Every answer to someone else's question counts, an accepted answer and upvotes count more, and answers from the last year count most."
+msgstr "Aqui aparecem perguntas das etiquetas em que suas respostas foram bem. Toda resposta à pergunta de outra pessoa conta; uma resposta aceita e os votos positivos contam mais, e as respostas do último ano contam mais ainda."
+
+msgid "Answer an open question"
+msgstr "Responder uma pergunta aberta"
+
+msgid "Your best tags"
+msgstr "Suas melhores etiquetas"
+
+#, python-format
+msgid "%(counter)s accepted"
+msgid_plural "%(counter)s accepted"
+msgstr[0] "%(counter)s aceita"
+msgstr[1] "%(counter)s aceitas"
+
+msgid "None yet: answer questions to build your expertise."
+msgstr "Nenhuma ainda: responda perguntas para ganhar experiência."
+
+#, python-format
+msgid "When a new question matches these tags, we may ask you to answer it. <a href=\"%(preferences_url)s\">Preferences</a>"
+msgstr "Quando uma pergunta nova corresponder a estas etiquetas, podemos pedir que você a responda. <a href=\"%(preferences_url)s\">Preferências</a>"
+
+msgid "Turn suggestions on"
+msgstr "Ativar as sugestões"
+
 msgid "Reopen question"
 msgstr "Reabrir pergunta"
 
@@ -6292,6 +6482,15 @@ msgstr "Nome de usuário"
 
 msgid "Has code blocks"
 msgstr "Tem blocos de código"
+
+msgid "Version"
+msgstr "Versão"
+
+msgid "e.g. 4.1"
+msgstr "ex.: 4.1"
+
+msgid "The question or one of its answers applies to this version."
+msgstr "A pergunta ou uma das respostas se aplica a esta versão."
 
 msgid "Minimum score"
 msgstr "Pontuação mínima"
@@ -6456,6 +6655,59 @@ msgstr "Para que serve esta etiqueta? Uma ou duas frases; Markdown permitido. Mo
 
 msgid "Save description"
 msgstr "Salvar descrição"
+
+msgid "Versions"
+msgstr "Versões"
+
+#, python-format
+msgid "Versions of the product tagged <strong>%(name)s</strong>, oldest first. Questions and answers can say which version they apply to, and answers written for an older version than the current one are marked as possibly outdated."
+msgstr "Versões do produto com a etiqueta <strong>%(name)s</strong>, da mais antiga para a mais nova. Perguntas e respostas podem dizer a qual versão se aplicam, e respostas escritas para uma versão anterior à atual são marcadas como possivelmente desatualizadas."
+
+msgid "current version"
+msgstr "versão atual"
+
+#, python-format
+msgid "released %(date)s"
+msgstr "lançada em %(date)s"
+
+msgid "Not current"
+msgstr "Não atual"
+
+msgid "Make current"
+msgstr "Tornar atual"
+
+#, python-format
+msgid "Move %(name)s earlier"
+msgstr "Mover %(name)s para antes"
+
+msgid "Earlier"
+msgstr "Antes"
+
+#, python-format
+msgid "Move %(name)s later"
+msgstr "Mover %(name)s para depois"
+
+msgid "Later"
+msgstr "Depois"
+
+#, python-format
+msgid "Remove the version %(name)s"
+msgstr "Remover a versão %(name)s"
+
+msgid "No versions yet: posts with this tag don't show a version."
+msgstr "Ainda não há versões: as publicações com esta etiqueta não mostram versão."
+
+msgid "New version"
+msgstr "Nova versão"
+
+msgid "Released (optional)"
+msgstr "Lançada em (opcional)"
+
+msgid "This is the current version"
+msgstr "Esta é a versão atual"
+
+msgid "Add version"
+msgstr "Adicionar versão"
 
 msgid "Synonyms"
 msgstr "Sinônimos"
@@ -6897,6 +7149,16 @@ msgstr "Teclado"
 
 msgid "Use keyboard shortcuts (press ? on any page to see them)"
 msgstr "Usar atalhos de teclado (pressione ? em qualquer página para vê-los)"
+
+msgid "Questions for you"
+msgstr "Perguntas para você"
+
+msgid "Suggest questions I could answer"
+msgstr "Sugerir perguntas que eu poderia responder"
+
+#, python-format
+msgid "When a new question is in tags where your answers did well, we may ask you to answer it, a few times a day at most (by notification, and by email as often as you chose). <a href=\"%(for_you_url)s\">Questions for you</a> lists them."
+msgstr "Quando uma pergunta nova tiver etiquetas em que suas respostas foram bem, podemos pedir que você a responda, no máximo algumas vezes por dia (por notificação e por e-mail com a frequência que você escolheu). <a href=\"%(for_you_url)s\">Perguntas para você</a> as lista."
 
 msgid "Favorite questions"
 msgstr "Perguntas favoritas"
@@ -7587,6 +7849,9 @@ msgstr "converter em pergunta"
 msgid "posted"
 msgstr "publicado"
 
+msgid "Applies to:"
+msgstr "Aplica-se a:"
+
 msgid "FAQ"
 msgstr "Perguntas frequentes"
 
@@ -7857,6 +8122,9 @@ msgstr "Novas respostas em perguntas que você segue"
 msgid "Accepted answers"
 msgstr "Respostas aceitas"
 
+msgid "Questions you might know the answer to"
+msgstr "Perguntas cuja resposta talvez você saiba"
+
 msgid "Your suggested edits"
 msgstr "Suas edições sugeridas"
 
@@ -7914,6 +8182,9 @@ msgstr "Edição sugerida revisada"
 
 msgid "Members who suggested an edit, when a reviewer approves or rejects it."
 msgstr "Membros que sugeriram uma edição, quando um revisor a aprova ou rejeita."
+
+msgid "Members with expertise in a new question's tags (expert routing), unless they turned suggestions off."
+msgstr "Membros com experiência nas etiquetas de uma pergunta nova (encaminhamento a especialistas), a menos que tenham desativado as sugestões."
 
 msgid "Accept reminder"
 msgstr "Lembrete para aceitar"
@@ -8081,6 +8352,9 @@ msgstr "Lembretes para aceitar uma resposta"
 msgid "A reviewer approves or rejects an edit I suggested"
 msgstr "Um revisor aprova ou rejeita uma edição que sugeri"
 
+msgid "A new question I might know the answer to"
+msgstr "Uma pergunta nova cuja resposta talvez eu saiba"
+
 #, python-format
 msgid "%(user)s answered your question"
 msgstr "%(user)s respondeu à sua pergunta"
@@ -8121,6 +8395,9 @@ msgstr "%(user)s aprovou sua edição sugerida"
 #, python-format
 msgid "%(user)s rejected your suggested edit"
 msgstr "%(user)s rejeitou sua edição sugerida"
+
+msgid "You might know the answer"
+msgstr "Talvez você saiba a resposta"
 
 msgid "New notification"
 msgstr "Nova notificação"
@@ -8201,6 +8478,20 @@ msgstr "%s já é um sinônimo."
 msgid "%s is itself a synonym of another tag."
 msgstr "%s é, ele próprio, sinônimo de outra etiqueta."
 
+#, python-format
+msgid "Enter a version of at most %d letters, digits, dots or dashes, e.g. 4.1."
+msgstr "Digite uma versão de no máximo %d letras, números, pontos ou hifens, ex.: 4.1."
+
+#, python-format
+msgid "%(tag)s already has a version %(version)s."
+msgstr "%(tag)s já tem uma versão %(version)s."
+
+#, python-format
+msgid "%(count)d post applies to %(version)s, so it can't be removed."
+msgid_plural "%(count)d posts apply to %(version)s, so it can't be removed."
+msgstr[0] "%(count)d publicação se aplica à %(version)s, então ela não pode ser removida."
+msgstr[1] "%(count)d publicações se aplicam à %(version)s, então ela não pode ser removida."
+
 msgid "all emails from this site"
 msgstr "todos os e-mails deste site"
 
@@ -8240,6 +8531,12 @@ msgstr "o resumo diário ou semanal de atividade"
 msgid "Stop these summaries"
 msgstr "Parar estes resumos"
 
+msgid "questions suggested because of your answers"
+msgstr "perguntas sugeridas por causa das suas respostas"
+
+msgid "Stop suggesting questions to me"
+msgstr "Parar de me sugerir perguntas"
+
 msgid "a daily summary"
 msgstr "um resumo diário"
 
@@ -8269,6 +8566,9 @@ msgstr "você escolheu um resumo semanal da atividade que segue"
 
 msgid "you suggested an edit to a post"
 msgstr "você sugeriu uma edição em uma publicação"
+
+msgid "you answered questions in this question's tags"
+msgstr "você respondeu perguntas com as etiquetas desta pergunta"
 
 #, python-format
 msgid "Too many wrong passwords. Wait %(minutes)s minutes and try again."
@@ -8734,6 +9034,12 @@ msgstr "Você segue %s: receberá um e-mail para cada nova pergunta com essa eti
 msgid "You follow %s, but your email notifications are switched off. Turn them on in your email settings to get emails."
 msgstr "Você segue %s, mas suas notificações por e-mail estão desativadas. Ative-as nas configurações de e-mail para receber e-mails."
 
+msgid "decline questions"
+msgstr "recusar perguntas"
+
+msgid "Got it: we won't suggest that question to you again."
+msgstr "Entendido: não vamos sugerir essa pergunta para você de novo."
+
 msgid "Thanks for the feedback!"
 msgstr "Obrigado pelo feedback!"
 
@@ -8792,6 +9098,13 @@ msgstr "As denúncias sobre %s foram descartadas."
 
 msgid "Undone."
 msgstr "Desfeito."
+
+msgid "The confirmation was taken back."
+msgstr "A confirmação foi retirada."
+
+#, python-format
+msgid "Thanks! The answer is now marked as working in %(version)s."
+msgstr "Obrigado! A resposta agora está marcada como funcionando na %(version)s."
 
 msgid "Please sign in first."
 msgstr "Entre na sua conta primeiro."
@@ -8934,6 +9247,10 @@ msgstr "Tem código"
 #, python-format
 msgid "Score at least %(score)d"
 msgstr "Pontuação de pelo menos %(score)d"
+
+#, python-format
+msgid "Version %(version)s"
+msgstr "Versão %(version)s"
 
 msgid "Any"
 msgstr "Qualquer"
@@ -9118,6 +9435,25 @@ msgstr "Esta alteração não pode mais ser desfeita."
 
 msgid "The change was undone."
 msgstr "A alteração foi desfeita."
+
+#, python-format
+msgid "Version %(version)s added to %(tag)s."
+msgstr "Versão %(version)s adicionada a %(tag)s."
+
+msgid "This version no longer exists."
+msgstr "Esta versão não existe mais."
+
+#, python-format
+msgid "Version %s removed."
+msgstr "Versão %s removida."
+
+#, python-format
+msgid "%(version)s is now the current version of %(tag)s."
+msgstr "%(version)s agora é a versão atual de %(tag)s."
+
+#, python-format
+msgid "No version of %s is marked as current."
+msgstr "Nenhuma versão de %s está marcada como atual."
 
 #, python-format
 msgid "%(source)s was merged into %(target)s."

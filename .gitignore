@@ -22,3 +22,4 @@ __pycache__/
 /.env
 /backups/
 settings_local_extra.py
+.claude/worktrees/
