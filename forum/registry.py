@@ -74,6 +74,19 @@ ui.register(ui.HEADER_LINKS,
 
 )
 
+class MemberPageTab(ui.PageTab):
+    """A tab next to questions/tags/users/badges/unanswered for signed-in members only."""
+    def can_render(self, context):
+        user = getattr(context.get('request'), 'user', None)
+        return user is not None and user.is_authenticated
+
+
+# "Questions for you" (forum/views/for_you.py, expert routing).
+ui.register(ui.PAGE_TOP_TABS,
+            MemberPageTab('for_you', _lazy('for you'), lambda: reverse('questions_for_you'), weight=450,
+                          name='FOR_YOU'))
+
+
 class SupportLink(ui.Link):
     def can_render(self, context):
         return bool(settings.SUPPORT_URL)

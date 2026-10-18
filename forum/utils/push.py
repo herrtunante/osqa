@@ -52,6 +52,7 @@ PUSH_KINDS = (
     ('review', _lazy('A moderator approves or removes my post'), False),
     ('reminder', _lazy('Reminders to accept an answer'), False),
     ('edit', _lazy('A reviewer approves or rejects an edit I suggested'), True),
+    ('answer_request', _lazy('A new question I might know the answer to'), True),
 )
 KIND_KEYS = tuple(key for key, label, default in PUSH_KINDS)
 DEFAULT_KINDS = tuple(key for key, label, default in PUSH_KINDS if default)
@@ -173,6 +174,8 @@ def message(notification):
         title = _('%(user)s approved your suggested edit') % {'user': actor}
     elif kind == Notification.EDIT_REJECTED:
         title = _('%(user)s rejected your suggested edit') % {'user': actor}
+    elif kind == Notification.ANSWER_REQUEST:
+        title = _('You might know the answer')
     else:
         title = _('New notification')
     body = question.title if question is not None else settings.APP_SHORT_NAME

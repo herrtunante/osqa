@@ -12,6 +12,7 @@ import forum.badges
 import forum.subscriptions
 import forum.notifications
 import forum.review_notices  # noqa: F401  (first posts review: author notices)
+import forum.expert_routing  # noqa: F401  (questions suggested to experts)
 import forum.registry  # noqa: F401  (fills the UI registry)
 get_modules_script('registry')
 

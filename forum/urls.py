@@ -88,6 +88,10 @@ core_urls = [
     re_path(r'^%s%s$' % ('questions/', 'related_questions/'), app.commands.related_questions, name='related_questions'),
 
     re_path(r'^%s%s$' % ('questions/', 'unanswered/'), app.readers.unanswered, name='unanswered'),
+    # Before user_questions, which would take "for-you/<id>/decline/" for a user's list.
+    re_path(r'^questions/for-you/$', app.for_you.questions_for_you, name='questions_for_you'),
+    re_path(r'^questions/for-you/(?P<id>\d+)/decline/$', app.for_you.decline_answer_request,
+            name='answer_request_decline'),
     re_path(r'^%s(?P<mode>[\w\-]+)/(?P<user>\d+)/(?P<slug>.*)/$' % 'questions/', app.readers.user_questions, name='user_questions'),
 
 

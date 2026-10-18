@@ -144,7 +144,9 @@ class ShortcutsPreferenceTest(OSQATestCase):
         # This page already reflects the change.
         self.assertContains(response, 'data-shortcuts="off"')
         user = type(self.user).objects.get(id=self.user.id)
-        self.assertEqual(user.prop.preferences, {'theme': 'dark', 'sticky_sorts': True, 'keyboard_shortcuts': False})
+        # Every box left unticked in the post is off (answer_requests: "Suggest questions I could answer").
+        self.assertEqual(user.prop.preferences, {'theme': 'dark', 'sticky_sorts': True, 'keyboard_shortcuts': False,
+                                                 'answer_requests': False})
 
         html = self.client.get('/').content.decode()
         self.assertIn('data-shortcuts="off"', html)

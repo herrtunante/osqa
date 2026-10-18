@@ -50,6 +50,7 @@ from .urls import *
 from .accept import *
 from .sitemaps import *
 from .api import *
+from .routing import *
 
 # Defined before the module settings below are loaded: modules such as
 # default_badges import it.

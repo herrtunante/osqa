@@ -9,6 +9,8 @@
 45 6 * * *  cd /app && python manage.py cleanup_inactive_users
 # Accept reminders
 0 7 * * *   cd /app && python manage.py remind_unaccepted
+# Expertise per tag for "Questions for you" and expert routing
+20 5 * * *  cd /app && python manage.py refresh_tag_expertise
 # Database + uploads backup into /app/backups (keeps OSQA_BACKUP_KEEP archives)
 30 3 * * *  cd /app && python manage.py backup_site
 # AI module only: uncomment once a Gemini key or Vertex AI project is set in

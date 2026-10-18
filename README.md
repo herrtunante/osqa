@@ -68,6 +68,7 @@ Step-by-step guides:
   also sends the weekly summaries on their day, so weekly needs no cron line of its own.
 - Dormant (bot) accounts: run `cron/cleanup_inactive_users` daily (see "Spam sign-ups" below).
 - Accept reminders: run `cron/remind_unaccepted` daily (see "Notifications, community health and support dashboard" below).
+- Questions for experts: run `cron/refresh_tag_expertise` daily (see "Questions for you" below).
 - AI assistant (optional, `ai` module): run `cron/build_knowledge_index` nightly and
   `cron/suggest_answers` hourly (see "AI assistance" below).
 - Backups: run `manage.py backup_site` daily; monitoring, JSON logs and restores: see "Operations" below.
@@ -363,6 +364,18 @@ live in `forum/utils/tags.py`.
   for 7 days (configurable) and none is accepted. It only looks at questions
   from the last 60 days, so an imported history isn't flooded. There is no
   email if the asker stopped following the question or turned emails off.
+- <a id="questions-for-you"></a>**Questions for you (expert routing):** each
+  member's expertise per tag comes from their visible answers on others'
+  questions (accepted answers weigh most, then votes; answers from the last
+  12 months count fully, older ones a quarter), rebuilt daily by
+  `manage.py refresh_tag_expertise` and updated when an answer is accepted.
+  A newly published question (or a first post once approved) is suggested to
+  the few members with the most expertise in its tags, by notification and
+  email (as often as they chose), never twice for the same question and at
+  most a few times a day per member. Members turn it off in their
+  preferences, or say "Not for me" on a question. `/questions/for-you/`
+  lists open questions without an accepted answer in their top tags,
+  suggested ones first. Settings: Admin > Questions for experts.
 
 ### Email frequency
 

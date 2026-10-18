@@ -237,8 +237,8 @@ def _forget_action_ips(user):
 
 def anonymise_user(user):
     """Personal data out, the account unusable; content and votes stay."""
-    from forum.models import (ApiToken, Notification, PendingEmail, Passkey, PushSubscription, RecoveryCode,
-                              TOTPDevice)
+    from forum.models import (AnswerRequest, ApiToken, Notification, PendingEmail, Passkey, PushSubscription,
+                              RecoveryCode, TagExpertise, TOTPDevice)
     from forum.models.user import UserProperty
     user.username = 'deleted-user-%d' % user.id
     user.first_name = user.last_name = ''
@@ -269,6 +269,8 @@ def anonymise_user(user):
     ApiToken.objects.filter(user=user).delete()
     Notification.objects.filter(user=user).delete()
     PendingEmail.objects.filter(user=user).delete()
+    TagExpertise.objects.filter(user=user).delete()
+    AnswerRequest.objects.filter(user=user).delete()
     UserProperty.objects.filter(user=user).delete()  # preferences, pending email change, known browsers
     user.__dict__.pop('_prop', None)
     try:

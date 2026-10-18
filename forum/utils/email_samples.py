@@ -142,6 +142,12 @@ def suggested_edit(recipient):
             'reason': "It doesn't make the post easier to read or more useful", 'email_kind': 'suggested_edit'}
 
 
+def answer_request(recipient):
+    bob, carol, question, answer = _people()
+    return {'question': question, 'reasons': {recipient.id: {'answers': 4, 'tag': 'export'}},
+            'email_kind': 'answer_request'}
+
+
 def accept_reminder(recipient):
     bob, carol, question, answer = _people()
     return {'question': question, 'email_kind': 'question', 'email_question': question}
@@ -240,6 +246,10 @@ KINDS = {
     'suggested-edit': (_lazy("Suggested edit reviewed"),
                        _lazy("Members who suggested an edit, when a reviewer approves or rejects it."),
                        'notifications/suggested_edit.html', suggested_edit),
+    'answer-request': (_lazy("Question for you"),
+                       _lazy("Members with expertise in a new question's tags (expert routing), unless they turned "
+                             "suggestions off."),
+                       'notifications/answer_request.html', answer_request),
     'accept-reminder': (_lazy("Accept reminder"), _lazy("Askers whose question has answers but none accepted."),
                         'notifications/acceptreminder.html', accept_reminder),
     'feedback': (_lazy("Feedback"), _lazy("Administrators, when someone sends the feedback form."),

@@ -31,6 +31,7 @@
                 {% elif item.kind == "removed" %}{% blocktrans with title=question.title %}A moderator removed your post in <em>{{ title }}</em>{% endblocktrans %}
                 {% elif item.kind == "edit_approved" %}{% blocktrans with title=question.title %}<strong>{{ actor }}</strong> approved the edit you suggested to <em>{{ title }}</em>{% endblocktrans %}
                 {% elif item.kind == "edit_rejected" %}{% blocktrans with title=question.title reason=item.text %}<strong>{{ actor }}</strong> rejected the edit you suggested to <em>{{ title }}</em>: {{ reason }}{% endblocktrans %}
+                {% elif item.kind == "answer_request" %}{% with reason=item.request_reason %}{% blocktrans with title=question.title tag=reason.tag count counter=reason.answers %}You might know the answer: <em>{{ title }}</em> (you've answered {{ counter }} question tagged {{ tag }}){% plural %}You might know the answer: <em>{{ title }}</em> (you've answered {{ counter }} questions tagged {{ tag }}){% endblocktrans %}{% endwith %}
                 {% elif item.kind == "reminder" %}{% blocktrans with title=question.title %}Your question <em>{{ title }}</em> has answers. If one solved it, accept it so others know.{% endblocktrans %}
                 {% endif %}
                 </span>

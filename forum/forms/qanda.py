@@ -382,6 +382,8 @@ class UserPreferencesForm(forms.Form):
     sticky_sorts = forms.BooleanField(required=False, initial=False)
     # osqa.shortcuts.js; off: data-shortcuts="off" on <html> (forum/utils/display.py).
     keyboard_shortcuts = forms.BooleanField(required=False, initial=True)
+    # Expert routing (forum/utils/expertise.py): off, no question is suggested to the member.
+    answer_requests = forms.BooleanField(required=False, initial=True)
 
 
 

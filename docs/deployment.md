@@ -304,6 +304,8 @@ PY=/srv/osqa/venv/bin/python
 0 7 * * *   cd $OSQA && $PY manage.py send_email_alerts
 45 6 * * *  cd $OSQA && $PY manage.py cleanup_inactive_users
 0 7 * * *   cd $OSQA && $PY manage.py remind_unaccepted
+# Expertise per tag (who is asked to answer new questions, "Questions for you")
+20 5 * * *  cd $OSQA && $PY manage.py refresh_tag_expertise
 # Only with the AI module configured:
 30 2 * * *  cd $OSQA && $PY manage.py build_knowledge_index
 5 * * * *   cd $OSQA && $PY manage.py suggest_answers
@@ -524,7 +526,8 @@ How it works (`forum/utils/metrics.py`):
   Django's `BaseCommand.execute`, enabled from `forum/apps.py`, records the
   commands listed in `CRON_COMMANDS`; by default `send_email_alerts`,
   `remind_unaccepted`, `cleanup_inactive_users`, `build_knowledge_index`,
-  `suggest_answers`, `backup_site` and `rebuild_search_index`; `--dry-run`
+  `suggest_answers`, `backup_site`, `rebuild_search_index` and
+  `refresh_tag_expertise`; `--dry-run`
   runs aren't recorded).
 
 `/metrics` and `/readyz` answer on any host name (Prometheus scrapes pod
