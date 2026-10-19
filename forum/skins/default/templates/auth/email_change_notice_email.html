@@ -1,0 +1,36 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}Sent to the OLD (confirmed) address when a change is requested, with a link that cancels it and signs out everywhere (forum/utils/accounts.py).{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your {{ app_name }} email address is being changed{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "If you didn't ask for this, cancel the change." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this security notice because the email address of your account at {{ app_name }} is being changed. These notices are always sent.{% endblocktrans %}
+        {% fullurl "auth_cancel_email_change" user=recipient.id code=cancel_code as cancel_url %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}Someone signed in to your account {{ name }} asked to change its email address to {{ new_email_masked }}. The change happens only when the new address is confirmed; until then, your account keeps this address.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If this was you, there is nothing to do." %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If it wasn't you, cancel the change: that also signs out every browser and device. Then reset your password." %}</p>
+        {% trans "Cancel the change" as cta %}{% include "notifications/_button.html" with url=cancel_url label=cta %}
+        {% include "notifications/_link_fallback.html" with url=cancel_url %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this security notice because the email address of your account at {{ app_name }} is being changed. These notices are always sent.{% endblocktrans %}
+{% blocktrans with name=recipient.username %}Someone signed in to your account {{ name }} asked to change its email address to {{ new_email_masked }}. The change happens only when the new address is confirmed; until then, your account keeps this address.{% endblocktrans %}
+
+{% trans "If this was you, there is nothing to do." %}
+
+{% trans "If it wasn't you, cancel the change: that also signs out every browser and device. Then reset your password." %}
+
+{% trans "Cancel the change" %}:
+{% fullurl "auth_cancel_email_change" user=recipient.id code=cancel_code %}
+{% endtextcontent %}
+
+{% endemail %}

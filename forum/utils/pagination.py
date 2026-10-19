@@ -1,34 +1,32 @@
 import math
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from django import template
 from django.core.paginator import Paginator, EmptyPage
-from django.utils.translation import ugettext as _
 from django.utils.html import escape
 from django.http import Http404
-from django.utils.encoding import smart_unicode
-from django.utils.http import urlquote
+from django.utils.encoding import smart_str
+from urllib.parse import quote as urlquote
 from django.utils.safestring import mark_safe
-from django.utils.html import strip_tags, escape
-from forum.utils.html import sanitize_html
+from django.utils.html import strip_tags
 import logging
 
 def generate_uri(querydict, exclude=None):
     all = []
 
-    for k, l in querydict.iterlists():
-        if (not exclude) or (not k in exclude):
+    for k, l in querydict.lists():
+        if (not exclude) or (k not in exclude):
             all += ["%s=%s" % (k, escape(urlquote(strip_tags(v)))) for v in l]
-        
+
     return "&".join(all)
 
-class SortBase(object):
+class SortBase:
     def __init__(self, label, description=''):
         self.label = label
         self.description = description
 
 class SimpleSort(SortBase):
     def __init__(self, label, order_by, description=''):
-        super(SimpleSort, self) .__init__(label, description)
+        super() .__init__(label, description)
         self.order_by = order_by
 
     def _get_order_by(self):
@@ -40,7 +38,7 @@ class SimpleSort(SortBase):
 
         return objects
 
-class PaginatorContext(object):
+class PaginatorContext:
     visible_page_range = 5
     outside_page_range = 1
 
@@ -51,7 +49,7 @@ class PaginatorContext(object):
         self.id = id
         if sort_methods:
             self.has_sort = True
-            self.sort_methods = SortedDict(data=sort_methods)
+            self.sort_methods = OrderedDict(sort_methods)
 
             if not default_sort:
                 default_sort = sort_methods[0][0]
@@ -76,7 +74,9 @@ class PaginatorContext(object):
         self.prefix = prefix
 
     def preferences(self, request):
-        if request.user.is_authenticated():
+        # A copy: callers modify it, and set_preferences() compares it with the
+        # stored value to avoid a write on every page view.
+        if request.user.is_authenticated:
             if request.user.prop.pagination:
                 preferences = request.user.prop.pagination.get(self.id, {})
             else:
@@ -84,18 +84,23 @@ class PaginatorContext(object):
         else:
             preferences = request.session.get('paginator_%s%s' % (self.prefix, self.id), {})
 
-        return preferences
+        return dict(preferences)
 
     def set_preferences(self, request, preferences):
-        if request.user.is_authenticated():
-            all_preferences = request.user.prop.pagination or {}
+        if request.user.is_authenticated:
+            all_preferences = dict(request.user.prop.pagination or {})
+            if all_preferences.get(self.id, {}) == preferences:
+                return
             all_preferences[self.id] = preferences
             request.user.prop.pagination = all_preferences
         else:
-            request.session['paginator_%s%s' % (self.prefix, self.id)] = preferences
+            key = 'paginator_%s%s' % (self.prefix, self.id)
+            if request.session.get(key, {}) != preferences:
+                request.session[key] = preferences
 
     def pagesize(self, request, session_prefs=None):
-        if not session_prefs:
+        # `is None`: an empty dict is the caller's, to be filled and saved.
+        if session_prefs is None:
             session_prefs = self.preferences(request)
 
 
@@ -113,7 +118,7 @@ class PaginatorContext(object):
             else:
                 pagesize = session_prefs.get(self.PAGESIZE, self.default_pagesize)
 
-            if not pagesize in self.pagesizes:
+            if pagesize not in self.pagesizes:
                 pagesize = self.default_pagesize
         else:
             pagesize = 30
@@ -130,11 +135,12 @@ class PaginatorContext(object):
             raise Http404()
 
     def sort(self, request, session_prefs=None):
-        if not session_prefs:
+        # `is None`: an empty dict is the caller's, to be filled and saved.
+        if session_prefs is None:
             session_prefs = self.preferences(request)
 
         sort = None
-        sticky = request.user.is_authenticated() and request.user.prop.preferences and request.user.prop.preferences.get('sticky_sorts', False)
+        sticky = request.user.is_authenticated and request.user.prop.preferences and request.user.prop.preferences.get('sticky_sorts', False)
 
         if self.has_sort:
             if request.GET.get(self.SORT, None):
@@ -145,7 +151,7 @@ class PaginatorContext(object):
             else:
                 sort = self.force_sort or (sticky and session_prefs.get(self.SORT, None)) or self.default_sort
 
-            if not sort in self.sort_methods:
+            if sort not in self.sort_methods:
                 sort = self.default_sort
 
         return sort
@@ -160,22 +166,22 @@ class PaginatorContext(object):
 
     @property
     def PAGESIZE(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('pagesize')) or _('pagesize')
+        return self.prefix and "%s_%s" % (self.prefix, 'pagesize') or 'pagesize'
 
     @property
     def PAGE(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('page')) or _('page')
+        return self.prefix and "%s_%s" % (self.prefix, 'page') or 'page'
 
     @property
     def SORT(self):
-        return self.prefix and "%s_%s" % (self.prefix, _('sort')) or _('sort')
+        return self.prefix and "%s_%s" % (self.prefix, 'sort') or 'sort'
 
 page_numbers_template = template.loader.get_template('paginator/page_numbers.html')
 page_sizes_template = template.loader.get_template('paginator/page_sizes.html')
 sort_tabs_template = template.loader.get_template('paginator/sort_tabs.html')
 
 def paginated(request, paginators, tpl_context):
-    if len(paginators) == 2 and isinstance(paginators[0], basestring):
+    if len(paginators) == 2 and isinstance(paginators[0], str):
         paginators = (paginators,)
 
     for list_name, context in paginators:
@@ -229,8 +235,8 @@ def _paginated(request, objects, context):
         has_previous = page > 1
         has_next = page < total_pages
 
-        range_start = page - context.visible_page_range / 2
-        range_end = page + context.visible_page_range / 2
+        range_start = page - context.visible_page_range // 2
+        range_end = page + context.visible_page_range // 2
 
         if range_start < 1:
             range_end = context.visible_page_range
@@ -275,9 +281,11 @@ def _paginated(request, objects, context):
         paginator.page_numbers_context = page_numbers_context
 
         def page_nums():
-            return page_numbers_template.render(template.Context(page_numbers_context))
+            # Django 2.0+: template.render() requires dict, not Context
+            return page_numbers_template.render(page_numbers_context)
 
-        paginator.page_numbers = page_nums
+        # Call the function immediately to get the rendered string
+        paginator.page_numbers = page_nums()
     else:
         paginator.page_numbers = ''
 
@@ -290,12 +298,14 @@ def _paginated(request, objects, context):
 
             sizes = [(s, url_builder(s)) for s in context.pagesizes]
 
-            return page_sizes_template.render(template.Context({
+            # Django 2.0+: template.render() requires dict, not Context
+            return page_sizes_template.render({
                 'current': pagesize,
                 'sizes': sizes
-            }))
+            })
 
-        paginator.page_sizes = page_sizes
+        # Call the function immediately to get the rendered string
+        paginator.page_sizes = page_sizes()
     else:
         paginator.page_sizes = ''
 
@@ -305,13 +315,14 @@ def _paginated(request, objects, context):
             sorts = [(n, s.label, url_builder(n), strip_tags(s.description)) for n, s in context.sort_methods.items()]
 
             for name, label, url, descr in sorts:
-                paginator.__dict__['%s_sort_link' % name] = smart_unicode(url)
+                paginator.__dict__['%s_sort_link' % name] = smart_str(url)
 
-            return sort_tabs_template.render(template.Context({
+            # Django 2.0+: template.render() requires dict, not Context
+            return sort_tabs_template.render({
                 'current': sort,
                 'sorts': sorts,
                 'sticky': session_prefs.get('sticky_sort', False)
-            }))
+            })
         paginator.sort_tabs = sort_tabs()
         paginator.sort_description = mark_safe(context.sort_methods[sort].description)
         paginator.current_sort = sort

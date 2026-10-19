@@ -4,8 +4,9 @@
 {% load i18n %}
 {% load extra_tags %}
 {% load general_sidebar_tags %}
+{% load subscription_tags %}
 
-{% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
+{% block title %}{% spaceless %}{{ page_title|striptags }}{% endspaceless %}{% endblock %}
 
 {% block metadescription %}{% spaceless %}
     {% if tag %}
@@ -17,25 +18,102 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ feed_url }}" />
 {% endblock %}
 
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.lists.js" %}"></script>
+{% endblock %}
+
 {% block content %}
 
-<div class="tabBar">
+<div class="list-page">
+<div class="list-header">
     {% include "question_list/title.html" %}
-    <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');" href="{{ feed_url }}" title="{% trans "subscribe to question RSS feed" %}"></a>
-    {{ questions.paginator.sort_tabs }}
+    <a class="list-ask button plain-button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
 </div>
+<div class="tabBar list-toolbar">
+    <p class="list-count">{% blocktrans count counter=questions.paginator.count %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}</p>
+    <div class="list-toolbar-end">
+        {{ questions.paginator.sort_tabs }}
+        <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');" href="{{ feed_url }}" title="{% trans "subscribe to question RSS feed" %}"></a>
+    </div>
+</div>
+{% if tag %}
+{% if tag.description or tag_synonyms or can_manage_tags %}
+<section class="tag-info tag-wiki" aria-label="{% trans "About this tag" %}">
+    <div class="tag-wiki-body">
+        {% if tag.description %}
+            {% if tag.description_is_long %}
+            <p class="tag-wiki-summary">{{ tag.description_excerpt }}</p>
+            <details class="tag-wiki-more">
+                <summary>{% trans "Read the full description" %}</summary>
+                <div class="tag-description">{{ tag.description_html }}</div>
+            </details>
+            {% else %}
+            <div class="tag-description tag-wiki-summary">{{ tag.description_html }}</div>
+            {% endif %}
+        {% elif can_manage_tags %}
+            <p class="tag-wiki-empty">{% trans "This tag has no description yet." %}</p>
+        {% endif %}
+        {% if tag_synonyms %}
+        <p class="tag-synonyms">{% trans "Also called:" %} {% for name in tag_synonyms %}<span class="tag-synonym">{{ name }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+    </div>
+    {% if can_manage_tags %}
+    <a class="tag-edit-link button plain-button" href="{% url "tag_edit" tag=tag.name %}">{% trans "Manage tag" %}</a>
+    {% endif %}
+</section>
+{% endif %}
+{% tag_follow_state tag request.user as follow %}
+<div class="tag-follow">
+    {% if request.user.is_authenticated %}
+    <form method="post" action="{% url "follow_tag" tag=tag.name %}">
+        {% csrf_token %}
+        {% if follow.following %}
+        <span class="tag-follow-state">&#10003; {% trans "You follow this tag" %}</span>
+        <button type="submit" name="action" value="unfollow" class="plain-button">{% trans "Unfollow" %}</button>
+        {% else %}
+        <button type="submit" name="action" value="follow" class="submit">{% trans "Follow tag" %}</button>
+        {% endif %}
+    </form>
+    {% endif %}
+    <span class="tag-follow-help">
+        {% if not request.user.is_authenticated %}
+            {% blocktrans with url=request.get_full_path %}<a href="/account/signin/?next={{ url }}">Sign in</a> to follow this tag and get an email for each new question in it.{% endblocktrans %}
+        {% elif follow.following and follow.emails_off %}
+            {% blocktrans with url=request.user.get_user_subscriptions_url %}Your email notifications are off, so you won't get emails: <a href="{{ url }}">email settings</a>.{% endblocktrans %}
+        {% elif follow.following %}
+            {% blocktrans with url=request.user.get_user_subscriptions_url %}You get an email for each new question here. <a href="{{ url }}">Email settings</a>{% endblocktrans %}
+        {% else %}
+            {% trans "Get an email for each new question in this tag." %}
+        {% endif %}
+        {% if follow.followers %}<span class="tag-followers">{% blocktrans count counter=follow.followers %}{{ counter }} follower{% plural %}{{ counter }} followers{% endblocktrans %}</span>{% endif %}
+    </span>
+</div>
+{% endif %}
 <div id="listA">{% for question in questions.paginator.page %}
     {% if show_summary %}
       {% question_list_item question question_summary=yes %}
     {% else %}
       {% question_list_item question %}
     {% endif %}
+{% empty %}
+    <div class="list-empty">
+        <svg class="list-empty-icon" aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.4"/><path d="M12 16.6h.01"/></svg>
+        <h2>{% if tag %}{% blocktrans with tag_name=tag.name %}No questions tagged {{ tag_name }} yet{% endblocktrans %}{% elif tab == "unanswered" %}{% trans "Every question has an answer" %}{% else %}{% trans "No questions here yet" %}{% endif %}</h2>
+        <p>{% trans "Can't find what you're looking for? Ask the community: someone may know the answer." %}</p>
+        <p class="list-empty-actions">
+            <a class="button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+            {% url "questions" as questions_url %}{% if request.path != questions_url %}<a class="list-empty-link" href="{{ questions_url }}">{% trans "See all questions" %}</a>{% endif %}
+            <a class="list-empty-link" href="{% url "tags" %}">{% trans "Browse tags" %}</a>
+        </p>
+    </div>
 {% endfor %}</div>
-{% endblock %}
-
-{% block tail %}
-    <div class="pager">{{ questions.paginator.page_numbers }}</div>
-    <div class="pagesize">{{ questions.paginator.page_sizes }}</div>
+{% if questions.paginator.page_numbers or questions.paginator.count > 15 %}
+<div class="list-footer">
+    {{ questions.paginator.page_numbers }}
+    {% if questions.paginator.count > 15 %}{{ questions.paginator.page_sizes }}{% endif %}
+</div>
+{% endif %}
+</div>
 {% endblock %}
 
 {% block sidebar %}

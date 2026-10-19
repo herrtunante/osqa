@@ -1,32 +1,22 @@
-import re
-from string import lower
 
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models.signals import post_save
 
-from forum.models import Badge, Node, Action
+from forum.models import Badge, Action
 from forum.actions import AwardAction
 
 import logging
 
-installed = dict([(b.cls, b) for b in Badge.objects.all()])
-
 class BadgesMeta(type):
+    # Badge handlers by class name; Badge.cls in the database holds the same name.
     by_class = {}
-    by_id = {}
 
     def __new__(mcs, name, bases, dic):
         badge = type.__new__(mcs, name, bases, dic)
 
+        # Badge rows are created on demand (see install() and db_object()), not
+        # here: this runs at import time, possibly before the tables exist or
+        # against a different database than the one used later (tests).
         if not dic.get('abstract', False):
-            if not name in installed:
-                ondb = Badge(cls=name, type=dic.get('type', Badge.BRONZE))
-                ondb.save()
-            else:
-                ondb = installed[name]
-
-            badge.ondb = ondb.id
-
             inst = badge()
 
             def hook(action, new):
@@ -39,12 +29,18 @@ class BadgesMeta(type):
                 action.hook(hook)
 
             BadgesMeta.by_class[name] = inst
-            BadgesMeta.by_id[ondb.id] = inst
 
         return badge
 
-class AbstractBadge(object):
-    __metaclass__ = BadgesMeta
+    @classmethod
+    def install(mcs):
+        """Create the Badge rows of registered badges that are not in the database yet."""
+        existing = set(Badge.objects.values_list('cls', flat=True))
+        for name, inst in mcs.by_class.items():
+            if name not in existing:
+                Badge(cls=name, type=getattr(inst, 'type', Badge.BRONZE)).save()
+
+class AbstractBadge(metaclass=BadgesMeta):
 
     abstract = True
     award_once = False
@@ -58,8 +54,12 @@ class AbstractBadge(object):
         raise NotImplementedError
 
     @classmethod
+    def db_object(cls):
+        return Badge.objects.get_or_create(cls=cls.__name__, defaults={'type': getattr(cls, 'type', Badge.BRONZE)})[0]
+
+    @classmethod
     def award(cls, user, action, once=False):
-        db_object = Badge.objects.get(id=cls.ondb)
+        db_object = cls.db_object()
         try:
             if once:
                 node = None
@@ -74,6 +74,6 @@ class AbstractBadge(object):
                 AwardAction(user=user, node=node).save(data=dict(badge=db_object, trigger=trigger))
         except MultipleObjectsReturned:
             if node:
-                logging.error('Found multiple %s badges awarded for user %s (%s)' % (self.name, user.username, user.id))
+                logging.error('Found multiple %s badges awarded for user %s (%s) and node %s' % (cls.__name__, user.username, user.id, node.id))
             else:
-                logging.error('Found multiple %s badges awarded for user %s (%s) and node %s' % (self.name, user.username, user.id, node.id))
+                logging.error('Found multiple %s badges awarded for user %s (%s)' % (cls.__name__, user.username, user.id))

@@ -1,11 +1,14 @@
+# mod_wsgi entry point: copy to osqa.wsgi and point WSGIScriptAlias at it.
+# (With gunicorn use `gunicorn wsgi:application` from the OSQA directory instead.)
 import os
 import sys
-sys.path.append('/path/to_dir_above')
-sys.path.append('/path/to_dir_above/osqa')
-# The first part of this module name should be identical to the directory name
-# of the OSQA source.  For instance, if the full path to OSQA is
-# /home/osqa/osqa-server, then the DJANGO_SETTINGS_MODULE should have a value
-# of 'osqa-server.settings'.
-os.environ['DJANGO_SETTINGS_MODULE'] = 'osqa.settings'
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+
+# Directory containing settings.py, settings_local.py and manage.py.
+OSQA_ROOT = '/path/to/osqa'
+
+sys.path.insert(0, OSQA_ROOT)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+
+from django.core.wsgi import get_wsgi_application
+
+application = get_wsgi_application()

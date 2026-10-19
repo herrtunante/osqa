@@ -1,34 +1,40 @@
-from forum.models import User
+from forum.models import User, MarkedTag
+from forum.models.base import load_cached, prefetch_cached_fk
+from forum.models.action import Action
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.template.defaultfilters import slugify
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.urls import reverse
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, Http404
 from forum.http_responses import HttpResponseUnauthorized
-from django.utils.translation import ugettext as _
-from django.utils.http import urlquote_plus
-from django.utils.html import strip_tags
-from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
+from urllib.parse import quote as urlquote_plus
+from django.utils.html import escape, strip_tags
+from django.utils.encoding import smart_str
+from django.urls import reverse, NoReverseMatch
 from forum.forms import *
 from forum.utils.html import sanitize_html
+from forum.utils import accounts, display, email_frequency, security_log
 from forum.modules import decorate, ReturnImediatelyException
 from datetime import datetime, date
 from forum.actions import EditProfileAction, FavoriteAction, BonusRepAction, SuspendAction, ReportAction
 from forum.modules import ui
 from forum.utils import pagination
+from forum.utils import review
+from forum.models import Node
 from forum.views.readers import QuestionListPaginatorContext, AnswerPaginatorContext
 from forum.settings import ONLINE_USERS
 
 from django.contrib import messages
 
-import json 
+import itertools
+import json
 import time
 import datetime
-import decorators
+from . import decorators
 
 class UserReputationSort(pagination.SimpleSort):
     def apply(self, objects):
@@ -37,10 +43,10 @@ class UserReputationSort(pagination.SimpleSort):
 class UserListPaginatorContext(pagination.PaginatorContext):
     def __init__(self, pagesizes=(20, 35, 60), default_pagesize=35):
         super (UserListPaginatorContext, self).__init__('USERS_LIST', sort_methods=(
-            (_('reputation'), UserReputationSort(_('reputation'), '-reputation', _("sorted by reputation"))),
-            (_('newest'), pagination.SimpleSort(_('recent'), '-date_joined', _("newest members"))),
-            (_('last'), pagination.SimpleSort(_('oldest'), 'date_joined', _("oldest members"))),
-            (_('name'), pagination.SimpleSort(_('by username'), 'username', _("sorted by username"))),
+            ('reputation', UserReputationSort(_('reputation'), '-reputation', _("sorted by reputation"))),
+            ('newest', pagination.SimpleSort(_('recent'), '-date_joined', _("newest members"))),
+            ('last', pagination.SimpleSort(_('oldest'), 'date_joined', _("oldest members"))),
+            ('name', pagination.SimpleSort(_('by username'), 'username', _("sorted by username"))),
         ), pagesizes=pagesizes, default_pagesize=default_pagesize)
 
 class SubscriptionListPaginatorContext(pagination.PaginatorContext):
@@ -50,16 +56,17 @@ class SubscriptionListPaginatorContext(pagination.PaginatorContext):
 class UserAnswersPaginatorContext(pagination.PaginatorContext):
     def __init__(self):
         super (UserAnswersPaginatorContext, self).__init__('USER_ANSWER_LIST', sort_methods=(
-            (_('oldest'), pagination.SimpleSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
-            (_('newest'), pagination.SimpleSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
-            (_('votes'), pagination.SimpleSort(_('popular answers'), '-score', _("most voted answers will be shown first"))),
-        ), default_sort=_('votes'), pagesizes=(5, 10, 20), default_pagesize=20, prefix=_('answers'))
+            ('oldest', pagination.SimpleSort(_('oldest answers'), 'added_at', _("oldest answers will be shown first"))),
+            ('newest', pagination.SimpleSort(_('newest answers'), '-added_at', _("newest answers will be shown first"))),
+            ('votes', pagination.SimpleSort(_('popular answers'), '-score', _("most voted answers will be shown first"))),
+        ), default_sort='votes', pagesizes=(5, 10, 20), default_pagesize=20, prefix='answers')
 
 USERS_PAGE_SIZE = 35# refactor - move to some constants file
 
-@decorators.render('users/users.html', 'users', _('users'), weight=200)
+@decorators.render('users/users.html', 'users', _lazy('users'), weight=200)
 def users(request):
-    suser = request.REQUEST.get('q', "")
+    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
+    suser = request.GET.get('q', "")
     users = User.objects.all()
 
     if suser != "":
@@ -71,9 +78,10 @@ def users(request):
     })
 
 
-@decorators.render('users/online_users.html', 'online_users', _('Online Users'), weight=200, tabbed=False)
+@decorators.render('users/online_users.html', 'online_users', _lazy('Online Users'), weight=200, tabbed=False)
 def online_users(request):
-    suser = request.REQUEST.get('q', "")
+    # Django 1.7+: request.REQUEST removed, use request.GET for query parameters
+    suser = request.GET.get('q', "")
 
     sort = ""
     if request.GET.get("sort", None):
@@ -122,9 +130,9 @@ def online_users(request):
     elif sort == "votes":
         users = sorted(ONLINE_USERS.sets.keys(), key=lambda user: user.votes)
     else:
-        users = sorted(ONLINE_USERS.iteritems(), key=lambda x: x[1])
+        users = sorted(ONLINE_USERS.items(), key=lambda x: x[1])
 
-    return render_to_response('users/online_users.html', {
+    return render(request, 'users/online_users.html', {
         "users" : users,
         "suser" : suser,
         "sort" : sort,
@@ -141,16 +149,36 @@ def edit_user(request, id, slug):
         form = EditUserForm(user, request.POST)
         if form.is_valid():
             new_email = sanitize_html(form.cleaned_data['email'])
+            email_change_requested = False
+            if new_email != user.email and request.user == user and new_email != accounts.pending_email(user):
+                # A new address can take over the account (password reset): confirm it's you first.
+                # Nothing is saved; the member sends the form again afterwards.
+                from forum.utils.sudo import require_recent_auth
+                refused = require_recent_auth(request, request.path)
+                if refused:
+                    return refused
 
-            if new_email != user.email:
+            if new_email != user.email and request.user == user:
+                # The member's own change: the current address stays until the
+                # new one is confirmed, and the current one is told (accounts.py).
+                if new_email == accounts.pending_email(user):
+                    pass  # already waiting for confirmation
+                elif accounts.request_email_change(request, user, new_email):
+                    email_change_requested = True
+                else:
+                    messages.error(request, _("Too many emails were sent. Please try again in an hour."))
+            elif new_email != user.email:
+                # An administrator changes it at once; the old address is told.
+                old_email = user.email
                 user.email = new_email
                 user.email_isvalid = False
+                accounts.clear_pending_email(user)
 
-                try:
-                    hash = ValidationHash.objects.get(user=request.user, type='email')
-                    hash.delete()
-                except:
-                    pass
+                # A pending validation link for the old address must stop
+                # working; it belongs to the edited user, not to whoever edits.
+                ValidationHash.objects.filter(user=user, type='email').delete()
+                accounts.notify_email_changed_by_admin(request, user, old_email)
+                security_log.event('email_changed_by_admin', request, account=user)
 
             if settings.EDITABLE_SCREEN_NAME:
                 user.username = sanitize_html(form.cleaned_data['username'])
@@ -165,15 +193,23 @@ def edit_user(request, id, slug):
             user.save()
             EditProfileAction(user=user, ip=request.META['REMOTE_ADDR']).save()
 
+            if email_change_requested:
+                messages.info(request, _("Profile updated. We sent a link to %(new)s: your email address changes "
+                                         "when you open it. Until then it stays %(old)s.") % {
+                    'new': escape(new_email), 'old': escape(user.email)})
+                return HttpResponseRedirect(reverse('edit_user', kwargs={'id': user.id, 'slug': slugify(user.username)}))
             messages.info(request, _("Profile updated."))
             return HttpResponseRedirect(user.get_profile_url())
     else:
         form = EditUserForm(user)
-    return render_to_response('users/edit.html', {
+    return render(request, 'users/edit.html', {
     'user': user,
+    'view_user': user,
+    'can_view_private': True,
     'form' : form,
     'gravatar_faq_url' : reverse('faq') + '#gravatar',
-    }, context_instance=RequestContext(request))
+    'pending_email': accounts.pending_email(user) if request.user == user else None,
+    })
 
 
 @decorate.withfn(decorators.command)
@@ -181,7 +217,7 @@ def user_powers(request, id, action, status):
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers are allowed to alter other users permissions."))
 
-    if (action == 'remove' and 'status' == 'super') and not request.user.is_siteowner():
+    if (action == 'remove' and status == 'super') and not request.user.is_siteowner:
         raise decorators.CommandException(_("Only the site owner can remove the super user status from other user."))
 
     user = get_object_or_404(User, id=id)
@@ -195,13 +231,15 @@ def user_powers(request, id, action, status):
         raise Http404()
 
     user.save()
+    security_log.event('permissions_changed', request, account=user, change='%s %s' % (action, status))
     return decorators.RefreshPageCommand()
 
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def award_points(request, id):
-    if not request.POST:
-        return render_to_response('users/karma_bonus.html')
+    if request.method != 'POST':
+        return render(request, 'users/karma_bonus.html')
 
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers are allowed to award reputation points"))
@@ -215,7 +253,8 @@ def award_points(request, id):
 
     extra = dict(message=request.POST.get('message', ''), awarding_user=request.user.id, value=points)
 
-    BonusRepAction(user=request.user, extra=extra).save(data=dict(value=points, affected=user))
+    BonusRepAction(user=request.user, extra=extra, ip=request.META['REMOTE_ADDR']).save(data=dict(value=points, affected=user))
+    security_log.event('reputation_awarded', request, account=user, points=points)
 
     return {'commands': {
             'update_profile_karma': [user.reputation]
@@ -223,11 +262,17 @@ def award_points(request, id):
     
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def suspend(request, id):
     user = get_object_or_404(User, id=id)
 
     if not request.user.is_superuser:
         raise decorators.CommandException(_("Only superusers can suspend other users"))
+
+    if request.method != 'POST':
+        if user.is_suspended():
+            return HttpResponseNotAllowed(['POST'])
+        return render(request, 'users/suspend_user.html')
 
     if not request.POST.get('bantype', None):
         if user.is_suspended():
@@ -235,7 +280,7 @@ def suspend(request, id):
             suspension.cancel(user=request.user, ip=request.META['REMOTE_ADDR'])
             return decorators.RefreshPageCommand()
         else:
-            return render_to_response('users/suspend_user.html')
+            return render(request, 'users/suspend_user.html')
 
     data = {
         'bantype': request.POST.get('bantype', 'Indefinitely').strip(),
@@ -255,11 +300,17 @@ def suspend(request, id):
     return decorators.RefreshPageCommand()
 
 @decorate.withfn(decorators.command)
+@decorators.prompt
 def report_user(request, id):
     user = get_object_or_404(User, id=id)
 
-    if not request.POST.get('publicmsg', None):
-        return render_to_response('users/report_user.html')
+    if not request.user.is_authenticated:
+        raise decorators.CommandException(_("Please sign in to report a user."))
+    if request.user == user:
+        raise decorators.CommandException(_("You can't report yourself."))
+
+    if request.method != 'POST' or not request.POST.get('publicmsg', None):
+        return render(request, 'users/report_user.html')
 
     data = {
         'publicmsg': request.POST.get('publicmsg', _('N/A')),
@@ -271,6 +322,53 @@ def report_user(request, id):
 
     return decorators.RefreshPageCommand()
 
+
+
+# Actions left out of the activity lists (votes are private, page edits are admin work).
+ACTIVITY_EXCLUDED_TYPES = ("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage", "queueforreview")
+
+
+def visible_activity(user, viewer):
+    """`user`'s actions shown in their profile to `viewer`: none about posts
+    held for review that `viewer` may not see."""
+    return review.visible_to(user.actions.exclude(action_type__in=ACTIVITY_EXCLUDED_TYPES), viewer, prefix='node__')
+
+
+def _profile_tab_counts(user, can_view_private):
+    counts = {}
+    if can_view_private:
+        # Denormalized counters, kept in the object cache.
+        counts['votes'] = user.vote_up_count + user.vote_down_count
+    return counts
+
+
+def prefetch_activity(actions, user=None):
+    """The actions as their leaf classes, with what their describe() reads
+    (the post, its parent, their authors) loaded from the object cache in a
+    few grouped queries instead of a few queries per row."""
+    leaves = [action.leaf for action in actions]
+    if user is not None:
+        user_field = Action._meta.get_field('user')
+        for action in leaves:
+            if action.user_id == user.id:
+                user_field.set_cached_value(action, user)
+    prefetch_cached_fk(leaves, 'node')
+    node_field = Action._meta.get_field('node')
+    nodes = [action.node for action in leaves if action.node_id and node_field.is_cached(action)]
+    prefetch_cached_fk(nodes, 'parent', 'author')
+    parents = [node.parent for node in nodes if node.parent_id and node._meta.get_field('parent').is_cached(node)]
+    prefetch_cached_fk(parents, 'parent', 'author')
+    # Badge awards name their badge (action.award.badge).
+    awarded = [action for action in leaves if action.action_type == 'award']
+    if awarded:
+        from forum.models import Award
+        awards = dict((award.action_id, award) for award in
+                      Award.objects.filter(action__in=[action.id for action in awarded]).select_related('badge'))
+        award_field = Action._meta.get_field('award')
+        for action in awarded:
+            if action.id in awards:
+                award_field.set_cached_value(action, awards[action.id])
+    return leaves
 
 
 def user_view(template, tab_name, tab_title, tab_description, private=False, tabbed=True, render_to=None, weight=500):
@@ -297,7 +395,7 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
         decorated = decorate.params.withfn(params)(fn)
 
         def result(context_or_response, request, user, **kwargs):
-            rev_page_title = smart_unicode(user.username) + " - " + tab_description
+            rev_page_title = smart_str(user.username) + " - " + tab_description
 
             # Check whether the return type of the decorated function is a context or Http Response
             if isinstance(context_or_response, HttpResponse):
@@ -309,26 +407,29 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
                 # ...if it is a context move forward, update it and render it to response
                 context = context_or_response
 
+            can_view_private = (user == request.user) or request.user.is_superuser
             context.update({
                 "tab": "users",
                 "active_tab" : tab_name,
                 "tab_description" : tab_description,
                 "page_title" : rev_page_title,
-                "can_view_private": (user == request.user) or request.user.is_superuser
+                "can_view_private": can_view_private,
+                # Counts shown in the profile tabs: only the cheap ones (cached counters).
+                "profile_tab_counts": _profile_tab_counts(user, can_view_private),
             })
-            return render_to_response(template, context, context_instance=RequestContext(request))
+            return render(request, template, context)
 
         decorated = decorate.result.withfn(result, needs_params=True)(decorated)
 
         if tabbed:
             def url_getter(vu):
                 try:
-                    return reverse(fn.__name__, kwargs={'id': vu.id, 'slug': slugify(smart_unicode(vu.username))})
+                    return reverse(fn.__name__, kwargs={'id': vu.id, 'slug': slugify(smart_str(vu.username))})
                 except NoReverseMatch:
                     try:
                         return reverse(fn.__name__, kwargs={'id': vu.id})
                     except NoReverseMatch:
-                        return reverse(fn.__name__, kwargs={'slug': slugify(smart_unicode(vu.username))})
+                        return reverse(fn.__name__, kwargs={'slug': slugify(smart_str(vu.username))})
 
             ui.register(ui.PROFILE_TABS, ui.ProfileTab(
                 tab_name, tab_title, tab_description,url_getter, private, render_to, weight
@@ -338,29 +439,36 @@ def user_view(template, tab_name, tab_title, tab_description, private=False, tab
     return decorator
 
 
-@user_view('users/stats.html', 'stats', _('overview'), _('user overview'))
+@user_view('users/stats.html', 'stats', _lazy('overview'), _lazy('user overview'))
 def user_profile(request, user, **kwargs):
-    questions = Question.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
-    answers = Answer.objects.filter_state(deleted=False).filter(author=user).order_by('-added_at')
+    questions = Question.objects.visible_to(request.user).filter(author=user).order_by('-added_at') \
+        .prefetch_cached(fks=('last_activity_by',), counts=('answer_count', 'accepted_count'))
+    answers = Answer.objects.visible_to(request.user).filter(author=user).order_by('-added_at') \
+        .prefetch_cached(fks=('parent',))
 
     # Check whether the passed slug matches the one for the user object
     slug = kwargs['slug']
-    if slug != slugify(smart_unicode(user.username)):
+    if slug != slugify(smart_str(user.username)):
         return HttpResponseRedirect(user.get_absolute_url())
 
     up_votes = user.vote_up_count
     down_votes = user.vote_down_count
-    votes_today = user.get_vote_count_today()
-    votes_total = user.can_vote_count_today()
+    accepted_count = Answer.objects.filter_state(deleted=False).filter(author=user, marked=True).count()
+    recent_activity = prefetch_activity(
+        visible_activity(user, request.user).order_by('-action_date')[:6], user)
 
-    user_tags = Tag.objects.filter(Q(nodes__author=user) | Q(nodes__children__author=user)) \
+    own_posts = Node.objects.filter(author=user)
+    if not (review.is_moderator(request.user) or request.user == user):
+        own_posts = review.published(own_posts)
+    user_tags = Tag.objects.filter(Q(nodes__in=own_posts.values('id')) | Q(nodes__children__author=user)) \
         .annotate(user_tag_usage_count=Count('name')).order_by('-user_tag_usage_count')
 
-    awards = [(Badge.objects.get(id=b['id']), b['count']) for b in
-              Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count')]
+    award_counts = list(Badge.objects.filter(awards__user=user).values('id').annotate(count=Count('cls')).order_by('-count'))
+    badges = load_cached(Badge, [b['id'] for b in award_counts])
+    awards = [(badges[b['id']], b['count']) for b in award_counts if b['id'] in badges]
 
     return pagination.paginated(request, (
-    ('questions', QuestionListPaginatorContext('USER_QUESTION_LIST', _('questions'), default_pagesize=15)),
+    ('questions', QuestionListPaginatorContext('USER_QUESTION_LIST', 'questions', default_pagesize=15)),
     ('answers', UserAnswersPaginatorContext())), {
     "view_user" : user,
     "questions" : questions,
@@ -368,51 +476,81 @@ def user_profile(request, user, **kwargs):
     "up_votes" : up_votes,
     "down_votes" : down_votes,
     "total_votes": up_votes + down_votes,
-    "votes_today_left": votes_total-votes_today,
-    "votes_total_per_day": votes_total,
-    "user_tags" : user_tags[:50],
+    "accepted_count": accepted_count,
+    "recent_activity": recent_activity,
+    "user_tags" : list(user_tags[:30]),
     "awards": awards,
     "total_awards" : len(awards),
     })
     
-@user_view('users/recent.html', 'recent', _('recent activity'), _('recent user activity'))
+@user_view('users/recent.html', 'recent', _lazy('activity'), _lazy('recent user activity'))
 def user_recent(request, user, **kwargs):
-    activities = user.actions.exclude(
-            action_type__in=("voteup", "votedown", "voteupcomment", "flag", "newpage", "editpage")).order_by(
-            '-action_date')[:USERS_PAGE_SIZE]
+    activities = prefetch_activity(visible_activity(user, request.user).order_by(
+            '-action_date')[:USERS_PAGE_SIZE], user)
 
     return {"view_user" : user, "activities" : activities}
 
 
-@user_view('users/reputation.html', 'reputation', _('reputation history'), _('graph of user karma'))
+def reputation_graph_points(user, now=None):
+    """[(epoch ms, reputation)] for the reputation graph: the running total
+    after each change, ending at the user's current reputation.  Reputation
+    that no change accounts for (set by an administrator, imported from an old
+    forum) is the starting value, so the curve ends where the profile header
+    does; a last point at `now` carries the line up to today.  Empty when the
+    user has no reputation changes."""
+    changes = list(user.reputes.order_by('date', 'id').values_list('date', 'value'))
+    if not changes:
+        return []
+    current = user.reputation
+    if not isinstance(current, int):
+        current = type(user).objects.filter(pk=user.pk).values_list('reputation', flat=True).first() or 0
+    start = current - sum(value for _date, value in changes)
+
+    def ms(d):
+        return int(time.mktime(d.timetuple()) * 1000)
+
+    points = []
+    joined = user.date_joined
+    if joined and joined < changes[0][0]:
+        points.append((ms(joined), start))
+    total = start
+    for d, value in changes:
+        total += value
+        points.append((ms(d), total))
+    now = now or datetime.datetime.now()
+    if now > changes[-1][0]:
+        points.append((ms(now), total))
+    return points
+
+
+@user_view('users/reputation.html', 'reputation', _lazy('reputation'), _lazy('graph of user karma'))
 def user_reputation(request, user, **kwargs):
-    rep = list(user.reputes.order_by('date'))
-    values = [r.value for r in rep]
-    redux = lambda x, y: x+y
+    graph_data = json.dumps(reputation_graph_points(user))
 
-    graph_data = json.dumps([
-    (time.mktime(rep[i].date.timetuple()) * 1000, reduce(redux, values[:i+1], 0))
-    for i in range(len(values))
-    ])
+    rep = list(user.reputes.filter(action__canceled=False).order_by('-date')[0:20])
+    prefetch_cached_fk(rep, 'action')
+    for repute, action in zip(rep, prefetch_activity([r.action for r in rep])):
+        repute.leaf_action = action
 
-    rep = user.reputes.filter(action__canceled=False).order_by('-date')[0:20]
+    return {"view_user": user, "reputation": rep, "graph_data": graph_data, "has_graph": len(graph_data) > 2}
 
-    return {"view_user": user, "reputation": rep, "graph_data": graph_data}
-
-@user_view('users/votes.html', 'votes', _('votes'), _('user vote record'), True)
+@user_view('users/votes.html', 'votes', _lazy('votes'), _lazy('user vote record'), True)
 def user_votes(request, user, **kwargs):
-    votes = user.votes.exclude(node__state_string__contains="(deleted").filter(
-            node__node_type__in=("question", "answer")).order_by('-voted_at')[:USERS_PAGE_SIZE]
+    votes = list(user.votes.exclude(node__state_string__contains="(deleted").filter(
+            node__node_type__in=("question", "answer")).order_by('-voted_at')[:USERS_PAGE_SIZE])
+    # The posts and, for answers, their questions: from the object cache, not one query per row.
+    prefetch_cached_fk(votes, 'node')
+    prefetch_cached_fk([vote.node for vote in votes if vote._meta.get_field('node').is_cached(vote)], 'parent')
 
     return {"view_user" : user, "votes" : votes}
 
-@user_view('users/questions.html', 'favorites', _('favorites'), _('questions that user selected as his/her favorite'))
+@user_view('users/questions.html', 'favorites', _lazy('favorites'), _lazy('questions that user selected as his/her favorite'))
 def user_favorites(request, user, **kwargs):
     favorites = FavoriteAction.objects.filter(canceled=False, user=user)
 
     return {"favorites" : favorites, "view_user" : user}
 
-@user_view('users/subscriptions.html', 'subscriptions', _('subscription'), _('subscriptions'), True, tabbed=False)
+@user_view('users/subscriptions.html', 'subscriptions', _lazy('email settings'), _lazy('email settings'), True, tabbed=False)
 def user_subscriptions(request, user, **kwargs):
     return _user_subscriptions(request, user, **kwargs)
 
@@ -442,35 +580,43 @@ def _user_subscriptions(request, user, **kwargs):
     # Settings Tab and everything else
     else:
         manage_open = False
+        prefs = user.subscription_settings
+        if request.method == 'POST' and request.POST.get('notifications') in ('on', 'off'):
+            # The master switch: all notification emails on or off.
+            prefs.enable_notifications = request.POST['notifications'] == 'on'
+            prefs.save()
+            messages.info(request, _('Email notifications are now switched on.') if prefs.enable_notifications
+                          else _('Email notifications are now switched off. You will only get emails about your account.'))
+            return HttpResponseRedirect(user.get_user_subscriptions_url())
         if request.method == 'POST':
-            manage_open = False
-            form = SubscriptionSettingsForm(data=request.POST, instance=user.subscription_settings)
-
+            form = SubscriptionSettingsForm(data=request.POST, instance=prefs)
             if form.is_valid():
                 form.save()
-                message = _('New subscription settings are now saved')
-
-                user.subscription_settings.enable_notifications = enabled
-                user.subscription_settings.save()
-
-                messages.info(request, message)
+                messages.info(request, _('Your email settings are saved.'))
         else:
-            form = SubscriptionSettingsForm(instance=user.subscription_settings)
+            form = SubscriptionSettingsForm(instance=prefs)
 
+        hints = email_frequency.frequency_hints()
         return {
             'view_user':user,
-            'notificatons_on': enabled,
+            'notifications_on': prefs.enable_notifications,
+            # The radio cards of "How often": (radio, one-line explanation).
+            'frequency_options': [(radio, hints[radio.data['value']]) for radio in form['email_frequency']],
+            'followed_tags': [mt.tag for mt in MarkedTag.objects.filter(user=user, reason='good').select_related('tag').order_by('tag__name')],
             'form':form,
             'manage_open':manage_open,
         }
 
-@user_view('users/preferences.html', 'preferences', _('preferences'), _('preferences'), True, tabbed=False)
+@user_view('users/preferences.html', 'preferences', _lazy('preferences'), _lazy('preferences'), True, tabbed=False)
 def user_preferences(request, user, **kwargs):
     if request.POST:
         form = UserPreferencesForm(request.POST)
 
         if form.is_valid():
-            user.prop.preferences = form.cleaned_data
+            # Merged: the theme switch keeps its choice in the same dict. The
+            # signed-in user's own object, so this page already shows the change.
+            owner = request.user if request.user.id == user.id else user
+            display.update_preferences(owner, **form.cleaned_data)
             messages.info(request, _('New preferences saved'))
 
     else:

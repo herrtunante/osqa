@@ -2,16 +2,17 @@
 {% spaceless %}
 {% for control in controls %}
     <span class="action-link">
-        <a rel="nofollow" title="{{ control.title }}" class="{{ control.classes }}" href="{{ control.url }}">{{ control.text }}</a>
+        {% if control.url %}<a rel="nofollow" title="{{ control.title }}" class="{{ control.classes }}" href="{{ control.url }}">{{ control.text }}</a>{% else %}<span class="{{ control.classes }}" title="{{ control.title }}">{{ control.text }}<span class="visually-hidden">: {{ control.title }}</span></span>{% endif %}
     </span>
-    {% ifnotequal controls|last control %}
+    {% if controls|last != control %}
         <span class="action-link-separator">|</span>
-    {% endifnotequal %}
+    {% endif %}
 {% endfor %}
 {% if menu|length %}
     <span class="action-link-separator">|</span>
-    <span id="node-{{ post.id }}-menu" class="context-menu">
-        <span id="node-{{ post.id }}-menu-trigger" class="action-link context-menu-trigger">{% trans "more" %} &#9660;</span>
+    <span id="node-{{ post.id }}-menu" class="context-menu post-menu">
+        <button type="button" id="node-{{ post.id }}-menu-trigger" class="action-link context-menu-trigger plain-button"
+            aria-expanded="false" aria-controls="node-{{ post.id }}-menu-dropdown">{% trans "more" %}</button>
         <ul id="node-{{ post.id }}-menu-dropdown" class="context-menu-dropdown">
             {% for item in menu %}
             <li class="item"><a rel="nofollow" class="{{ item.classes }}" href="{{ item.url }}" title="{{ item.title }}" >{{ item.text }}</a></li>

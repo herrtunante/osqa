@@ -1,0 +1,16 @@
+{% extends "base_content.html" %}
+<!-- pwa/offline.html -->
+{% load i18n %}
+{% block title %}{% spaceless %}{% trans "You are offline" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div class="headNormal">
+    <h1>{% trans "You are offline" %}</h1>
+</div>
+<div id="main-body" class="offline-page">
+    <p>{% trans "This page could not be loaded because there is no connection. These pages were saved on this device when you read them, and can be read offline:" %}</p>
+    <ul id="offline-pages" data-title-suffix=" - {{ settings.APP_SHORT_NAME }}"></ul>
+    <p id="offline-none" hidden>{% trans "No pages have been saved on this device yet. Questions you read while online are kept here for offline reading." %}</p>
+</div>
+{% endblock %}
+<!-- end pwa/offline.html -->

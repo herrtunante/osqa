@@ -2,6 +2,7 @@ from django import template
 from django.utils.safestring import mark_safe
 import logging
 import markdown
+import re
 
 register = template.Library()
 
@@ -9,6 +10,14 @@ register = template.Library()
 @register.filter
 def collapse(input):
     return ' '.join(input.split())
+
+
+@register.filter
+def priority_image(html):
+    """Post HTML whose first image (near the top) loads at once, with high
+    priority: the question body, often the page's largest paint."""
+    from forum.utils.html import priority_image as prioritize
+    return mark_safe(prioritize(str(html)))
 
 
 @register.filter
@@ -56,10 +65,26 @@ def contained_in(item, container):
 @register.filter
 def static_content(content, render_mode):
     if render_mode == 'markdown':
-        return mark_safe(markdown.markdown(unicode(content), ["settingsparser"]))
+        return mark_safe(markdown.markdown(str(content), extensions=['forum.markdownext.mdx_settingsparser']))
     elif render_mode == 'markdown-safe':
-        return mark_safe(markdown.markdown(unicode(content), safe_mode=True))
+        # Markdown 3.x+ has no safe_mode: render, then sanitize. (Escaping the
+        # rendered HTML showed visitors the raw tags.)
+        from forum.utils.html import sanitize_html
+        return mark_safe(sanitize_html(markdown.markdown(str(content))))
     elif render_mode == "html":
-        return mark_safe(unicode(content))
+        return mark_safe(str(content))
     else:
-        return unicode(content)
+        return str(content)
+
+
+_SCRIPT_WITHOUT_NONCE = re.compile(r'<script\b(?![^>]*\snonce=)', re.IGNORECASE)
+
+
+@register.filter(is_safe=True)
+def csp_nonce_scripts(html, nonce):
+    """Gives the response's CSP nonce to the inline <script> elements of HTML
+    the site administrators wrote (custom <head>, header and footer), so their
+    analytics snippets keep running. Never use it on content members write."""
+    if not nonce or html is None:
+        return html
+    return _SCRIPT_WITHOUT_NONCE.sub('<script nonce="%s"' % nonce, str(html))

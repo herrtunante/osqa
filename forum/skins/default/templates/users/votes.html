@@ -1,28 +1,38 @@
 {% extends "user.html" %}
 <!-- user_votes.html -->
-{% load extra_tags %}
-{% load extra_filters %}
-{% load humanize %}
-{% load i18n %}
+{% load i18n extra_tags node_tags %}
 
 {% block usercontent %}
-        <div style="padding-top:5px;font-size:13px;">
+<section class="profile-section" aria-labelledby="profile-votes-title">
+    <div class="profile-section-head">
+        {% if request.user == view_user %}
+        <h2 id="profile-votes-title">{% trans "Your votes" %}</h2>
+        <p class="profile-section-note">{% trans "Only you can see this list." %}</p>
+        {% else %}
+        <h2 id="profile-votes-title">{% trans "Votes" %}</h2>
+        {% endif %}
+    </div>
+    {% if votes %}
+    <ol class="vote-list">
         {% for vote in votes %}
-            <div style="clear:both;line-height:20px" >
-                <div style="width:150px;float:left">{% diff_date vote.voted_at 3 %}</div>
-                <div style="width:30px;float:left">
-                {% ifequal vote.value 1 %}
-                    <img src="{% media  "/media/images/vote-arrow-up-on.png" %}" title="{% trans "upvote" %}">
-                {% else %}
-                    <img src="{% media  "/media/images/vote-arrow-down-on.png" %}" title="{% trans "downvote" %}">
-                {% endifequal %}
-                </div>
-                <div style="float:left;overflow:hidden;width:750px">
-                    <span class="{{ vote.node.node_type }}-title-link"><a href="{{ vote.node.get_absolute_url }}">{{ vote.node.headline }}</a></span>
-                    <div style="height:5px"></div>
-                </div>          
-            </div>
+        <li class="vote-item {% if vote.value == 1 %}vote-up{% else %}vote-down{% endif %}">
+            <span class="vote-icon" aria-hidden="true">{% if vote.value == 1 %}&#9650;{% else %}&#9660;{% endif %}</span>
+            <span class="visually-hidden">{% if vote.value == 1 %}{% trans "upvote" %}{% else %}{% trans "downvote" %}{% endif %}:</span>
+            <span class="vote-title {{ vote.node.node_type }}-title-link"><a href="{{ vote.node.get_absolute_url }}">{{ vote.node.headline }}</a></span>
+            <span class="vote-when">{% post_time vote.voted_at %}</span>
+        </li>
         {% endfor %}
-        </div>
+    </ol>
+    {% else %}
+    <div class="profile-empty">
+        {% if request.user == view_user %}
+        <p>{% trans "You haven't voted yet." %}</p>
+        <p class="profile-empty-hint">{% trans "Vote up the questions and answers that help you; they rise to the top for everyone." %}</p>
+        {% else %}
+        <p>{% trans "No votes yet." %}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
 {% endblock %}
 <!-- end user_votes.html -->

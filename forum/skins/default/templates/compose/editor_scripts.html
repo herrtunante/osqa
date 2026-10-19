@@ -1,0 +1,9 @@
+{% load i18n extra_tags %}{# The post editor's scripts, in the forejs block of the pages with textarea#editor (ask, edit question/answer, the answer form). #}
+        <script nonce="{{ csp_nonce }}">
+        Object.assign(messages, {
+            upload_not_image: "{% filter escapejs %}{% trans "Only images can be added to a post." %}{% endfilter %}"
+        });
+        </script>
+        <script defer src="{% media "/media/js/osqa.htmltomd.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.editor.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.paste.js" %}"></script>

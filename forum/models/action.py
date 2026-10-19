@@ -1,10 +1,10 @@
-from django.utils.translation import ugettext as _
-from django.utils.encoding import smart_unicode
+from django.utils.translation import gettext as _
+from django.utils.encoding import smart_str
 
-from utils import PickledObjectField
+from .utils import PickledObjectField
 from threading import Thread
 from forum.utils import html
-from base import *
+from .base import *
 import re
 
 class ActionQuerySet(CachedQuerySet):
@@ -15,10 +15,10 @@ class ActionQuerySet(CachedQuerySet):
             obj.__dict__.update(datadict)
             return obj
         else:
-            return super(ActionQuerySet, self).obj_from_datadict(datadict)
+            return super().obj_from_datadict(datadict)
 
-    def get(self, *args, **kwargs):            
-        action = super(ActionQuerySet, self).get(*args, **kwargs).leaf
+    def get(self, *args, **kwargs):
+        action = super().get(*args, **kwargs).leaf
 
         if not isinstance(action, self.model):
             raise self.model.DoesNotExist()
@@ -42,17 +42,17 @@ class ActionManager(CachedManager):
 
 
 class Action(BaseModel):
-    user = models.ForeignKey('User', related_name="actions")
-    real_user = models.ForeignKey('User', related_name="proxied_actions", null=True)
+    user = models.ForeignKey('User', related_name="actions", on_delete=models.CASCADE)
+    real_user = models.ForeignKey('User', related_name="proxied_actions", null=True, on_delete=models.CASCADE)
     ip   = models.CharField(max_length=39)
-    node = models.ForeignKey('Node', null=True, related_name="actions")
+    node = models.ForeignKey('Node', null=True, related_name="actions", on_delete=models.CASCADE)
     action_type = models.CharField(max_length=32)
     action_date = models.DateTimeField(default=datetime.datetime.now)
 
     extra = PickledObjectField()
 
     canceled = models.BooleanField(default=False)
-    canceled_by = models.ForeignKey('User', null=True, related_name="canceled_actions")
+    canceled_by = models.ForeignKey('User', null=True, related_name="canceled_actions", on_delete=models.CASCADE)
     canceled_at = models.DateTimeField(null=True)
     canceled_ip = models.CharField(max_length=39)
 
@@ -111,9 +111,7 @@ class Action(BaseModel):
             return self
 
         leaf = leaf_cls()
-        d = self._as_dict()
         leaf.__dict__.update(self._as_dict())
-        l = leaf._as_dict()
         return leaf
 
     @classmethod
@@ -130,7 +128,7 @@ class Action(BaseModel):
         if data:
             self.process_data(**data)
 
-        super(Action, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if isnew:
             if (self.node is None) or (not self.node.nis.wiki):
@@ -142,7 +140,7 @@ class Action(BaseModel):
 
     def delete(self, *args, **kwargs):
         self.cancel_action()
-        super(Action, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     def cancel(self, user=None, ip=None):
         if not self.canceled:
@@ -157,19 +155,6 @@ class Action(BaseModel):
         #self.trigger_hooks(False)
 
     @classmethod
-    def get_current(cls, **kwargs):
-        kwargs['canceled'] = False
-
-        try:
-            return cls.objects.get(**kwargs)
-        except cls.MultipleObjectsReturned:
-            logging.error("Got multiple values for action %s with args %s", cls.__name__,
-                          ", ".join(["%s='%s'" % i for i in kwargs.items()]))
-            raise
-        except cls.DoesNotExist:
-            return None
-
-    @classmethod
     def hook(cls, fn):
         if not Action.hooks.get(cls, None):
             Action.hooks[cls] = []
@@ -178,14 +163,34 @@ class Action(BaseModel):
 
     def trigger_hooks(self, threaded, new=True):
         if threaded:
-            thread = Thread(target=trigger_hooks, args=[self, Action.hooks, new])
-            thread.setDaemon(True)
-            thread.start()
+            Thread(target=trigger_hooks_in_thread, args=[self, Action.hooks, new], daemon=True).start()
         else:
             trigger_hooks(self, Action.hooks, new)
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to Action (vote.action, node states, awards) are loaded
+        # through the base manager; use ActionManager, whose get() returns the
+        # action's proxy class (VoteUpAction, DeleteAction, ...). With a plain
+        # Action, cancel() ran the no-op Action.cancel_action(): cancelling a
+        # vote left the score, undelete left the post deleted, etc.
+        base_manager_name = 'objects'
+        # A user's recent activity, and per-day limits (votes, flags) by type.
+        indexes = [
+            models.Index(fields=['user', 'action_date'], name='action_user_date_idx'),
+            models.Index(fields=['user', 'action_type', 'action_date'], name='action_user_type_date_idx'),
+            # A post's favourites, flags and votes.
+            models.Index(fields=['node', 'action_type', 'canceled'], name='action_node_type_idx'),
+        ]
+
+def trigger_hooks_in_thread(action, hooks, new):
+    from django.db import connections
+    try:
+        trigger_hooks(action, hooks, new)
+    finally:
+        # The thread opened its own database connections; they are never reused,
+        # so close them instead of leaving one open per action until GC.
+        connections.close_all()
 
 def trigger_hooks(action, hooks, new):
     for cls, hooklist in hooks.items():
@@ -193,7 +198,7 @@ def trigger_hooks(action, hooks, new):
             for hook in hooklist:
                 try:
                     hook(action=action, new=new)
-                except Exception, e:
+                except Exception as e:
                     import traceback
                     logging.error("Error in %s hook: %s" % (cls.__name__, str(e)))
                     logging.error(traceback.format_exc())
@@ -202,7 +207,7 @@ class ActionProxyMetaClass(BaseMetaClass):
     types = {}
 
     def __new__(cls, *args, **kwargs):
-        new_cls = super(ActionProxyMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
         cls.types[new_cls.get_type()] = new_cls
 
         class Meta:
@@ -211,14 +216,13 @@ class ActionProxyMetaClass(BaseMetaClass):
         new_cls.Meta = Meta
         return new_cls
 
-class ActionProxy(Action):
-    __metaclass__ = ActionProxyMetaClass
+class ActionProxy(Action, metaclass=ActionProxyMetaClass):
 
     def friendly_username(self, viewer, user):
-        return (viewer == user) and _('You') or smart_unicode(user.username)
+        return (viewer == user) and _('You') or smart_str(user.username)
 
     def friendly_ownername(self, owner, user):
-        return (owner == user) and _('your') or smart_unicode(user.username)
+        return (owner == user) and _('your') or smart_str(user.username)
 
     def viewer_or_user_verb(self, viewer, user, viewer_verb, user_verb):
         return (viewer == user) and viewer_verb or user_verb
@@ -248,12 +252,11 @@ class ActionProxy(Action):
 
 class DummyActionProxyMetaClass(type):
     def __new__(cls, *args, **kwargs):
-        new_cls = super(DummyActionProxyMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
         ActionProxyMetaClass.types[new_cls.get_type()] = new_cls
         return new_cls
 
-class DummyActionProxy(object):
-    __metaclass__ = DummyActionProxyMetaClass
+class DummyActionProxy(metaclass=DummyActionProxyMetaClass):
 
     hooks = []
 
@@ -285,9 +288,9 @@ class DummyActionProxy(object):
 
 
 class ActionRepute(models.Model):
-    action = models.ForeignKey(Action, related_name='reputes')
+    action = models.ForeignKey(Action, related_name='reputes', on_delete=models.CASCADE)
     date = models.DateTimeField(default=datetime.datetime.now)
-    user = models.ForeignKey('User', related_name='reputes')
+    user = models.ForeignKey('User', related_name='reputes', on_delete=models.CASCADE)
     value = models.IntegerField(default=0)
     by_canceled = models.BooleanField(default=False)
 
@@ -301,22 +304,28 @@ class ActionRepute(models.Model):
         if self.value < 0: return self.value
         return 0
 
-    def _add_to_rep(self, value):
-        if int(self.user.reputation + value) < 1 and not settings.ALLOW_NEGATIVE_REPUTATION:
-            return 0
-        else:
-            return models.F('reputation') + value
+    def _applicable(self, value):
+        """The part of `value` that applies: without negative reputation a
+        user stops at 0."""
+        if settings.ALLOW_NEGATIVE_REPUTATION:
+            return value
+        current = type(self.user).objects.filter(pk=self.user_id).values_list('reputation', flat=True).first() or 0
+        return max(value, -max(current, 0))
 
     def save(self, *args, **kwargs):
-        super(ActionRepute, self).save(*args, **kwargs)
-        self.user.reputation = self._add_to_rep(self.value)
+        if self.pk is None:
+            # Record what was applied, so cancelling gives back exactly that.
+            self.value = self._applicable(self.value)
+        super().save(*args, **kwargs)
+        self.user.reputation = models.F('reputation') + self.value
         self.user.save()
 
     def delete(self):
-        self.user.reputation = self._add_to_rep(-self.value)
+        self.user.reputation = models.F('reputation') + self._applicable(-self.value)
         self.user.save()
-        super(ActionRepute, self).delete()
+        super().delete()
 
     class Meta:
         app_label = 'forum'
+        indexes = [models.Index(fields=['user', 'date'], name='repute_user_date_idx')]
 

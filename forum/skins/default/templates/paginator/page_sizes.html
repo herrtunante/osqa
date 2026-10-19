@@ -1,13 +1,13 @@
 {% spaceless %}
 {% load i18n %}
-<div class="paginator">
-    <span class="text">{% trans "posts per page" %}</span>
+<div class="paginator page-sizes" role="group" aria-labelledby="page-sizes-label">
+    <span class="text" id="page-sizes-label">{% trans "posts per page" %}</span>
     {% for size, url in sizes %}
-        {% ifequal size current %}
-            <span class="curr">{{ size }}</span>
+        {% if size == current %}
+            <span class="curr" aria-current="true">{{ size }}</span>
         {% else %}
             <span class="page"><a href="{{ url }}">{{ size }}</a></span>
-        {% endifequal %}
+        {% endif %}
     {% endfor %}
 </div>
 {% endspaceless %}

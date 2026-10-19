@@ -1,5 +1,5 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
 
 """ view settings """
 VIEW_SET = SettingSet('view', _('View settings'), _("Set up how certain parts of the site are displayed."), 20)
@@ -7,6 +7,11 @@ VIEW_SET = SettingSet('view', _('View settings'), _("Set up how certain parts of
 EMBED_YOUTUBE_VIDEOS = Setting('EMBED_YOUTUBE_VIDEOS', True, VIEW_SET, dict(
 label = _("Embed YouTube Videos"),
 help_text = _("If you check this YouTube videos will be embedded"),
+required=False))
+
+DARK_MODE = Setting('DARK_MODE', True, VIEW_SET, dict(
+label = _("Dark mode"),
+help_text = _("Use a dark colour scheme for visitors whose device is set to dark mode. Turn it off if your custom CSS assumes a light background."),
 required=False))
 
 SHOW_LATEST_COMMENTS_FIRST = Setting('SHOW_LATEST_COMMENTS_FIRST', False, VIEW_SET, dict(
@@ -62,3 +67,10 @@ LIMIT_RELATED_TAGS = Setting('LIMIT_RELATED_TAGS', 0, VIEW_SET, dict(
 label = _("Limit related tags block"),
 help_text = _("Limit related tags block size in questions list pages. Set to 0 to display all all tags.")))
 
+
+# Version-aware posts (forum/utils/post_versions.py): tag versions kept by
+# moderators, the "Applies to version" choice on posts, outdated notices.
+POST_VERSIONS = Setting('POST_VERSIONS', True, VIEW_SET, dict(
+label = _("Versions on posts"),
+help_text = _("Show which version of a tagged product a question or answer applies to, and mark answers written for an older version than the current one. Moderators list a tag's versions on its management page; without versions nothing is shown."),
+required=False))

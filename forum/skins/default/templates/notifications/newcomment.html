@@ -1,46 +1,40 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
     post = comment.parent
     question = post.question and post.question or post
+    on_answer = post != question
     post_author = smart_str(post.author.username)
-    safe_post_author = html.mark_safe(smart_str(post.author.username))
-    comment_author = html.mark_safe(smart_str(comment.author))
-    question_title = html.mark_safe(smart_str(question.title))
-    safe_body = html.html2text(smart_str(comment.comment))
-    author_link = html.objlink(comment.author, style=settings.EMAIL_ANCHOR_STYLE)
-    question_link = html.objlink(question, style=settings.EMAIL_ANCHOR_STYLE)
+    comment_author = smart_str(comment.author.username)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
+    comment_url = settings.APP_URL + comment.get_absolute_url()
 {% enddeclare %}
 
 {% email %}
     {% subject %}{% blocktrans %}{{ prefix }} New comment on: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}{{ comment_author }} commented:{% endblocktrans %} {{ comment.body|email_snippet:120 }}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% blocktrans %}{{ author_link }} has just posted a comment on {% endblocktrans %}
-            {% ifnotequal post question %}
-                {% blocktrans %}the answer posted by {{ post_author }} to {% endblocktrans %}
-            {% endifnotequal %}
-            {% blocktrans %}the question {{ question_link }}{% endblocktrans %}
-        </p>
-
-        <blockquote>
-        {{ comment.comment }}
-        </blockquote>
-
-        <p style="{{ p_style }}">{% trans "Don't forget to come over and cast your vote." %}</p>
+        {% declare %}
+            question_link = html.hyperlink(question_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% include "notifications/_comment_intro.html" %}</p>
+        {% include "notifications/_quote.html" with text=comment.body|email_snippet:400 %}
+        {% trans "View the comment" as cta %}{% include "notifications/_button.html" with url=comment_url label=cta %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}{{ comment_author }} has just posted a comment on {% endblocktrans %}
-{% ifnotequal post question %}
-{% blocktrans %}the answer posted by {{ safe_post_author }} to {% endblocktrans %}
-{% endifnotequal %}
-{% blocktrans %}the question "{{ question_title }}"{% endblocktrans %}
-{{ safe_body }}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% include "notifications/_comment_intro.html" %}
 
-{% trans "Don't forget to come over and cast your vote." %}
+> {{ comment.body|email_snippet:400 }}
+
+{% trans "View the comment" %}:
+{{ comment_url }}
 {% endtextcontent %}
 
 {% endemail %}

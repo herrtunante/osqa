@@ -1,7 +1,8 @@
 {% load i18n smart_if ui_registry %}
 
-<div id="user-menu-container" class="context-menu">
-    <span id="user-menu" class="context-menu-trigger">{% trans "User tools" %} &#9660;</span>
+<div id="user-menu-container" class="context-menu profile-menu">
+    <button type="button" id="user-menu" class="context-menu-trigger profile-menu-trigger plain-button"
+        aria-expanded="false" aria-controls="user-menu-dropdown">{% if viewer == user %}{% trans "Settings" %}{% else %}{% trans "User tools" %}{% endif %}</button>
     <ul id="user-menu-dropdown" class="context-menu-dropdown">
         {% loadregistry user_menu %}{% endloadregistry %}
     </ul>

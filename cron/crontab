@@ -1,0 +1,19 @@
+# Schedule for the "cron" service of docker-compose.yml (supercronic, times in
+# UTC unless the container's TZ is set). Each run's outcome is recorded and
+# shown in /metrics as osqa_cron_last_success_timestamp_seconds{command=...}.
+# Kubernetes: the same schedule as CronJobs in docs/k8s/cronjobs.yaml.
+
+# Daily email digests
+15 6 * * *  cd /app && python manage.py send_email_alerts
+# Dormant (bot) account clean-up
+45 6 * * *  cd /app && python manage.py cleanup_inactive_users
+# Accept reminders
+0 7 * * *   cd /app && python manage.py remind_unaccepted
+# Expertise per tag for "Questions for you" and expert routing
+20 5 * * *  cd /app && python manage.py refresh_tag_expertise
+# Database + uploads backup into /app/backups (keeps OSQA_BACKUP_KEEP archives)
+30 3 * * *  cd /app && python manage.py backup_site
+# AI module only: uncomment once a Gemini key or Vertex AI project is set in
+# Admin > AI assistance (without one these commands exit with an error).
+#30 2 * * *  cd /app && python manage.py build_knowledge_index
+#5 * * * *   cd /app && python manage.py suggest_answers

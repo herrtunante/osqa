@@ -1,0 +1,86 @@
+{% extends "base_content.html" %}
+{# "Confirm it's you" before a sensitive change (forum/utils/sudo.py, forum/views/security.py confirm_identity): password, code, passkey or an emailed link, then back to `next`. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Confirm it's you" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" /><meta name="referrer" content="same-origin" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block forejs %}
+    {% if has_password %}<script defer src="{% media "/media/js/osqa.password.js" %}"></script>{% endif %}
+    {% if has_passkeys %}<script defer src="{% media "/media/js/osqa.passkeys.js" %}"></script>{% endif %}
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><path d="M12 2.5l7.5 3v6c0 4.6-3.2 8.4-7.5 10-4.3-1.6-7.5-5.4-7.5-10v-6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.6"/></svg>
+            </div>
+            <h1>{% trans "Confirm it's you" %}</h1>
+            {% if link_elsewhere %}
+                <p class="auth-lead">{% trans "Open this link in the browser where you asked for it, signed in to your account." %}</p>
+            {% elif sent %}
+                <p class="auth-lead" role="status">{% blocktrans with minutes=link_minutes %}We emailed you a link. Open it in this browser within {{ minutes }} minutes; it works once.{% endblocktrans %}</p>
+            {% else %}
+                {% if link_invalid %}
+                    <div class="auth-alert" role="alert">{% trans "This link doesn't work any more. Ask for a new one." %}</div>
+                {% else %}
+                    <p class="auth-lead">{% trans "For your security, confirm it's you before changing how you sign in or your email address. Then send the form on the page you come back to again." %}</p>
+                {% endif %}
+                {% if error %}
+                    <div class="auth-alert" role="alert" id="confirm-error">{{ error }}</div>
+                {% endif %}
+                {% if has_password %}
+                <form class="auth-form" method="post" action="{% url "auth_confirm_identity" %}" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="method" value="password" />
+                    <input type="hidden" name="next" value="{{ next }}" />
+                    <div class="auth-field">
+                        <label for="id_confirm_password">{% trans "Password" %}</label>
+                        <div class="password-field"><input id="id_confirm_password" type="password" name="password" required autofocus autocomplete="current-password" maxlength="128"{% if error %} aria-invalid="true" aria-describedby="confirm-error"{% endif %} />{% include "auth/password_toggle.html" with input_id="id_confirm_password" %}</div>
+                    </div>
+                    <button type="submit" class="auth-submit">{% trans "Confirm" %}</button>
+                </form>
+                {% endif %}
+                {% if has_totp %}
+                {% if has_password %}<div class="auth-divider"><span>{% trans "or" %}</span></div>{% endif %}
+                <form class="auth-form" method="post" action="{% url "auth_confirm_identity" %}" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="method" value="code" />
+                    <input type="hidden" name="next" value="{{ next }}" />
+                    <div class="auth-field">
+                        <label for="id_confirm_code">{% trans "Code from your authenticator app" %}</label>
+                        <p class="auth-help" id="id_confirm_code-help">{% trans "A recovery code works too." %}</p>
+                        <input id="id_confirm_code" class="auth-code-input" type="text" name="code" required{% if not has_password %} autofocus{% endif %}
+                               inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" maxlength="20" aria-describedby="id_confirm_code-help" />
+                    </div>
+                    <button type="submit" class="auth-submit">{% trans "Confirm with the code" %}</button>
+                </form>
+                {% endif %}
+                {% if needs_email %}
+                <form class="auth-form" method="post" action="{% url "auth_confirm_identity" %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="method" value="email" />
+                    <input type="hidden" name="next" value="{{ next }}" />
+                    <p class="auth-help">{% blocktrans with minutes=link_minutes %}Your account has no password or two-step verification, so we email you a link instead. It works once, for {{ minutes }} minutes, in this browser.{% endblocktrans %}</p>
+                    <button type="submit" class="auth-submit">{% trans "Email me a link" %}</button>
+                </form>
+                {% endif %}
+                {% if has_passkeys %}
+                <div class="auth-passkey" data-passkey-signin data-options-url="{% url "auth_confirm_passkey_options" %}" data-verify-url="{% url "auth_confirm_passkey" %}?next={{ next|urlencode }}" hidden>
+                    <div class="auth-divider"><span>{% trans "or" %}</span></div>
+                    <button type="button" class="auth-provider auth-passkey-button" data-passkey-button>
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="8" cy="9" r="4"/><path d="M2 20c0-3.3 2.7-6 6-6 1.2 0 2.3.3 3.2.9"/><circle cx="17.5" cy="13.5" r="2.5"/><path d="M17.5 16v5l1.5-1.2M17.5 18.5l1.5-1"/></svg>
+                        <span>{% trans "Confirm with a passkey" %}</span>
+                    </button>
+                    <p class="auth-error auth-passkey-error" role="alert" data-passkey-error hidden></p>
+                </div>
+                <script nonce="{{ csp_nonce }}">if (window.PublicKeyCredential && navigator.credentials && window.fetch) { document.currentScript.previousElementSibling.hidden = false; }</script>
+                {% endif %}
+            {% endif %}
+            {% if next %}<p class="auth-switch"><a href="{{ next }}">{% trans "Cancel" %}</a></p>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

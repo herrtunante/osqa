@@ -13,20 +13,20 @@
 {% endif %}
  
 {% for num in page_numbers %}
-  {% ifequal num page %}
-    {% ifequal pages 1 %}
+  {% if num == page %}
+    {% if pages == 1 %}
     {% else %}
     <span class="curr" title="{% trans "current page" %}">{{ num }}</span>
-    {% endifequal %}
+    {% endif %}
   {% else %}
-  	<span class="page"><a href="{{base_url}}page={{ num }}{{ extend_url }}" title="{% trans "page number " %}{{ num }}{% trans "number - make blank in english" %}">{{ num }}</a></span>
-  {% endifequal %}
+  	<span class="page"><a href="{{base_url}}page={{ num }}{{ extend_url }}" title="{% blocktrans %}page {{ num }}{% endblocktrans %}">{{ num }}</a></span>
+  {% endif %}
 {% endfor %}
  
 {% if not in_trailing_range %}
 	...
 	{% for num in pages_outside_leading_range reversed %}
-		<span class="page"><a href="{{base_url}}page={{ num }}{{ extend_url }}" title="{% trans "page number " %}{{ num }}{% trans "number - make blank in english" %}">{{ num }}</a></span>
+		<span class="page"><a href="{{base_url}}page={{ num }}{{ extend_url }}" title="{% blocktrans %}page {{ num }}{% endblocktrans %}">{{ num }}</a></span>
 	{% endfor %}
 {% endif %}
  

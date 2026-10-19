@@ -1,23 +1,72 @@
-# -*- coding: utf-8 -*-
 
-from base import *
+from .base import *
 import re
-from tag import Tag
+from html import unescape as html_unescape
+from .tag import Tag
 
 import markdown
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext as _
+from markdown.extensions.tables import TableExtension
+from django.utils.encoding import smart_str
+from django.utils.translation import gettext_lazy as _lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import strip_tags
-from forum.utils.html import sanitize_html
-from forum.utils.userlinking import auto_user_link
+from forum.utils.html import sanitize_html, lazy_images
+from forum.utils.images import pictures
+from forum.utils.mentions import link_mentions
 from forum.settings import SUMMARY_LENGTH
-from utils import PickledObjectField
+from .utils import PickledObjectField
+from forum.search import index as search_index
+
+# Short names used by callers, mapped to the OSQA markdown extension modules.
+MARKDOWN_EXTENSIONS = {
+    'auto_linker': 'forum.markdownext.mdx_auto_linker',
+    'limitedsyntax': 'forum.markdownext.mdx_limitedsyntax',
+    'settingsparser': 'forum.markdownext.mdx_settingsparser',
+    'fenced_code': 'markdown.extensions.fenced_code',
+    # Pipe tables (the editor's table button); alignment as align="" because
+    # the sanitizer drops style attributes.
+    'tables': TableExtension(use_align_attribute=True),
+}
+
+
+FENCE_OPEN = re.compile(r'^[ \t]{0,3}(`{3,}|~{3,})[ \t]*([\w+#.-]*)[ \t]*$')
+
+
+def normalize_fences(content):
+    """Unindent code fences so the fenced_code extension recognises them.
+
+    The editor auto-indents new lines, so the closing fence after an indented
+    code line ends up indented, which Markdown would not accept.
+    """
+    lines = content.split('\n')
+    fence = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if fence is None:
+            match = FENCE_OPEN.match(line.rstrip('\r'))
+            if match:
+                fence = match.group(1)
+                lines[i] = line.lstrip()
+        elif stripped.startswith(fence) and stripped.strip(fence[0]) == '':
+            lines[i] = stripped
+            fence = None
+    return '\n'.join(lines)
+
+
+def render_markdown(content):
+    """Turns post Markdown into the sanitized HTML stored for each revision
+    (also used by the editor preview): fenced code, pipe tables, auto links,
+    @mentions, uploaded images as <picture> with AVIF/WebP sources and their
+    size (forum.utils.images.pictures), images loaded lazily."""
+    html, mentioned = link_mentions(NodeContent._as_markdown(normalize_fences(content), 'auto_linker', 'fenced_code',
+                                                             'tables'))
+    return mark_safe(lazy_images(pictures(html)))
+
 
 class NodeContent(models.Model):
     title      = models.CharField(max_length=300)
     tagnames   = models.CharField(max_length=125)
-    author     = models.ForeignKey(User, related_name='%(class)ss')
+    author     = models.ForeignKey(User, related_name='%(class)ss', on_delete=models.CASCADE)
     body       = models.TextField()
 
     @property
@@ -29,20 +78,21 @@ class NodeContent(models.Model):
         return self.body
 
     def rendered(self, content):
-        return auto_user_link(self, self._as_markdown(content, *['auto_linker']))
+        return render_markdown(content)
 
     @classmethod
     def _as_markdown(cls, content, *extensions):
         try:
+            extensions = [MARKDOWN_EXTENSIONS.get(e, e) for e in extensions]
             return mark_safe(sanitize_html(markdown.markdown(content, extensions=extensions)))
-        except Exception, e:
+        except Exception as e:
             import traceback
-            logging.error("Caught exception %s in markdown parser rendering %s %s:\s %s" % (
+            logging.error(r"Caught exception %s in markdown parser rendering %s %s:\s %s" % (
                 str(e), cls.__name__, str(e), traceback.format_exc()))
             return ''
 
     def as_markdown(self, *extensions):
-        return self._as_markdown(smart_unicode(self.body), *extensions)
+        return self._as_markdown(smart_str(self.body), *extensions)
 
     @property
     def headline(self):
@@ -60,7 +110,7 @@ class NodeContent(models.Model):
             return []
 
     def tagname_meta_generator(self):
-        return u','.join([tag for tag in self.tagname_list()])
+        return ','.join([tag for tag in self.tagname_list()])
 
     class Meta:
         abstract = True
@@ -70,9 +120,9 @@ class NodeMetaClass(BaseMetaClass):
     types = {}
 
     def __new__(cls, *args, **kwargs):
-        new_cls = super(NodeMetaClass, cls).__new__(cls, *args, **kwargs)
+        new_cls = super().__new__(cls, *args, **kwargs)
 
-        if not new_cls._meta.abstract and new_cls.__name__ is not 'Node':
+        if not new_cls._meta.abstract and new_cls.__name__ != 'Node':
             NodeMetaClass.types[new_cls.get_type()] = new_cls
 
         return new_cls
@@ -107,10 +157,10 @@ class NodeQuerySet(CachedQuerySet):
             obj.__dict__.update(datadict)
             return obj
         else:
-            return super(NodeQuerySet, self).obj_from_datadict(datadict)
+            return super().obj_from_datadict(datadict)
 
     def get(self, *args, **kwargs):
-        node = super(NodeQuerySet, self).get(*args, **kwargs).leaf
+        node = super().get(*args, **kwargs).leaf
 
         if not isinstance(node, self.model):
             raise self.model.DoesNotExist()
@@ -145,6 +195,16 @@ class NodeQuerySet(CachedQuerySet):
         apply_bool = lambda q, b: b and q or ~q
         return self.filter(*[apply_bool(models.Q(state_string__contains="(%s)" % s), b) for s, b in kwargs.items()])
 
+    # Posts others may see (forum/utils/review.py): not deleted, and not held
+    # for review (for everybody) or held but visible to `user`.
+    def public(self):
+        from forum.utils import review
+        return review.published(self.filter_state(deleted=False))
+
+    def visible_to(self, user):
+        from forum.utils import review
+        return review.visible_to(self.filter_state(deleted=False), user)
+
     def children_count(self, child_type):
         return NodeMetaClass.types[child_type].objects.filter_state(deleted=False).filter(parent__in=self).count()
 
@@ -168,8 +228,14 @@ class NodeManager(CachedManager):
     def filter_state(self, **kwargs):
         return self.all().filter_state(**kwargs)
 
+    def public(self):
+        return self.all().public()
 
-class NodeStateDict(object):
+    def visible_to(self, user):
+        return self.all().visible_to(user)
+
+
+class NodeStateDict:
     def __init__(self, node):
         self.__dict__['_node'] = node
 
@@ -198,19 +264,19 @@ class NodeStateDict(object):
                 state.save()
                 self.__dict__[name] = value
 
-                if not "(%s)" % name in node.state_string:
+                if "(%s)" % name not in node.state_string:
                     node.state_string = "%s(%s)" % (node.state_string, name)
                     node.save()
         else:
             if current:
                 node = self.__dict__['_node']
-                node.state_string = "".join("(%s)" % s for s in re.findall('\w+', node.state_string) if s != name)
+                node.state_string = "".join("(%s)" % s for s in re.findall(r'\w+', node.state_string) if s != name)
                 node.save()
                 current.node_state.delete()
                 del self.__dict__[name]
 
 
-class NodeStateQuery(object):
+class NodeStateQuery:
     def __init__(self, node):
         self.__dict__['_node'] = node
 
@@ -219,27 +285,26 @@ class NodeStateQuery(object):
         return "(%s)" % name in node.state_string
 
 
-class Node(BaseModel, NodeContent):
-    __metaclass__ = NodeMetaClass
+class Node(BaseModel, NodeContent, metaclass=NodeMetaClass):
 
     node_type            = models.CharField(max_length=16, default='node')
-    parent               = models.ForeignKey('Node', related_name='children', null=True)
-    abs_parent           = models.ForeignKey('Node', related_name='all_children', null=True)
+    parent               = models.ForeignKey('Node', related_name='children', null=True, on_delete=models.CASCADE)
+    abs_parent           = models.ForeignKey('Node', related_name='all_children', null=True, on_delete=models.CASCADE)
 
     added_at             = models.DateTimeField(default=datetime.datetime.now)
     score                 = models.IntegerField(default=0)
 
     state_string          = models.TextField(default='')
-    last_edited           = models.ForeignKey('Action', null=True, unique=True, related_name="edited_node")
+    last_edited           = models.ForeignKey('Action', null=True, unique=True, related_name="edited_node", on_delete=models.CASCADE)
 
-    last_activity_by       = models.ForeignKey(User, null=True)
+    last_activity_by       = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     last_activity_at       = models.DateTimeField(null=True, blank=True)
 
     tags                 = models.ManyToManyField('Tag', related_name='%(class)ss')
-    active_revision       = models.OneToOneField('NodeRevision', related_name='active', null=True)
+    active_revision       = models.OneToOneField('NodeRevision', related_name='active', null=True, on_delete=models.CASCADE)
 
     extra = PickledObjectField()
-    extra_ref = models.ForeignKey('Node', null=True)
+    extra_ref = models.ForeignKey('Node', null=True, on_delete=models.CASCADE)
     extra_count = models.IntegerField(default=0)
 
     marked = models.BooleanField(default=False)
@@ -247,16 +312,16 @@ class Node(BaseModel, NodeContent):
     comment_count = DenormalizedField("children", node_type="comment", canceled=False)
     flag_count = DenormalizedField("actions", action_type="flag", canceled=False)
 
-    friendly_name = _("post")
+    friendly_name = _lazy("post")
 
     objects = NodeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.headline
 
     @classmethod
     def _generate_cache_key(cls, key, group="node"):
-        return super(Node, cls)._generate_cache_key(key, group)
+        return super()._generate_cache_key(key, group)
 
     @classmethod
     def get_type(cls):
@@ -317,7 +382,9 @@ class Node(BaseModel, NodeContent):
 
     @property
     def summary(self):
-        content = strip_tags(self.html)
+        # Plain text: the HTML's entities (&gt;, &amp;...) are decoded, so
+        # templates escape it once. Never mark it safe.
+        content = html_unescape(strip_tags(self.html))
 
         # Remove multiple spaces.
         content = re.sub(' +',' ', content)
@@ -330,17 +397,22 @@ class Node(BaseModel, NodeContent):
 
         return content
 
-    # Can be used to block subscription notifications for a specific node from a module
+    # Can be used to block subscription notifications for a specific node from a module.
+    # Posts held for review (forum/utils/review.py) notify nobody until they are approved.
     def _is_notifiable(self):
-        return True
+        from forum.utils import review
+        return not (review.is_held(self) or (self.abs_parent_id and review.is_held(self.abs_parent)))
+
+    @property
+    def counts_in_tags(self):
+        """Whether the post counts in its tags' usage: not deleted, not held for review."""
+        return not (self.nis.deleted or self.nis.pending_review)
 
     @property
     def is_notifiable(self):
         return self._is_notifiable()
-
-    @models.permalink
     def get_revisions_url(self):
-        return ('revisions', (), {'id': self.id})
+        return reverse('revisions', kwargs={'id': self.id})
 
     def update_last_activity(self, user, save=False, time=None):
         if not time:
@@ -404,22 +476,10 @@ class Node(BaseModel, NodeContent):
 
         return active_users
 
-    def get_last_edited(self):
-        if not self.last_edited:
-            try:
-                le = self.actions.exclude(action_type__in=('voteup', 'votedown', 'flag'), canceled=True).order_by('-action_date')[0]
-                self.last_edited = le
-                self.save()
-            except:
-                pass
-
-        return self.last_edited
-
-
     def _list_changes_in_tags(self):
         dirty = self.get_dirty_fields()
 
-        if not 'tagnames' in dirty:
+        if 'tagnames' not in dirty:
             return None
         else:
             if self._original_state['tagnames']:
@@ -447,11 +507,11 @@ class Node(BaseModel, NodeContent):
                 except Tag.DoesNotExist:
                     tag = Tag.objects.create(name=name, created_by=self._last_active_user())
 
-                if not self.nis.deleted:
+                if self.counts_in_tags:
                     tag.add_to_usage_count(1)
                     tag.save()
 
-            if not self.nis.deleted:
+            if self.counts_in_tags:
                 for name in tag_changes['removed']:
                     try:
                         tag = Tag.objects.get(name=name)
@@ -468,7 +528,9 @@ class Node(BaseModel, NodeContent):
         self.nstate.deleted = action
         self.save()
 
-        if action:
+        if self.nis.pending_review:
+            pass  # a held post isn't counted in its tags
+        elif action:
             for tag in self.tags.all():
                 tag.add_to_usage_count(-1)
                 tag.save()
@@ -478,7 +540,7 @@ class Node(BaseModel, NodeContent):
                 tag.save()
 
     def delete(self, *args, **kwargs):
-        for tag in self.tags.all():
+        for tag in (self.tags.all() if not self.nis.pending_review else ()):
             tag.add_to_usage_count(-1)
             tag.save()
 
@@ -491,9 +553,25 @@ class Node(BaseModel, NodeContent):
         for a in self.actions.all():
             a.cancel()
 
-        super(Node, self).delete(*args, **kwargs)
+        node_id, node_type, parent_id = self.id, self.node_type, self.abs_parent_id or self.parent_id
+        super().delete(*args, **kwargs)
+        search_index.node_deleted(node_id, node_type, parent_id)
 
     def save(self, *args, **kwargs):
+        # The first save of a new node saves again (activate_revision): index once, at the end.
+        outermost = not self.__dict__.get('_saving')
+        created, dirty = not self.id, self.get_dirty_fields()
+        old_parent_id = self._original_state.get('parent_id')
+        self._saving = True
+        try:
+            self._save(*args, **kwargs)
+        finally:
+            if outermost:
+                del self._saving
+        if outermost:
+            search_index.node_saved(self, dirty, created, old_parent_id)
+
+    def _save(self, *args, **kwargs):
         if not self.id:
             self.node_type = self.get_type()
             super(BaseModel, self).save(*args, **kwargs)
@@ -504,22 +582,35 @@ class Node(BaseModel, NodeContent):
 
         if self.parent_id and not self.abs_parent_id:
             self.abs_parent = self.parent.absolute_parent
-        
+
         tags_changed = self._process_changes_in_tags()
-        
-        super(Node, self).save(*args, **kwargs)
+
+        super().save(*args, **kwargs)
         if tags_changed:
+            # Django 4.2: Use .set() for many-to-many assignment
             if self.tagnames.strip():
-                self.tags = list(Tag.objects.filter(name__in=self.tagname_list()))
+                self.tags.set(Tag.objects.filter(name__in=self.tagname_list()))
             else:
-                self.tags = []
+                self.tags.set([])
 
     class Meta:
         app_label = 'forum'
+        # Foreign keys to Node (parent, action.node, ...) are loaded through the
+        # base manager; use NodeManager so they come back as Question, Answer, etc.
+        base_manager_name = 'objects'
+        # Question lists filter by type and sort by activity, date or score.
+        indexes = [
+            models.Index(fields=['node_type', 'last_activity_at'], name='node_type_activity_idx'),
+            models.Index(fields=['node_type', 'added_at'], name='node_type_added_idx'),
+            models.Index(fields=['node_type', 'score'], name='node_type_score_idx'),
+            # Answers and comments of a post; a user's questions and answers.
+            models.Index(fields=['parent', 'node_type'], name='node_parent_type_idx'),
+            models.Index(fields=['author', 'node_type', 'added_at'], name='node_author_type_added_idx'),
+        ]
 
 
 class NodeRevision(BaseModel, NodeContent):
-    node       = models.ForeignKey(Node, related_name='revisions')
+    node       = models.ForeignKey(Node, related_name='revisions', on_delete=models.CASCADE)
     summary    = models.CharField(max_length=300)
     revision   = models.PositiveIntegerField()
     revised_at = models.DateTimeField(default=datetime.datetime.now)
@@ -530,9 +621,9 @@ class NodeRevision(BaseModel, NodeContent):
 
 
 class NodeState(models.Model):
-    node       = models.ForeignKey(Node, related_name='states')
+    node       = models.ForeignKey(Node, related_name='states', on_delete=models.CASCADE)
     state_type = models.CharField(max_length=16)
-    action     = models.OneToOneField('Action', related_name="node_state")
+    action     = models.OneToOneField('Action', related_name="node_state", on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('node', 'state_type')

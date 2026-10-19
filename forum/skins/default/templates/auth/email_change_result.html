@@ -1,0 +1,49 @@
+{% extends "base_content.html" %}
+{# The links of an email change: confirmed (new address), cancelled (old address), taken, or invalid. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% if result == "changed" %}{% trans "Email address changed" %}{% elif result == "cancelled" %}{% trans "Email change cancelled" %}{% else %}{% trans "This link doesn't work any more" %}{% endif %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card" role="status">
+            {% if result == "changed" or result == "cancelled" %}
+                <div class="auth-icon auth-icon-success" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+                </div>
+            {% else %}
+                <div class="auth-icon auth-icon-warning" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v6M12 16.5v.5"/></svg>
+                </div>
+            {% endif %}
+            {% if result == "changed" %}
+                <h1>{% trans "Email address changed" %}</h1>
+                <p class="auth-lead">{% blocktrans with email=changed_user.email %}Your account now uses <span class="auth-address">{{ email }}</span>.{% endblocktrans %}</p>
+                <div class="auth-actions">
+                    {% if signed_in_as_them %}
+                        <a class="button auth-submit" href="{{ changed_user.get_profile_url }}">{% trans "Back to your profile" %}</a>
+                    {% else %}
+                        <a class="button auth-submit" href="{% url "auth_signin" %}">{% trans "Sign in" %}</a>
+                    {% endif %}
+                </div>
+            {% elif result == "cancelled" %}
+                <h1>{% trans "Email change cancelled" %}</h1>
+                <p class="auth-lead">{% trans "Your account keeps its email address, and every browser and device was signed out. If you didn't ask for the change, someone may know your password: choose a new one now." %}</p>
+                <div class="auth-actions">
+                    <a class="button auth-submit" href="{% url "auth_request_tempsignin" %}">{% trans "Reset your password" %}</a>
+                    <a class="button auth-secondary" href="{% url "auth_signin" %}">{% trans "Sign in" %}</a>
+                </div>
+            {% elif result == "taken" %}
+                <h1>{% trans "This address is already in use" %}</h1>
+                <p class="auth-lead">{% trans "Another account started using this email address in the meantime, so your address was not changed." %}</p>
+            {% else %}
+                <h1>{% trans "This link doesn't work any more" %}</h1>
+                <p class="auth-lead">{% trans "The change was already confirmed or cancelled, a newer link was sent, or the link has expired (after 48 hours). You can ask for the change again on your profile." %}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

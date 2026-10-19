@@ -1,108 +1,99 @@
 {% load i18n %}
-{% load extra_tags %}
-{% load humanize %}
+{% load extra_tags push_tags %}
 
-<h2>{% trans "Notifications and subscription settings" %}</h2>
-<p class="message">
-    {% blocktrans %}
-    Here you can decide which types of notifications you wish to receive, and their frequency.<br />
-    {% endblocktrans %}
-</p>
-<div class='inline-block'>
-<form method="POST">
+<div class="email-settings">
+<section class="settings-card" aria-labelledby="email-master-title">
+    <h2 id="email-master-title">{% trans "Email notifications" %}</h2>
+    <div class="email-master {% if notifications_on %}is-on{% else %}is-off{% endif %}">
+        <form method="post">
+            {% csrf_token %}
+            {% if notifications_on %}
+            <p><strong>{% trans "Email notifications are on." %}</strong>
+                {% trans "You get the emails chosen below." %}</p>
+            <button type="submit" name="notifications" value="off" class="plain-button">{% trans "Stop all notification emails" %}</button>
+            {% else %}
+            <p><strong>{% trans "Email notifications are off." %}</strong>
+                {% trans "You only get emails about your account, such as sign-in links." %}</p>
+            <button type="submit" name="notifications" value="on" class="submit">{% trans "Turn email notifications on" %}</button>
+            {% endif %}
+        </form>
+    </div>
+    <p class="email-help-link"><a href="{% url "email_help" %}">{% trans "How email notifications work" %}</a>
+        &middot; {% trans "Every email also has a link to stop it, no sign-in needed." %}</p>
+</section>
+
+{% push_settings view_user %}
+
+<section class="settings-card email-frequency" aria-labelledby="email-frequency-title">
+    <h2 id="email-frequency-title">{% trans "How often should we email you?" %}</h2>
+    <p class="email-settings-hint" id="email-frequency-hint">{% trans "For answers, comments, mentions and new questions. Too many emails? Choose a summary instead of unsubscribing." %}</p>
+    {% if not notifications_on %}<p class="email-settings-hint">{% trans "Email notifications are off, so this applies once you turn them on." %}</p>{% endif %}
+    {# The radios belong to the settings form below (form="email-settings-form"). #}
+    <fieldset class="frequency-options" aria-labelledby="email-frequency-title" aria-describedby="email-frequency-hint">
+        {% for radio, hint in frequency_options %}
+        <label class="frequency-option" for="{{ radio.id_for_label }}">
+            {{ radio.tag }}
+            <span class="frequency-text"><span class="frequency-name">{{ radio.choice_label }}</span>
+                <span class="frequency-hint">{{ hint }}</span></span>
+        </label>
+        {% endfor %}
+    </fieldset>
+    <div class="settings-actions">
+        <button type="submit" form="email-settings-form" class="submit" name="save">{% trans "Save" %}</button>
+    </div>
+</section>
+
+<section class="settings-card" aria-labelledby="followed-tags-title">
+    <h2 id="followed-tags-title">{% trans "Tags you follow" %}</h2>
+    <p class="email-settings-hint">{% blocktrans %}You're told about new questions in these tags (see "New questions in tags I follow" below). To follow a tag, open it and press <em>Follow tag</em>.{% endblocktrans %}</p>
+    {% if followed_tags %}
+    <ul class="followed-tags">
+        {% for tag in followed_tags %}
+        <li><a class="post-tag" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="email-settings-empty">{% blocktrans %}You don't follow any tags yet. Browse the <a href="/tags/">tags</a> to find your topics.{% endblocktrans %}</p>
+    {% endif %}
+</section>
+
+<form method="post" class="email-settings-form settings-card" id="email-settings-form">
     {% csrf_token %}
-    {{ form.errors }}
-    <table class="form-as-table">
-        <tr>
-            <td colspan="2">
-                <strong>{% trans "Notify me when:" %}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>{% trans "A new member joins" %}</td>
-            <td>{{ form.member_joins }}</td>
-        </tr>
-        <tr>
-            <td>{% trans "A new question is posted" %}</td>
-            <td>{{ form.new_question }}</td>
-        </tr>
-        <tr>
-            <td>{% trans "A new question matching my interesting tags is posted" %}</td>
-            <td>{{ form.new_question_watched_tags }}</td>
-        </tr>
-        <tr>
-            <td>{% trans "There's an update on one of my subscriptions" %}</td>
-            <td >{{ form.subscribed_questions }}</td>
-        </tr>
-    </table>
-    <p>&nbsp;</p>
-    <table class="form-as-table check-table">
-        <tr>
-            <td colspan="3">
-                <strong>{% trans "Auto subscribe me to:" %}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                {{ form.questions_viewed }}{% trans "Questions I view" %}
-            </td>
-            <td>
-                {{ form.all_questions_watched_tags }}{% trans "All questions matching my interesting tags" %}
-            </td>
-            <td>
-                {{ form.all_questions }}{% trans "All questions" %}
-            </td>
-        </tr>
-    </table>
-    <p>&nbsp;</p>
-    <table class="form-as-table check-table">
-        <tr>
-            <td colspan="2">
-                <strong>{% trans "On my subscriptions, notify me when:" %}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                {{ form.notify_answers }}{% trans "An answer is posted" %}
-            </td>
-            <td>
-                {{ form.notify_comments_own_post }}{% trans "A comment on one of my posts is posted" %}
-            </td>
-        </tr>
-        <tr>
-            <td>
-                {{ form.notify_comments }}{% trans "A comment is posted" %}
-            </td>
-            <td>
-                {{ form.notify_accepted }}{% trans "An answer is accepted" %}
-            </td>
-        </tr>
-    </table>
-    <p>&nbsp;</p>
-    <table class="form-as-table check-table">
-        <tr>
-            <td>
-                <strong>{% trans "Daily Digest:" %}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                {{ form.send_digest }}{% trans "Send me the daily digest with information about the site activity" %}
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <strong>{% trans "Notify When I'm Discussed:" %}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                {{ form.notify_reply_to_comments }}{% trans "Notify me when someone replies to one of my comments on any post using the <pre>@username</pre> notation" %}
-            </td>
-        </tr>
-    </table>
-    <div class="submit-row">
-        <input type="submit" class="submit" name="save" value="{% trans "Update" %}"/>
+    {{ form.non_field_errors }}
+
+    <fieldset>
+        <legend>{% trans "Email me when" %}</legend>
+        <fieldset class="email-choice"><legend>{% trans "A new question is posted in a tag I follow" %}</legend>{{ form.new_question_watched_tags }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "There's news on a question I follow (answers, comments)" %}</legend>{{ form.subscribed_questions }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "Any new question is posted on the site" %}</legend>{{ form.new_question }}</fieldset>
+        <fieldset class="email-choice"><legend>{% trans "A new member joins" %}</legend>{{ form.member_joins }}</fieldset>
+    </fieldset>
+
+    <fieldset>
+        <legend>{% trans "On questions I follow, email me about" %}</legend>
+        <label>{{ form.notify_answers }} {% trans "New answers" %}</label>
+        <label>{{ form.notify_comments_own_post }} {% trans "Comments on my posts" %}</label>
+        <label>{{ form.notify_comments }} {% trans "All comments" %}</label>
+        <label>{{ form.notify_accepted }} {% trans "An answer being accepted" %}</label>
+    </fieldset>
+
+    <fieldset>
+        <legend>{% trans "Follow questions automatically" %}</legend>
+        <p class="email-settings-hint">{% trans "Questions you ask or answer are always followed. You can stop following any of them on the “Questions you follow” tab." %}</p>
+        <label>{{ form.questions_viewed }} {% trans "Questions I view" %}</label>
+        <label>{{ form.all_questions_watched_tags }} {% trans "All new questions in tags I follow" %}</label>
+        <label>{{ form.all_questions }} {% trans "All new questions" %}</label>
+    </fieldset>
+
+    <fieldset>
+        <legend>{% trans "Other emails" %}</legend>
+        <label>{{ form.notify_reply_to_comments }} {% blocktrans %}Someone mentions me with <code>@username</code>{% endblocktrans %}</label>
+        <label class="email-sub-option">{{ form.mentions_immediate }} {% trans "Send mentions right away, even with a daily or weekly summary" %}</label>
+        <label>{{ form.send_digest }} {% trans "A daily digest of site activity" %}</label>
+    </fieldset>
+
+    <div class="submit-row settings-actions">
+        <input type="submit" class="submit" name="save" value="{% trans "Save email settings" %}"/>
     </div>
 </form>
 </div>

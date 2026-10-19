@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base_content.html" %}
 
 {% load i18n %}
 {% load extra_tags %}
 
-{% block title %}{% spaceless %}{% trans "Login" %}{% endspaceless %}{% endblock %}
+{% block title %}{% spaceless %}{% if request.user.is_authenticated %}{% trans "Connect another account" %}{% else %}{% trans "Sign in" %}{% endif %}{% endspaceless %}{% endblock %}
 
-{% block forejs %}
+{% block forestyle %}
     <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
     {% for provider in all_providers %}
         {% for location in provider.extra_css %}
@@ -14,175 +14,72 @@
     {% endfor %}
 {% endblock %}
 
-{% block content %}
-    {% for provider in all_providers %}
-        {% if provider.pre_code %}
-            {{ provider.pre_code|safe }}
-        {% endif %}
-    {% endfor %}
-    <div class="headNormal">
-        {% trans "User login" %}
-    </div>
-    {% if msg %}
-        <p class="error">{{ msg }}</p>
-    {% endif %}
-    {% for provider in top_stackitem_providers %}
-        <form class="signin_form" method="POST" action="{% url "auth_provider_signin" provider=provider.id %}" accept-charset="utf-8">
-            {% csrf_token %}
-            {% include provider.stack_item_template %}
-            <input type="hidden" class="validate_email" name="validate_email" value="yes" />
-        </form>
-    {% endfor %}
-    {% if top_stackitem_providers %}
-        <h3 class="or_label">{% trans 'Or...' %}</h3>
-    {% endif %}
-    <div style="width:600px;float:left;margin-bottom:5px;">
-    {% blocktrans %}
-        External login services use <b><a href="http://openid.net/">OpenID</a></b> technology, where your password always stays confidential between
-        you and your login provider and you don't have to remember another one.
-    {% endblocktrans %}
-    </div>
-    {% if request.user.is_anonymous %}
-        <div style="width:600px;float:left;margin-bottom:5px;">
-            <input type="checkbox" checked="checked" id="validate_email" />
-            {% trans "Validate my email after I login." %}
-        </div>
-    {% endif %}
-    <div id="bigicon_providers">
-        {% for provider in bigicon_providers %}
-            <div class="provider_logo big" name="{{ provider.id }}">
-                <div class="inner">
-                    {% ifequal provider.type "DIRECT" %}
-                        <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
-                            <img src="{% media provider.icon %}" />
-                        </a>
-                    {% endifequal %}
-                    {% ifequal provider.type "CUSTOM" %}
-                        {% include provider.code_template %}
-                    {% endifequal %}
-                    {% ifequal provider.type "SIMPLE_FORM" %}
-                        <img alt="{{ provider.simple_form_context.your_what }}" class="simple_form_provider" src="{% media provider.icon %}" />
-                    {% endifequal %}
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    <div id="smallicon_providers">
-        {% for provider in smallicon_providers %}
-            <div class="provider_logo small" name="{{ provider.id }}">
-                <div class="inner">
-                    {% ifequal provider.type "DIRECT" %}
-                        <a class="provider_direct" href="{% url "auth_provider_signin" provider=provider.id %}">
-                            <img src="{% media provider.icon %}" />
-                        </a>
-                    {% endifequal %}
-                    {% ifequal provider.type "CUSTOM" %}
-                        {% include provider.code_template %}
-                    {% endifequal %}
-                    {% ifequal provider.type "SIMPLE_FORM" %}
-                        <img alt="{{ provider.simple_form_context.your_what }}" class="simple_form_provider" src="{% media provider.icon %}" />
-                    {% endifequal %}
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    <form name="signin_form" id="signin_form" class="signin_form" method="POST" action="">
-        {% csrf_token %}
-        <div id="signin_form_slot"></div>
-        <input type="hidden" class="validate_email" name="validate_email" value="yes" />
-    </form>
-    {% for provider in stackitem_providers %}
-        <h3 class="or_label">{% trans 'Or...' %}</h3>
-        <form class="signin_form" method="POST" action="{% url "auth_provider_signin" provider=provider.id %}" accept-charset="utf-8">
-            {% csrf_token %}
-            {% include provider.stack_item_template %}
-            <input type="hidden" class="validate_email" name="validate_email" value="yes" />
-        </form>
-    {% endfor %}
-    <h3 class="or_label">{% trans 'Or...' %}</h3>
-    <form name="signin_form" id="dummy_form_unused" class="signin_form" method="POST" action="">
-        {% csrf_token %}
-        <fieldset>
-            {% trans 'Click' %} <a href="{% url "auth_request_tempsignin" %}">{% trans 'here' %}</a> {% trans "if you're having trouble signing in." %}
-        </fieldset>
-    </form>
-    <script type="text/html" id="simple_form_template">
-        <fieldset id="slot_form">
-              <p id="provider_name_slot">{% trans 'Enter your ' %}%%YOUR_WHAT%%</p>
-              <div><p><span></span>
-                    <input id="input_field" type="text" name="input_field" /><span></span>
-                    <input id="ssignin" name="ssignin" type="submit" value="Login" />
-              </p></div>
-              <input type="hidden" class="validate_email" name="validate_email" value="yes" />
-          </fieldset>
-    </script>
-    <script type="text/javascript">
-        $(function() {
-            var signin_url = "{% url "auth_provider_signin" provider='PROVIDER' %}";
-
-            function set_validate_email() {
-                var validate = $('#validate_email').attr('checked') ? 'yes' : 'no';
-                $('.validate_email').attr('value', validate);
-
-                $('.provider_direct').each(function() {
-                    var current_url = $(this).attr('href');
-                    if (!/\?validate_email\=(yes|no)$/.test(current_url)) {
-                        current_url += ('?validate_email=' + validate);
-                    } else {
-                        current_url = current_url.replace(/(yes|no)$/, validate);
-                    }
-
-                    $(this).attr('href', current_url);
-                })
-            }
-
-            $('#validate_email').change(set_validate_email);
-
-            function set_form_action(el) {
-                var provider = el.parents('.provider_logo').attr('name');
-                $('#signin_form').attr('action', signin_url.replace('PROVIDER', provider));
-            }
-
-            $('.provider_logo').click(function() {
-                $('.provider_logo').removeClass('selected');
-                $(this).addClass('selected');
-            });
-
-            $('.simple_form_provider').click(function() {
-                $('#signin_form_slot').html('');
-                var new_html = $('#simple_form_template').html()
-                    .replace('%%YOUR_WHAT%%', $(this).attr('alt'));
-                $('#signin_form_slot').html(new_html);
-                set_form_action($(this));
-                set_validate_email();
-            })
-
-            set_validate_email();
-        });
-    </script>
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.password.js" %}"></script>
+    {% if not request.user.is_authenticated %}<script defer src="{% media "/media/js/osqa.passkeys.js" %}"></script>{% endif %}
 {% endblock %}
 
-{% block sidebar %}
-<div class="boxC">
-    <h3 class="subtitle">{% trans "Why use OpenID?" %}</h3>
-    <ul class="list-item">
-        <li>
-            {% trans "with openid it is easier" %}
-        </li>
-        <li>
-            {% trans "reuse openid" %}
-        </li>
-        <li>
-            {% trans "openid is widely adopted" %}
-        </li>
-        <li>
-            {% trans "openid is supported open standard" %}
-        </li>
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            {% for provider in all_providers %}
+                {% if provider.pre_code %}
+                    {{ provider.pre_code|safe }}
+                {% endif %}
+            {% endfor %}
+            {% if request.user.is_authenticated %}
+                <h1>{% trans "Connect another account" %}</h1>
+                {% if top_stackitem_providers or button_providers or stackitem_providers %}
+                <p class="auth-lead">{% trans "Choose a service you also want to sign in with." %}</p>
+                {% endif %}
+            {% else %}
+                <h1>{% blocktrans with site=settings.APP_SHORT_NAME %}Sign in to {{ site }}{% endblocktrans %}</h1>
+            {% endif %}
 
-    </ul>
-    <p class="info-box-follow-up-links">
-        <a href="http://openid.net/what/" target="_blank">{% trans "Find out more" %} </a><br/>
-        <a href="http://openid.net/get/" target="_blank">{% trans "Get OpenID" %} </a>
-    </p>
+            {% if msg %}
+                <div class="auth-alert" role="alert" id="signin-error">{{ msg }}</div>
+            {% endif %}
+
+            {% for provider in top_stackitem_providers %}
+                <form class="auth-form" method="POST" action="{% url "auth_provider_signin" provider=provider.id %}" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    {% include provider.stack_item_template %}
+                </form>
+            {% endfor %}
+
+            {% if button_providers %}
+                {% include "auth/providers.html" %}
+            {% endif %}
+
+            {% for provider in stackitem_providers %}
+                {% if button_providers or top_stackitem_providers or not forloop.first %}
+                    <div class="auth-divider"><span>{% trans "or" %}</span></div>
+                {% endif %}
+                <form class="auth-form" method="POST" action="{% url "auth_provider_signin" provider=provider.id %}" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    {% include provider.stack_item_template %}
+                </form>
+            {% endfor %}
+
+            {% if not request.user.is_authenticated %}
+                {% include "auth/passkey_signin.html" %}
+            {% endif %}
+
+            {% if request.user.is_authenticated and not top_stackitem_providers and not button_providers and not stackitem_providers %}
+                <div class="auth-empty">
+                    <p>{% trans "No other sign-in services are set up on this forum." %}</p>
+                    <p><a href="{% url "user_authsettings" request.user.id %}">{% trans "Back to your sign-in settings" %}</a></p>
+                </div>
+            {% endif %}
+
+            {% if can_register %}
+                <p class="auth-switch">{% trans "New here?" %} <a href="{% url "auth_local_register" %}">{% trans "Create an account" %}</a></p>
+            {% endif %}
+        </div>
+        {% if not request.user.is_authenticated %}
+            {% include "auth/benefits.html" %}
+        {% endif %}
+    </div>
 </div>
-{% endblock%}
+{% endblock %}

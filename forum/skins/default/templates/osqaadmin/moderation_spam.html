@@ -1,0 +1,22 @@
+{% load i18n %}{% comment %}"Delete as spam" with its confirmation dialog, inside an action form.
+   field: the button's name ("action" or "resolution"); prefix and key: a unique id;
+   account_only: a reported account (no post): suspend it and delete its posts.{% endcomment %}
+{% if not account.is_staff and not account.is_superuser or not account_only %}
+<button type="submit" name="{{ field }}" value="spam" class="mod-danger" data-spam-dialog="spam-{{ prefix }}-{{ key }}">{% trans "Delete as spam" %}</button>
+<dialog class="mod-dialog" id="spam-{{ prefix }}-{{ key }}" aria-labelledby="spam-{{ prefix }}-{{ key }}-title">
+    <h3 id="spam-{{ prefix }}-{{ key }}-title">{% trans "Delete as spam?" %}</h3>
+    {% if account_only %}
+    <p>{% blocktrans with name=account.username count counter=info.posts %}{{ name }} will be suspended and their post deleted.{% plural %}{{ name }} will be suspended and their {{ counter }} posts deleted.{% endblocktrans %}</p>
+    {% else %}
+    <p>{% trans "The post will be deleted. You can also:" %}</p>
+    {% if not account.is_staff and not account.is_superuser %}
+    <p><label><input type="checkbox" name="suspend_author" value="1"{% if not account.is_suspended %} checked{% endif %}> {% blocktrans with name=account.username %}Suspend {{ name }}{% endblocktrans %}</label></p>
+    <p><label><input type="checkbox" name="delete_other_posts" value="1" checked> {% blocktrans count counter=info.posts|add:"-1" %}Delete their other post ({{ counter }}){% plural %}Delete their other posts ({{ counter }}){% endblocktrans %}</label></p>
+    {% endif %}
+    {% endif %}
+    <p class="mod-dialog-buttons">
+        <button type="submit" name="{{ field }}" value="spam" class="mod-danger">{% trans "Delete as spam" %}</button>
+        <button type="button" class="plain-button" data-dialog-close>{% trans "Cancel" %}</button>
+    </p>
+</dialog>
+{% endif %}

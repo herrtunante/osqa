@@ -2,7 +2,7 @@ from django import template
 from forum.models import Tag, Award
 from forum import settings
 
-from extra_filters import static_content
+from .extra_filters import static_content
 
 register = template.Library()
 

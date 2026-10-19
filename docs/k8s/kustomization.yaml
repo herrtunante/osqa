@@ -1,0 +1,23 @@
+# Example manifests for running OSQA on Kubernetes (docs/deployment.md, Option C).
+#   kubectl create namespace osqa
+#   kubectl -n osqa create secret generic osqa-secrets --from-env-file=osqa-secrets.env   # see secret.example.yaml
+#   kubectl apply -k docs/k8s/            # after editing configmap.yaml and the image below
+# The database is not included: use a managed MySQL/MariaDB (or your own operator).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: osqa
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: osqa
+resources:
+  - configmap.yaml
+  - pvc.yaml
+  - memcached.yaml
+  - deployment.yaml
+  - service.yaml
+  - migrate-job.yaml
+  - cronjobs.yaml
+images:
+  - name: osqa
+    newName: registry.example.org/osqa   # where you push the image built from the Dockerfile
+    newTag: "1.0.0"

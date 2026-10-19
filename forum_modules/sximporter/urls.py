@@ -1,8 +1,6 @@
-from django.conf.urls import patterns, url, include
-from django.utils.translation import ugettext as _
+from django.urls import re_path as url
 
-from views import sximporter
+from .views import sximporter
 
-urlpatterns = patterns('',
-    url(r'^%s%s$' % (_('admin/'), _('sximporter/')),  sximporter, name='sximporter'),
-)
+urlpatterns = [url(r'^%s%s$' % ('admin/', 'sximporter/'),  sximporter, name='sximporter'),
+]

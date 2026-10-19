@@ -1,0 +1,69 @@
+{% extends "base_content.html" %}
+<!-- tag_synonyms.html: every synonym → tag pair, for moderators (forum/views/tags.py) -->
+{% load i18n %}
+{% block title %}{% spaceless %}{% trans "Tag synonyms" %}{% endspaceless %}{% endblock %}
+{% block content %}
+<div class="list-page tags-page tag-synonyms-page">
+<div class="list-header">
+    <h1 class="headQuestions">{% trans "Tag synonyms" %}</h1>
+    <a class="tags-synonyms-link button plain-button" href="{% url "tags" %}">{% trans "All tags" %}</a>
+</div>
+<p class="tag-manage-help">{% trans "A synonym is a name that stands for a tag: typed in the tags field it becomes the tag, and its page redirects to the tag's page. To rename or merge a tag, open its page and choose “Manage tag”." %}</p>
+
+{% if error %}<p class="tag-edit-error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" class="tag-synonym-add tag-synonym-add-pair">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add" />
+    <div class="tag-synonym-field">
+        <label for="synonym-name">{% trans "Synonym" %}</label>
+        <input type="text" id="synonym-name" name="synonym" value="{{ values.synonym }}" placeholder="{% trans "e.g. csv" %}" required autocomplete="off" autocapitalize="none" spellcheck="false" />
+    </div>
+    <span class="tag-synonym-arrow" aria-hidden="true">&rarr;</span>
+    <div class="tag-synonym-field">
+        <label for="synonym-tag">{% trans "Stands for the tag" %}</label>
+        <input type="text" id="synonym-tag" name="tag" value="{{ values.tag }}" placeholder="{% trans "e.g. export" %}" required autocomplete="off" autocapitalize="none" spellcheck="false" />
+    </div>
+    <input type="submit" value="{% trans "Add synonym" %}" />
+</form>
+
+<div class="tabBar list-toolbar">
+    <form class="list-filter" action="{% url "tag_synonyms" %}" method="get" role="search">
+        <label for="synonym-filter" class="visually-hidden">{% trans "Filter synonyms" %}</label>
+        <input type="search" id="synonym-filter" name="q" value="{{ query }}" autocomplete="off" placeholder="{% trans "Filter by synonym or tag" %}" />
+        <button type="submit" class="list-filter-submit plain-button">{% trans "Search" %}</button>
+    </form>
+</div>
+
+{% if synonyms %}
+<table class="tag-synonym-table">
+    <caption class="visually-hidden">{% trans "Tag synonyms" %}</caption>
+    <thead>
+        <tr><th scope="col">{% trans "Synonym" %}</th><th scope="col">{% trans "Tag" %}</th><th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th></tr>
+    </thead>
+    <tbody>
+    {% for synonym in synonyms %}
+        <tr>
+            <td><span class="tag">{{ synonym.source_name }}</span></td>
+            <td><span class="tag-synonym-arrow" aria-hidden="true">&rarr;</span> <a class="tag" href="{% url "tag_edit" tag=synonym.target.name %}">{{ synonym.target.name }}</a></td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove" />
+                    <input type="hidden" name="id" value="{{ synonym.id }}" />
+                    <button type="submit" class="tag-synonym-remove plain-button" aria-label="{% blocktrans with name=synonym.source_name %}Remove the synonym {{ name }}{% endblocktrans %}">{% trans "remove" %}</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="list-empty">
+    <h2>{% if query %}{% blocktrans %}No synonyms match “{{ query }}”{% endblocktrans %}{% else %}{% trans "No synonyms yet" %}{% endif %}</h2>
+    {% if query %}<p class="list-empty-actions"><a class="list-empty-link" href="{% url "tag_synonyms" %}">{% trans "Show all synonyms" %}</a></p>{% endif %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
+<!-- end tag_synonyms.html -->

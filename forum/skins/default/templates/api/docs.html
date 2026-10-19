@@ -1,0 +1,157 @@
+{% extends "base_content.html" %}
+{% load i18n %}
+{# The API reference (forum/views/api.py docs): rendered from the endpoint registry, like /api/v1/openapi.json. #}
+{% block title %}{% spaceless %}{% trans "API documentation" %}{% endspaceless %}{% endblock %}
+{% block meta %}<link rel="alternate" type="application/vnd.oai.openapi+json" href="{{ openapi_url }}" />{% endblock %}
+{% block content %}
+<div id="main-wrapper" class="api-docs">
+    <div class="page-header-block">
+        <h1 class="page-title">{% trans "API documentation" %}</h1>
+        <p class="page-lead">{% blocktrans trimmed %}Programs can read this forum's questions, answers, tags and members as JSON, and members can post through it with a personal access token.{% endblocktrans %}</p>
+        <ul class="md-help-toc">
+            <li><a href="#basics">{% trans "Basics" %}</a></li>
+            <li><a href="#authentication">{% trans "Authentication" %}</a></li>
+            <li><a href="#limits">{% trans "Rate limits" %}</a></li>
+            <li><a href="#paging">{% trans "Pages and caching" %}</a></li>
+            <li><a href="#problems">{% trans "Errors" %}</a></li>
+            <li><a href="#endpoints">{% trans "Endpoints" %}</a></li>
+            <li><a href="#objects">{% trans "Objects" %}</a></li>
+        </ul>
+    </div>
+
+    <section class="md-section" id="basics">
+        <h2>{% trans "Basics" %}</h2>
+        <p>{% trans "Every address starts with" %} <code>{{ base_url }}/</code>.
+           {% blocktrans trimmed with url=openapi_url %}The same reference is available as an <a href="{{ url }}">OpenAPI 3.1 document</a>, for code generators and API tools.{% endblocktrans %}</p>
+        <ul>
+            <li>{% blocktrans trimmed %}Answers are JSON (UTF-8). A list is an object <code>{"data": [...], "next": "…"}</code>; one object is returned as it is.{% endblocktrans %}</li>
+            <li>{% blocktrans trimmed %}Every object has its <code>id</code>, its address on the site (<code>url</code>) and, when it has one, its address in the API (<code>api_url</code>).{% endblocktrans %}</li>
+            <li>{% blocktrans trimmed %}Dates are ISO 8601 with the site's UTC offset, e.g. <code>2026-03-01T09:30:00+01:00</code>.{% endblocktrans %}</li>
+            <li>{% blocktrans trimmed %}Posts come with their rendered HTML (<code>html</code>, as shown on the site) and their Markdown source (<code>markdown</code>).{% endblocktrans %}</li>
+            <li>{% blocktrans trimmed %}You see what the site shows you: deleted posts and posts waiting for a moderator are left out, except your own when you send your token.{% endblocktrans %}</li>
+        </ul>
+        <pre class="api-code">curl "{{ example_question }}"</pre>
+    </section>
+
+    <section class="md-section" id="authentication">
+        <h2>{% trans "Authentication" %}</h2>
+        <p>{% blocktrans trimmed %}Reading needs no token. To post, vote or follow questions, and to see your own posts that wait for review, send a personal access token in the Authorization header:{% endblocktrans %}</p>
+        <pre class="api-code">curl -H "Authorization: Bearer $OSQA_TOKEN" "{{ base_url }}/me"</pre>
+        <ul>
+            <li>{% if tokens_url %}{% blocktrans trimmed with url=tokens_url %}Create tokens on your <a href="{{ url }}">API tokens</a> page.{% endblocktrans %}{% else %}{% trans "Sign in, then create tokens in your settings, under API tokens." %}{% endif %}
+                {% trans "A token is shown once: copy it then. Only a fingerprint of it is stored." %}</li>
+            <li>{% blocktrans trimmed %}A token has the <code>read</code> scope, or <code>read</code> and <code>write</code>. It acts as you: the same reputation rules, posting limits, email confirmation and review of first posts apply as on the site.{% endblocktrans %}{% if not writes_enabled %} <strong>{% trans "Posting through the API is turned off on this site at the moment." %}</strong>{% endif %}</li>
+            <li>{% trans "Tokens expire after the time you choose, and you can revoke one at any time." %}</li>
+            <li>{% blocktrans trimmed %}The API never uses the sign-in cookie of the site: without a token you are an anonymous visitor, and nothing can be changed.{% endblocktrans %}</li>
+        </ul>
+    </section>
+
+    <section class="md-section" id="limits">
+        <h2>{% trans "Rate limits" %}</h2>
+        <ul>
+            <li>{% if limit_anonymous %}{% blocktrans trimmed with n=limit_anonymous %}Without a token: {{ n }} requests per minute per IP address.{% endblocktrans %}{% else %}{% trans "Without a token: no limit." %}{% endif %}</li>
+            <li>{% if limit_token %}{% blocktrans trimmed with n=limit_token %}With a token: {{ n }} requests per minute per token.{% endblocktrans %}{% else %}{% trans "With a token: no limit." %}{% endif %}
+                {% if limit_writes %}{% blocktrans trimmed with n=limit_writes %}Of those, at most {{ n }} changes (posts, votes, accepts, follows).{% endblocktrans %}{% endif %}</li>
+        </ul>
+        <p>{% blocktrans trimmed %}Each answer tells where you stand: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> and <code>X-RateLimit-Reset</code> (seconds until the minute starts again). Over the limit, the answer is 429 with <code>Retry-After</code> (seconds). The site's hourly limits on questions, answers and comments also apply (429, <code>posting-limit</code>).{% endblocktrans %}</p>
+    </section>
+
+    <section class="md-section" id="paging">
+        <h2>{% trans "Pages and caching" %}</h2>
+        <ul>
+            <li>{% blocktrans trimmed %}Lists take <code>limit</code> (1 to 100). <code>next</code> is the address of the next page (also in a <code>Link: &lt;…&gt;; rel="next"</code> header), or null on the last page. Follow it as it is: its <code>cursor</code> stays valid when new posts arrive.{% endblocktrans %}</li>
+            <li>{% blocktrans trimmed %}Single objects carry an <code>ETag</code>. Send it back in <code>If-None-Match</code> and you get 304 Not Modified when nothing changed.{% endblocktrans %}</li>
+            <li>{% if cors_origins %}{% blocktrans trimmed with origins=cors_origins|join:" " %}Web pages on other sites can read the API with JavaScript (CORS, GET only, without cookies) from: {{ origins }}.{% endblocktrans %}{% else %}{% trans "Web pages on other sites can't read the API with JavaScript (CORS is off)." %}{% endif %}</li>
+        </ul>
+    </section>
+
+    <section class="md-section" id="problems">
+        <h2>{% trans "Errors" %}</h2>
+        <p>{% blocktrans trimmed %}Errors are problem details (RFC 9457, <code>application/problem+json</code>): <code>type</code> (one of the addresses below), <code>title</code>, <code>status</code>, <code>detail</code> (what went wrong, in the language of <code>Accept-Language</code>) and, for invalid data, <code>errors</code> per field.{% endblocktrans %}</p>
+        <pre class="api-code">{
+  "type": "{{ site_url }}/api/#problem-validation-error",
+  "title": "Invalid data",
+  "status": 422,
+  "detail": "title must be at least 10 characters",
+  "errors": {"title": ["title must be at least 10 characters"]}
+}</pre>
+        <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
+        <table class="api-table">
+            <thead><tr><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Title" %}</th></tr></thead>
+            <tbody>
+            {% for problem in problems %}
+                <tr id="problem-{{ problem.slug }}"><td>{{ problem.status }}</td><td><code>{{ problem.slug }}</code></td><td>{{ problem.title }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section class="md-section" id="endpoints">
+        <h2>{% trans "Endpoints" %}</h2>
+        <nav class="api-index" aria-label="{% trans "Endpoints" %}">
+            <ul>
+            {% for group in groups %}{% for op in group.items %}
+                <li><a href="#{{ op.anchor }}"><span class="api-method api-method-{{ op.ep.method|lower }}">{{ op.ep.method }}</span> <code>{{ op.path }}</code></a> <span class="api-index-summary">{{ op.ep.summary }}</span></li>
+            {% endfor %}{% endfor %}
+            </ul>
+        </nav>
+        {% for group in groups %}
+        <h3 class="api-group">{{ group.name }}</h3>
+        <p class="api-group-text">{{ group.text }}</p>
+        {% for op in group.items %}
+        <article class="api-op" id="{{ op.anchor }}">
+            <h4><span class="api-method api-method-{{ op.ep.method|lower }}">{{ op.ep.method }}</span> <code>{{ op.path }}</code></h4>
+            <p class="api-op-summary">{{ op.ep.summary }}</p>
+            {% if op.ep.description %}<p>{{ op.ep.description }}</p>{% endif %}
+            <p class="api-op-auth">{{ op.auth }}</p>
+            {% if op.params %}
+            <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
+            <table class="api-table">
+                <caption>{% trans "Parameters" %}</caption>
+                <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Description" %}</th></tr></thead>
+                <tbody>
+                {% for param in op.params %}
+                    <tr><td><code>{{ param.p.name }}</code>{% if param.p.required %} <span class="api-required">{% trans "required" %}</span>{% endif %}<span class="api-where">{{ param.p.where }}</span></td>
+                        <td>{{ param.type.text }}</td><td>{{ param.p.description }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% endif %}
+            {% if op.body %}<p>{% trans "Request body:" %} <a href="#{{ op.body.anchor }}">{{ op.body.text }}</a> (JSON)</p>
+            {% if op.body_example %}<pre class="api-code">{{ op.body_example }}</pre>{% endif %}{% endif %}
+            {% if op.response %}<p>{% blocktrans trimmed with status=op.ep.status %}Answer ({{ status }}):{% endblocktrans %} <a href="#{{ op.response.anchor }}">{{ op.response.text }}</a></p>{% endif %}
+            {% if op.errors %}<p class="api-op-errors">{% trans "Errors:" %} {% for slug, status in op.errors %}<a href="#problem-{{ slug }}">{{ status }} {{ slug }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+            <pre class="api-code">{{ op.curl }}</pre>
+        </article>
+        {% endfor %}
+        {% endfor %}
+    </section>
+
+    <section class="md-section" id="objects">
+        <h2>{% trans "Objects" %}</h2>
+        {% for object in objects %}
+        <article class="api-object" id="schema-{{ object.name }}">
+            <h3>{{ object.name }}</h3>
+            {% if object.description %}<p>{{ object.description }}</p>{% endif %}
+            {% if object.based_on %}<p>{% trans "Everything in" %} <a href="#schema-{{ object.based_on }}">{{ object.based_on }}</a>, {% trans "and:" %}</p>{% endif %}
+            {% if object.fields %}
+            <div class="api-table-wrap" role="region" tabindex="0" aria-label="{% trans "Scrollable table" %}">
+            <table class="api-table">
+                <thead><tr><th scope="col">{% trans "Field" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Description" %}</th></tr></thead>
+                <tbody>
+                {% for field in object.fields %}
+                    <tr><td><code>{{ field.name }}</code>{% if field.optional %} <span class="api-where">{% trans "optional" %}</span>{% endif %}</td>
+                        <td>{% if field.type.anchor %}<a href="#{{ field.type.anchor }}">{{ field.type.text }}</a>{% else %}{{ field.type.text }}{% endif %}</td>
+                        <td>{{ field.description }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

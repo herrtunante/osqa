@@ -1,0 +1,83 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
+        django: ['']  # empty: the version pinned in requirements.txt (5.2 LTS)
+        include:
+          # The next Django release on the newest Python, so an upgrade is a
+          # requirements.txt change (README "Upgrading Django").
+          - python-version: '3.14'
+            django: '6.0'
+    name: test (Python ${{ matrix.python-version }}${{ matrix.django && format(', Django {0}', matrix.django) || '' }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install MySQL client headers (for mysqlclient)
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
+      - run: pip install -r requirements-dev.txt
+      - name: Install Django ${{ matrix.django }} instead of the pinned version
+        if: matrix.django
+        run: pip install "Django~=${{ matrix.django }}.0"
+      - name: Lint (ruff, configured in pyproject.toml)
+        run: ruff check .
+      - name: Check for missing migrations
+        run: OSQA_SETTINGS_LOCAL=settings_local_test python manage.py makemigrations --check --dry-run
+      # Deprecation warnings are errors: our code must not use anything the
+      # next Django or Python version removes (third-party ones are filtered
+      # in settings.py).
+      - name: Run tests
+        run: OSQA_SETTINGS_LOCAL=settings_local_test python -W error::DeprecationWarning -W error::PendingDeprecationWarning manage.py test forum.tests
+
+  e2e:
+    # Browser tests (e2e/README.md): every workflow in Chromium.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install MySQL client headers (for mysqlclient)
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      # Includes the visual regression tests (e2e/test_visual.py). Their
+      # baselines record the environment that made them; on another one they
+      # are skipped unless E2E_VISUAL_STRICT=1 (see e2e/README.md).
+      - name: Run browser tests
+        run: OSQA_SETTINGS_LOCAL=settings_local_e2e python manage.py test e2e --noinput
+      - name: Screenshots of failed tests and visual diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          # tmp/e2e/visual/: actual, expected and diff images of visual regressions.
+          path: |
+            tmp/e2e/
+            tmp/e2e/visual/
+
+  audit:
+    # Known vulnerabilities in the pinned dependencies (PyPI advisory database).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install MySQL client headers (for mysqlclient)
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
+      - run: pip install -r requirements.txt pip-audit
+      # Audits everything installed, including indirect dependencies.
+      - run: pip-audit --progress-spinner off

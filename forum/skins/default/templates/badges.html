@@ -5,32 +5,29 @@
 {% load i18n %}
 {% block title %}{% spaceless %}{% trans "Badges summary" %}{% endspaceless %}{% endblock %}
 {% block content %}
-<div class="headlineA">
-        <span class="headMedals">{% trans "Badges" %}</span>
+<div class="page-header">
+    <h1 class="page-title headMedals">{% trans "Badges" %}</h1>
 </div>
-<div class="badges" id="main-body" style="width:100%">
-    <p>
+<div class="badges" id="main-body">
+    <p class="page-lead">
 	{% trans "Community gives you awards for your questions, answers and votes." %}
 	{% blocktrans %}Below is the list of available badges and number of times each type of badge has been awarded.
     {% endblocktrans %}
     </p>
-    <div id="medalList">
+    <ul id="medalList" class="badge-index">
         {% for badge in badges %}
-        <div style="clear:both;line-height:30px">
-            <div class="intoMyBadges">
-            {% if badge.id in mybadges %}
-                 <span>&#10004;</span>
-            {% endif %}
-            </div>
+        <li class="badge-row{% if badge.id in mybadges %} is-mine{% endif %}">
             <div class="badgeListItem">
-                <a href="{{badge.get_absolute_url}}" title="{{ badge.get_type_display }} : {{ badge.description }}" class="medal"><span class="badge{{ badge.type }}">&#9679;</span>&nbsp;{{ badge.name }}</a><strong> &#215; {{ badge.awarded_count|intcomma }}</strong>
+                <a href="{{badge.get_absolute_url}}" title="{{ badge.get_type_display }} : {{ badge.description }}" class="medal"><span class="badge{{ badge.type }}">&#9679;</span>&nbsp;{{ badge.name }}</a>
+                <span class="badge-count">&#215;&nbsp;{{ badge.awarded_count|intcomma }}</span>
+                {% if badge.id in mybadges %}
+                <span class="badge-mine"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{% trans "earned" %}</span>
+                {% endif %}
             </div>
-            <p class="badgeListDescription">
-                {{ badge.description }}
-            </p>
-        </div>
+            <p class="badgeListDescription">{{ badge.description }}</p>
+        </li>
         {% endfor %}
-    </div>
+    </ul>
 </div>
 {% endblock %}
 {% block sidebar %}
@@ -42,7 +39,7 @@
         <span title="{% trans "gold badge: the highest honor and is very rare" %}" class="medal"><span class="badge1">&#9679;</span>&nbsp;{% trans "gold" %}</span>
     </p>
     <p>
-	{% trans "gold badge description" %}
+	{% trans "The highest award: it takes deep knowledge as well as active participation, and is rarely given." %}
     </p>
     <p>
         <span
@@ -50,14 +47,14 @@
 			class="medal"><span class="badge2">&#9679;</span>&nbsp;{% trans "silver" %}</span>
     </p>
     <p>
-	{% trans "silver badge description" %}
+	{% trans "Earned with sustained effort: it shows a significant contribution to this community." %}
     </p>
     <p>
         <span title="{% trans "bronze badge: often given as a special honor" %}" class="medal">
 		<span class="badge3">&#9679;</span>&nbsp;{% trans "bronze" %}</span>
     </p>
     <p>
-	{% trans "bronze badge description" %}
+	{% trans "Given to active participants in this community." %}
     </p>
     </div>
 </div>

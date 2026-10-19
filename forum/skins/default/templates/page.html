@@ -3,7 +3,7 @@
 {% block title %}{% spaceless %}{{ page.title }}{% endspaceless %}{% endblock %}
 
 {% block content %}
-<div class="headNormal">{{ page.title }}</div>
+<div class="page-header"><h1 class="page-title">{{ page.title }}</h1></div>
 <div class="content">
 {{ body }}
 </div>
@@ -12,7 +12,7 @@
 {% endif %}
 {% endblock %}
 
-{% ifequal page.extra.template "sidebar" %}
+{% if page.extra.template == "sidebar" %}
     {% block sidebar %}
         {% sidebar_upper %}
         {% if page.extra.sidebar %}
@@ -22,6 +22,6 @@
         {% endif %}
         {% sidebar_lower %}
     {% endblock %}
-{% endifequal %}
+{% endif %}
 
 

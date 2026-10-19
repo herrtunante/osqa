@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url, include
+from django.urls import re_path as url
 from django.http import  HttpResponse
-import settings
+from . import settings
 
-urlpatterns = patterns('',
-    (r'^robots.txt$',  lambda r: HttpResponse(settings.ROBOTS_FILE.value, content_type='text/plain')),
-)
+urlpatterns = [
+    url(r'^robots.txt$', lambda r: HttpResponse(settings.ROBOTS_FILE.value, content_type='text/plain')),
+]

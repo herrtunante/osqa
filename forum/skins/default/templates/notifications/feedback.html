@@ -3,35 +3,39 @@
 {% declare %}
     prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
     app_name = smart_str(settings.APP_SHORT_NAME)
+    sender_name = name and smart_str(name) or ''
+    sender_email = email and smart_str(email) or ''
 
     exclude_greeting = True
     exclude_finetune = True
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} Feedback message from {{ app_name }}{% endblocktrans %}{% endsubject %}
+    {% subject %}{% if sender_name %}{% blocktrans %}{{ prefix }} Feedback from {{ sender_name }}{% endblocktrans %}{% else %}{% blocktrans %}{{ prefix }} Feedback from an anonymous visitor{% endblocktrans %}{% endif %}{% endsubject %}
+    {% preheader %}{{ message|truncatechars:140 }}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% trans "Sender" %}:{% if name %}{{ name }}{% else %}{% trans "anonymous" %}{% endif %}<br />
-            {% trans "email" %}: {{ email }}
-            <br/>
-                ip: {{ ip }}
-        </p>
-
-        <blockquote>
-        {% trans "Message body:" %} {{ message }}
-        </blockquote>
-
+        {% blocktrans asvar footer_reason %}You receive this email because you are an administrator of {{ app_name }}.{% endblocktrans %}
+        <h1 class="em-h1" style="{{ h1_style }}">{% blocktrans %}New feedback on {{ app_name }}{% endblocktrans %}</h1>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;">
+            <tr><td class="em-small" style="{{ small_style }}padding-right:16px;">{% trans "From" %}</td><td class="em-text" style="{{ p_style }}margin:0;padding-bottom:4px;">{% if sender_name %}{{ sender_name }}{% else %}{% trans "anonymous" %}{% endif %}</td></tr>
+            <tr><td class="em-small" style="{{ small_style }}padding-right:16px;">{% trans "Email" %}</td><td class="em-text" style="{{ p_style }}margin:0;padding-bottom:4px;">{% if sender_email %}<a class="em-link" style="{{ a_style }}" href="mailto:{{ sender_email }}">{{ sender_email }}</a>{% else %}&ndash;{% endif %}</td></tr>
+            <tr><td class="em-small" style="{{ small_style }}padding-right:16px;">{% trans "IP address" %}</td><td class="em-text" style="{{ p_style }}margin:0;padding-bottom:4px;">{{ ip }}</td></tr>
+        </table>
+        {% include "notifications/_quote.html" with text=message %}
+        {% if sender_email %}{% trans "Reply by email" as cta %}{% with reply_url="mailto:"|add:sender_email %}{% include "notifications/_button.html" with url=reply_url label=cta %}{% endwith %}{% endif %}
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% trans "Sender" %}: {% if name %}{{ name|safe }}{% else %}{% trans "anonymous" %}{% endif %}
-{% trans "email" %}: {{ email|safe }}
-ip: {{ ip }}
+{% blocktrans asvar footer_reason %}You receive this email because you are an administrator of {{ app_name }}.{% endblocktrans %}
+{% blocktrans %}New feedback on {{ app_name }}{% endblocktrans %}
 
-{% trans "Message body:" %} {{ message|safe }}
+{% trans "From" %}: {% if sender_name %}{{ sender_name }}{% else %}{% trans "anonymous" %}{% endif %}
+{% trans "Email" %}: {% if sender_email %}{{ sender_email }}{% else %}-{% endif %}
+{% trans "IP address" %}: {{ ip }}
+
+{% trans "Message" %}:
+{{ message }}
 {% endtextcontent %}
 
 {% endemail %}
-

@@ -6,21 +6,29 @@
 {% block subtitle %}
     {% trans "SX Importer" %}
 {% endblock %}
+{% block pagename %}{% trans "SX Importer" %}{% endblock %}
 {% block description %}
     {% trans "Welcome to Stack Exchange dump importer." %}
 {% endblock %}
 
 {% block admincontent %}
-    <form method="post" action="" enctype="multipart/form-data">
+    <form method="post" action="" enctype="multipart/form-data" class="admin-stacked-form">
     {% csrf_token %}
-    <input type="file" name="dump" /><br>
-    {% trans "Your user id in stack exchange" %}
-    <input type="test" name="owneruid" size="3" value="2" /><br />
-
-    <input type="checkbox" checked="checked" name="mergesimilar" />
-    {% trans "Merge users with same user name and email" %}<br />
-
-    <input type="submit" value="submit" />
+    <div class="form-row">
+        <label for="sx-dump">{% trans "Stack Exchange dump (zip file)" %}</label>
+        <input type="file" id="sx-dump" name="dump" />
+    </div>
+    <div class="form-row">
+        <label for="sx-owneruid">{% trans "Your user id in stack exchange" %}</label>
+        <input type="text" id="sx-owneruid" name="owneruid" size="3" value="2" inputmode="numeric" />
+    </div>
+    <div class="form-row">
+        <label class="admin-check"><input type="checkbox" checked="checked" name="mergesimilar" />
+        {% trans "Merge users with same user name and email" %}</label>
+    </div>
+    <div class="submit-row">
+        <input type="submit" value="{% trans "Import" %}" />
+    </div>
     </form>
     {% for n in names %}
         <p>{{ n }}</p>

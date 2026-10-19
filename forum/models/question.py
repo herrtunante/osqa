@@ -1,27 +1,30 @@
-from base import *
-from tag import Tag
-from django.utils.translation import ugettext as _
+from .base import *
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 class QuestionManager(NodeManager):
     def search(self, keywords, **kwargs):
-        return False, self.filter(models.Q(title__icontains=keywords) | models.Q(body__icontains=keywords))
+        return False, self.filter(models.Q(title__icontains=keywords) | models.Q(body__icontains=keywords) | models.Q(children__body__icontains=keywords))
 
 class Question(Node):
     class Meta(Node.Meta):
         proxy = True
 
-    answer_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"), node_type="answer")
-    accepted_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"), node_type="answer", marked=True)
+    # Answers held for review (forum/utils/review.py) aren't counted, like deleted ones.
+    answer_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"),
+                                     ~models.Q(state_string__contains="(pending_review)"), node_type="answer")
+    accepted_count = DenormalizedField("children", ~models.Q(state_string__contains="(deleted)"),
+                                       ~models.Q(state_string__contains="(pending_review)"), node_type="answer", marked=True)
     favorite_count = DenormalizedField("actions", action_type="favorite", canceled=False)
 
-    friendly_name = _("question")
+    friendly_name = _lazy("question")
     objects = QuestionManager()
 
     @property
     def closed(self):
         return self.nis.closed
 
-    @property    
+    @property
     def view_count(self):
         return self.extra_count
 
@@ -34,49 +37,68 @@ class Question(Node):
             return _('[deleted] ') + self.title
 
         if self.nis.closed:
+            if self.duplicate_of_id:
+                return self.title + _(' [duplicate]')
             return _('[closed] ') + self.title
 
         return self.title
 
     @property
-    def accepted_answers(self):
-        return self.answers.filter(~models.Q(state_string__contains="(deleted)"), marked=True)
+    def duplicate_of_id(self):
+        """Id of the question this one was closed as a duplicate of (kept in Node.extra)."""
+        if self.nis.closed and isinstance(self.extra, dict):
+            return self.extra.get('duplicate_of')
+        return None
 
-    @models.permalink    
+    @property
+    def duplicate_of(self):
+        if not self.duplicate_of_id:
+            return None
+        try:
+            return Question.objects.public().get(id=self.duplicate_of_id)
+        except Question.DoesNotExist:
+            return None
+
+    @property
+    def accepted_answers(self):
+        return self.answers.filter(~models.Q(state_string__contains="(deleted)"),
+                                   ~models.Q(state_string__contains="(pending_review)"), marked=True)
     def get_absolute_url(self):
-        return ('question', (), {'id': self.id, 'slug': django_urlquote(slugify(self.title))})
-        
+        return reverse('question', kwargs={'id': self.id, 'slug': django_urlquote(slugify(self.title))})
+
     def meta_description(self):
         return self.summary
-
-    def get_revision_url(self):
-        return reverse('question_revisions', args=[self.id])
 
     def get_related_questions(self, count=10):
         cache_key = '%s.related_questions:%d:%d' % (settings.APP_URL, count, self.id)
         related_list = cache.get(cache_key)
 
         if related_list is None:
-            related_list = Question.objects.filter_state(deleted=False).values('id').filter(tags__id__in=[t.id for t in self.tags.all()]
+            related_list = Question.objects.public().values('id').filter(tags__id__in=[t.id for t in self.tags.all()]
             ).exclude(id=self.id).annotate(frequency=models.Count('id')).order_by('-frequency')[:count]
             cache.set(cache_key, related_list, 60 * 60)
 
-        return [Question.objects.get(id=r['id']) for r in related_list]
-    
+        from .base import load_cached
+        loaded = load_cached(Question, [r['id'] for r in related_list])
+        return [loaded[r['id']] for r in related_list if isinstance(loaded.get(r['id']), Question)]
+
 
 
 
 class QuestionSubscription(models.Model):
-    user = models.ForeignKey(User)
-    question = models.ForeignKey(Node)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(Node, on_delete=models.CASCADE)
     auto_subscription = models.BooleanField(default=True)
-    last_view = models.DateTimeField(default=datetime.datetime.now())
+    last_view = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         app_label = 'forum'
+        indexes = [models.Index(fields=['user', 'last_view'], name='subscription_user_view_idx'),
+                   # Looked up on every signed-in question view.
+                   models.Index(fields=['question', 'user'], name='subscription_question_user_idx')]
 
 
 class QuestionRevision(NodeRevision):
     class Meta:
         proxy = True
-        
+

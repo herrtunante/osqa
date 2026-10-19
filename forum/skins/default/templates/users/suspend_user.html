@@ -1,49 +1,21 @@
 {% load i18n %}
 
-<table>
-    <caption><h2>{% trans "Suspend user" %}</h2></caption>
-    <tr>
-        <td>
-            <select name="bantype" id="bantype">
-                <option value="indefinitely">{% trans "Indefinitely" %}</option>
-                <option value="forxdays">{% trans "For X days" %}</option>
-            </select>
-        </td>
-    </tr>
-    <tr id="forxdays" style="display: none">
-        <td>
-            {% trans "Suspend for" %}<input type="text" size="3" style="width: 30px; height: 1.2em; margin: 0 0.5em 0 0.5em; font-size: 1em;" name="forxdays" value="3" />{% trans "days" %}
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p><b>{% trans "Public message" %}:</b></p>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <textarea rows="3" name="publicmsg" cols="35"></textarea><br />
-            <small>{% trans "This message will be visible through the user activity log."  %}</small>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p><b>{% trans "Private message" %}:</b></p>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <textarea rows="3" name="privatemsg" cols="35"></textarea><br />
-            <small>{% trans "If set, only the suspended user will see this message."  %}</small>
-        </td>
-    </tr>
-</table>
-<script type="text/javascript">
-    $('#bantype').change(function() {
-        if ($(this).val() == 'forxdays') {
-            $('#forxdays').slideDown('fast');
-        } else {
-            $('#forxdays').slideUp('fast');
-        }
-    });
-</script>
+<div class="profile-dialog">
+    <h2>{% trans "Suspend user" %}</h2>
+    <label for="bantype">{% trans "Suspend" %}</label>
+    <select name="bantype" id="bantype">
+        <option value="indefinitely">{% trans "Indefinitely" %}</option>
+        <option value="forxdays">{% trans "For X days" %}</option>
+    </select>
+    <div id="forxdays" class="profile-dialog-days" hidden>
+        <label for="suspend-days">{% trans "Suspend for" %}</label>
+        <input type="number" id="suspend-days" min="1" name="forxdays" value="3" />
+        <span>{% trans "days" %}</span>
+    </div>
+    <label for="suspend-publicmsg">{% trans "Public message" %}</label>
+    <textarea id="suspend-publicmsg" rows="3" name="publicmsg" cols="35" aria-describedby="suspend-publicmsg-help"></textarea>
+    <p class="profile-dialog-help" id="suspend-publicmsg-help">{% trans "This message will be visible through the user activity log." %}</p>
+    <label for="suspend-privatemsg">{% trans "Private message" %}</label>
+    <textarea id="suspend-privatemsg" rows="3" name="privatemsg" cols="35" aria-describedby="suspend-privatemsg-help"></textarea>
+    <p class="profile-dialog-help" id="suspend-privatemsg-help">{% trans "If set, only the suspended user will see this message." %}</p>
+</div>

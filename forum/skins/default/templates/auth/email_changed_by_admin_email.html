@@ -1,0 +1,27 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+
+    exclude_finetune = True
+{% enddeclare %}
+{% comment %}Sent to the old address when an administrator changes a member's email address.{% endcomment %}
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} Your {{ app_name }} email address was changed{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% trans "An administrator changed the email address of your account." %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% blocktrans asvar footer_reason %}You receive this security notice because the email address of your account at {{ app_name }} was changed. These notices are always sent.{% endblocktrans %}
+        <p class="em-text" style="{{ p_style }}">{% blocktrans with name=recipient.username %}An administrator of {{ app_name }} changed the email address of your account {{ name }} to {{ new_email_masked }}. Emails from the site now go there.{% endblocktrans %}</p>
+        <p class="em-text" style="{{ p_style }}">{% trans "If you didn't expect this, reply to this email or contact the site administrators." %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% blocktrans asvar footer_reason %}You receive this security notice because the email address of your account at {{ app_name }} was changed. These notices are always sent.{% endblocktrans %}
+{% blocktrans with name=recipient.username %}An administrator of {{ app_name }} changed the email address of your account {{ name }} to {{ new_email_masked }}. Emails from the site now go there.{% endblocktrans %}
+
+{% trans "If you didn't expect this, reply to this email or contact the site administrators." %}
+{% endtextcontent %}
+
+{% endemail %}

@@ -1,17 +1,29 @@
 {% load extra_filters extra_tags i18n email_tags %}
-
+{% comment %}
+The plain text part of every email; the textcontent block of an email goes where the content block is.
+It is rendered without HTML escaping, and lines are stripped of template indentation afterwards
+(email_tags.tidy_text), so put each link on a line of its own.
+{% endcomment %}
 {% if not exclude_greeting %}
-{% trans "Hello" %} {{ recipient.username }},
+{% blocktrans with name=recipient.username %}Hi {{ name }},{% endblocktrans %}
 {% endif %}
 
-{% block content %}{% endblock%}
+{% block content %}{% endblock %}
 
-{% trans "Thanks" %},
-{{settings.APP_SHORT_NAME}}
+--
+{{ settings.APP_SHORT_NAME }}
+{{ settings.APP_URL }}/
 
-{% if not exclude_finetune %}
-{% trans "P.S. You can always fine-tune which notifications you receive here:" %}
-{{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}
-{% endif %}
-
+{% if unsubscribe %}
+{% blocktrans with reason=unsubscribe.reason %}You receive this email because {{ reason }}.{% endblocktrans %}
+{% if unsubscribe.summary_url %}{% trans "Too many emails?" %} {{ unsubscribe.summary_label }}: {{ unsubscribe.summary_url }}
+{% endif %}{% if unsubscribe.specific_url %}{{ unsubscribe.specific_label }}: {{ unsubscribe.specific_url }}
+{% endif %}{% trans "Choose which emails you get" %}: {{ unsubscribe.manage_url }}
+{% trans "Unsubscribe from all emails" %}: {{ unsubscribe.all_url }}
+{% trans "How email notifications work" %}: {{ unsubscribe.help_url }}
+{% else %}{% if footer_reason %}{{ footer_reason }}
+{% endif %}{% if not exclude_finetune %}{% trans "Choose which emails you get" %}: {{ settings.APP_URL }}{{ recipient.get_user_subscriptions_url }}
+{% endif %}{% endif %}
+{% if settings.EMAIL_FOOTER_TEXT %}
 {{ settings.EMAIL_FOOTER_TEXT }}
+{% endif %}

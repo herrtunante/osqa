@@ -1,10 +1,25 @@
-import readers
-import writers
-import commands
-import users
-import meta
-import auth
-import admin
+from . import readers
+from . import writers
+from . import commands
+from . import users
+from . import meta
+from . import auth
+from . import admin
+from . import account
+from . import agents
+from . import email_prefs
+from . import inbox
+from . import pwa
+from . import push
+from . import display
+from . import search
+from . import moderation
+from . import tags
+from . import suggested_edits
+from . import post_versions
+from . import live
+from . import security
+from . import for_you
 
 #from forum.modules.decorators import decorate_all
 

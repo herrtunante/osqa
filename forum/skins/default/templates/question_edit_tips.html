@@ -1,23 +1,26 @@
 <!-- question_edit_tips.html -->
 {% load i18n general_sidebar_tags extra_filters %}
-<div class="boxC" id="title_side_bar">
-    <p class="subtitle darkred">{% trans "Title Tips" %}</p>
-    <div class="list-item">
-        {{ settings.QUESTION_TITLE_TIPS|static_content:"markdown" }}
-        <p class='info-box-follow-up-links'>
-            <a href="{% url "faq" %}" target="_blank" title="{% trans "see frequently asked questions" %}">{% trans "faq" %} &raquo;</a>
-        </p>
-    </div>
+{# Writing tips: one disclosure per field; osqa.ask.js opens the one for the field being filled in. #}
+<div class="boxC compose-tips">
+    <h2 class="compose-tips-title">{% trans "Writing tips" %}</h2>
+    <details class="compose-tip" id="title_side_bar" open>
+        <summary>{% trans "Title Tips" %}</summary>
+        <div class="list-item">
+            {{ settings.QUESTION_TITLE_TIPS|static_content:"markdown" }}
+        </div>
+    </details>
+    <details class="compose-tip compose-tip-markdown" id="editor_side_bar_tip">
+        <summary>{% trans "Markdown Basics" %}</summary>
+        {% markdown_help %}
+    </details>
+    <details class="compose-tip" id="tags_side_bar">
+        <summary>{% trans "What Are Tags" %}</summary>
+        <div class="list-item">
+            {{ settings.QUESTION_TAG_TIPS|static_content:"markdown" }}
+        </div>
+    </details>
+    <p class="info-box-follow-up-links">
+        <a href="{% url "faq" %}" target="_blank" title="{% trans "see frequently asked questions" %}">{% trans "faq" %} &raquo;</a>
+    </p>
 </div>
-
-{% markdown_help %}
-
-<div class="boxC" id="tags_side_bar" align="left">
-    <p class="subtitle darkred">{% trans "What Are Tags" %}</p>
-    <div class="list-item">
-        {{ settings.QUESTION_TAG_TIPS|static_content:"markdown" }}
-    </div>
-</div>
-
-
 <!-- end question_edit_tips.html  -->

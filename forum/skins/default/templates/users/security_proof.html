@@ -1,0 +1,13 @@
+{% load i18n %}{# A code from the app (or a recovery code), or the password: to confirm changes on the security page. #}
+<div class="security-proof-fields">
+    <div class="auth-field">
+        <label for="{{ prefix }}-code">{% trans "Code from your app" %}</label>
+        <input type="text" id="{{ prefix }}-code" name="code" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" maxlength="20" />
+    </div>
+    {% if has_password %}
+    <div class="auth-field">
+        <label for="{{ prefix }}-password">{% trans "or your password" %}</label>
+        <input type="password" id="{{ prefix }}-password" name="password" autocomplete="current-password" maxlength="128" />
+    </div>
+    {% endif %}
+</div>

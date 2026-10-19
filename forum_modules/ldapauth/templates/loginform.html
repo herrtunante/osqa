@@ -1,28 +1,15 @@
 {% load i18n %}
-
-<fieldset id='ldap_login_fs'>
-  <p><span class='big strong'>{% trans 'Enter your LDAP user name and password' %}</span><br/></p>
-  <table>
-    <tr>
-        <td>
-             <label for="id_username">{% trans 'Login name' %}</label>
-        </td>
-        <td>
-             <input id="id_username" type="text" class="required login" name="username" maxlength="30" />
-        </td>
-    </tr>
-    <tr>
-        <td>
-              <label for="id_password">{% trans 'Password' %}</label>
-        </td>
-        <td>
-             <input id="id_password" type="password" class="required login" name="password" maxlength="128" />
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <input id="blogin" name="blogin" type="submit" value="{% trans 'Login' %}" />
-        </td>
-    </tr>
-  </table>
-</fieldset>
+<p class="auth-lead">{% trans "Sign in with your organisation's username and password." %}</p>
+<div class="auth-field">
+    <label for="id_username">{% trans "Username" %}</label>
+    <input id="id_username" type="text" name="username" maxlength="30" value="{{ username }}" required autofocus
+           autocomplete="username" autocapitalize="none" spellcheck="false"{% if msg and username %} aria-invalid="true" aria-describedby="signin-error"{% endif %} />
+</div>
+<div class="auth-field">
+    <label for="id_password">{% trans "Password" %}</label>
+    <div class="password-field">
+        <input id="id_password" type="password" name="password" maxlength="128" required autocomplete="current-password"{% if msg and username %} aria-invalid="true" aria-describedby="signin-error"{% endif %} />
+        {% include "auth/password_toggle.html" with input_id="id_password" %}
+    </div>
+</div>
+<button id="blogin" name="blogin" type="submit" class="auth-submit">{% trans "Sign in" %}</button>

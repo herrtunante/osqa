@@ -1,7 +1,8 @@
 {% spaceless %}
 {% load i18n extra_tags %}
 <h3 class="subtitle">{% trans "Follow this question" %}</h3>
-<strong>{% trans "By Email" %}:</strong>
+<div class="follow-section">
+    <h4 class="follow-label"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>{% trans "By Email" %}</h4>
 {% if request.user.is_authenticated %}
     <div class="subscription-status">
         {% if subscription %}
@@ -14,30 +15,25 @@
             <p>{% trans "You are not subscribed to this question." %}</p>
         {% endif %}
     </div>
-    <p><a class="ajax-command sidebar_button subscription_switch" href="{% url "subscribe_simple" id=question.id %}">
-        {% if subscription %}
-            {% trans "unsubscribe me" %}
-        {% else %}
-            {% trans "subscribe me" %}
-        {% endif %}
-    </a></p>
-    <p>
-        {% blocktrans with request.user.get_user_subscriptions_url as subscriptions_url %}
-            (you can adjust your notification settings on your <a href="{{ subscriptions_url }}">profile</a>)
-        {% endblocktrans %}
-    </p>
+    <div class="follow-actions">
+        <a class="ajax-command sidebar_button subscription_switch" href="{% url "subscribe_simple" id=question.id %}">
+            {% if subscription %}
+                {% trans "unsubscribe me" %}
+            {% else %}
+                {% trans "subscribe me" %}
+            {% endif %}
+        </a>
+        <a class="subscription-settings-note" href="{{ request.user.get_user_subscriptions_url }}">{% trans "Email settings" %}</a>
+    </div>
 {% else %}
     <p>{% trans "Once you sign in you will be able to subscribe for any updates here" %}</p>
 {% endif %}
-<strong>{% trans "By RSS" %}:</strong>
-<p>
-    <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');"
-        href="{{ question.get_absolute_url }}?type=rss" title="{% trans "subscribe to answers" %}"></a>
-    {% trans "Answers" %}
-</p>
-<p>
-    <a class="feed-icon" style="background-image:url('{% media "media/images/feed-icon-small.png" %}');"
-        href="{{ question.get_absolute_url }}?type=rss&comments=yes" title="{% trans "subscribe to comments and answers" %}"></a>
-    {% trans "Answers and Comments" %}
-</p>
+</div>
+<div class="follow-section">
+    <h4 class="follow-label"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 11a8 8 0 018 8M5 5a14 14 0 0114 14"/><circle cx="6" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg>{% trans "By RSS" %}</h4>
+    <ul class="follow-feeds">
+        <li><a class="follow-feed" href="{{ question.get_absolute_url }}?type=rss" title="{% trans "subscribe to answers" %}">{% trans "Answers" %}</a></li>
+        <li><a class="follow-feed" href="{{ question.get_absolute_url }}?type=rss&amp;comments=yes" title="{% trans "subscribe to comments and answers" %}">{% trans "Answers and Comments" %}</a></li>
+    </ul>
+</div>
 {% endspaceless %}

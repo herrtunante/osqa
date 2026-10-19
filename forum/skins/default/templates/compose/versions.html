@@ -1,0 +1,19 @@
+{% load i18n %}{# "Applies to version" (forum/utils/post_versions.py): a select per versioned tag of the question. On the ask and edit question pages (data-follow-tags) media/js/osqa.versions.js shows the selects of the tags in the tags field. #}
+{% if version_groups %}
+<fieldset class="compose-field compose-versions" id="compose-versions"{% if version_groups.follow_tags %} data-follow-tags{% endif %}{% if not version_groups.any_shown %} hidden{% endif %}>
+    <legend class="compose-label">{% trans "Applies to version" %} <span class="compose-optional">{% trans "(optional)" %}</span></legend>
+    <p class="compose-help" id="compose-versions-help">{% trans "Which version of the software is this about? Answers written for an older version are marked as possibly outdated once a newer one is current." %}</p>
+    <div class="version-choices">
+        {% for group in version_groups %}
+        <div class="version-choice" data-tag-names="{{ group.names }}"{% if group.hidden %} hidden{% endif %}>
+            <label for="id_{{ group.field }}">{{ group.tag }}</label>
+            <select id="id_{{ group.field }}" name="{{ group.field }}" aria-describedby="compose-versions-help">
+                <option value="">{% trans "Not specified" %}</option>
+                {% for option in group.options %}<option value="{{ option.id }}"{% if option.selected %} selected{% endif %}>{% if option.current %}{% blocktrans with name=option.name %}{{ name }} (current){% endblocktrans %}{% else %}{{ option.name }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endfor %}
+    </div>
+</fieldset>
+{% endif %}

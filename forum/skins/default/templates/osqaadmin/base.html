@@ -1,56 +1,100 @@
-{% extends "base.html" %}
-
-{% load i18n extra_tags general_sidebar_tags %}
-
-{% block title %}{% trans "Site Administration" %}{% endblock %}
-
-{% block forejs %}
+{% load extra_tags extra_filters i18n sentry_tags admin_tags display_tags %}{% comment %}
+The administration layout, used by every admin page (forum/views/admin.py,
+moderation.py) and by module tools (forum_modules/*/templates). Django admin's
+style sheets (dark_mode.css when the site's DARK_MODE setting is on) plus
+media/style/admin.css. Blocks for pages: subtitle (the <title> and the page
+heading), pagename (breadcrumbs), description, adminjs (in <head>) and
+admincontent. The menu comes from admin_menu() in forum/views/admin.py.
+{% endcomment %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}"{% display_attrs %}>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="csrf-token" content="{{ csrf_token }}"/>
+    <meta name="robots" content="noindex"/>
+    {% sentry_browser %}
+    {% theme_head %}
+    <link rel="stylesheet" href="{% url "django_admin_media" "css/base.css" %}" type="text/css"/>
+    <link rel="stylesheet" href="{% url "django_admin_media" "css/forms.css" %}" type="text/css"/>
+    <link rel="stylesheet" href="{% url "django_admin_media" "css/changelists.css" %}" type="text/css"/>
+    <link rel="stylesheet" href="{% url "django_admin_media" "css/responsive.css" %}" type="text/css"/>
+    {% if settings.DARK_MODE %}<link rel="stylesheet" href="{% url "django_admin_media" "css/dark_mode.css" %}" type="text/css"/>{% endif %}
     <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/admin.css" %}"/>
+    <script type="text/javascript" src="{% media "/media/vendor/jquery-3.7.1.min.js" %}"></script>
+    <script type="text/javascript" src="{% media "/media/js/osqa.csrf.js" %}"></script>
+    <script defer src="{% media "/media/js/osqa.behaviors.js" %}"></script>
+    <script type="text/javascript" src="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.js" %}"></script>
+    <link rel="stylesheet" href="{% media "/media/vendor/jquery-ui-1.14.1/jquery-ui.min.css" %}"/>
+    <script type="text/javascript" src="{% media "/media/js/osqa.autocomplete.js" %}"></script>
     <script type="text/javascript" src="{% media "/media/js/osqa.admin.js" %}"></script>
     {% block adminjs %}{% endblock %}
-{% endblock %}
-
-{% block content %}
-    <div class="headNormal">
-        {% trans "OSQA administration area" %} - {% block subtitle %}{% endblock %}
+    <title>{% trans "OSQA administration area" %} - {% block subtitle %}{% endblock %}</title>
+</head>
+<body class="osqa-admin">
+<a class="skip-link" href="#content-main">{% trans "Skip to content" %}</a>
+<div id="container">
+    <header id="header">
+        <div id="branding">
+            <a id="site-name" href="{% url "admin_index" %}">
+                <span class="admin-site">{{ settings.APP_SHORT_NAME }}</span>
+                <span class="admin-area">{% trans "Administration Area" %}</span>
+            </a>
+        </div>
+        <nav id="user-tools" aria-label="{% trans "Account" %}">
+            <a href="{% url "index" %}" class="admin-view-site">{% trans "View site" %}</a>
+            <a href="{% url "admin_moderation" %}" class="admin-inbox-link{% if moderation_counts.total %} has-items{% endif %}">{% trans "Moderation inbox" %}{% if moderation_counts.total %} <span class="admin-count" aria-label="{% blocktrans count counter=moderation_counts.total %}{{ counter }} waiting{% plural %}{{ counter }} waiting{% endblocktrans %}">{{ moderation_counts.total }}</span>{% endif %}</a>
+            <a href="{{ request.user.get_profile_url }}" class="admin-user">{{ request.user.username }}</a>
+            <a href="{% url "logout" %}" class="admin-signout">{% trans "Log out" %}</a>
+        </nav>
+    </header>
+    <nav class="breadcrumbs" aria-label="{% trans "Breadcrumbs" %}">
+        <a href="{% url "index" %}">{% trans "Home" %}</a>
+        &gt; <a href="{% url "admin_index" %}">{% trans "Dashboard" %}</a>
+        <span class="breadcrumb-current">{% block pagename %}{% endblock %}</span>
+    </nav>
+    <div id="content" class="admin-layout{% if hide_navigation %} admin-wide{% endif %}">
+        {% if not hide_navigation %}
+        <nav id="content-related" class="admin-nav" aria-label="{% trans "Administration menu" %}">
+            <details id="admin-menu" class="admin-menu" open>
+            <summary>{% trans "Admin menu" %}</summary>
+            {% url "admin_index" as dashboard_url %}
+            <ul class="admin-menu-home">
+                <li><a href="{{ dashboard_url }}"{% if request.path == dashboard_url %} aria-current="page"{% endif %}>{% trans "Dashboard" %}</a></li>
+            </ul>
+            {% for group in admin_menu %}
+            <div id="{{ group.id }}" class="module">
+                <h2>{{ group.title }}</h2>
+                <ul>
+                {% for item in group.items %}
+                    <li><a href="{{ item.url }}"{% if item.current %} aria-current="page"{% endif %}><span class="admin-menu-label">{{ item.label }}</span>{% if item.count %} <span class="admin-count">{{ item.count }}</span>{% endif %}{% if item.unsaved %} <img width="12" height="12" src="{% url "django_admin_media" "img/icon-alert.svg" %}" alt="{% trans "Unsaved changes" %}" />{% endif %}</a></li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+            </details>
+            <script nonce="{{ csp_nonce }}">osqaAdminMenu(document.getElementById('admin-menu'));</script>
+        </nav>
+        {% endif %}
+        <main id="content-main" tabindex="-1">
+            <h1 class="admin-title">{% block_text "subtitle" %}</h1>
+            <p class="admin-page-description">{% block description %}{% endblock %}</p>
+            {% if unsaved %}
+            <p class="admin_message admin-unsaved">
+                <img width="14" height="14" src="{% url "django_admin_media" "img/icon-alert.svg" %}" alt="" />
+                {% trans "Items marked with this icon have unpublished changes." %}
+            </p>
+            {% endif %}
+            {% autoescape off %}
+                {% for message in user_messages %}
+                    <p class="admin_message">{{ message }}</p>
+                {% endfor %}
+            {% endautoescape %}
+            {% block admincontent %}{% endblock %}
+        </main>
     </div>
-    <div id="admin_page_description">
-        {% block description %}{% endblock %}
-    </div>
-    <div>
-        {% block admincontent %}
-        {% endblock %}
-    </div>
-{% endblock %}
-
-{% block sidebar %}
-    {% if hide_navigation %}
-
-    {% else %}
-    <div class="boxC">
-        <a href="{% url "admin_switch_interface" %}?to=djstyle">{% trans "Switch to django style interface" %}</a>
-        <h3 class="subtitle">{% trans "Administration menu" %}</h3>
-        <ul>
-        {% for set in allsets.values %}
-            <li><a href="{% url "admin_set" set.name %}">{{ set.title }}</a></li>
-        {% endfor %}
-
-        {% for set in othersets %}
-            <li>
-                <a href="{% url "admin_set" set.name %}">{{ set.title }}</a>
-            </li>
-        {% endfor %}
-
-        <li><a href="{% url "admin_maintenance" %}">{% trans "Maintenance mode" %}</a></li>
-        <li><a href="{% url "admin_flagged_posts" %}">{% trans "Flagged Posts" %}</a></li>
-        {% for name,tool in tools %}
-            <li><a href="{% url "admin_tools" name %}">{{ tool }}</a></li>
-        {% endfor %}
-        </ul>
-    </div>
-    {% if markdown %}
-        {% markdown_help %}
-    {% endif %}
-
-    {% endif %}
-{% endblock %}
+    <footer id="footer">
+        <a href="http://www.osqa.net">OSQA</a> <span class="version">{{ settings.OSQA_VERSION }} ({{ settings.VCS_REVISION }})</span>
+    </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Daily: database + uploaded files into a timestamped archive in BACKUP_DIR
+# (default backups/), keeping the last BACKUP_KEEP (14). Set OSQA_ROOT to the
+# directory containing manage.py. Copy the archives off the machine too.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py backup_site

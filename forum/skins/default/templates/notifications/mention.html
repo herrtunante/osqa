@@ -1,0 +1,37 @@
+{% load i18n extra_tags email_tags %}
+
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    author_name = smart_str(author.username)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
+    post_url = settings.APP_BASE_URL + node.get_absolute_url()
+    node_type = node.node_type
+{% enddeclare %}
+
+{% email %}
+    {% subject %}{% blocktrans %}{{ prefix }} {{ author_name }} mentioned you in: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{{ node.body|mention_context:recipient.username }}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        {% declare %}
+            question_link = html.hyperlink(question_url, question_title, style=a_style, **{'class': 'em-link'})
+        {% enddeclare %}
+        <p class="em-text" style="{{ p_style }}">{% include "notifications/_mention_intro.html" %}</p>
+        {% include "notifications/_quote.html" with html=node.body|mention_context:recipient.username|highlight_mention:recipient.username %}
+        {% if node_type == "comment" %}{% trans "View the comment" as cta %}{% elif node_type == "answer" %}{% trans "View the answer" as cta %}{% else %}{% trans "View the question" as cta %}{% endif %}{% include "notifications/_button.html" with url=post_url label=cta %}
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% declare %}
+    question_link = '"%s"' % question_title
+{% enddeclare %}
+{% include "notifications/_mention_intro.html" %}
+
+> {{ node.body|mention_context:recipient.username }}
+
+{% if node_type == "comment" %}{% trans "View the comment" %}{% elif node_type == "answer" %}{% trans "View the answer" %}{% else %}{% trans "View the question" %}{% endif %}:
+{{ post_url }}
+{% endtextcontent %}
+
+{% endemail %}

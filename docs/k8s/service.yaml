@@ -1,0 +1,11 @@
+# Point your Ingress (TLS) at this Service. Keep /metrics off the public
+# Ingress: Prometheus scrapes it inside the cluster (docs/prometheus/).
+apiVersion: v1
+kind: Service
+metadata:
+  name: osqa
+  labels: {app.kubernetes.io/name: osqa}
+spec:
+  selector: {app.kubernetes.io/name: osqa, app.kubernetes.io/component: web}
+  ports:
+    - {name: http, port: 80, targetPort: http}

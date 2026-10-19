@@ -1,74 +1,98 @@
 # encoding:utf-8
+import logging
 import os.path
+import re
 
 import datetime
 
-from django.core.urlresolvers import reverse
-from django.core.files.storage import FileSystemStorage
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.urls import reverse
+from forum.utils.urls import root_relative_reverse
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, Http404, JsonResponse
 from django.utils.html import *
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from django.contrib import messages
+from forum.utils.antispam import posting_limit_reached, posting_limit_message
 
 from forum.actions import AskAction, AnswerAction, ReviseAction, RollbackAction, RetagAction, AnswerToQuestionAction, CommentToQuestionAction
 from forum.forms import *
 from forum.models import *
-from forum.utils import html
+from forum.models.node import render_markdown
+from forum.utils import html, throttle
+from forum.utils.images import store_upload, NotAnImage, ImageTooLarge
 from forum.http_responses import HttpResponseUnauthorized
+from forum.utils import review
+from forum.utils import live
+from forum.utils import post_versions
 
-from vars import PENDING_SUBMISSION_SESSION_ATTR
+from .vars import PENDING_SUBMISSION_SESSION_ATTR
 
-@csrf_exempt
-def upload(request):#ajax upload file to a question or answer
-    class FileTypeNotAllow(Exception):
-        pass
-    class FileSizeNotAllow(Exception):
-        pass
-    class UploadPermissionNotAuthorized(Exception):
-        pass
+# Longer than any post body the forms accept; the preview refuses anything bigger.
+MAX_PREVIEW_LENGTH = 100000
 
-    xml_template = "<result><msg><![CDATA[%s]]></msg><error><![CDATA[%s]]></error><file_url>%s</file_url></result>"
 
+def markdown_preview(request):
+    """Renders editor Markdown exactly as a saved post would be rendered."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    text = request.POST.get('text', '')
+    if len(text) > MAX_PREVIEW_LENGTH:
+        return HttpResponse(status=413)
+    return HttpResponse(render_markdown(text) if text.strip() else '', content_type='text/html; charset=utf-8')
+
+
+def upload(request):
+    """Image upload from the editor (image dialog, paste and drop).
+
+    Answers JSON: {"url": "/upfiles/name.png"} on success, otherwise
+    {"error": "message for the user"} with status 403 (not allowed), 400
+    (not an image, or too many pixels), 413 (too big), 429 (more than
+    UPLOADS_PER_HOUR in an hour; staff have no limit) or 500.
+    """
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    def refused(message, status):
+        return JsonResponse({'error': message}, status=status)
+
+    if not request.user.can_upload_files():
+        return refused(_('uploading images is limited to users with >60 reputation points'), 403)
+
+    f = request.FILES.get('file-upload')
+    file_types = _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff', 'webp'")
+    if f is None:
+        return refused(file_types, 400)
+
+    if os.path.splitext(f.name)[1].lower() not in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico', '.webp'):
+        return refused(file_types, 400)
+
+    # check file size (in bytes) before writing anything to disk
+    if f.size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
+        return refused(_("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, 413)
+
+    # Every image that reaches Pillow counts (decoding is the expensive part).
+    limit = int(settings.UPLOADS_PER_HOUR or 0)
+    if limit > 0 and not (request.user.is_staff or request.user.is_superuser):
+        if throttle.count('upload', request.user.pk) >= limit:
+            return refused(_("You have uploaded %d images in the last hour, the most you can. Please try again "
+                             "later.") % limit, 429)
+        throttle.hit('upload', request.user.pk, 3600)
+
+    # The extension is chosen by the client: Pillow decodes the content, and
+    # only the re-encoded image (no metadata, downscaled) is written to disk,
+    # with its AVIF/WebP copies (forum.utils.images.store_upload).
     try:
-        f = request.FILES['file-upload']
-        # check upload permission
-        if not request.user.can_upload_files():
-            raise UploadPermissionNotAuthorized()
+        url = store_upload(f, f.name)
+    except ImageTooLarge:
+        return refused(_('This image has too many pixels. Please upload a smaller image.'), 400)
+    except NotAnImage:
+        return refused(file_types, 400)
+    except Exception:
+        logging.exception('File upload failed')
+        return refused(_('Error uploading file. Please contact the site administrator. Thank you.'), 500)
 
-        # check file type
-        try:
-            file_name_suffix = os.path.splitext(f.name)[1].lower()
-        except KeyError:
-            raise FileTypeNotAllow()
-
-        if not file_name_suffix in ('.jpg', '.jpeg', '.gif', '.png', '.bmp', '.tiff', '.ico'):
-            raise FileTypeNotAllow()
-
-        storage = FileSystemStorage(str(settings.UPFILES_FOLDER), str(settings.UPFILES_ALIAS))
-        new_file_name = storage.save("_".join(f.name.split()), f)
-        # check file size
-        # byte
-        size = storage.size(new_file_name)
-
-        if size > float(settings.ALLOW_MAX_FILE_SIZE) * 1024 * 1024:
-            storage.delete(new_file_name)
-            raise FileSizeNotAllow()
-
-        result = xml_template % ('Good', '', str(settings.UPFILES_ALIAS) + new_file_name)
-    except UploadPermissionNotAuthorized:
-        result = xml_template % ('', _('uploading images is limited to users with >60 reputation points'), '')
-    except FileTypeNotAllow:
-        result = xml_template % ('', _("allowed file types are 'jpg', 'jpeg', 'gif', 'bmp', 'png', 'tiff'"), '')
-    except FileSizeNotAllow:
-        result = xml_template % ('', _("maximum upload file size is %sM") % settings.ALLOW_MAX_FILE_SIZE, '')
-    except Exception, e:
-        result = xml_template % ('', _('Error uploading file. Please contact the site administrator. Thank you. %s' % e), '')
-
-    return HttpResponse(result, mimetype="application/xml")
+    return JsonResponse({'url': url})
 
 def ask(request):
     form = None
@@ -79,9 +103,12 @@ def ask(request):
         elif "text" in request.POST:
             form = AskForm(request.POST, user=request.user)
             if form.is_valid():
-                if request.user.is_authenticated() and request.user.email_valid_and_can_ask():
+                if request.user.is_authenticated and posting_limit_reached(request.user, 'ask'):
+                    messages.error(request, posting_limit_message('ask'))
+                elif request.user.is_authenticated and request.user.email_valid_and_can_ask():
                     ask_action = AskAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
                     question = ask_action.node
+                    post_versions.save(question, request.POST, question.tagname_list())
 
                     if settings.WIKI_ON and request.POST.get('wiki', False):
                         question.nstate.wiki = ask_action
@@ -89,16 +116,17 @@ def ask(request):
                     return HttpResponseRedirect(question.get_absolute_url())
                 else:
                     request.session[PENDING_SUBMISSION_SESSION_ATTR] = {
-                        'POST': request.POST,
+                        'POST': request.POST.urlencode(),
                         'data_name': _("question"),
                         'type': 'ask',
                         'submission_url': reverse('ask'),
-                        'time': datetime.datetime.now()
+                        'time': datetime.datetime.now().isoformat()
                     }
 
-                    if request.user.is_authenticated():
+                    if request.user.is_authenticated:
                         messages.info(request, _("Your question is pending until you %s.") % html.hyperlink(
-                            django_settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
+                            settings.APP_URL + root_relative_reverse('send_validation_email'), _("validate your email")
+
                         ))
                         return HttpResponseRedirect(reverse('index'))
                     else:
@@ -107,12 +135,19 @@ def ask(request):
             form = AskForm({'title': request.POST['q']}, user=request.user)
             
     if not form:
-        form = AskForm(user=request.user)
+        if request.GET.get('title'):
+            # From the search page: "Ask a question" with the search words as its title.
+            form = AskForm(initial={'title': request.GET['title'].strip()[:300]}, user=request.user)
+        else:
+            form = AskForm(user=request.user)
 
-    return render_to_response('ask.html', {
+    return render(request, 'ask.html', {
         'form' : form,
-        'tab' : 'ask'
-        }, context_instance=RequestContext(request))
+        'tab' : 'ask',
+        # "Applies to version" (forum/utils/post_versions.py), shown as tags are typed.
+        'version_groups': post_versions.form_groups(request.POST.get('tags', '').split(),
+                                                    data=request.POST or None, show_all=True),
+        })
 
 def convert_to_question(request, id):
     user = request.user
@@ -135,6 +170,8 @@ def edit_question(request, id):
     question = get_object_or_404(Question, id=id)
     if question.nis.deleted and not request.user.can_view_deleted_post(question):
         raise Http404
+    if not review.can_view(question, request.user):
+        raise Http404
     if request.user.can_edit_post(question):
         return _edit_question(request, question)
     elif request.user.can_retag_questions():
@@ -152,25 +189,31 @@ def _retag_question(request, question):
             return HttpResponseRedirect(question.get_absolute_url())
     else:
         form = RetagQuestionForm(question)
-    return render_to_response('question_retag.html', {
+    return render(request, 'question_retag.html', {
         'question': question,
         'form' : form,
         #'tags' : _get_tags_cache_json(),
-    }, context_instance=RequestContext(request))
+    })
 
 def _edit_question(request, question, template='question_edit.html', summary='', action_class=ReviseAction,
                    allow_rollback=True, url_getter=lambda q: q.get_absolute_url(), additional_context=None):
+    conflict = None  # changed by someone else since the form was opened (forum/utils/live.py)
     if request.method == 'POST':
         revision_form = RevisionForm(question, data=request.POST)
-        revision_form.is_valid()
-        revision = question.revisions.get(revision=revision_form.cleaned_data['revision'])
+        if revision_form.is_valid():
+            revision = question.revisions.get(revision=revision_form.cleaned_data['revision'])
+        else:
+            revision = question.active_revision
 
         if 'select_revision' in request.POST:
             form = EditQuestionForm(question, request.user, revision)
         else:
             form = EditQuestionForm(question, request.user, revision, data=request.POST)
 
-        if not 'select_revision' in request.POST and form.is_valid():
+        if not 'select_revision' in request.POST and form.is_valid() and \
+                not (conflict := live.edit_conflict(request, question, form)):
+            # Stored on the post, not in a revision (forum/utils/post_versions.py).
+            post_versions.save(question, request.POST, form.cleaned_data['tags'].split())
             if form.has_changed():
                 action = action_class(user=request.user, node=question, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -195,32 +238,43 @@ def _edit_question(request, question, template='question_edit.html', summary='',
         'question': question,
         'revision_form': revision_form,
         'form' : form,
+        'version_groups': post_versions.form_groups(
+            request.POST.get('tags', '').split() if request.method == 'POST' else question.tagname_list(),
+            node=question, data=request.POST if request.method == 'POST' else None, show_all=True),
     }
+    context.update(live.edit_context(request, question, conflict))
 
     if not (additional_context is None):
         context.update(additional_context)
 
-    return render_to_response(template, context, context_instance=RequestContext(request))
+    return render(request, template, context)
 
 
 def edit_answer(request, id):
     answer = get_object_or_404(Answer, id=id)
     if answer.deleted and not request.user.can_view_deleted_post(answer):
         raise Http404
+    elif not review.can_view(answer, request.user):
+        raise Http404
     elif not request.user.can_edit_post(answer):
         raise Http404
 
+    conflict = None  # changed by someone else since the form was opened (forum/utils/live.py)
     if request.method == "POST":
         revision_form = RevisionForm(answer, data=request.POST)
-        revision_form.is_valid()
-        revision = answer.revisions.get(revision=revision_form.cleaned_data['revision'])
+        if revision_form.is_valid():
+            revision = answer.revisions.get(revision=revision_form.cleaned_data['revision'])
+        else:
+            revision = answer.active_revision
 
         if 'select_revision' in request.POST:
             form = EditAnswerForm(answer, request.user, revision)
         else:
             form = EditAnswerForm(answer, request.user, revision, data=request.POST)
 
-        if not 'select_revision' in request.POST and form.is_valid():
+        if not 'select_revision' in request.POST and form.is_valid() and \
+                not (conflict := live.edit_conflict(request, answer, form)):
+            post_versions.save(answer, request.POST, post_versions.question_tag_names(answer))
             if form.has_changed():
                 action = ReviseAction(user=request.user, node=answer, ip=request.META['REMOTE_ADDR']).save(data=form.cleaned_data)
 
@@ -238,25 +292,37 @@ def edit_answer(request, id):
     else:
         revision_form = RevisionForm(answer)
         form = EditAnswerForm(answer, request.user)
-    return render_to_response('answer_edit.html', {
+    return render(request, 'answer_edit.html', {
                               'answer': answer,
                               'revision_form': revision_form,
                               'form': form,
-                              }, context_instance=RequestContext(request))
+                              'version_groups': post_versions.form_groups(
+                                  post_versions.question_tag_names(answer), node=answer,
+                                  data=request.POST if request.method == 'POST' else None),
+                              **live.edit_context(request, answer, conflict),
+                              })
 
 def answer(request, id):
     question = get_object_or_404(Question, id=id)
+    if not review.can_view(question, request.user):
+        raise Http404
 
     if request.POST:
         form = AnswerForm(request.POST, request.user)
 
         if request.session.pop('reviewing_pending_data', False) or not form.is_valid():
-            request.session['redirect_POST_data'] = request.POST
+            request.session['redirect_POST_data'] = request.POST.urlencode()
             return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
 
-        if request.user.is_authenticated() and request.user.email_valid_and_can_answer():
+        if request.user.is_authenticated and posting_limit_reached(request.user, 'answer'):
+            messages.error(request, posting_limit_message('answer'))
+            request.session['redirect_POST_data'] = request.POST.urlencode()
+            return HttpResponseRedirect(question.get_absolute_url() + '#fmanswer')
+
+        if request.user.is_authenticated and request.user.email_valid_and_can_answer():
             answer_action = AnswerAction(user=request.user, ip=request.META['REMOTE_ADDR']).save(dict(question=question, **form.cleaned_data))
             answer = answer_action.node
+            post_versions.save(answer, request.POST, question.tagname_list())
 
             if settings.WIKI_ON and request.POST.get('wiki', False):
                 answer.nstate.wiki = answer_action
@@ -264,16 +330,16 @@ def answer(request, id):
             return HttpResponseRedirect(answer.get_absolute_url())
         else:
             request.session[PENDING_SUBMISSION_SESSION_ATTR] = {
-                'POST': request.POST,
+                'POST': request.POST.urlencode(),
                 'data_name': _("answer"),
                 'type': 'answer',
                 'submission_url': reverse('answer', kwargs={'id': id}),
-                'time': datetime.datetime.now()
+                'time': datetime.datetime.now().isoformat()
             }
 
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 messages.info(request, _("Your answer is pending until you %s.") % html.hyperlink(
-                    django_settings.APP_URL + reverse('send_validation_email', prefix='/'), _("validate your email")
+                    settings.APP_URL + root_relative_reverse('send_validation_email'), _("validate your email")
                 ))
                 return HttpResponseRedirect(question.get_absolute_url())
             else:
@@ -296,5 +362,3 @@ def manage_pending_data(request, action, forward=None):
 
         request.session['redirect_POST_data'] = pending_data['POST']
         return HttpResponseRedirect(pending_data['submission_url'])
-
-

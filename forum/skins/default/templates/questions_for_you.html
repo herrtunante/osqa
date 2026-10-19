@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+<!-- questions_for_you.html -->
+{% load i18n humanize extra_tags question_list_tags %}
+{% comment %}"Questions for you" (forum/views/for_you.py): open questions without an accepted answer in the
+   member's best tags, the ones they were asked to answer first (question.answer_request is set for those).
+   Rows are the shared question_list/item.html; "Not for me" posts to answer_request_decline.{% endcomment %}
+
+{% block title %}{% spaceless %}{{ page_title }}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex" />{% endblock %}
+
+{% block forejs %}
+    <script defer src="{% media "/media/js/osqa.lists.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="list-page for-you-page">
+<div class="list-header">
+    <h1 class="headQuestions">{{ page_title }}</h1>
+    <a class="list-ask button plain-button" href="{% url "ask" %}">{% trans "Ask a question" %}</a>
+</div>
+<div class="tabBar list-toolbar">
+    <p class="list-count">{% blocktrans count counter=questions.paginator.count %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}</p>
+</div>
+{% if not suggestions_on %}
+<p class="for-you-note">{% blocktrans %}You turned suggestions off, so nobody asks you to answer new questions. This page still lists open questions in your tags. <a href="{{ preferences_url }}">Turn suggestions on</a>{% endblocktrans %}</p>
+{% endif %}
+<div id="listA">{% for question in questions.paginator.page %}
+    <div class="for-you-item{% if question.answer_request %} is-requested{% endif %}">
+        {% if question.answer_request %}{% with reason=question.answer_request %}
+        <p class="for-you-reason">{% if reason.tag_answers %}{% blocktrans with tag=reason.tag_name count counter=reason.tag_answers %}Suggested for you: you've answered {{ counter }} question tagged {{ tag }}{% plural %}Suggested for you: you've answered {{ counter }} questions tagged {{ tag }}{% endblocktrans %}{% else %}{% trans "Suggested for you" %}{% endif %}</p>
+        {% endwith %}{% endif %}
+        {% question_list_item question %}
+        <form method="post" action="{% url "answer_request_decline" id=question.id %}" class="for-you-decline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <button type="submit" class="plain-button">{% trans "Not for me" %}<span class="visually-hidden">: {{ question.title }}</span></button>
+        </form>
+    </div>
+{% empty %}
+    <div class="list-empty">
+        <svg class="list-empty-icon" aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
+        <h2>{% if top_tags %}{% trans "No open questions in your tags right now" %}{% else %}{% trans "No questions for you yet" %}{% endif %}</h2>
+        <p>{% trans "Questions show up here in the tags where your answers did well. Every answer to someone else's question counts, an accepted answer and upvotes count more, and answers from the last year count most." %}</p>
+        <p class="list-empty-actions">
+            <a class="button" href="{% url "unanswered" %}">{% trans "Answer an open question" %}</a>
+            <a class="list-empty-link" href="{% url "tags" %}">{% trans "Browse tags" %}</a>
+        </p>
+    </div>
+{% endfor %}</div>
+{% if questions.paginator.page_numbers or questions.paginator.count > 15 %}
+<div class="list-footer">
+    {{ questions.paginator.page_numbers }}
+    {% if questions.paginator.count > 15 %}{{ questions.paginator.page_sizes }}{% endif %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="boxC sidebar-tags for-you-tags">
+    <h3 class="subtitle">{% trans "Your best tags" %}</h3>
+    {% if top_tags %}
+    <ul class="tags related-tags">
+        {% for row in top_tags %}
+        <li><a rel="tag" class="tag-link-{{ row.tag.name }}" href="{% url "tag_questions" row.tag.name|urlencode %}">{{ row.tag.name }}</a>
+        <span class="tag-number">{% blocktrans count counter=row.answers %}{{ counter }} answer{% plural %}{{ counter }} answers{% endblocktrans %}{% if row.accepted %}, {% blocktrans count counter=row.accepted %}{{ counter }} accepted{% plural %}{{ counter }} accepted{% endblocktrans %}{% endif %}</span></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>{% trans "None yet: answer questions to build your expertise." %}</p>
+    {% endif %}
+    <p class="for-you-prefs">{% if suggestions_on %}{% blocktrans %}When a new question matches these tags, we may ask you to answer it. <a href="{{ preferences_url }}">Preferences</a>{% endblocktrans %}{% else %}<a href="{{ preferences_url }}">{% trans "Turn suggestions on" %}</a>{% endif %}</p>
+</div>
+{% endblock %}
+<!-- end questions_for_you.html -->

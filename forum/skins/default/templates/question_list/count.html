@@ -4,23 +4,21 @@
     answer_count = questions.children_count('answer')
 {% enddeclare %}
 
-<div class="boxC">
-    <div class="questions-count">
-        {{ questions.paginator.count }}<span style="color:black;font-size:14px;margin-left:5px">{{ list_description }}</span>
+<div class="boxC list-stats">
+    <div class="list-stats-figures">
+        <div class="questions-count">
+            <span class="questions-count-number">{{ questions.paginator.count|intcomma }}</span>
+            <span class="questions-count-label">{{ list_description }}</span>
+        </div>
+        {% if answer_count %}
+        <div class="questions-count">
+            <span class="questions-count-number">{{ answer_count|intcomma }}</span>
+            <span class="questions-count-label">{% trans "answers" %}</span>
+        </div>
+        {% endif %}
     </div>
-
-
-    {% if answer_count %}
-    <div class="questions-count">
-        {{ answer_count }}<span style="color:black;font-size:14px;margin-left:5px">{% trans "answers" %}</span>
-    </div>
-
+    {% if questions.paginator.sort_description %}
+    <p class="nomargin list-stats-sort">{{ questions.paginator.sort_description }}</p>
     {% endif %}
-
-    <div>
-        <p class="nomargin">
-            {{ questions.paginator.sort_description }}
-        </p>
-    </div>
 </div>
 {% endspaceless %}

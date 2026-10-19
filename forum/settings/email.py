@@ -1,8 +1,7 @@
-from base import Setting, SettingSet
-from django.utils.translation import ugettext_lazy as _
-from django.forms.widgets import PasswordInput
-from django.forms.widgets import RadioSelect
-from forms import TestEmailSettingsWidget
+from .base import Setting, SettingSet
+from django.utils.translation import gettext_lazy as _
+from django.forms.widgets import PasswordInput, RadioSelect
+from .forms import TestEmailSettingsWidget
 
 EMAIL_SET = SettingSet('email', _('Email settings'), _("Email server and other email related settings."), 50)
 
@@ -53,7 +52,7 @@ label = _("Email Subject Prefix"),
 help_text = _("Every email sent through your website will have the subject prefixed by this string. It's usually a good idea to have such a prefix so your users can easily set up a filter on their email clients."),
 required=False))
 
-EMAIL_FOOTER_TEXT = Setting(u'EMAIL_FOOTER_TEXT', '', EMAIL_SET, dict(
+EMAIL_FOOTER_TEXT = Setting('EMAIL_FOOTER_TEXT', '', EMAIL_SET, dict(
 label = _("Email Footer Text"),
 help_text = _("Email footer text, usually \"CAN SPAM\" compliance, or the physical address of the organization running the website. See <a href=\"http://en.wikipedia.org/wiki/CAN-SPAM_Act_of_2003\">this Wikipedia article</a> for more info."),
 required=False))
@@ -83,4 +82,17 @@ label = _("Send digest only to validated users"),
 help_text = _("If checked the daily digest won't be sent to users that haven't validated their emails."),
 required=False))
 
+WEEKLY_SUMMARY_DAY_CHOICES = (
+    ('0', _('Monday')), ('1', _('Tuesday')), ('2', _('Wednesday')), ('3', _('Thursday')),
+    ('4', _('Friday')), ('5', _('Saturday')), ('6', _('Sunday')),
+)
+
+WEEKLY_SUMMARY_DAY = Setting('WEEKLY_SUMMARY_DAY', '0', EMAIL_SET, dict(
+label = _("Weekly summary day"),
+help_text = _("The day send_email_alerts sends the weekly summary to members who chose one (run it daily)."),
+widget=RadioSelect,
+choices=WEEKLY_SUMMARY_DAY_CHOICES,
+required=False))
+
+# LAST_DAILY: the previous daily digest run; LAST_WEEKLY: the previous weekly summary run.
 EMAIL_DIGEST_FLAG = Setting('EMAIL_DIGEST_FLAG', None)

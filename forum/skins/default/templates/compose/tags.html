@@ -1,0 +1,10 @@
+{% load i18n %}{# The tags field as chips (osqa.tagchips.js); without JavaScript a plain text box of space-separated tags. #}
+<div class="compose-field form-item{% if form.tags.errors %} has-error{% endif %}" id="compose-tags">
+    <label class="compose-label" for="id_tags">{% trans "Tags" %}</label>
+    <p class="compose-help" id="id_tags-help">{{ form.tags.help_text }} <span class="tag-chips-keys">{% trans "Press Enter or comma after each tag." %}</span></p>
+    {% include "compose/field_error.html" with field=form.tags %}
+    <div class="tag-chips" data-url="{% url "matching_tags" %}" data-remove="{% trans "Remove tag %s" %}"
+         data-added="{% trans "Tag %s added" %}" data-removed="{% trans "Tag %s removed" %}" data-list="{% trans "Selected tags" %}">
+        {{ form.tags }}
+    </div>
+</div>

@@ -1,23 +1,17 @@
 from django.db import models
-from django.core.cache import cache
-from django.conf import settings
-from django.utils.encoding import force_unicode
 
-try:
-    from cPickle import loads, dumps
-except ImportError:
-    from pickle import loads, dumps
+from pickle import loads, dumps
 
 from copy import deepcopy
 from base64 import b64encode, b64decode
 from zlib import compress, decompress
 import re
 
-from base import BaseModel
+from .base import BaseModel
 
 MAX_MARKABLE_STRING_LENGTH = 100
 
-class PickledObject(unicode):
+class PickledObject(str):
     pass
 
 def dbsafe_encode(value, compress_object=True):
@@ -25,30 +19,35 @@ def dbsafe_encode(value, compress_object=True):
         value = b64encode(dumps(deepcopy(value)))
     else:
         value = b64encode(compress(dumps(deepcopy(value))))
-    return PickledObject(value)
+    return PickledObject(value.decode('ascii'))
 
 def dbsafe_decode(value, compress_object=True):
-    if not compress_object:
-        value = loads(b64decode(value))
-    else:
-        value = loads(decompress(b64decode(value)))
-    return value
+    # Values written by an earlier version of the port were stored as the repr
+    # of the base64 bytes ("b'...'"); strip that wrapper so they can be read.
+    if value.startswith("b'") and value.endswith("'"):
+        value = value[2:-1]
+
+    value = b64decode(value)
+
+    if compress_object:
+        value = decompress(value)
+
+    # latin1 lets Python 3 load pickles written by the Python 2 version of OSQA.
+    return loads(value, encoding='latin1')
 
 class PickledObjectField(models.Field):
-    __metaclass__ = models.SubfieldBase
-
     marker_re = re.compile(r'^T\[(?P<type>\w+)\](?P<value>.*)$', re.DOTALL)
-    markable_types = dict((t.__name__, t) for t in (str, int, unicode))
+    markable_types = dict([(t.__name__, t) for t in (str, int)] + [('unicode', str), ('long', int)])
 
     def __init__(self, *args, **kwargs):
         self.compress = kwargs.pop('compress', True)
         self.protocol = kwargs.pop('protocol', 2)
         kwargs.setdefault('null', True)
         kwargs.setdefault('editable', False)
-        super(PickledObjectField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def generate_type_marked_value(self, value):
-        return PickledObject(u"T[%s]%s" % (type(value).__name__, value))
+        return PickledObject("T[%s]%s" % (type(value).__name__, value))
 
     def read_marked_value(self, value):
         m = self.marker_re.match(value)
@@ -67,7 +66,11 @@ class PickledObjectField(models.Field):
                 return self.default()
             return self.default
 
-        return super(PickledObjectField, self).get_default()
+        return super().get_default()
+
+    def from_db_value(self, value, expression, connection):
+        """Django 2.0+ method to convert database value to Python"""
+        return self.to_python(value)
 
     def to_python(self, value):
         if value is not None:
@@ -83,16 +86,16 @@ class PickledObjectField(models.Field):
 
     def get_db_prep_value(self, value, connection, prepared=False):
         if value is not None and not isinstance(value, PickledObject):
-            if type(value).__name__ in self.markable_types and not (isinstance(value, basestring) and len(value
+            if type(value).__name__ in self.markable_types and not (isinstance(value, str) and len(value
                                                                                                           ) > MAX_MARKABLE_STRING_LENGTH):
-                value = unicode(self.generate_type_marked_value(value))
+                value = str(self.generate_type_marked_value(value))
             else:
-                value = unicode(dbsafe_encode(value, self.compress))
+                value = str(dbsafe_encode(value, self.compress))
         return value
 
     def value_to_string(self, obj):
-        value = self._get_val_from_obj(obj)
-        return self.get_db_prep_value(value)
+        # Serialized (dumpdata) as the stored text; to_python() reads it back.
+        return self.get_db_prep_value(self.value_from_object(obj), connection=None)
 
     def get_internal_type(self):
         return 'TextField'
@@ -100,7 +103,7 @@ class PickledObjectField(models.Field):
     def get_db_prep_lookup(self, lookup_type, value):
         if lookup_type not in ['exact', 'in', 'isnull']:
             raise TypeError('Lookup type %s is not supported.' % lookup_type)
-        return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
+        return super().get_db_prep_lookup(lookup_type, value)
 
 
 class KeyValue(BaseModel):

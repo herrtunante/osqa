@@ -1,9 +1,10 @@
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from forum.models.action import ActionProxy
 from forum.models import Page
 
 class NewPageAction(ActionProxy):
-    verb = _("created")
+    verb = _lazy("created")
 
     def process_data(self, **data):
         title = data.pop('title')
@@ -20,7 +21,7 @@ class NewPageAction(ActionProxy):
         }
 
 class EditPageAction(ActionProxy):
-    verb = _("edited")
+    verb = _lazy("edited")
 
     def process_data(self, **data):
         title = data.pop('title')
@@ -39,7 +40,7 @@ class EditPageAction(ActionProxy):
         }
 
 class PublishAction(ActionProxy):
-    verb = _("published")
+    verb = _lazy("published")
 
     def process_action(self):
         self.node.marked = True

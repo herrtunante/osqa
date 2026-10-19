@@ -1,26 +1,39 @@
-{% load i18n %}
-{% load question_list_tags %}
+{% load i18n humanize extra_tags node_tags %}
 
-<div id="subscription_list" align="left">
-    <h2>
-        {% trans "Manage your current subscriptions" %}
-        <span style="font-size:11px">
-            {% if auto %}
-                <a href='{% url "user_subscriptions" id=view_user.id slug=view_user.username|slugify %}?auto=False&tab=manage'>{% trans "don't show auto-subscribe" %}</a>
-            {% else %}
-                <a href='{% url "user_subscriptions" id=view_user.id slug=view_user.username|slugify %}?auto=True&tab=manage'>{% trans "show auto-subscribe" %}</a>
-            {% endif %}
-        </span>
-    </h2>
+<section id="subscription_list" class="settings-card" aria-labelledby="subscription-list-title">
+    <div class="settings-card-head">
+        <h2 id="subscription-list-title">{% trans "Manage your current subscriptions" %}</h2>
+        {% if auto %}
+            <a class="subscription-filter" href='{% url "user_subscriptions" id=view_user.id slug=view_user.username|slugify %}?auto=False&tab=manage'>{% trans "don't show auto-subscribe" %}</a>
+        {% else %}
+            <a class="subscription-filter" href='{% url "user_subscriptions" id=view_user.id slug=view_user.username|slugify %}?auto=True&tab=manage'>{% trans "show auto-subscribe" %}</a>
+        {% endif %}
+    </div>
 
+    {% if subscriptions.paginator.count %}
+    <ul class="subscription-items">
     {% for subscription in subscriptions.paginator.page %}
-        {% subscription_list_item subscription subscription.question %}
+    {% with question=subscription.question %}
+    <li class="subscription_summary">
+        <div class="subscription-text">
+            <div class="subscription_title"><a title="{{ question.summary }}" href="{{ question.get_absolute_url }}">{{ question.headline }}</a></div>
+            <div class="subscription_details">{% post_time subscription.last_view as checked %}{% blocktrans %}Last checked {{ checked }}{% endblocktrans %}</div>
+        </div>
+        {# A form, not a link: the subscribe command only accepts POST, then returns here. #}
+        <form method="post" action="{% url "subscribe" id=question.id user=subscription.user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="plain-button subscription_unsubscribe_button">{% trans "Unsubscribe" %}</button>
+        </form>
+    </li>
+    {% endwith %}
     {% endfor %}
-
+    </ul>
     <div class="pager">{{ subscriptions.paginator.page_numbers }}</div>
-</div>
-
-<br />
-<br />
-
+    {% else %}
+    <div class="profile-empty">
+        <p>{% trans "You don't follow any questions yet." %}</p>
+        <p class="profile-empty-hint">{% trans "Questions you ask, answer or follow are listed here." %}</p>
+    </div>
+    {% endif %}
+</section>
 <!-- end user_subscriptions.html -->

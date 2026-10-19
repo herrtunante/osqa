@@ -1,9 +1,9 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
-{% load i18n user_tags extra_tags extra_filters admin_static %}
+{% load i18n user_tags extra_tags extra_filters %}
 
 {% block adminjs %}
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
         $(function() {
             var $form = $('#changelist-search');
 
@@ -15,10 +15,10 @@
             $('.node-type-link').click(function() {
                 var link_type = $(this).attr('href').substring(1);
 
-                if ($('#type-filter-container').find('input[value=' + link_type + ']').length == 0) {
+                if ($('#type-filter-container').find('input[value="' + link_type + '"]').length == 0) {
                     $('#type-filter-container').append($("<input name=\"node_type\" type=\"hidden\" value=\"" + link_type + "\" />"));
                 } else {
-                    $('#type-filter-container').find('input[value=' + link_type + ']').remove();
+                    $('#type-filter-container').find('input[value="' + link_type + '"]').remove();
                 }
 
                 $form.submit();                
@@ -32,19 +32,19 @@
             $('.state-type-link').click(function() {
                 var state_type = $(this).attr('href').substring(1);
 
-                if ($('#state-filter-container').find('input[value=' + state_type + ']').length == 0) {
+                if ($('#state-filter-container').find('input[value="' + state_type + '"]').length == 0) {
                     $('#state-filter-container').append($("<input name=\"state_type\" type=\"hidden\" value=\"" + state_type + "\" />"));
                 } else {
-                    $('#state-filter-container').find('input[value=' + state_type + ']').remove();
+                    $('#state-filter-container').find('input[value="' + state_type + '"]').remove();
                 }
 
                 $form.submit();
             });
 
             $('.action-select').change(function() {
-                $('#action-toggle').removeAttr('checked');
+                $('#action-toggle').prop('checked', false);
                 var $tr = $(this).parents('tr');
-                if ($(this).attr('checked')) {
+                if ($(this).prop('checked')) {
                     $tr.addClass('selected');
                 } else {
                     $tr.removeClass('selected');
@@ -55,86 +55,57 @@
                 var $rows = $('#result_list').find('tbody').find('tr');
                 var $boxes = $('#result_list').find('tbody').find('input');
 
-                if ($(this).attr('checked')) {
+                if ($(this).prop('checked')) {
                     $rows.addClass('selected');
-                    $boxes.attr('checked', 'checked')
+                    $boxes.prop('checked', true)
                 } else {
                     $rows.removeClass('selected');
-                    $boxes.removeAttr('checked');
+                    $boxes.prop('checked', false);
                 }
             });
 
-            $('#author-selector').autocomplete('{% url "matching_users" %}', {
-                minChars: 1,
-                matchContains: true,
-                max: 10,
-
-                formatItem: function(row, i, max, value) {
+            $('#author-selector').osqaAutocomplete('{% url "matching_users" %}', {
+                label: function(row) {
                     return row[1] + ' (' + row[2] + ' {% trans "rep" %})';
                 },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-            });
-
-            $('#author-selector').result(function(event, data, formatted) {
-                if ($('#author-filter-container').find('input[value=' + data[0] + ']').length == 0) {
-                    $('#author-filter-container').append($("<input name=\"authors\" type=\"hidden\" value=\"" + data[0] + "\" />"));
-                    $form.submit();
+                select: function(row) {
+                    if ($('#author-filter-container').find('input[value="' + row[0] + '"]').length == 0) {
+                        $('#author-filter-container').append($('<input name="authors" type="hidden" />').val(row[0]));
+                        $form.submit();
+                    }
                 }
             });
 
             $('.author-filter-remover').click(function() {
                 var id = $(this).attr('rel');
-                if ($('#author-filter-container').find('input[value=' + id + ']').length > 0) {
-                    $('#author-filter-container').find('input[value=' + id + ']').remove();
+                if ($('#author-filter-container').find('input[value="' + id + '"]').length > 0) {
+                    $('#author-filter-container').find('input[value="' + id + '"]').remove();
                     $form.submit();
                 }
             });
 
-            $('#tag-selector').autocomplete('{% url "matching_tags" %}', {
-                minChars: 1,
-                matchContains: true,
-                max: 10,
-
-                formatItem: function(row, i, max, value) {
+            $('#tag-selector').osqaAutocomplete('{% url "matching_tags" %}', {
+                label: function(row) {
                     return row[1] + ' (' + row[2] + ' {% trans "uses" %})';
                 },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-            });
-
-            $('#tag-selector').result(function(event, data, formatted) {
-                if ($('#tag-filter-container').find('input[value=' + data[0] + ']').length == 0) {
-                    $('#tag-filter-container').append($("<input name=\"tags\" type=\"hidden\" value=\"" + data[0] + "\" />"));
-                    $form.submit();
+                select: function(row) {
+                    if ($('#tag-filter-container').find('input[value="' + row[0] + '"]').length == 0) {
+                        $('#tag-filter-container').append($('<input name="tags" type="hidden" />').val(row[0]));
+                        $form.submit();
+                    }
                 }
             });
 
             $('.tag-filter-remover').click(function() {
                 var id = $(this).attr('rel');
-                if ($('#tag-filter-container').find('input[value=' + id + ']').length > 0) {
-                    $('#tag-filter-container').find('input[value=' + id + ']').remove();
+                if ($('#tag-filter-container').find('input[value="' + id + '"]').length > 0) {
+                    $('#tag-filter-container').find('input[value="' + id + '"]').remove();
                     $form.submit();
                 }
             });
 
-            $('#filter-name-box').one('focus', function() {
-                $(this).val('');
-                $(this).css('color', 'black');
-            });
-
-            $('#filter-name-box').keyup(function() {
-                if ($(this).val().trim().length > 0) {
-                    $('#save-filter-button').removeAttr('disabled');
-                    $('#save-filter-button').css('color', 'black');
-                } else {
-                    $('#save-filter-button').css('color', '#AAA');
-                    $('#save-filter-button').attr('disabled', 'disabled');
-                }
+            $('#filter-name-box').on('input keyup', function() {
+                $('#save-filter-button').prop('disabled', $(this).val().trim().length == 0);
             });
 
             var resize_data = null;
@@ -187,13 +158,11 @@
         }
 
         #result_list tr td.deleted {
-            background-color: #FDD;
-            border-bottom: 1px solid #a9a9a9;
+            background-color: var(--osqa-deleted-bg, #fdd);
         }
 
         #result_list tr td.accepted {
-            background-color: #DFD;
-            border-bottom: 1px solid #a9a9a9;
+            background-color: var(--osqa-accepted-bg, #dfd);
         }
 
         span.question-deleted {
@@ -208,8 +177,7 @@
             padding: 0 0 0 0;
         }
     </style>
-    <link href="{% static 'admin/css/base.css' %}" rel="stylesheet" type="text/css" media="screen" />
-    <script type="text/javascript">
+    <script nonce="{{ csp_nonce }}" type="text/javascript">
     /* gettext identity library */
 
     function gettext(msgid) { return msgid; }
@@ -253,71 +221,177 @@
     }
     
     </script>
-    <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
+    <script type="text/javascript" src="{% url "django_admin_media" "js/core.js" %}"></script>
 {% endblock %}
 
 {% block subtitle %}
     {% trans "Node manager" %}
 {% endblock %}
+{% block pagename %}{% trans "Node manager" %}{% endblock %}
 {% block description %}
     {% trans "Nodes bulk management" %}
 {% endblock %}
 
 {% block admincontent %}
     <div id="changelist" class="module filtered">
-        <div id="toolbar">
-            <form method="get" action="" id="changelist-search">
-            {% csrf_token %}
-            <div>
+        <div class="changelist-form-container">
+            <div id="toolbar">
+                <form method="get" action="" id="changelist-search">
                 <div>
-                    <label><img alt="Search" src="{% static 'admin/img/admin/icon_searchbox.png' %}"></label>
-                    <input type="text" size="40" name="text" id="text-filter-input" value="{{ text }}">
-                    <input type="submit" value="{% trans "Search" %}">
-                    {% if text %}
-                        <small><a href="#" id="reset-text-filter">{% trans "reset text filter" %}</a></small>
-                    {% endif %}
-                    <br />
-                    <ul>
-                        <li>
-                            <label>
-                                <input type="radio" name="text_in" value="title"{% ifequal text_in "title" %} checked="checked"{% endifequal %} />
-                            {% trans "Title" %}</label>
-                        </li>
-                        <li>
-                            <label>
-                                <input type="radio" name="text_in" value="body"{% ifequal text_in "body" %} checked="checked"{% endifequal %} />
-                            {% trans "Body" %}</label>
-                        </li>
-                        <li>
-                            <label>
-                                <input type="radio" name="text_in" value="both"{% ifequal text_in "both" %} checked="checked"{% endifequal %} />
-                            {% trans "Title and Body" %}</label>
-                       </li>
-                    </ul>
+                    <div>
+                        <label for="text-filter-input"><img alt="{% trans "Search" %}" src="{% url "django_admin_media" "img/search.svg" %}"></label>
+                        <input type="text" size="40" name="text" id="text-filter-input" value="{{ text }}">
+                        <input type="submit" value="{% trans "Search" %}">
+                        {% if text %}
+                            <small><a href="#" id="reset-text-filter">{% trans "reset text filter" %}</a></small>
+                        {% endif %}
+                        <br />
+                        <ul>
+                            <li>
+                                <label>
+                                    <input type="radio" name="text_in" value="title"{% if text_in == "title" %} checked="checked"{% endif %} />
+                                {% trans "Title" %}</label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="text_in" value="body"{% if text_in == "body" %} checked="checked"{% endif %} />
+                                {% trans "Body" %}</label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="text_in" value="both"{% if text_in == "both" %} checked="checked"{% endif %} />
+                                {% trans "Title and Body" %}</label>
+                           </li>
+                        </ul>
+                    </div>
                 </div>
+                <input type="hidden" name="sort" value="{{ nodes.paginator.current_sort }}" />
+                <input type="hidden" id="state-filter-type-hidden" name="state_filter_type" value="" />
+                <div style="display: none;" id="author-filter-container">
+                    {% for u in authors %}
+                    <input name="authors" type="hidden" value="{{ u.id }}" />
+                    {% endfor %}
+                </div>
+                <div style="display: none;" id="tag-filter-container">
+                    {% for t in tags %}
+                    <input name="tags" type="hidden" value="{{ t.id }}" />
+                    {% endfor %}
+                </div>
+                <div id="type-filter-container" style="display: none;">
+                    {% for type in type_filter %}
+                    <input name="node_type" type="hidden" value="{{ type }}" />
+                    {% endfor %}
+                </div>
+                <div id="state-filter-container" style="display: none;">
+                    {% for type in state_filter %}
+                    <input name="state_type" type="hidden" value="{{ type }}" />
+                    {% endfor %}
+                </div>
+                </form>
             </div>
-            <input type="hidden" name="sort" value="{{ nodes.paginator.current_sort }}" />
-            <input type="hidden" id="state-filter-type-hidden" name="state_filter_type" value="" />
-            <div style="display: none;" id="author-filter-container">
-                {% for u in authors %}
-                <input name="authors" type="hidden" value="{{ u.id }}" />
-                {% endfor %}
-            </div>
-            <div style="display: none;" id="tag-filter-container">
-                {% for t in tags %}
-                <input name="tags" type="hidden" value="{{ t.id }}" />
-                {% endfor %}
-            </div>
-            <div id="type-filter-container" style="display: none;">
-                {% for type in type_filter %}
-                <input name="node_type" type="hidden" value="{{ type }}" />
-                {% endfor %}
-            </div>
-            <div id="state-filter-container" style="display: none;">
-                {% for type in state_filter %}
-                <input name="state_type" type="hidden" value="{{ type }}" />
-                {% endfor %}
-            </div>
+            <form id="changelist-form" method="POST" action="">
+                {% csrf_token %}
+                <div class="actions">
+                    <label>
+                        {% trans "Action" %}:
+                        <select name="action">
+                            <option selected="selected" value="">---------</option>
+                            <option value="delete_selected">{% trans "Mark deleted" %}</option>
+                            <option value="undelete_selected">{% trans "Undelete" %}</option>
+                            <option value="hard_delete_selected">{% trans "Delete completely" %}</option>
+                            <option value="close_selected">{% trans "Close (questions only)" %}</option>
+                        </select>
+                    </label>
+                    <button value="0" name="execute" title="{% trans "Run the selected action" %}" class="button" type="submit">{% trans "Go" %}</button>
+                </div>
+                <div class="results">
+                    <table id="result_list" class="node-list" cellspacing="0">
+                        <thead>
+                            <tr>
+                                {% declare %}
+                                    current_sort = nodes.paginator.current_sort
+                                    added_at = current_sort == "added_at" and "ascending" or (current_sort == "added_at_asc" and "descending" or "")
+                                    author = current_sort == "author" and "ascending" or (current_sort == "author_asc" and "descending" or "")
+                                    score = current_sort == "score" and "ascending" or (current_sort == "score_asc" and "descending" or "")
+                                    act_at = current_sort == "act_at" and "ascending" or (current_sort == "act_at_asc" and "descending" or "")
+                                    act_by = current_sort == "act_by" and "ascending" or (current_sort == "act_by_asc" and "descending" or "")
+
+                                    added_at_link = current_sort == "added_at" and nodes.paginator.added_at_asc_sort_link or nodes.paginator.added_at_sort_link
+                                    author_link = current_sort == "author_asc" and nodes.paginator.author_sort_link or nodes.paginator.author_asc_sort_link
+                                    act_at_link = current_sort == "act_at" and nodes.paginator.act_at_asc_sort_link or nodes.paginator.act_at_sort_link
+                                    act_by_link = current_sort == "act_by_asc" and nodes.paginator.act_by_sort_link or nodes.paginator.act_by_asc_sort_link
+                                {% enddeclare %}
+                                {% spaceless %}
+                                <th class="action-checkbox-column">
+                                    <input type="checkbox" id="action-toggle" style="display: inline;" aria-label="{% trans "Select all" %}" />
+                                </th>                        
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Summary" %}</th>
+                                <th class="col-resizer"></th>
+                                <th>{% trans "State" %}</th>
+                                <th class="sorted {{ author }}">
+                                    <a href="{{ author_link }}">{% trans "Author" %}</a>
+                                </th>
+                                <th class="sorted {{ added_at }}">
+                                    <a href="{{ added_at_link }}">{% trans "Added at" %}</a>
+                                </th>
+                                {% comment %}
+                                <th class="sorted {{ score }}">
+                                    <a href="{{ score_link }}">{% trans "Score" %}</a>
+                                </th>
+                                {% endcomment %}
+                                <th class="sorted {{ act_by }}">
+                                    <a href="{{ act_by_link }}">{% trans "Last activity by" %}</a>
+                                </th>
+                                <th class="sorted {{ act_at }}">
+                                    <a href="{{ act_at_link }}">{% trans "Last activity at" %}</a>
+                                </th>
+                                <th>{% trans "Tags" %}</th>
+                                {% endspaceless %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% with filter_form.state_type.data as state_type %}
+                        {% for node in nodes.paginator.page %}
+                            <tr class="{% cycle 'row1' 'row2' %}">
+                                <td class="node-select"><input type="checkbox" name="_selected_node" value="{{ node.id }}" class="action-select" aria-label="{% trans "Select" %}"></td>
+                                <td class="node-type" data-label="{% trans "Type" %}">{{ node.leaf.friendly_name }}</td>
+                                {% declare %}
+                                    is_root = node.abs_parent == None
+                                    title = is_root and node.title or node.abs_parent.title
+
+                                    anchor = "<strong>%s</strong>" % html.hyperlink(node.leaf.get_absolute_url(), title)
+                                    anchor = ((not is_root) and node.abs_parent.nis.deleted) and "<span class=\"question-deleted\">%s</span>" % anchor or anchor
+                                    anchor = is_root and anchor or "(%s)" % anchor
+                                    anchor = html.mark_safe(anchor)
+
+                                    td_class = ""
+                                    td_class = node.nis.accepted and "accepted" or td_class
+                                    td_class = node.nis.deleted and "deleted" or td_class
+                                {% enddeclare %}
+                                <td class="node-summary {{ td_class }}" colspan="2">
+                                    {{ anchor }}<br />
+                                    {{ node.summary }}
+                                </td>
+                                <td class="node-states" data-label="{% trans "State" %}">{% for state in node.states.all %}
+                                    <b>{{ state.state_type }}</b> {% diff_date state.action.at %} {% trans "by" %}
+                                    <a target="_blank" href="{{ state.action.by.get_absolute_url }}">{{ state.action.by.decorated_name }}</a><br />
+                                    {% endfor %}</td>
+                                <td class="node-short" data-label="{% trans "Author" %}"><a href="{{ node.author.get_absolute_url  }}">{{ node.author.decorated_name }}</a></td>
+                                <td class="node-short" data-label="{% trans "Added at" %}">{% diff_date node.added_at %}</td>
+                                <td class="node-short" data-label="{% trans "Last activity by" %}"><a href="{{ node.last_activity_by.get_absolute_url  }}">{{ node.last_activity_by.decorated_name }}</a></td>
+                                <td class="node-short" data-label="{% trans "Last activity at" %}">{% diff_date node.last_activity_at %}</td>
+                                <td class="node-tags" data-label="{% trans "Tags" %}">{% for t in node.tags.all %}{% if t|contained_in:tags %}<b>{{ t.name }}</b>
+                                        {% else %}{{ t.name }}{% endif %} {% endfor %}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td class="admin-empty" colspan="10">{% trans "No posts match these filters." %}</td></tr>
+                        {% endfor %}
+                        {% endwith %}
+                        </tbody>
+                    </table>
+                </div>
+                {{ nodes.paginator.page_numbers }}
             </form>
         </div>
         <div id="changelist-filter">
@@ -345,15 +419,15 @@
                     </li>
                 {% endfor %}
                 <li>
-                    <select id="state-filter-type">
-                        <option value="any"{% ifequal state_filter_type "any" %} selected="selected"{% endifequal %}>{% trans "Match any selected" %}</option>
-                        <option value="all"{% ifequal state_filter_type "all" %} selected="selected"{% endifequal %}>{% trans "Match all selected" %}</option>
+                    <select id="state-filter-type" aria-label="{% trans "By state" %}">
+                        <option value="any"{% if state_filter_type == "any" %} selected="selected"{% endif %}>{% trans "Match any selected" %}</option>
+                        <option value="all"{% if state_filter_type == "all" %} selected="selected"{% endif %}>{% trans "Match all selected" %}</option>
                     </select>
                 </li>
             </ul>
             <h3>{% trans "By author(s)" %}</h3>
             {% if not authors.count %}
-                <small>{% trans "No users selected, use the box bellow to add users to the filter." %}</small>
+                <small>{% trans "No users selected, use the box below to add users to the filter." %}</small>
             {% else %}
                 <ul>
                     {% for u in authors %}
@@ -365,11 +439,11 @@
                 </ul>
                 <small>{% trans "Click on the cross next to a user name to remove it from the filter." %}</small>
             {% endif %}
-            <input type="text" size="20" autocomplete="off" id="author-selector" />
+            <input type="text" size="20" autocomplete="off" id="author-selector" aria-label="{% trans "By author(s)" %}" />
 
             <h3>{% trans "By tag(s)" %}</h3>
             {% if not tags.count %}
-                <small>{% trans "No tags selected, use the box bellow to add tags to the filter." %}</small>
+                <small>{% trans "No tags selected, use the box below to add tags to the filter." %}</small>
             {% else %}
                 <ul>
                     {% for t in tags %}
@@ -381,11 +455,11 @@
                 </ul>
                 <small>{% trans "Click on the cross next to a tag name to remove it from the filter." %}</small>
             {% endif %}
-            <input type="text" size="20" autocomplete="off" id="tag-selector" />
+            <input type="text" size="20" autocomplete="off" id="tag-selector" aria-label="{% trans "By tag(s)" %}" />
 
             <h3>{% trans "Pre defined" %}</h3>
             {% if not settings.NODE_MAN_FILTERS %}
-                <small>{% trans "There are no saved filters. Click bellow to add." %}</small>
+                <small>{% trans "There are no saved filters. Click below to add." %}</small>
             {% endif %}
             <ul id="pre-filter-container">
                 {% for name, uri in settings.NODE_MAN_FILTERS %}
@@ -394,8 +468,8 @@
             </ul>
             <form action="" method="POST">
                 {% csrf_token %}
-                <input name="filter_name" type="text" size="20" id="filter-name-box" style="color: #AAA;" value="{% trans "Filter name..." %}" />
-                <button name="save_filter" value="0" style="color: #AAA;" title="{% trans "Click to save the current filter" %}" id="save-filter-button" disabled="disabled" class="button">{% trans "Save" %}</button>
+                <input name="filter_name" type="text" size="20" id="filter-name-box" placeholder="{% trans "Filter name..." %}" aria-label="{% trans "Filter name..." %}" />
+                <button name="save_filter" value="0" title="{% trans "Click to save the current filter" %}" id="save-filter-button" disabled="disabled" class="button">{% trans "Save" %}</button>
             </form>
 
             {% comment %}<h3>{% trans "Show" %}</h3>
@@ -406,112 +480,5 @@
             </form>{% endcomment %}
             </div>
         </div>
-        <form id="changelist-form" method="POST" action="">
-            {% csrf_token %}
-            <div class="actions">
-                <label>
-                    {% trans "Action" %}:
-                    <select name="action">
-                        <option selected="selected" value="">---------</option>
-                        <option value="delete_selected">{% trans "Mark deleted" %}</option>
-                        <option value="undelete_selected">{% trans "Undelete" %}</option>
-                        <option value="hard_delete_selected">{% trans "Delete completely" %}</option>
-                        <option value="close_selected">{% trans "Close (questions only)" %}</option>
-                    </select>
-                </label>
-                <button value="0" name="execute" title="{% trans "Run the selected action" %}" class="button" type="submit">{% trans "Go" %}</button>
-            </div>
-            <table id="result_list" cellspacing="0">
-                <thead>
-                    <tr>
-                        {% declare %}
-                            current_sort = nodes.paginator.current_sort
-                            added_at = current_sort == "added_at" and "ascending" or (current_sort == "added_at_asc" and "descending" or "")
-                            author = current_sort == "author" and "ascending" or (current_sort == "author_asc" and "descending" or "")
-                            score = current_sort == "score" and "ascending" or (current_sort == "score_asc" and "descending" or "")
-                            act_at = current_sort == "act_at" and "ascending" or (current_sort == "act_at_asc" and "descending" or "")
-                            act_by = current_sort == "act_by" and "ascending" or (current_sort == "act_by_asc" and "descending" or "")
-
-                            added_at_link = current_sort == "added_at" and nodes.paginator.added_at_asc_sort_link or nodes.paginator.added_at_sort_link
-                            author_link = current_sort == "author_asc" and nodes.paginator.author_sort_link or nodes.paginator.author_asc_sort_link
-                            act_at_link = current_sort == "act_at" and nodes.paginator.act_at_asc_sort_link or nodes.paginator.act_at_sort_link
-                            act_by_link = current_sort == "act_by_asc" and nodes.paginator.act_by_sort_link or nodes.paginator.act_by_asc_sort_link
-                        {% enddeclare %}
-                        {% spaceless %}
-                        <th class="action-checkbox-column">
-                            <input type="checkbox" id="action-toggle" style="display: inline;" />
-                        </th>                        
-                        <th>{% trans "Type" %}</th>
-                        <th>{% trans "Summary" %}</th>
-                        <th class="col-resizer"></th>
-                        <th>{% trans "State" %}</th>
-                        <th class="sorted {{ author }}">
-                            <a href="{{ author_link }}">{% trans "Author" %}</a>
-                        </th>
-                        <th class="sorted {{ added_at }}">
-                            <a href="{{ added_at_link }}">{% trans "Added at" %}</a>
-                        </th>
-                        {% comment %}
-                        <th class="sorted {{ score }}">
-                            <a href="{{ score_link }}">{% trans "Score" %}</a>
-                        </th>
-                        {% endcomment %}
-                        <th class="sorted {{ act_by }}">
-                            <a href="{{ act_by_link }}">{% trans "Last activity by" %}</a>
-                        </th>
-                        <th class="sorted {{ act_at }}">
-                            <a href="{{ act_at_link }}">{% trans "Last activity at" %}</a>
-                        </th>
-                        <th>{% trans "Tags" %}</th>
-                        {% endspaceless %}
-                    </tr>
-                </thead>
-                <tbody>
-                {% with filter_form.state_type.data as state_type %}
-                {% for node in nodes.paginator.page %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><input type="checkbox" name="_selected_node" value="{{ node.id }}" class="action-select"></td>
-                        <td>{{ node.friendly_name }}</td>
-                        {% declare %}
-                            is_root = node.abs_parent == None
-                            title = is_root and node.title or node.abs_parent.title
-
-                            anchor = "<strong>%s</strong>" % html.hyperlink(node.get_absolute_url(), title)
-                            anchor = ((not is_root) and node.abs_parent.nis.deleted) and "<span class=\"question-deleted\">%s</span>" % anchor or anchor
-                            anchor = is_root and anchor or "(%s)" % anchor
-                            anchor = html.mark_safe(anchor)
-
-                            td_class = ""
-                            td_class = node.nis.accepted and "accepted" or td_class
-                            td_class = node.nis.deleted and "deleted" or td_class
-                        {% enddeclare %}
-                        <td class="{{ td_class }}" colspan="2">
-                            {{ anchor }}<br />
-                            {{ node.summary }}
-                        </td>
-                        <td>
-                            {% for state in node.states.all %}
-                            <b>{{ state.state_type }}</b> {% diff_date state.action.at %} {% trans "by" %}
-                            <a target="_blank" href="{{ state.action.by.get_absolute_url }}">{{ state.action.by.decorated_name }}</a><br />
-                            {% endfor %}
-                        </td>
-                        <td><a href="{{ node.author.get_absolute_url  }}">{{ node.author.decorated_name }}</a></td>
-                        <td>{% diff_date node.added_at %}</td>
-                        <!--<td>{{ node.score }}</td>-->
-                        <td><a href="{{ node.last_activity_by.get_absolute_url  }}">{{ node.last_activity_by.decorated_name }}</a></td>
-                        <td>{% diff_date node.last_activity_at %}</td>
-                        <td>
-                            {% for t in node.tags.all %}
-                                {% if t|contained_in:tags %}<b>{{ t.name }}</b>
-                                {% else %}{{ t.name }}{% endif %}
-                            {% endfor %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                {% endwith %}
-                </tbody>
-            </table>
-            {{ nodes.paginator.page_numbers }}
-        </form>
     </div>
 {% endblock %}

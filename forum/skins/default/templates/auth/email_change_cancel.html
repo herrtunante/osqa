@@ -1,0 +1,24 @@
+{% extends "base_content.html" %}
+{# The cancel link sent to the old address: asks first (mail scanners open links), then cancels and signs out everywhere. #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Cancel the email change?" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <h1>{% trans "Cancel the email change?" %}</h1>
+            <p class="auth-lead">{% blocktrans with name=changed_user.username email=new_email_masked %}Someone asked to change the email address of the account <strong>{{ name }}</strong> to {{ email }}.{% endblocktrans %}</p>
+            <p class="auth-help">{% trans "Cancelling keeps the current address and signs out every browser and device, including any an intruder may be using." %}</p>
+            <form class="auth-form" method="post" action="">
+                {% csrf_token %}
+                <button type="submit" class="auth-submit">{% trans "Cancel the change and sign out everywhere" %}</button>
+            </form>
+            <p class="auth-switch"><a href="{% url "index" %}">{% trans "It was me, keep the change" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

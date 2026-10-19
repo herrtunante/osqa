@@ -1,0 +1,54 @@
+{% load i18n extra_tags email_tags %}
+{% comment %}
+The daily or weekly summary of activity (forum/utils/email_frequency.py, sent by send_email_alerts) for
+members who chose a summary instead of separate emails. Context: summaries (user id -> Summary), period
+('d' or 'w'), email_kind (summary_daily / summary_weekly). One line per item: _summary_item.html (HTML)
+and _summary_line.html (what happened, both parts).
+{% endcomment %}
+{% declare %}
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    app_name = smart_str(settings.APP_SHORT_NAME)
+    app_url = settings.APP_URL
+    weekly = period == 'w'
+    notifications_url = app_url + reverse('notifications')
+{% enddeclare %}
+
+{% email %}
+    {% declare %}
+        summary = summaries[recipient.id]
+        update_count = summary.count
+    {% enddeclare %}
+    {% subject %}{% if weekly %}{% blocktrans count counter=update_count %}{{ prefix }} Your weekly summary: {{ counter }} update{% plural %}{{ prefix }} Your weekly summary: {{ counter }} updates{% endblocktrans %}{% else %}{% blocktrans count counter=update_count %}{{ prefix }} Your daily summary: {{ counter }} update{% plural %}{{ prefix }} Your daily summary: {{ counter }} updates{% endblocktrans %}{% endif %}{% endsubject %}
+    {% preheader %}{% for section in summary.sections %}{{ section.title }} ({{ section.count }}){% if not forloop.last %} &middot; {% endif %}{% endfor %}{% endpreheader %}
+
+    {% htmlcontent notifications/base.html %}
+        <p class="em-text" style="{{ p_style }}">{% if weekly %}{% blocktrans %}Here's what happened on {{ app_name }} this week in the questions and tags you follow.{% endblocktrans %}{% else %}{% blocktrans %}Here's what happened on {{ app_name }} since your last summary.{% endblocktrans %}{% endif %}</p>
+        {% for section in summary.sections %}
+        <h2 class="em-h2" style="{{ h2_style }}">{{ section.title }} ({{ section.count }})</h2>
+        <ul style="margin:0 0 16px 0;padding:0 0 0 20px;">{% for item in section.items %}
+            <li class="em-li" style="{{ li_style }}">{% include "notifications/_summary_item.html" %}</li>{% endfor %}
+        </ul>
+        {% if section.more %}<p class="em-small" style="{{ small_style }}">{% blocktrans count counter=section.more %}And {{ counter }} more.{% plural %}And {{ counter }} more.{% endblocktrans %}</p>{% endif %}
+        {% endfor %}
+        {% trans "See all your notifications" as cta %}{% include "notifications/_button.html" with url=notifications_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "You get this summary instead of a separate email for each update. Nothing new means no email." %}</p>
+    {% endhtmlcontent %}
+
+{% textcontent notifications/base_text.html %}
+{% if weekly %}{% blocktrans %}Here's what happened on {{ app_name }} this week in the questions and tags you follow.{% endblocktrans %}{% else %}{% blocktrans %}Here's what happened on {{ app_name }} since your last summary.{% endblocktrans %}{% endif %}
+
+{% for section in summary.sections %}
+{{ section.title }} ({{ section.count }})
+{% for item in section.items %}* {% if item.kind == "member" %}{{ item.actor.username }} - {% trans "joined the site" %}{% else %}{{ item.question.title }}
+{% include "notifications/_summary_line.html" %}{% endif %}
+{{ app_url }}{{ item.url }}
+
+{% endfor %}{% if section.more %}{% blocktrans count counter=section.more %}And {{ counter }} more.{% plural %}And {{ counter }} more.{% endblocktrans %}
+{% endif %}
+{% endfor %}
+{% trans "See all your notifications" %}:
+{{ notifications_url }}
+
+{% trans "You get this summary instead of a separate email for each update. Nothing new means no email." %}
+{% endtextcontent %}
+{% endemail %}

@@ -1,0 +1,27 @@
+{% extends "user.html" %}
+{% load i18n extra_tags %}
+{# The settings pages (edit profile, email, preferences, sign-in, your data): a settings header and a section menu instead of the profile card and tabs. #}
+{% block profile_top %}
+<div class="settings-header">
+    <a class="settings-header-avatar" href="{{ view_user.get_profile_url }}" tabindex="-1" aria-hidden="true">{% gravatar view_user 56 %}</a>
+    <div class="settings-header-text">
+        <h1>{% trans "Settings" %}</h1>
+        <p>
+            {% if request.user == view_user %}
+                <a href="{{ view_user.get_profile_url }}">{% trans "Back to your profile" %}</a>
+            {% else %}
+                {% blocktrans with name=view_user.username %}You are changing the settings of {{ name }}.{% endblocktrans %}
+                <a href="{{ view_user.get_profile_url }}">{% trans "Back to the profile" %}</a>
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}
+{% block usercontent %}
+<div class="settings-layout">
+    {% include "users/settings_nav.html" %}
+    <div class="settings-main">
+        {% block settingscontent %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

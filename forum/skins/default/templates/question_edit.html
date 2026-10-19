@@ -2,158 +2,74 @@
 <!-- question_edit.html -->
 {% load i18n %}
 {% load extra_tags %}
-{% block title %}{% spaceless %}{% trans "Edit question" %}{% endspaceless %}{% endblock %}
+{% block title %}{% spaceless %}{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit question" %}{% endif %}{% endspaceless %}{% endblock %}
 {% block forejs %}
-        <script type='text/javascript' src='{% media  "/media/js/wmd/showdown.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/wmd/wmd.js" %}'></script>
-        <script type='text/javascript' src='{% media  "/media/js/html_sanitizer.js" %}'></script>
-        <link rel="stylesheet" type="text/css" href="{% media  "/media/js/wmd/wmd.css" %}" />
-        <script type="text/javascript">
-		//todo move javascript out        
-        $().ready(function(){
-            $("#nav_questions").attr('className',"on");
-            $('#editor').TextAreaResizer();
-            
-
-            //toggle preview of editor
-            var display = true;
-            var txt = "[{% trans "hide preview" %}]";
-            $('#pre-collapse').text(txt);
-            $('#pre-collapse').bind('click', function(){
-                txt = display ? "[{% trans "show preview" %}]" : "[{% trans "hide preview" %}]";
-                display = !display;
-                $('#previewer').toggle();
-                $('#pre-collapse').text(txt);
-            });
-            
-            //Tags autocomplete action
-        	$("#id_tags").autocomplete("{% url "matching_tags" %}", {
-        		matchContains: true,
-                max: 20,
-                multiple: true,
-                multipleSeparator: " ",
-                highlightItem: true,
-                scroll: true,
-                scrollHeight: 300,
-        		/*formatItem: function(row, i, max) {
-        			return row.n + " ("+ row.c +")";
-        		},
-                formatResult: function(row, i, max){
-                    return row.n;
-                }*/
-                formatItem: function(row, i, max, value) {
-                    return row[1] + " (" + row[2] + ")";
-                },
-
-                formatResult: function(row, i, max, value){
-                    return row[1];
-                }
-                
-            });         
-
-            $('#id_revision').unbind().change(function(){
-                $("#select_revision").click();
-            });
-
-            init = $("textarea#editor")[0].value;
-
-            title = $("input#id_title")[0].value;
-            body = $("textarea#editor")[0].value;
-            tag = $("input#id_tags")[0].value;
-        });
-
-        function submitClicked(e, f) {
-            if(!(browserTester('chrome') || browserTester('safari'))) {
-                $("input.submit")[0].disabled=true;
-                $("input.submit")[1].disabled=true;
-            }
-            window.removeEventListener('beforeunload', beforeUnload, true);
-            if (f) {
-                f.submit();
-            }
-        }
-
-        function beforeUnload(e) {
-            if($("input#id_title")[0].value != title || $("textarea#editor")[0].value != body || $("input#id_tags")[0].value != tag) {
-                 return yourWorkWillBeLost(e);
-            }
-        }
-        window.addEventListener('beforeunload', beforeUnload, true);
-
-        var init = "";
-        var title = "";
-        var body = "";
-        var tag = "";
-        </script>
+        {% include "compose/editor_scripts.html" %}
+        <script defer src="{% media "/media/js/osqa.ask.js" %}"></script>
+        <script defer src="{% media "/media/js/osqa.tagchips.js" %}"></script>
+        {% if version_groups and not suggesting and not improving %}<script defer src="{% media "/media/js/osqa.versions.js" %}"></script>{% endif %}
+        <script defer src="{% media "/media/js/osqa.compose.js" %}"></script>
 {% endblock %}
-        
+
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% block edittype %}{% trans "Edit question" %}{% endblock %} [<a href="{{ question.get_absolute_url }}">{% trans "back" %}</a>]
+<div id="main-bar" class="headNormal compose-header">
+    <h1>{% block edittype %}{% if suggesting %}{% trans "Suggest an edit" %}{% elif improving %}{% trans "Improve a suggested edit" %}{% else %}{% trans "Edit question" %}{% endif %}{% endblock %}</h1>
+    <p class="compose-lead"><a href="{{ question.get_absolute_url }}">{{ question.headline }}</a></p>
 </div>
-<div id="main-body" class="ask-body">
+<div id="main-body" class="ask-body compose-page">
     <div id="askform">
-        <form id="fmedit" action="" method="post">
+        <form id="fmedit" class="compose-form" novalidate data-guard="changed" action="" method="post">
             {% csrf_token %}
-            <label for="id_revision" ><strong>{% trans "revision" %}:</strong></label> <br/> 
-            {% if revision_form.revision.errors %}{{ revision_form.revision.errors.as_ul }}{% endif %}
-            <div style="vertical-align:middle">
-            {{ revision_form.revision }} <input type="submit" style="display:none" id="select_revision" name="select_revision" 
-											value="{% trans "select revision"%}">
-            </div> 
-            <div class="form-item">
-                <label for="id_title" ><strong>{{ form.title.label_tag }}:</strong></label> <span class="form-error"></span><br/> 
-                {{ form.title }} {{ form.title.errors }}  
-                <div class="title-desc">
-                    {{ form.title.help_text }}
-                </div>     
+            {% trans "Body" as body_label %}
+            {% trans "Your edits aren't saved yet. Please check:" as errors_title %}
+            {% include "compose/errors.html" with title=errors_title text_label=body_label %}
+            {% if suggesting %}
+            <div class="compose-note suggest-edit-note" role="note">
+                <p class="compose-note-title">{% trans "Your edit will be reviewed" %}</p>
+                <p>{% blocktrans %}A member who can edit others' posts checks your changes first: they appear on the post once approved, and you get a notification either way. Describe what you changed in the edit summary.{% endblocktrans %}</p>
             </div>
-            <div class="form-item">
-                <div id="wmd-button-bar" class="wmd-panel"></div>
-                {{ form.text }}
-                <span class="form-error"></span>
-                <div class="preview-toggle">
-                    <table width="100%">
-                        <tr>
-                            <td>
-                                <span id="pre-collapse" title="{% trans "Toggle the real time Markdown editor preview" %}">{% trans "toggle preview" %}</span>
-                            </td>
-                            <td style="text-align: right;" id="editor-metrics"></td>
-                            {% if settings.WIKI_ON %}
-                            <td style="text-align:right;">
-                                {{ form.wiki }} <span style="color:#000;cursor:help" title="{{form.wiki.help_text}}">{{ form.wiki.label_tag }} </span>
-                            </td>
-                            {% endif %}
-                        </tr>
-                    
-                    </table>   
-                </div>
-                <div id="previewer" class="wmd-preview"></div>
+            {% elif improving %}
+            <div class="compose-note suggest-edit-note" role="note">
+                {% blocktrans with author=improving.author.username %}You are improving an edit suggested by {{ author }}. Saving approves their edit (credited to them) and then saves your changes as a revision of your own.{% endblocktrans %}
             </div>
-            <div class="form-item">
-                <strong>{{ form.tags.label_tag }}:</strong> <span class="form-error"></span><br/>
-                {{ form.tags }}  {{ form.tags.errors }}
-                <div class="title-desc">
-                    {{ form.tags.help_text }}
-                </div>
+            {% elif question.author_id != request.user.id %}
+            <div class="compose-note" role="note">
+                {% blocktrans with author=question.author.username %}You are editing a post by {{ author }}. Your changes will be shown in its revision history.{% endblocktrans %}
             </div>
-            <strong>{{ form.summary.label_tag }}</strong> <br/>
-            {{ form.summary }}  {{ form.summary.errors }}
-            <div class="title-desc">
-                {{ form.summary.help_text }}
+            {% endif %}
+
+            {% if revision_form %}{% include "compose/revision.html" %}{% endif %}
+
+            <div class="compose-field form-item{% if form.title.errors %} has-error{% endif %}" id="compose-title">
+                <label class="compose-label" for="id_title">{% trans "Title" %}</label>
+                <p class="compose-help" id="id_title-help">{% trans "Be specific and imagine you're asking another person." %}</p>
+                {% include "compose/field_error.html" with field=form.title %}
+                {{ form.title }}
             </div>
+
             
+            {% include "compose/editor.html" with label=body_label %}
+
+            {% include "compose/tags.html" %}
+
+            {% if not suggesting and not improving %}{% include "compose/versions.html" %}{% endif %}
+
+            {% include "compose/summary.html" %}
+
+            {% include "compose/wiki.html" %}
+
             {% if form.recaptcha %}
-            <div class="question-captcha" style="float: left">
+            <div class="question-captcha">
             	{{ form.recaptcha.errors }}
             	{{ form.recaptcha }}
             </div>
-            <div class="clear"></div>
             {% endif %}
-            
-            <div class="error" ></div>
-            <input type="button" value="{% trans "Save edit" %}" class="submit" onclick="submitClicked(event, this.form)" />
-            <input type="button" value="{% trans "Cancel" %}" class="submit" onclick="submitClicked(event, null); history.back(-1);" />
+
+            <div class="compose-actions">
+                <input type="submit" value="{% if suggesting %}{% trans "Suggest edit" %}{% elif improving %}{% trans "Approve with my changes" %}{% else %}{% trans "Save edits" %}{% endif %}" class="submit compose-submit" />
+                <a class="compose-cancel" href="{{ question.get_absolute_url }}">{% trans "Cancel" %}</a>
+                <span class="compose-shortcut" aria-hidden="true"><kbd class="compose-mod">Ctrl</kbd>+<kbd>Enter</kbd></span>
+            </div>
         </form>
     </div>
 </div>

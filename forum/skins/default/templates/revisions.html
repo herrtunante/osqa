@@ -5,74 +5,33 @@
 {% load extra_filters %}
 {% load humanize %}
 {% block title %}{% spaceless %}{% trans "Revision history" %}{% endspaceless %}{% endblock %}
-{% block forejs %}
-    <script type="text/javascript">
 
-        $(document).ready(function() {
-            rev_bodies = $('div.rev-body');
-            if(rev_bodies.length > 0)toggleRev(rev_bodies.length);
-            if(rev_bodies.length > 1)toggleRev(rev_bodies.length-1);
-
-            for(var index = 0; index < rev_bodies.length; index++) {
-                rev_bodies.get(index);
-            }
-        });
-
-        function toggleRev(id) {
-            var rev_body = $('div#rev-body-' + id).get(0);
-            var rev_arrow = $('img#rev-arrow-' + id).get(0);
-            if (rev_body.style.display == "none") {
-                rev_body.style.display = "";
-                rev_arrow.src="{% media  "/media/images/expander-arrow-hide.gif" %}"
-            } else {
-                rev_body.style.display = "none";
-                rev_arrow.src="{% media  "/media/images/expander-arrow-show.gif" %}"
-            }
-        }
-        
-    </script>
-{% endblock %}
-        
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "Revision history" %}[<a href="{{ post.get_absolute_url }}">{% trans "back" %}</a>]
+<div id="main-bar" class="page-header">
+    <h1 class="page-title">{% trans "Revision history" %}</h1>
+    <a class="page-back" href="{{ post.get_absolute_url }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>{% trans "back" %}</a>
 </div>
-<div id="main-body" class="">
+<div id="main-body">
+    {# One card per revision, newest first; the two latest are open. The whole header toggles it. #}
     <div id="revisions">
     {% for revision in revisions %}
-      <div class="revision">
-        <div id="rev-header-{{ revision.inst.revision }}" class="header {% ifequal post.author revision.inst.author %}author{% endifequal %}">
-          <div class="header-controls">
-            <table width="100%">
-                <tr>
-                    <td width="20" style="vertical-align:middle"><img id="rev-arrow-{{ revision.inst.revision }}"
-                                                                      class="rev-arrow"
-                                                                      onclick="toggleRev({{ revision.inst.revision }})"
-                                                                      src="{% media  "/media/images/expander-arrow-show.gif" %}"
-                                                                      alt="{% trans "click to hide/show revision" %}"/>
-                    </td>
-                    <td width="30px" style="vertical-align:middle"><span class="revision-number" title="{% trans "revision" %} {{ revision.inst.revision }}">{{ revision.inst.revision }}</span></td>
-                    <td width="200px" style="vertical-align:middle">
-                        <div class="summary"><span>{{ revision.inst.summary }}</span></div>
-                    </td>
-                    <td align="right">
-                        <div class="revision-mark" >
-                            {% reviser_info revision.inst %}
-                        </div>
-                    </td>
-                </tr>
-    	            
-            </table>
-          </div>
+      <details class="revision{% if post.author == revision.inst.author %} by-author{% endif %}" id="rev-{{ revision.inst.revision }}"{% if forloop.counter <= 2 %} open{% endif %}>
+        <summary id="rev-header-{{ revision.inst.revision }}" class="revision-header">
+            <span class="revision-number" title="{% trans "revision" %} {{ revision.inst.revision }}">{{ revision.inst.revision }}</span>
+            <span class="revision-text">
+                <span class="revision-summary">{{ revision.summary }}</span>
+                <span class="revision-meta">{% gravatar revision.inst.author 20 %}<span class="revision-author">{{ revision.inst.author.username }}</span><span aria-hidden="true">&middot;</span>{% post_time revision.inst.revised_at %}</span>
+            </span>
+            <svg class="revision-chevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="revision-body">
+            <div class="revision-mark">{% reviser_info revision.inst %}</div>
+            <div id="rev-body-{{ revision.inst.revision }}" class="diff body rev-body">
+                {{ revision.diff|safe }}
+            </div>
         </div>
-        <div id="rev-body-{{ revision.inst.revision }}" class="diff body rev-body" style="display:none">
-            {{ revision.diff|safe }}
-        </div>
-      </div>
+      </details>
     {% endfor %}
     </div>
 </div>
-{% endblock %}
-
-{% block endjs %}
 {% endblock %}

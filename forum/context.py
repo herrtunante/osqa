@@ -3,15 +3,8 @@ from forum import settings
 def application_settings(context):
     return {'settings': settings}
 
-def auth_processor(request):
-    if hasattr(request, 'user'):
-        user = request.user
-    else:
-        from django.contrib.auth.models import AnonymousUser
-        user = AnonymousUser()
+def csp_nonce(request):
+    """The nonce inline scripts need under the Content-Security-Policy:
+    <script nonce="{{ csp_nonce }}"> (see forum.middleware.security)."""
+    return {'csp_nonce': getattr(request, 'csp_nonce', '')}
 
-    from django.core.context_processors import PermWrapper
-    return {
-        'user': user,
-        'perms': PermWrapper(user),
-    }

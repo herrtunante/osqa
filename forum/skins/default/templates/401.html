@@ -10,7 +10,7 @@
 	</style>
 {% endblock %}
 {% block forejs %}
-       <script type="text/javascript">
+       <script nonce="{{ csp_nonce }}" type="text/javascript">
         $().ready(function(){
             window.setInterval(function() {
                 $('#redirect_loader').html($('#redirect_loader').html() + '.')
@@ -24,12 +24,10 @@
         </script>
 {% endblock %}
 {% block content %}
-<div id="main-bar" class="headNormal">
-    {% trans "Not logged in" %}
-</div>
+<div id="main-bar" class="page-header"><h1 class="page-title">{% trans "Not logged in" %}</h1></div>
 <div id="main-body" class="">
     <div style="padding:5px 0px 10px 0;line-height:25px;">
-        <h3>{% trans "You are not logged in..." %}</h3>
+        <h2 class="error-lead">{% trans "You are not logged in..." %}</h2>
         <div style="margin-top:5px">
             {% trans "...and the resource you're trying to access is protected." %}
             <p>

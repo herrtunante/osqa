@@ -1,14 +1,29 @@
-{% extends basetemplate %}
+{% extends "osqaadmin/base.html" %}
 
 {% load i18n %}
 
 {% block subtitle %}
     {% trans "XML data importer" %}
 {% endblock %}
+{% block pagename %}{% trans "XML data importer" %}{% endblock %}
 {% block description %}
     {% trans "Import data from dump file" %}
 {% endblock %}
 
 {% block admincontent %}
-
+<p>
+    {% trans "Restore the users, questions, answers, comments, votes, tags and awards of a backup made with the XML data exporter. The data is added to this site; users with the same email address are merged." %}
+</p>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="POST" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table class="admin-form-table">
+    {{ form.as_table }}
+    </table>
+    <div class="submit-row">
+        <input type="submit" name="start" value="{% trans "Start" %}" />
+    </div>
+</form>
 {% endblock %}

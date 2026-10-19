@@ -1,0 +1,6 @@
+#!/bin/sh
+# Nightly: update the AI assistant's knowledge index (forum threads and crawled
+# documentation). Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py build_knowledge_index

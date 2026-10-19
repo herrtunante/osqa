@@ -1,5 +1,5 @@
 #!/bin/sh
-PYTHONPATH=/path/to/dir_above_osqa_site
-export PYTHONPATH
-PROJECT_ROOT=$PYTHONPATH/osqa_site
-/path/to/python $PROJECT_ROOT/manage.py send_email_alerts
+# Daily/weekly email digests. Set OSQA_ROOT to the directory containing manage.py.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+
+cd "$OSQA_ROOT" && python3 manage.py send_email_alerts

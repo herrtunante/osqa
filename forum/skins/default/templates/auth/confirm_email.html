@@ -1,0 +1,50 @@
+{% extends "base_content.html" %}
+{# "Confirm your email address": signed in, where the link went and a button to send a new one; signed out, a form for the address (the same answer whether or not it has an account). #}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Confirm your email address" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block forestyle %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% media "/media/style/auth.css" %}"/>
+{% endblock %}
+{% block page_center %}
+<div id="wrapper">
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+            </div>
+            <h1>{% trans "Confirm your email address" %}</h1>
+            {% if request.user.is_authenticated %}
+                {% if request.user.email_isvalid %}
+                    <p class="auth-lead">{% blocktrans with email=request.user.email %}Your email address <span class="auth-address">{{ email }}</span> is confirmed.{% endblocktrans %}</p>
+                    {% if pending_email %}<p class="auth-help">{% blocktrans with email=pending_email %}You asked to change it to <span class="auth-address">{{ email }}</span>: use the link we sent there.{% endblocktrans %}</p>{% endif %}
+                    <div class="auth-actions"><a class="button auth-secondary" href="{% url "index" %}">{% trans "Go to the questions" %}</a></div>
+                {% else %}
+                    <p class="auth-lead">{% blocktrans with email=request.user.email count hours=link_hours %}We sent a link to <span class="auth-address">{{ email }}</span>. Open it to confirm your address; it works once, for {{ hours }} hour.{% plural %}We sent a link to <span class="auth-address">{{ email }}</span>. Open it to confirm your address; it works once, for {{ hours }} hours.{% endblocktrans %}</p>
+                    <p class="auth-help">{% trans "Nothing arrived after a few minutes? Check your spam folder, or send a new link (the old one stops working)." %}</p>
+                    <div class="auth-actions">
+                        <form method="post" action="{% url "send_validation_email" %}">
+                            {% csrf_token %}
+                            <button type="submit" class="auth-submit">{% trans "Send a new link" %}</button>
+                        </form>
+                        <a class="button auth-secondary" href="{% url "edit_user" request.user.id request.user.username|slugify %}">{% trans "Use another email address" %}</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p class="auth-lead">{% trans "Enter the email address you signed up with and we'll send you a new confirmation link." %}</p>
+                {% if form.errors %}
+                    <div class="auth-alert" role="alert">
+                        {% for field in form %}{% for error in field.errors %}<p><a href="#{{ field.auto_id }}">{{ error }}</a></p>{% endfor %}{% endfor %}
+                    </div>
+                {% endif %}
+                <form class="auth-form" action="{% url "send_validation_email" %}" method="post" accept-charset="utf-8" novalidate>
+                    {% csrf_token %}
+                    {% include "auth/field.html" with field=form.email %}
+                    <button type="submit" class="auth-submit">{% trans "Send the confirmation link" %}</button>
+                </form>
+                <p class="auth-switch">{% trans "Already confirmed?" %} <a href="{% url "auth_signin" %}">{% trans "Sign in" %}</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

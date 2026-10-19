@@ -2,40 +2,82 @@
 import os.path
 
 SITE_SRC_ROOT = os.path.dirname(__file__)
-LOG_FILENAME = 'django.osqa.log'
+LOG_DIR = os.path.join(SITE_SRC_ROOT, 'log')
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            'format': '%(pathname)s TIME: %(asctime)s MSG: %(filename)s:%(funcName)s:%(lineno)d %(message)s',
-        }
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'formatter': 'default',
-            'filename': os.path.join(SITE_SRC_ROOT, 'log', LOG_FILENAME),
+            'format': '%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s',
+        },
+        'security': {
+            'format': '%(asctime)s %(levelname)s %(message)s',
         },
     },
-    'loggers' : {
-        # ensure that all log entries are propagated to root
-        'django': { 'propagate': True },
-        'django.request': { 'propagate': True },
-        'django.security': { 'propagate': True },
-        'py.warnings': { 'propagate': True },
+    'handlers': {
+        # Rotated at 10 MB; the last 5 files are kept.
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'default',
+            'filename': os.path.join(LOG_DIR, 'django.osqa.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+        },
+        # Failed and paused sign-ins, password changes, refused pages,
+        # permission and settings changes, blocked content (CSP).
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'security',
+            'filename': os.path.join(LOG_DIR, 'security.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+        },
+    },
+    'loggers': {
+        'forum.security': {'handlers': ['security_file'], 'level': 'INFO', 'propagate': True},
     },
     'root': {
         'handlers': ['file'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     },
 }
 
-#ADMINS and MANAGERS
+#ADMINS and MANAGERS (server errors are reported to Sentry, see SENTRY_DSN below)
 ADMINS = ()
 MANAGERS = ADMINS
 
 DEBUG = False
+
+# Required. Keep it secret and unique per site; changing it logs everybody out.
+# Generate one with:
+#   python -c 'from django.core.management.utils import get_random_secret_key as k; print(k())'
+SECRET_KEY = ''
+
+# HTTPS: when APP_URL starts with https://, secure cookies and HSTS are on by
+# default (see settings.py). Behind a reverse proxy (nginx, a load balancer) set
+# the number of proxies so the visitor's IP and HTTPS are read from the
+# X-Forwarded-For / X-Forwarded-Proto headers the proxy sets; HTTP is then
+# redirected to HTTPS. Leave it 0 if visitors reach OSQA directly.
+#TRUSTED_PROXY_COUNT = 1
+
+# Sentry error reports (or the environment variables of the same names).
+# SENTRY_DSN: server errors. SENTRY_FRONTEND_DSN: JavaScript errors in the
+# browser; defaults to SENTRY_DSN (use a separate JavaScript project if you
+# like), 'off' turns it off.
+#SENTRY_DSN = 'https://<key>@o<org>.ingest.sentry.io/<project>'
+#SENTRY_FRONTEND_DSN = 'https://<key>@o<org>.ingest.sentry.io/<project>'
+#SENTRY_ENVIRONMENT = 'production'
+#SENTRY_TRACES_SAMPLE_RATE = 0.0   # e.g. 0.1 to trace 10% of requests
+#SENTRY_MAX_EVENTS_PER_VISITOR = 10   # per user or IP per hour, server and browser each
+
+# Browser push notifications (off unless both keys are set). Make a pair with
+#   python manage.py generate_vapid_keys
+# Keep it: a new pair makes every device turn notifications on again.
+#VAPID_PUBLIC_KEY = ''
+#VAPID_PRIVATE_KEY = ''   # secret
+#VAPID_SUBJECT = 'mailto:admin@example.org'   # contact for the push services (default: APP_URL)
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': True
 }
@@ -55,8 +97,16 @@ DATABASES = {
     }
 }
 
-CACHE_BACKEND = 'file://%s' % os.path.join(os.path.dirname(__file__),'cache').replace('\\','/')
-#CACHE_BACKEND = 'dummy://'
+# The cache must be shared by all worker processes. Memcached is recommended:
+#CACHES = {'default': {'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+#                      'LOCATION': '127.0.0.1:11211'}}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(os.path.dirname(__file__), 'cache'),
+        'OPTIONS': {'MAX_ENTRIES': 10000},
+    }
+}
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Customize the values below if OSQA is in a subfolder and especially you're planning on
 # running multiple Django applications (OSQA or others) on the same domain in different
@@ -79,4 +129,4 @@ LANGUAGE_CODE = 'en'
 
 OSQA_DEFAULT_SKIN = 'default'
 
-DISABLED_MODULES = ['books', 'recaptcha', 'project_badges', 'stats']
+DISABLED_MODULES = ['recaptcha', 'project_badges']

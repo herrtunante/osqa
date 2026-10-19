@@ -1,0 +1,81 @@
+{% extends "users/settings_base.html" %}
+{% load i18n extra_tags %}
+{# Personal access tokens for the API (forum/views/api.py tokens_page). A new token is shown once, in the answer to the form. #}
+{% block title %}{% spaceless %}{% trans "API tokens" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block userjs %}<script defer src="{% media "/media/js/osqa.copy.js" %}"></script>{% endblock %}
+{% block settingscontent %}
+{% if new_token %}
+<section class="settings-card security-card api-new-token" aria-labelledby="api-new-token-title">
+    <h2 id="api-new-token-title">{% trans "Copy your new token now" %}</h2>
+    <p class="settings-lead">{% trans "This is the only time it is shown. Keep it secret, like a password: whoever has it can use the API as you." %}</p>
+    <div class="api-token-copy">
+        <label class="visually-hidden" for="api-new-token">{% trans "New token" %}</label>
+        <input type="text" id="api-new-token" class="api-token-value" value="{{ new_token }}" readonly autocomplete="off" spellcheck="false" />
+        <button type="button" class="button security-primary" data-copy-target="#api-new-token" data-copied-text="{% trans "Copied" %}">{% trans "Copy" %}</button>
+    </div>
+    <p class="api-token-status" role="status" aria-live="polite"></p>
+    <p class="auth-help">{% trans "Send it in the Authorization header:" %} <code>Authorization: Bearer {{ new_token|slice:":11" }}…</code></p>
+</section>
+{% endif %}
+
+<section class="settings-card security-card" aria-labelledby="api-tokens-title">
+    <div class="settings-card-head">
+        <h2 id="api-tokens-title">{% trans "API tokens" %}</h2>
+    </div>
+    <p class="settings-lead">{% url "api_docs" as docs_url %}{% blocktrans trimmed with url=docs_url %}Personal access tokens let your own programs and scripts use the <a href="{{ url }}">API</a> as you. Reading public content needs no token.{% endblocktrans %}</p>
+    {% if tokens %}
+    <ul class="settings-list api-tokens">
+        {% for token in tokens %}
+        <li>
+            <span class="security-item-text">
+                <strong class="security-item-name">{{ token.name }}</strong>
+                <span class="security-item-meta"><code>{{ token.prefix }}…</code> &middot;
+                    {% if "write" in token.scope_list %}{% trans "read and write" %}{% else %}{% trans "read only" %}{% endif %} &middot;
+                    {% if token.is_expired %}<span class="api-token-expired">{% blocktrans with date=token.expires|date:"DATE_FORMAT" %}expired {{ date }}{% endblocktrans %}</span>{% elif token.expires %}{% blocktrans with date=token.expires|date:"DATE_FORMAT" %}expires {{ date }}{% endblocktrans %}{% else %}{% trans "never expires" %}{% endif %} &middot;
+                    {% if token.last_used %}{% blocktrans with used=token.last_used|date:"DATE_FORMAT" %}last used {{ used }}{% endblocktrans %}{% else %}{% trans "never used" %}{% endif %}</span>
+            </span>
+            <form method="post" action="{% url "user_api_token_revoke" id=view_user.id token_id=token.id %}" data-confirm="{% blocktrans with name=token.name %}Revoke the token &quot;{{ name }}&quot;? Programs using it will stop working.{% endblocktrans %}">
+                {% csrf_token %}
+                <button type="submit" class="plain-button danger-outline-button">{% trans "Revoke" %}<span class="visually-hidden"> {{ token.name }}</span></button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="security-empty">{% trans "No tokens yet." %}</p>
+    {% endif %}
+</section>
+
+{% if own %}
+<section class="settings-card security-card" aria-labelledby="api-create-title">
+    <h2 id="api-create-title">{% trans "Create a token" %}</h2>
+    {% if tokens|length >= max_tokens %}
+    <p class="settings-lead">{% blocktrans with n=max_tokens %}You have {{ n }} tokens, the most an account can have. Revoke one you no longer use to create another.{% endblocktrans %}</p>
+    {% else %}
+    <form method="post" class="api-token-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<p class="auth-error" role="alert">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+        <div class="auth-field">
+            <label for="id_name">{{ form.name.label }}</label>
+            <p class="auth-help" id="id_name_help">{{ form.name.help_text }}</p>
+            <input type="text" name="name" id="id_name" maxlength="64" value="{{ form.name.value|default:"" }}" autocomplete="off" aria-describedby="id_name_help{% if form.name.errors %} id_name_error{% endif %}"{% if form.name.errors %} aria-invalid="true"{% endif %} required />
+            {% if form.name.errors %}<p class="auth-error" id="id_name_error">{{ form.name.errors|join:" " }}</p>{% endif %}
+        </div>
+        <fieldset class="auth-field api-scope-field">
+            <legend class="settings-label">{{ form.access.label }}</legend>
+            {% for choice in form.access %}
+            <label class="api-choice">{{ choice.tag }} <span>{{ choice.choice_label }}</span></label>
+            {% endfor %}
+            {% if not writes_enabled %}<p class="auth-help">{% trans "Posting through the API is turned off on this site at the moment." %}</p>{% endif %}
+        </fieldset>
+        <div class="auth-field">
+            <label for="id_expires">{{ form.expires.label }}</label>
+            {{ form.expires }}
+        </div>
+        <div class="settings-actions"><button type="submit" class="button security-primary">{% trans "Create token" %}</button></div>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

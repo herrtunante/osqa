@@ -1,0 +1,16 @@
+{% load i18n %}
+{% with current=request.resolver_match.url_name slug=view_user.username|slugify %}
+<nav class="settings-nav" aria-label="{% trans "Settings sections" %}">
+    <ul>
+        <li><a href="{% url "edit_user" view_user.id slug %}"{% if current == "edit_user" %} aria-current="page"{% endif %}>{% trans "Edit profile" %}</a></li>
+        <li><a href="{{ view_user.get_user_subscriptions_url }}"{% if current == "user_subscriptions" %} aria-current="page"{% endif %}>{% trans "Email settings" %}</a></li>
+        <li><a href="{% url "user_preferences" view_user.id slug %}"{% if current == "user_preferences" %} aria-current="page"{% endif %}>{% trans "Preferences" %}</a></li>
+        <li><a href="{% url "user_authsettings" view_user.id %}"{% if current == "user_authsettings" %} aria-current="page"{% endif %}>{% trans "Sign-in and password" %}</a></li>
+        <li><a href="{% url "user_security" view_user.id %}"{% if current == "user_security" or current == "two_factor_setup" or current == "two_factor_recovery_codes" %} aria-current="page"{% endif %}>{% trans "Passkeys and two-step verification" %}</a></li>
+        {% if settings.API_ENABLED %}<li><a href="{% url "user_api_tokens" view_user.id %}"{% if current == "user_api_tokens" %} aria-current="page"{% endif %}>{% trans "API tokens" %}</a></li>{% endif %}
+        {% if request.user == view_user %}
+        <li><a href="{% url "user_account_data" view_user.id %}"{% if current == "user_account_data" %} aria-current="page"{% endif %}>{% trans "Your data and account" %}</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endwith %}

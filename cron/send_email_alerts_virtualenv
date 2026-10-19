@@ -1,10 +1,6 @@
 #!/bin/sh
+# Same as send_email_alerts, using the virtualenv in $VENV.
+OSQA_ROOT=${OSQA_ROOT:-/path/to/osqa}
+VENV=${VENV:-$OSQA_ROOT/venv}
 
-WORKON_HOME=~/envs/osqa
-PROJECT_ROOT=~/webapps/osqa_server/projects/osqa/
-
-# activate virtual environment
-. $WORKON_HOME/bin/activate
-
-cd $PROJECT_ROOT
-python manage.py send_email_alerts >> $PROJECT_ROOT/log/cron_mail.log 2>&1
+cd "$OSQA_ROOT" && "$VENV/bin/python" manage.py send_email_alerts >> "$OSQA_ROOT/log/cron_mail.log" 2>&1

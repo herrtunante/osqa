@@ -1,0 +1,66 @@
+{% extends "users/settings_base.html" %}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Your data and account" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block settingscontent %}
+<section class="settings-card account-section" aria-labelledby="account-download-title">
+    <h2 id="account-download-title">{% trans "Download your data" %}</h2>
+    <p class="settings-lead">{% blocktrans %}A JSON file with your profile, the questions, answers and comments you posted, your votes, favourites, tag selections and notification settings.{% endblocktrans %}</p>
+    <a class="button" href="{% url "user_export_data" id=view_user.id %}">{% trans "Download my data" %}</a>
+</section>
+
+<section class="settings-card account-section account-danger" aria-labelledby="account-delete-title">
+    <h2 id="account-delete-title">{% trans "Delete your account" %}</h2>
+    <p class="settings-lead">{% trans "Deleting your account happens at once and can't be undone:" %}</p>
+    <ul class="account-delete-list">
+        <li>{% trans "Your profile, email address, sign-in methods, passkeys, two-step verification, subscriptions, notifications and settings are removed." %}</li>
+        <li>{% trans "You are signed out on every browser and device." %}</li>
+        {% if posts_deleted %}
+        <li>{% trans "Your questions, answers and comments are deleted." %}</li>
+        {% else %}
+        <li>{% blocktrans %}Your questions, answers and comments stay on the site, because other people's answers and discussions depend on them, but they show "deleted-user" instead of your name. You can edit or delete them before deleting your account.{% endblocktrans %}</li>
+        {% endif %}
+        <li>{% trans "We send a last email to your address to confirm the deletion." %}</li>
+    </ul>
+    <p class="settings-lead">{% trans "You may want to download your data first." %}</p>
+    {% if last_admin %}
+        <p class="account-warning">{% trans "You are the only administrator. Make someone else an administrator before deleting your account." %}</p>
+    {% elif is_staff_account %}
+        <p class="account-warning">{% trans "Moderators and administrators can't delete their account. Ask an administrator to remove your moderator or administrator status first." %}</p>
+    {% elif needs_recent_signin %}
+        <p class="account-warning" id="account-reauth-note">{% blocktrans count minutes=recent_minutes %}For your security, sign in again first; then you have {{ minutes }} minute to delete your account.{% plural %}For your security, sign in again first; then you have {{ minutes }} minutes to delete your account.{% endblocktrans %}</p>
+        <form method="post" action="{% url "user_signout" %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url "auth_signin" %}?next={% url "user_account_data" id=view_user.id %}" />
+            <button type="submit" class="plain-button secondary-button" aria-describedby="account-reauth-note">{% trans "Sign in again" %}</button>
+        </form>
+    {% else %}
+    <form method="post" action="{% url "user_delete_account" id=view_user.id %}" class="account-delete-form"
+          data-confirm-username="{{ view_user.username }}">
+        {% csrf_token %}
+        <div class="auth-field">
+            <label for="confirm-username">{% blocktrans with view_user.username as name %}Type your username (<strong>{{ name }}</strong>) to confirm{% endblocktrans %}</label>
+            <input type="text" id="confirm-username" name="confirm_username" autocomplete="off" autocapitalize="none" spellcheck="false" required />
+        </div>
+        {% if needs_password %}
+        <div class="auth-field">
+            <label for="confirm-password">{% trans "Your password" %}</label>
+            <div class="password-field"><input type="password" id="confirm-password" name="password" autocomplete="current-password" maxlength="128" required />{% include "auth/password_toggle.html" with input_id="confirm-password" %}</div>
+        </div>
+        {% endif %}
+        {% if needs_code %}
+        <div class="auth-field">
+            <label for="confirm-code">{% trans "Code from your authenticator app" %}</label>
+            <p class="auth-help" id="confirm-code-help">{% trans "A recovery code works too." %}</p>
+            <input type="text" id="confirm-code" name="code" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" maxlength="20" aria-describedby="confirm-code-help" required />
+        </div>
+        {% endif %}
+        <p class="account-delete-note" id="account-delete-note">{% trans "This can't be undone." %}</p>
+        <input type="submit" class="account-delete-button" value="{% trans "Delete my account" %}" aria-describedby="account-delete-note" />
+    </form>
+    {% endif %}
+</section>
+{% endblock %}
+{% block userjs %}
+    <script defer src="{% media "/media/js/osqa.password.js" %}"></script>
+{% endblock %}

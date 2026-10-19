@@ -1,0 +1,124 @@
+{% extends "users/settings_base.html" %}
+{% load i18n extra_tags %}
+{% block title %}{% spaceless %}{% trans "Passkeys and two-step verification" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block userjs %}
+    {% if own %}<script defer src="{% media "/media/js/osqa.passkeys.js" %}"></script>{% endif %}
+{% endblock %}
+{% block settingscontent %}
+{% if staff_required %}
+<div class="auth-alert settings-alert" role="alert">
+    <p class="auth-alert-title">{% trans "Two-step verification is required for moderators and administrators." %}</p>
+    <p>{% trans "Set up an authenticator app below (or sign in with a passkey) to use the admin pages." %}</p>
+</div>
+{% endif %}
+
+<section class="settings-card security-card" aria-labelledby="security-passkeys-title">
+    <div class="settings-card-head">
+        <h2 id="security-passkeys-title">{% trans "Passkeys" %}</h2>
+    </div>
+    <p class="settings-lead">{% blocktrans %}Sign in with your fingerprint, face, screen lock or a security key instead of a password. Passkeys can't be guessed or phished, and signing in with one counts as two-step verification.{% endblocktrans %}</p>
+    {% if passkeys %}
+    <ul class="settings-list security-passkeys">
+        {% for passkey in passkeys %}
+        <li>
+            <span class="security-item">
+                <span class="security-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><circle cx="8" cy="9" r="4"/><path d="M2 20c0-3.3 2.7-6 6-6 1.2 0 2.3.3 3.2.9"/><circle cx="17.5" cy="13.5" r="2.5"/><path d="M17.5 16v5l1.5-1.2M17.5 18.5l1.5-1"/></svg></span>
+                <span class="security-item-text">
+                    <strong class="security-item-name">{{ passkey.name }}</strong>
+                    <span class="security-item-meta">{% blocktrans with added=passkey.created|date:"DATE_FORMAT" %}Added {{ added }}{% endblocktrans %} &middot;
+                    {% if passkey.last_used %}{% blocktrans with used=passkey.last_used|date:"DATE_FORMAT" %}last used {{ used }}{% endblocktrans %}{% else %}{% trans "never used" %}{% endif %}</span>
+                </span>
+            </span>
+            <form method="post" action="{% url "passkey_remove" id=passkey.id %}" data-confirm="{% blocktrans with name=passkey.name %}Remove the passkey &quot;{{ name }}&quot;? You won't be able to sign in with it any more.{% endblocktrans %}">
+                {% csrf_token %}
+                <button type="submit" class="plain-button danger-outline-button">{% trans "Remove" %}<span class="visually-hidden"> {{ passkey.name }}</span></button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="security-empty">{% trans "No passkeys yet." %}</p>
+    {% endif %}
+    {% if own %}
+        {% if passkeys|length < max_passkeys %}
+        <form class="security-passkey-add" data-passkey-register data-options-url="{% url "passkey_register_options" %}" data-verify-url="{% url "passkey_register" %}" data-exists-message="{% trans "This passkey is already registered." %}" hidden>
+            <div class="auth-field">
+                <label for="passkey-name">{% trans "Name of the new passkey" %}</label>
+                <p class="auth-help" id="passkey-name-help">{% trans "So you can tell your passkeys apart, e.g. “Work laptop” or “Phone”." %}</p>
+                <div class="security-inline">
+                    <input type="text" id="passkey-name" name="name" maxlength="64" autocomplete="off" aria-describedby="passkey-name-help" />
+                    <button type="submit" class="button security-primary">{% trans "Add a passkey" %}</button>
+                </div>
+            </div>
+            <p class="auth-error" role="alert" data-passkey-error hidden></p>
+        </form>
+        <p class="security-note" data-passkey-unsupported hidden>{% trans "This browser can't create passkeys. Try a current version of Chrome, Edge, Firefox or Safari." %}</p>
+        {% endif %}
+    {% endif %}
+</section>
+
+<section class="settings-card security-card" aria-labelledby="security-totp-title">
+    <div class="settings-card-head">
+        <h2 id="security-totp-title">{% trans "Two-step verification" %}</h2>
+        {% if totp_enabled %}
+            <span class="security-status security-status-on">{% trans "On" %}</span>
+        {% else %}
+            <span class="security-status">{% trans "Off" %}</span>
+        {% endif %}
+    </div>
+    {% if totp_enabled %}
+        <p class="settings-lead">{% blocktrans %}After your password (or another sign-in service), you enter a code from your authenticator app.{% endblocktrans %}</p>
+        <ul class="settings-list">
+            <li>
+                <span class="security-item-text">
+                    <strong class="security-item-name">{% trans "Recovery codes" %}</strong>
+                    <span class="security-item-meta">{% blocktrans count left=recovery_left %}{{ left }} code left{% plural %}{{ left }} codes left{% endblocktrans %}</span>
+                </span>
+            </li>
+        </ul>
+        {% if own %}
+        <details class="security-details"{% if recovery_left < 3 %} open{% endif %}>
+            <summary>{% trans "Make new recovery codes" %}</summary>
+            <form method="post" action="{% url "two_factor_recovery_codes" %}" class="security-proof">
+                {% csrf_token %}
+                <p class="auth-help">{% trans "Your old codes stop working. Confirm with a code from your app or your password." %}</p>
+                {% include "users/security_proof.html" with prefix="rc" %}
+                <div class="settings-actions"><button type="submit" class="button security-primary">{% trans "Make new codes" %}</button></div>
+            </form>
+        </details>
+        <details class="security-details">
+            <summary>{% trans "Turn off two-step verification" %}</summary>
+            <form method="post" action="{% url "two_factor_disable" id=view_user.id %}" class="security-proof">
+                {% csrf_token %}
+                <p class="auth-help">{% trans "Signing in will only need your password again. Confirm with a code from your app or your password." %}</p>
+                {% include "users/security_proof.html" with prefix="off" %}
+                <div class="settings-actions"><button type="submit" class="plain-button danger-outline-button">{% trans "Turn off" %}</button></div>
+            </form>
+        </details>
+        {% else %}
+        <form method="post" action="{% url "two_factor_disable" id=view_user.id %}" data-confirm="{% trans "Turn off two-step verification for this member?" %}">
+            {% csrf_token %}
+            <button type="submit" class="plain-button danger-outline-button">{% trans "Turn off two-step verification" %}</button>
+        </form>
+        {% endif %}
+    {% else %}
+        <p class="settings-lead">{% blocktrans %}Protect your account even if someone learns your password: after signing in, you also enter a code from an authenticator app on your phone (such as Google Authenticator, Microsoft Authenticator, 1Password or Aegis).{% endblocktrans %}</p>
+        {% if own %}
+        <a class="button security-primary" href="{% url "two_factor_setup" %}">{% trans "Set up an authenticator app" %}</a>
+        {% endif %}
+    {% endif %}
+</section>
+{% if own %}
+<section class="settings-card security-card" aria-labelledby="security-sessions-title">
+    <div class="settings-card-head">
+        <h2 id="security-sessions-title">{% trans "Where you're signed in" %}</h2>
+    </div>
+    <p class="settings-lead">{% blocktrans %}Signed in on a computer that isn't yours, or lost a phone? Sign out everywhere else: every other browser and device has to sign in again. This one stays signed in. Changing or resetting your password does this too.{% endblocktrans %}</p>
+    <form method="post" action="{% url "auth_signout_others" %}" data-confirm="{% trans "Sign out on every other browser and device?" %}">
+        {% csrf_token %}
+        <button type="submit" class="plain-button danger-outline-button">{% trans "Sign out of all other sessions" %}</button>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

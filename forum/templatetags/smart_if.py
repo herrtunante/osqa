@@ -100,7 +100,7 @@ class SmartIfTests(unittest.TestCase):
         Test a calculation is True, also checking the inverse "negate" case.
         """
         context = context or {}
-        self.assert_(calc.resolve(context))
+        self.assertTrue(calc.resolve(context))
         calc.negate = not calc.negate
         self.assertFalse(calc.resolve(context))
 
@@ -111,7 +111,7 @@ class SmartIfTests(unittest.TestCase):
         context = context or {}
         self.assertFalse(calc.resolve(context))
         calc.negate = not calc.negate
-        self.assert_(calc.resolve(context))
+        self.assertTrue(calc.resolve(context))
 
     def test_or(self):
         self.assertCalc(Or(self.true))
@@ -149,55 +149,55 @@ class SmartIfTests(unittest.TestCase):
 
     def test_parse_bits(self):
         var = IfParser([True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([False, 'and', True]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser(['not', False, 'and', 'not', False]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser(['not', 'not', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '=', 1]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, 'not', '=', 1]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([1, 'not', 'not', '=', 1]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '!=', 1]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([3, '>', 2]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '<', 2]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([2, 'not', 'in', [2, 3]]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([1, 'or', 1, '=', 2]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
     def test_boolean(self):
         var = IfParser([True, 'and', True, 'and', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False, 'or', False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([True, 'and', False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False, 'or', True, 'and', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([True, 'and', True, 'and', False]).parse()
         self.assertFalse(var.resolve({}))
@@ -291,7 +291,7 @@ class IfParser(object):
         var = self.get_var()
         if not self.at_end():
             op_token = self.get_token(lookahead=True)[0]
-            if isinstance(op_token, basestring) and (op_token not in
+            if isinstance(op_token, str) and (op_token not in
                                                      BOOL_OPERATORS):
                 op, negate = self.get_operator()
                 return op(var, self.get_var(), negate=negate)
@@ -300,7 +300,7 @@ class IfParser(object):
     def get_var(self):
         token, negate = self.get_token('Reached end of statement, still '
                                        'expecting a variable.')
-        if isinstance(token, basestring) and token in OPERATORS:
+        if isinstance(token, str) and token in OPERATORS:
             raise self.error_class('Expected variable, got operator (%s).' %
                                    token)
         var = self.create_var(token)
@@ -311,7 +311,7 @@ class IfParser(object):
     def get_operator(self):
         token, negate = self.get_token('Reached end of statement, still '
                                        'expecting an operator.')
-        if not isinstance(token, basestring) or token not in OPERATORS:
+        if not isinstance(token, str) or token not in OPERATORS:
             raise self.error_class('%s is not a valid operator.' % token)
         if self.at_end():
             raise self.error_class('No variable provided after "%s".' % token)

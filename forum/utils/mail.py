@@ -1,5 +1,6 @@
 import email
 import socket
+import ssl
 import os
 import logging
 
@@ -20,18 +21,34 @@ from smtplib import SMTPRecipientsRefused
 from forum import settings
 from django.template import loader, Context, Template
 from forum.utils.html import sanitize_html
+from forum.utils import metrics
 from forum.context import application_settings
-from forum.utils.html2text import HTML2Text
 from threading import Thread
 
 def send_template_email(recipients, template, context, sender=None, reply_to = None):
+    """Returns the sending errors (empty list when the SMTP server took every message)."""
     t = loader.get_template(template)
-    context.update(dict(recipients=recipients, settings=settings, sender=sender, reply_to=reply_to))
-    t.render(Context(context))
+    errors = []
+    context.update(dict(recipients=recipients, settings=settings, sender=sender, reply_to=reply_to,
+                        mail_errors=errors))
+    t.render(context)
+    return errors
+
+
+def render_template_email(recipient, template, context):
+    """Renders an email template for one recipient without sending it (the
+    admin's email previews). Returns a dict: subject, html, text, headers."""
+    t = loader.get_template(template)
+    captured = []
+    context = dict(context, recipients=[recipient], settings=settings, sender=None, reply_to=None,
+                   mail_errors=[], email_capture=captured)
+    t.render(context)
+    to, subject, html, text, media, headers = captured[0]
+    return {'subject': subject, 'html': html, 'text': text, 'headers': headers}
 
 def create_connection():
     connection = SMTP(str(settings.EMAIL_HOST), str(settings.EMAIL_PORT),
-                          local_hostname=DNS_NAME.get_fqdn())
+                          local_hostname=DNS_NAME.get_fqdn(), timeout=30)
 
     if bool(settings.EMAIL_USE_TLS):
         connection.ehlo()
@@ -45,23 +62,32 @@ def create_connection():
 
 
 def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
-    if not settings.EMAIL_HOST:
-        return
+    """Sends the messages; returns a list of error descriptions (also logged)."""
+    errors = []
 
-    sender = Header(unicode(settings.APP_SHORT_NAME), 'utf-8')
+    def error(text):
+        logging.error(text)
+        errors.append(text)
+        metrics.count('osqa_emails_failed_total')
+
+    if not settings.EMAIL_HOST:
+        errors.append('No email server is set (Email host is empty), so no email was sent.')
+        return errors
+
+    sender = Header(str(settings.APP_SHORT_NAME), 'utf-8')
     
     if sender_data == None:
-        sender.append('<%s>' % unicode(settings.DEFAULT_FROM_EMAIL))
-        sender = u'%s <%s>' % (unicode(settings.APP_SHORT_NAME), unicode(settings.DEFAULT_FROM_EMAIL))
+        sender.append('<%s>' % str(settings.DEFAULT_FROM_EMAIL))
+        sender = u'%s <%s>' % (str(settings.APP_SHORT_NAME), str(settings.DEFAULT_FROM_EMAIL))
     else:
-        sender.append('<%s>' % unicode(sender_data['email']))
-        sender = u'%s <%s>' % (unicode(sender_data['name']), unicode(sender_data['email']))
+        sender.append('<%s>' % str(sender_data['email']))
+        sender = u'%s <%s>' % (str(sender_data['name']), str(sender_data['email']))
         
     
     if reply_to == None:
-        reply_to = unicode(settings.DEFAULT_REPLY_TO_EMAIL)
+        reply_to = str(settings.DEFAULT_REPLY_TO_EMAIL)
     else:
-        reply_to = unicode(reply_to)
+        reply_to = str(reply_to)
 
     try:
         connection = None
@@ -69,7 +95,9 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
         if sender is None:
             sender = str(settings.DEFAULT_FROM_EMAIL)
 
-        for recipient, subject, html, text, media in messages:
+        for message in messages:
+            recipient, subject, html, text, media = message[:5]
+            headers = message[5] if len(message) > 5 else {}
             if connection is None:
                 connection = create_connection()
 
@@ -84,13 +112,16 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             if reply_to:
                 msgRoot['Reply-To'] = reply_to
 
-            msgRoot.preamble = 'This is a multi-part message from %s.' % unicode(settings.APP_SHORT_NAME).encode('utf8')
+            for name, value in headers.items():
+                msgRoot[name] = value
+
+            msgRoot.preamble = 'This is a multi-part message from %s.' % str(settings.APP_SHORT_NAME)
 
             msgAlternative = MIMEMultipart('alternative')
             msgRoot.attach(msgAlternative)
 
-            msgAlternative.attach(MIMEText(text.encode('utf-8'), _charset='utf-8'))
-            msgAlternative.attach(MIMEText(html.encode('utf-8'), 'html', _charset='utf-8'))
+            msgAlternative.attach(MIMEText(text, 'plain', 'utf-8'))
+            msgAlternative.attach(MIMEText(html, 'html', 'utf-8'))
 
             for alias, location in media.items():
                 fp = open(location, 'rb')
@@ -101,13 +132,14 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
 
             try:
                 connection.sendmail(sender, [recipient.email], msgRoot.as_string())
-            except SMTPRecipientsRefused, e:
-                logging.error("Email address not accepted.  Exception: %s" % e)
-            except Exception, e:
-                logging.error("Couldn't send mail using the sendmail method: %s" % e)
+                metrics.count('osqa_emails_sent_total')
+            except SMTPRecipientsRefused as e:
+                error("Email address not accepted.  Exception: %s" % e)
+            except Exception as e:
+                error("Couldn't send mail using the sendmail method: %s" % e)
                 try:
                     connection.quit()
-                except Exception, e:
+                except Exception as e:
                     logging.error(e)
                 finally:
                     connection = None
@@ -116,7 +148,9 @@ def create_and_send_mail_messages(messages, sender_data=None, reply_to=None):
             connection.quit()
         except AttributeError:
             pass
-        except socket.sslerror:
+        except ssl.SSLError:
             connection.close()
-    except Exception, e:
-        logging.error('Email sending has failed: %s' % e)
+    except Exception as e:
+        error('Email sending has failed: %s: %s' % (type(e).__name__, e))
+
+    return errors

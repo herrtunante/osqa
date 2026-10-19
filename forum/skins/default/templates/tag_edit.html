@@ -1,0 +1,161 @@
+{% extends "base_content.html" %}
+<!-- tag_edit.html: a tag's management page (forum/views/tags.py) -->
+{% load i18n extra_tags node_tags %}
+{% block title %}{% spaceless %}{% blocktrans with tag.name as name %}Manage tag {{ name }}{% endblocktrans %}{% endspaceless %}{% endblock %}
+{% block content %}
+<div class="tag-manage">
+<div class="tag-manage-header">
+    <p class="tag-manage-back"><a href="{{ tag.get_absolute_url }}">&larr; {% blocktrans with tag.name as name %}Back to questions tagged {{ name }}{% endblocktrans %}</a></p>
+    <h1>{% blocktrans with tag.name as name %}Manage tag <span class="tag">{{ name }}</span>{% endblocktrans %}</h1>
+    <p class="tag-manage-meta">
+        {% blocktrans count counter=questions_count %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}
+        &middot; <a href="{% url "tag_synonyms" %}">{% trans "All tag synonyms" %}</a>
+    </p>
+</div>
+
+{% if error %}<p class="tag-edit-error" role="alert">{{ error }}</p>{% endif %}
+
+<section class="tag-manage-section" aria-labelledby="tag-description-heading">
+    <h2 id="tag-description-heading">{% trans "Description" %}</h2>
+    <form method="post" class="tag-edit-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="description" />
+        <label for="tag-description">{% trans "What is this tag for? One or two sentences, Markdown allowed. Shown at the top of the tag's questions and in the tag list." %}</label>
+        <textarea id="tag-description" name="description" rows="5" maxlength="2000">{{ tag.description }}</textarea>
+        <input type="submit" value="{% trans "Save description" %}" />
+    </form>
+</section>
+
+{% if versions_enabled %}
+<section class="tag-manage-section" aria-labelledby="tag-versions-heading">
+    <h2 id="tag-versions-heading">{% trans "Versions" %}</h2>
+    <p class="tag-manage-help" id="tag-versions-help">{% blocktrans with tag.name as name %}Versions of the product tagged <strong>{{ name }}</strong>, oldest first. Questions and answers can say which version they apply to, and answers written for an older version than the current one are marked as possibly outdated.{% endblocktrans %}</p>
+    {% if versions %}
+    <ol class="tag-version-list">
+        {% for version in versions %}
+        <li{% if version.is_current %} class="is-current"{% endif %}>
+            <div class="tag-version-text">
+                <span class="version-chip">{{ version.name }}</span>
+                {% if version.is_current %}<span class="tag-version-current">{% trans "current version" %}</span>{% endif %}
+                {% if version.released %}<span class="tag-version-meta">{% blocktrans with date=version.released|date:"Y-m-d" %}released {{ date }}{% endblocktrans %}</span>{% endif %}
+                <span class="tag-version-meta">{% blocktrans count counter=version.used %}{{ counter }} post{% plural %}{{ counter }} posts{% endblocktrans %}</span>
+            </div>
+            <form method="post" class="tag-version-controls">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{ version.id }}" />
+                {% if version.is_current %}
+                <button type="submit" name="action" value="no_current_version" class="plain-button">{% trans "Not current" %}</button>
+                {% else %}
+                <button type="submit" name="action" value="current_version" class="plain-button">{% trans "Make current" %}</button>
+                {% endif %}
+                {% if not forloop.first %}<button type="submit" name="action" value="version_up" class="plain-button tag-version-move" aria-label="{% blocktrans with name=version.name %}Move {{ name }} earlier{% endblocktrans %}" title="{% trans "Earlier" %}">&uarr;</button>{% endif %}
+                {% if not forloop.last %}<button type="submit" name="action" value="version_down" class="plain-button tag-version-move" aria-label="{% blocktrans with name=version.name %}Move {{ name }} later{% endblocktrans %}" title="{% trans "Later" %}">&darr;</button>{% endif %}
+                {% if not version.used %}<button type="submit" name="action" value="remove_version" class="plain-button tag-version-remove" aria-label="{% blocktrans with name=version.name %}Remove the version {{ name }}{% endblocktrans %}">{% trans "remove" %}</button>{% endif %}
+            </form>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="tag-manage-help">{% trans "No versions yet: posts with this tag don't show a version." %}</p>
+    {% endif %}
+    <form method="post" class="tag-manage-form tag-version-add">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_version" />
+        <div class="tag-version-fields">
+            <div>
+                <label for="tag-version-name">{% trans "New version" %}</label>
+                <input type="text" id="tag-version-name" name="version" value="{{ values.add_version }}" maxlength="20" required placeholder="{% trans "e.g. 4.1" %}" aria-describedby="tag-versions-help" autocomplete="off" autocapitalize="none" spellcheck="false" />
+            </div>
+            <div>
+                <label for="tag-version-released">{% trans "Released (optional)" %}</label>
+                <input type="date" id="tag-version-released" name="released" autocomplete="off" />
+            </div>
+        </div>
+        <label class="tag-manage-check"><input type="checkbox" name="current" value="1" /> {% trans "This is the current version" %}</label>
+        <input type="submit" value="{% trans "Add version" %}" />
+    </form>
+</section>
+{% endif %}
+
+<section class="tag-manage-section" aria-labelledby="tag-synonyms-heading">
+    <h2 id="tag-synonyms-heading">{% trans "Synonyms" %}</h2>
+    <p class="tag-manage-help" id="tag-synonym-help">{% blocktrans with tag.name as name %}Names that mean <strong>{{ name }}</strong>: typed in the tags field they become {{ name }}, and their pages redirect here. If a synonym is an existing tag, you are asked to merge it first.{% endblocktrans %}</p>
+    {% if synonyms %}
+    <ul class="tag-synonym-list">
+        {% for synonym in synonyms %}
+        <li>
+            <span class="tag">{{ synonym.source_name }}</span> <span aria-hidden="true">&rarr;</span><span class="visually-hidden">{% trans "means" %}</span> <span class="tag">{{ tag.name }}</span>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="remove_synonym" />
+                <input type="hidden" name="id" value="{{ synonym.id }}" />
+                <button type="submit" class="tag-synonym-remove plain-button" aria-label="{% blocktrans with name=synonym.source_name %}Remove the synonym {{ name }}{% endblocktrans %}">{% trans "remove" %}</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post" class="tag-synonym-add">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_synonym" />
+        <input type="text" name="synonym" value="{{ values.add_synonym }}" placeholder="{% trans "e.g. gis-analysis" %}" aria-label="{% trans "Synonym" %}" aria-describedby="tag-synonym-help" autocomplete="off" autocapitalize="none" spellcheck="false" />
+        <input type="submit" value="{% trans "Add synonym" %}" />
+    </form>
+</section>
+
+<section class="tag-manage-section" aria-labelledby="tag-rename-heading">
+    <h2 id="tag-rename-heading">{% trans "Rename" %}</h2>
+    <p class="tag-manage-help" id="tag-rename-help">{% trans "Changes the tag on all its questions; followers and synonyms stay with it. Earlier revisions of the questions keep the old name. This can be undone below." %}</p>
+    <form method="post" class="tag-manage-form tag-rename-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="rename" />
+        <label for="tag-new-name">{% trans "New name" %}</label>
+        <div class="tag-manage-row">
+            <input type="text" id="tag-new-name" name="name" value="{{ values.rename|default:tag.name }}" required aria-describedby="tag-rename-help" autocomplete="off" autocapitalize="none" spellcheck="false" />
+            <input type="submit" value="{% trans "Rename tag" %}" />
+        </div>
+        <label class="tag-manage-check"><input type="checkbox" name="keep_synonym" value="1" checked /> {% blocktrans with tag.name as name %}Keep {{ name }} as a synonym (old links and the old name keep working){% endblocktrans %}</label>
+    </form>
+</section>
+
+<section class="tag-manage-section" aria-labelledby="tag-merge-heading">
+    <h2 id="tag-merge-heading">{% trans "Merge into another tag" %}</h2>
+    <p class="tag-manage-help" id="tag-merge-help">{% blocktrans with tag.name as name %}Moves the questions, followers and synonyms of {{ name }} to the other tag, and {{ name }} becomes its synonym. You'll see what changes before confirming; a merge can't be undone.{% endblocktrans %}</p>
+    <form method="get" action="{% url "tag_merge" tag=tag.name %}" class="tag-manage-form tag-merge-form">
+        <label for="tag-merge-into">{% trans "Merge into" %}</label>
+        <div class="tag-manage-row">
+            <input type="text" id="tag-merge-into" name="into" value="{{ values.merge }}" required aria-describedby="tag-merge-help" autocomplete="off" autocapitalize="none" spellcheck="false" />
+            <input type="submit" value="{% trans "Review merge" %}" />
+        </div>
+    </form>
+</section>
+
+<section class="tag-manage-section" aria-labelledby="tag-history-heading">
+    <h2 id="tag-history-heading">{% trans "History" %}</h2>
+    {% if history %}
+    <ol class="tag-history">
+        {% for change in history %}
+        <li{% if change.canceled %} class="is-undone"{% endif %}>
+            <div class="tag-history-text">
+                {{ change.describe|safe }}
+                <span class="tag-history-date">{% post_time change.action_date %}</span>
+                {% if change.canceled %}<span class="tag-history-state">{% trans "undone" %}</span>{% elif not change.undoable %}<span class="tag-history-state">{% trans "can't be undone" %}</span>{% endif %}
+            </div>
+            {% if change.can_undo %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="undo" />
+                <input type="hidden" name="id" value="{{ change.id }}" />
+                <button type="submit" class="plain-button tag-history-undo">{% trans "Undo" %}</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="tag-manage-help">{% trans "No changes yet." %}</p>
+    {% endif %}
+</section>
+</div>
+{% endblock %}
+<!-- end tag_edit.html -->

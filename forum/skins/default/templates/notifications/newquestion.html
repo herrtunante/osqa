@@ -1,54 +1,37 @@
 {% load i18n extra_tags email_tags %}
 
 {% declare %}
-    prefix = html.mark_safe(smart_str(settings.EMAIL_SUBJECT_PREFIX))
-    app_name = smart_str(settings.APP_SHORT_NAME)
-    safe_app_name = html.mark_safe(smart_str(settings.APP_SHORT_NAME))
-    question_author = html.mark_safe(smart_str(question.author.username))
-    question_url = smart_str(settings.APP_URL + question.get_absolute_url())
-    question_title = html.mark_safe(smart_str(question.title))
-    question_tags = html.mark_safe(smart_str(question.tagnames))
-    safe_body = html.html2text(smart_str(question.html))
-    author_link = html.objlink(question.author, style=settings.EMAIL_ANCHOR_STYLE)
-    question_link = html.objlink(question, style=settings.EMAIL_ANCHOR_STYLE)
-    tag_links = html.mark_safe(smart_str(" ".join([html.objlink(t, style=settings.EMAIL_ANCHOR_STYLE) for t in question.tags.all()])))
+    prefix = smart_str(settings.EMAIL_SUBJECT_PREFIX)
+    question_author = smart_str(question.author.username)
+    question_title = smart_str(question.title)
+    question_url = settings.APP_URL + question.get_absolute_url()
+    tag_names = question.tagname_list()
+    tag_list = ", ".join(tag_names)
 {% enddeclare %}
 
 {% email %}
-    {% subject %}{% blocktrans %}{{ prefix }} New question: {{ question_title }} on {{ safe_app_name }}{% endblocktrans %}{% endsubject %}
+    {% subject %}{% blocktrans %}{{ prefix }} New question: {{ question_title }}{% endblocktrans %}{% endsubject %}
+    {% preheader %}{% blocktrans %}{{ question_author }} asked:{% endblocktrans %} {{ question.html|email_snippet:120 }}{% endpreheader %}
 
     {% htmlcontent notifications/base.html %}
-        <p style="{{ p_style }}">
-            {% if tag_links != "" %}
-            {% blocktrans %}
-            {{ author_link }} has just posted a new question on {{ app_name }}, entitled
-            {{ question_link }}
-             and tagged "<em>{{ tag_links }}</em>". Here's what it says:
-            {% endblocktrans %}
-            {%else%}
-            {% blocktrans %}
-            {{ author_link }} has just posted a new question on {{ app_name }}, entitled
-            {{ question_link }}. Here's what it says:
-            {% endblocktrans %}
-            {%endif%}
-        </p>
-
-        <blockquote>
-            {{ question.html|safe }}
-        </blockquote>
-
-        <p style="{{ p_style }}">{% trans "Don't forget to come over and cast your vote." %}</p>        
+        <p class="em-text" style="{{ p_style }}">{% if tag_names %}{% blocktrans %}{{ question_author }} asked a new question tagged {{ tag_list }}:{% endblocktrans %}{% else %}{% blocktrans %}{{ question_author }} asked a new question:{% endblocktrans %}{% endif %}</p>
+        <h2 class="em-h2" style="{{ h2_style }}margin-top:0;"><a href="{{ question_url }}" class="em-link" style="{{ a_style }}text-decoration:none;">{{ question_title }}</a></h2>
+        {% include "notifications/_quote.html" with text=question.html|email_snippet:400 %}
+        {% trans "View the question" as cta %}{% include "notifications/_button.html" with url=question_url label=cta %}
+        <p class="em-text" style="{{ p_style }}">{% trans "Know the answer? Share it, or vote for the question if you'd like to know too." %}</p>
     {% endhtmlcontent %}
 
 {% textcontent notifications/base_text.html %}
-{% blocktrans %}
-{{ question_author }} has just posted a new question on {{ safe_app_name }}, entitled
-"{{ question_title }}" and tagged {{ question_tags }}:
-{% endblocktrans %}
-{{ safe_body }}
+{% if tag_names %}{% blocktrans %}{{ question_author }} asked a new question tagged {{ tag_list }}:{% endblocktrans %}{% else %}{% blocktrans %}{{ question_author }} asked a new question:{% endblocktrans %}{% endif %}
 
-{% trans "Don't forget to come over and cast your vote." %}
+{{ question_title }}
+
+> {{ question.html|email_snippet:400 }}
+
+{% trans "View the question" %}:
+{{ question_url }}
+
+{% trans "Know the answer? Share it, or vote for the question if you'd like to know too." %}
 {% endtextcontent %}
 
 {% endemail %}
-

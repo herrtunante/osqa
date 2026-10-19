@@ -1,0 +1,45 @@
+{% extends "base_content.html" %}
+<!-- suggested_edits/review.html: pending suggested edits for reviewers (forum/views/suggested_edits.py) -->
+{% load i18n node_tags %}
+{% block title %}{% spaceless %}{% trans "Review suggested edits" %}{% endspaceless %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div id="main-bar" class="page-header">
+    <h1 class="page-title">{% trans "Review suggested edits" %}</h1>
+</div>
+<div id="main-body" class="sugg-review">
+    <p class="sugg-intro">{% trans "Members who can't edit others' posts yet suggest these edits. Approve the ones that make the post clearer or more useful (they are credited to their author), improve them, or reject them with a reason. The diff shows removed text struck through and added text underlined." %}</p>
+    {% if not enabled %}<p class="sugg-note">{% trans "Suggesting edits is turned off: no new suggestions arrive." %}</p>{% endif %}
+    {% if undo %}
+    <form method="post" action="{% url "suggested_edit_undo" %}" class="sugg-undo">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+        <span>{% trans "Changed your mind?" %}</span>
+        <button type="submit" class="plain-button">{% trans "Undo the last review" %}</button>
+    </form>
+    {% endif %}
+
+    {% if items %}
+    <p class="sugg-count">{% blocktrans count counter=total %}{{ counter }} edit waiting for review{% plural %}{{ counter }} edits waiting for review{% endblocktrans %}</p>
+    {% for item in items %}{% with suggestion=item.suggestion post=item.post %}
+    <article class="sugg-card" id="suggested-edit-{{ suggestion.id }}" aria-labelledby="suggested-edit-{{ suggestion.id }}-title">
+        <header class="sugg-head">
+            <span class="sugg-type">{{ post.friendly_name|capfirst }}</span>
+            <h2 class="sugg-title" id="suggested-edit-{{ suggestion.id }}-title"><a href="{{ post.get_absolute_url }}">{{ item.question.headline }}</a></h2>
+            <p class="sugg-meta">{% blocktrans with name=suggestion.author.username url=suggestion.author.get_profile_url %}Suggested by <a href="{{ url }}">{{ name }}</a>{% endblocktrans %} <span aria-hidden="true">&middot;</span> {% post_time suggestion.created_at %}</p>
+        </header>
+        <p class="sugg-summary"><strong>{% trans "Edit summary:" %}</strong> {{ suggestion.summary }}</p>
+        {% if item.conflict %}
+        <p class="sugg-warning" role="note">{% trans "The post was edited after this suggestion in a way that conflicts with it: approving it will mark it as superseded." %}</p>
+        {% elif item.changed %}
+        <p class="sugg-note">{% trans "The post was edited after this suggestion; approving it keeps those changes." %}</p>
+        {% endif %}
+        <div class="sugg-diff diff">{{ item.diff }}</div>
+        {% if item.can_review %}{% include "suggested_edits/_actions.html" %}{% endif %}
+    </article>
+    {% endwith %}{% endfor %}
+    {% if total > items|length %}<p class="sugg-more">{% blocktrans count counter=total %}Showing the oldest of {{ counter }} suggestions.{% plural %}Showing the oldest of {{ counter }} suggestions.{% endblocktrans %}</p>{% endif %}
+    {% else %}
+    <p class="sugg-empty">{% trans "No suggested edits are waiting for review. Thanks for checking!" %}</p>
+    {% endif %}
+</div>
+{% endblock %}

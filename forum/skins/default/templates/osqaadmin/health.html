@@ -1,0 +1,182 @@
+{% load i18n %}{% comment %}
+Community health, at the top of the admin dashboard (osqaadmin/dashboard.html):
+tiles with the change from the previous period, then the charts, each with a
+one-sentence summary and its figures as a table. Figures and definitions:
+forum/utils/community_health.py; the daily chart is osqaTimeChart()
+(media/js/osqa.charts.js), the others are HTML and CSS (admin.css, "Community
+health").
+{% endcomment %}
+<section class="health" aria-labelledby="health-title">
+    <div class="health-head">
+        <h2 id="health-title" class="health-title">{% trans "Community health" %}</h2>
+        <nav class="health-periods" aria-label="{% trans "Period" %}">
+            <ul>
+            {% for p in health_periods %}
+                <li><a href="{% url "admin_index" %}?days={{ p }}"{% if p == health.days %} aria-current="page"{% endif %}>{% blocktrans with n=p %}{{ n }} days{% endblocktrans %}</a></li>
+            {% endfor %}
+            </ul>
+        </nav>
+    </div>
+    <p class="health-headline" id="health-headline">{{ health_headline }}</p>
+    <div class="health-meta">
+        <span>{% blocktrans with time=health.computed_at|time:"H:i" minutes=health_cache_minutes %}Figures as of {{ time }}; they are kept for {{ minutes }} minutes.{% endblocktrans %}</span>
+        <form method="post" action="{% url "admin_index" %}?days={{ health.days }}">{% csrf_token %}<button type="submit" name="refresh" value="1" class="button health-refresh">{% trans "Refresh now" %}</button></form>
+        <a href="?days={{ health.days }}&amp;format=csv" class="health-csv" download>{% trans "Download the figures (CSV)" %}</a>
+    </div>
+
+    {% for group in health_groups %}
+    <h3 class="health-group-title" id="health-group-{{ group.id }}">{{ group.title }}</h3>
+    <ul class="health-tiles" aria-labelledby="health-group-{{ group.id }}">
+        {% for t in group.tiles %}
+        <li class="health-tile" id="health-tile-{{ t.key }}">
+            <span class="health-tile-label">{% if t.url %}<a href="{{ t.url }}">{{ t.label }}</a>{% else %}{{ t.label }}{% endif %}</span>
+            <span class="health-tile-value">{{ t.value }}</span>
+            {% if t.trend %}<span class="health-trend{% if t.trend.tone %} health-{{ t.trend.tone }}{% endif %}"><span aria-hidden="true">{{ t.trend.arrow }}</span> {% if t.trend.text %}<span class="visually-hidden">{{ t.trend.words }}</span> {{ t.trend.text }}{% else %}{{ t.trend.words }}{% endif %}</span>{% endif %}
+            {% if t.previous != None %}<span class="health-tile-prev">{% blocktrans with value=t.previous n=health.days %}previous {{ n }} days: {{ value }}{% endblocktrans %}</span>{% endif %}
+            {% if t.note %}<span class="health-tile-note">{{ t.note }}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+
+    <div class="health-charts">
+        <section class="module health-chart health-chart-wide" id="health-daily" aria-labelledby="health-daily-title">
+            <h3 id="health-daily-title">{% trans "Daily activity" %}</h3>
+            <p class="health-summary" id="health-daily-summary">{{ health_charts.summaries.daily }}</p>
+            <div class="health-plot" id="health-daily-chart" role="img" aria-labelledby="health-daily-title" aria-describedby="health-daily-summary"></div>
+            <ul class="health-legend">
+                {% for s in health_charts.series %}<li><span class="health-swatch health-swatch-{{ forloop.counter }}" aria-hidden="true"></span>{{ s.label }}</li>{% endfor %}
+            </ul>
+            {{ health_charts.series|json_script:"health-daily-data" }}
+            <details class="health-table">
+                <summary>{% trans "Show the figures as a table" %}</summary>
+                <div class="health-scroll" tabindex="0" role="region" aria-label="{% trans "Daily activity" %}">
+                <table>
+                    <thead><tr><th scope="col">{% trans "Day" %}</th><th scope="col" class="num">{% trans "Questions" %}</th><th scope="col" class="num">{% trans "Answers" %}</th><th scope="col" class="num">{% trans "Comments" %}</th><th scope="col" class="num">{% trans "New members" %}</th></tr></thead>
+                    <tbody>
+                    {% for row in health.daily %}
+                    <tr><th scope="row">{{ row.day|date:"D j M" }}</th><td class="num">{{ row.questions }}</td><td class="num">{{ row.answers }}</td><td class="num">{{ row.comments }}</td><td class="num">{{ row.members }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </details>
+        </section>
+
+        <section class="module health-chart" id="health-first-answer" aria-labelledby="health-first-answer-title">
+            <h3 id="health-first-answer-title">{% trans "Time to first answer" %}</h3>
+            <p class="health-summary">{{ health_charts.summaries.buckets }}</p>
+            <ul class="health-bars" aria-hidden="true">
+                {% for b in health_charts.buckets %}
+                <li class="health-bar-row{% if b.key == 'none' %} health-bar-none{% endif %}"><span class="health-bar-label">{{ b.label }}</span><span class="health-bar-track"><span class="health-bar" style="width: {{ b.width }}%"></span></span><span class="health-bar-count">{{ b.count }}</span></li>
+                {% endfor %}
+            </ul>
+            <details class="health-table">
+                <summary>{% trans "Show the figures as a table" %}</summary>
+                <div class="health-scroll" tabindex="0" role="region" aria-label="{% trans "Time to first answer" %}">
+                <table>
+                    <thead><tr><th scope="col">{% trans "First answer after" %}</th><th scope="col" class="num">{% trans "Questions" %}</th></tr></thead>
+                    <tbody>
+                    {% for b in health_charts.buckets %}<tr><th scope="row">{{ b.label }}</th><td class="num">{{ b.count }}</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </details>
+        </section>
+
+        <section class="module health-chart" id="health-tags" aria-labelledby="health-tags-title">
+            <h3 id="health-tags-title">{% trans "Top growing tags" %}</h3>
+            <p class="health-summary">{{ health_charts.summaries.tags }}</p>
+            {% if health_charts.tags %}
+            <ul class="health-bars health-bars-paired" aria-hidden="true">
+                {% for row in health_charts.tags %}
+                <li class="health-bar-row"><span class="health-bar-label">{{ row.name }}</span><span class="health-bar-track"><span class="health-bar" style="width: {{ row.cur_width }}%"></span><span class="health-bar health-bar-prev" style="width: {{ row.prev_width }}%"></span></span><span class="health-bar-count">+{{ row.change }}</span></li>
+                {% endfor %}
+            </ul>
+            <p class="health-key" aria-hidden="true"><span class="health-swatch health-swatch-1"></span>{% blocktrans with n=health.days %}last {{ n }} days{% endblocktrans %} <span class="health-swatch health-swatch-prev"></span>{% trans "previous period" %}</p>
+            <details class="health-table">
+                <summary>{% trans "Show the figures as a table" %}</summary>
+                <div class="health-scroll" tabindex="0" role="region" aria-label="{% trans "Top growing tags" %}">
+                <table>
+                    <thead><tr><th scope="col">{% trans "Tag" %}</th><th scope="col" class="num">{% blocktrans with n=health.days %}Questions, last {{ n }} days{% endblocktrans %}</th><th scope="col" class="num">{% trans "Previous period" %}</th><th scope="col" class="num">{% trans "Change" %}</th></tr></thead>
+                    <tbody>
+                    {% for row in health_charts.tags %}<tr><th scope="row"><a href="{% url "tag_questions" row.name %}">{{ row.name }}</a></th><td class="num">{{ row.cur }}</td><td class="num">{{ row.prev }}</td><td class="num">+{{ row.change }}</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </details>
+            {% endif %}
+        </section>
+
+        <section class="module health-chart" id="health-answerers" aria-labelledby="health-answerers-title">
+            <h3 id="health-answerers-title">{% trans "Top answerers" %}</h3>
+            <p class="health-summary">{{ health_charts.summaries.answerers }}</p>
+            {% if health_charts.answerers %}
+            <div class="health-scroll" tabindex="0" role="region" aria-labelledby="health-answerers-title">
+            <table class="health-answerers">
+                <thead><tr><th scope="col">{% trans "Member" %}</th><th scope="col" class="num">{% trans "Answers" %}</th><th scope="col" class="num">{% trans "Accepted" %}</th></tr></thead>
+                <tbody>
+                {% for row in health_charts.answerers %}<tr><th scope="row"><a href="{{ row.url }}">{{ row.username }}</a></th><td class="num">{{ row.answers }}</td><td class="num">{{ row.accepted }}</td></tr>{% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="module health-chart health-chart-wide" id="health-hours" aria-labelledby="health-hours-title">
+            <h3 id="health-hours-title">{% trans "Questions by hour of the week" %}</h3>
+            <p class="health-summary" id="health-hours-summary">{{ health_charts.summaries.heatmap }} {% trans "Server time." %}</p>
+            <div class="health-heatmap" role="img" aria-labelledby="health-hours-title" aria-describedby="health-hours-summary">
+                <span class="health-heat-corner"></span>
+                {% for hour in health_charts.heatmap.0.hours %}<span class="health-heat-hour">{% if hour.hour|divisibleby:6 %}{{ hour.hour }}{% endif %}</span>{% endfor %}
+                {% for day in health_charts.heatmap %}
+                <span class="health-heat-day">{{ day.name|slice:":3" }}</span>
+                {% for hour in day.hours %}<span class="health-heat health-heat-{{ hour.level }}" title="{{ day.name }} {{ hour.hour|stringformat:"02d" }}:00 – {{ hour.count }}"></span>{% endfor %}
+                {% endfor %}
+            </div>
+            <details class="health-table">
+                <summary>{% trans "Show the figures as a table" %}</summary>
+                <div class="health-scroll" tabindex="0" role="region" aria-label="{% trans "Questions by hour of the week" %}">
+                <table class="health-hours-table">
+                    <thead><tr><th scope="col">{% trans "Day" %}</th>{% for hour in health_charts.heatmap.0.hours %}<th scope="col" class="num">{{ hour.hour|stringformat:"02d" }}</th>{% endfor %}</tr></thead>
+                    <tbody>
+                    {% for day in health_charts.heatmap %}<tr><th scope="row">{{ day.name }}</th>{% for hour in day.hours %}<td class="num">{{ hour.count }}</td>{% endfor %}</tr>{% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <details class="health-definitions" id="health-definitions">
+        <summary>{% trans "How these are counted" %}</summary>
+        <dl>
+            <dt>{% trans "Periods" %}</dt>
+            <dd>{% blocktrans with n=health.days %}Each figure covers the last {{ n }} days up to now and is compared with the {{ n }} days before. Times are the server's.{% endblocktrans %}</dd>
+            <dt>{% trans "Posts" %}</dt>
+            <dd>{% trans "Questions, answers and comments count when everybody can see them: deleted posts, posts held for review, posts under a deleted or held question, and posts by suspended or deactivated accounts are left out." %}</dd>
+            <dt>{% trans "Answered" %}</dt>
+            <dd>{% trans "A question is answered by the first answer from someone other than the asker. “Within 24 hours” and “within 7 days” only look at questions at least that old. The median time to first answer is over the questions answered so far." %}</dd>
+            <dt>{% trans "Accepted" %}</dt>
+            <dd>{% trans "Questions asked in the period that have an accepted answer now." %}</dd>
+            <dt>{% trans "Unanswered backlog" %}</dt>
+            <dd>{% trans "Open questions (not closed) of any age without an answer from someone else; the previous figure is the backlog when the period began." %}</dd>
+            <dt>{% trans "Members" %}</dt>
+            <dd>{% trans "Accounts that joined in the period and are not suspended. “Confirmed their email” is as of now; “posted within 7 days” counts a question, answer or comment within a week of joining and only looks at members who joined at least 7 days ago." %}</dd>
+            <dt>{% trans "Active and returning members" %}</dt>
+            <dd>{% trans "Active members posted or voted in the period; returning members were active in the previous period too." %}</dd>
+            <dt>{% trans "Moderation" %}</dt>
+            <dd>{% trans "Waiting items are what the moderation inbox shows now. A flag is resolved when it is dismissed or the post is deleted; a first post review when the post is approved or deleted; a suggested edit when it is approved or rejected. Times are medians over what was resolved in the period." %}</dd>
+            <dt>{% trans "Tags and answerers" %}</dt>
+            <dd>{% blocktrans with n=health.days %}Growing tags were used on more questions in the last {{ n }} days than in the {{ n }} days before. Top answerers wrote the most answers in the period.{% endblocktrans %}</dd>
+        </dl>
+    </details>
+</section>
+<script nonce="{{ csp_nonce }}">
+$(function () {
+    var data = document.getElementById('health-daily-data');
+    if (data && window.osqaTimeChart) {
+        osqaTimeChart('#health-daily-chart', JSON.parse(data.textContent), {yaxis: {min: 0}});
+    }
+});
+</script>
