@@ -272,8 +272,12 @@ urlpatterns += core_defined
 if djsettings.DEBUG:
     try:
         import debug_toolbar
+        from forum.utils.static_files import serve_file
+        # Its CSS and JS live under STATIC_URL, which only Django's (unused) staticfiles app would serve.
+        toolbar_media = os.path.join(os.path.dirname(debug_toolbar.__file__), 'static', 'debug_toolbar')
         urlpatterns = [
             re_path(r'^__debug__/', include(debug_toolbar.urls)),
+            re_path(r'^m/static/debug_toolbar/(?P<path>.*)$', serve_file, {'document_root': toolbar_media}),
         ] + urlpatterns
     except ImportError:
         pass
